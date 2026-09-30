@@ -1,0 +1,99 @@
+# 织愈 AI 能力配置清单
+# 机器可读、可校验；说明性文字放 AGENTS.md / project-context.md
+
+ai:
+  default_provider: deepseek        # deepseek | qwen | ollama-local
+  providers:
+    deepseek:
+      endpoint: ${DEEPSEEK_BASE_URL}
+      api_key: ${DEEPSEEK_API_KEY}
+      chat_model: deepseek-chat
+      timeout_ms: 20000
+      max_output_tokens: 600
+    qwen:
+      endpoint: ${QWEN_BASE_URL}
+      api_key: ${QWEN_API_KEY}
+      chat_model: qwen-plus
+    ollama-local:
+      endpoint: http://localhost:11434
+      chat_model: qwen2.5:7b
+      note: 本地化部署模式，数据不出校园
+
+  # 对话
+  chat:
+    stream: true
+    first_token_timeout_ms: 2000     # 需求规格 NFR-02 上限
+    system_prompt: prompts/companion.st
+    temperature: 0.7
+    max_history_turns: 10
+
+  # 推荐（规则 + LLM 混合）
+  recommendation:
+    rule_first: true
+    rules:
+      - mood: anxious
+        prefer_tags: [编织, 刺绣, 赣绣]
+      - mood: stressed
+        prefer_tags: [扎染, 陶艺, 篆刻]
+      - mood: depressed
+        prefer_tags: [剪纸, 纸艺, 拼贴]
+      - mood: angry
+        prefer_tags: [陶艺, 捶草印花]
+    llm:
+      enabled: true
+      purpose: 生成个性化推荐理由与引导语，不决定选品
+      prompt: prompts/recommend.st
+
+  # 作品寄语
+  work_message:
+    enabled: true
+    prompt: prompts/work_message.st
+
+  # 心流
+  flow:
+    focus_idle_seconds: 300          # 连续 5 分钟无步骤切换 = 心流
+    stuck_repeat_times: 3            # 同一步骤停留超过该值（>3）才判定焦躁
+    breathing:
+      inhale_ms: 4000
+      exhale_ms: 6000
+
+  # 内容安全
+  safety:
+    input_filter: true
+    output_filter: true
+    policy: prompts/safety.st
+    on_block: safe_reply
+    log_to: ai_audit_log
+    high_risk_lexicon: lexicon/high-risk.txt   # 高危词库，外置，不硬编码在配置里
+
+  # 熔断与降级（按资源 key 隔离）
+  resilience:
+    failure_threshold: 5
+    open_seconds: 60
+    half_open_probe: true
+    resources:
+      - llm-chat
+      - llm-recommend
+      - llm-message
+      - asr
+      - tts
+    fallback:
+      llm-chat: 缓存图文陪伴话术
+      llm-recommend: 纯规则推荐
+      asr: 提示用户改用文字输入
+      tts: 静默，仅展示文字
+
+  # RAG 非遗知识库
+  rag:
+    enabled: true
+    vector_store: chroma             # chroma | milvus
+    collection: zhiyu_intangible
+    top_k: 4
+    rerank: keyword_overlap
+
+  # 语音
+  voice:
+    asr:
+      provider: xunfei               # xunfei | aliyun | baidu
+    tts:
+      provider: xunfei

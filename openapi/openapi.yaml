@@ -1,0 +1,369 @@
+openapi: 3.0.3
+info:
+  title: 织愈 API
+  version: 1.0.0
+  description: |
+    「织愈」后端接口契约。统一响应体：
+    `{ code: 0, message: "操作成功", data: {} }`
+    错误码见 AGENTS.md §3。对话接口使用 SSE（text/event-stream）。
+servers:
+  - url: http://localhost:8080
+    description: 本地开发
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Result:
+      type: object
+      properties:
+        code: { type: integer, example: 0 }
+        message: { type: string, example: 操作成功 }
+        data: { type: object }
+
+    LoginReq:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: student01 }
+        password: { type: string, format: password }
+
+    RegisterReq:
+      type: object
+      required: [username, password, nickname]
+      properties:
+        username: { type: string }
+        password: { type: string, format: password }
+        nickname: { type: string }
+
+    ChatReq:
+      type: object
+      required: [message]
+      properties:
+        sessionId: { type: integer, nullable: true }
+        message: { type: string, example: 今天考试周压力很大 }
+
+    NoteReq:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string }
+        mood: { type: string, nullable: true }
+
+    HeartbeatReq:
+      type: object
+      required: [action]
+      properties:
+        stepNo: { type: integer, description: 当前步骤序号 }
+        action: { type: string, enum: [next, pause, resume, finish, abandon] }
+        dwellSeconds: { type: integer, description: 在本步骤停留秒数 }
+        isExited: { type: boolean, description: 是否主动退出 }
+        isBreathingResponded: { type: boolean, description: 是否响应了呼吸提醒 }
+
+    WorkPublishReq:
+      type: object
+      required: [title]
+      properties:
+        sessionId: { type: integer, nullable: true }
+        title: { type: string }
+        message: { type: string, nullable: true, description: AI 寄语，可由系统生成 }
+        visible: { type: integer, enum: [0, 1, 2], description: 0私密 1公开 2仅小组, default: 1 }
+
+    CraftProject:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        intro: { type: string }
+        cultureBg: { type: string }
+        level: { type: integer, description: 1入门 2进阶 3高阶 }
+        estMinutes: { type: integer }
+        therapyTags: { type: array, items: { type: string } }
+
+    CommentReq:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, maxLength: 255 }
+
+paths:
+  # ---------- 认证 ----------
+  /api/auth/register:
+    post:
+      summary: 注册
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterReq' }
+      responses:
+        '200': { description: 注册结果，code=2002 表示用户名已存在, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+
+  /api/auth/login:
+    post:
+      summary: 登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginReq' }
+      responses:
+        '200': { description: 成功返回 token；失败 code=2001, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+
+  /api/auth/me:
+    get:
+      summary: 当前用户信息
+      responses:
+        '200': { description: 当前用户, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+
+  # ---------- 情绪 ----------
+  /api/emotion/sessions:
+    get:
+      summary: 当前用户会话历史列表
+      responses:
+        '200': { description: 会话列表 }
+
+  /api/emotion/chat:
+    post:
+      summary: AI 情绪对话（SSE 流式）
+      description: |
+        返回 Content-Type: text/event-stream。事件：
+        - message: { "delta": "你好" }
+        - done: { "sessionId": 123 }
+        - error: 失败（熔断/超时），前端降级为缓存图文陪伴话术
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChatReq' }
+      responses:
+        '200':
+          description: SSE 流
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /api/emotion/note:
+    post:
+      summary: 记录心情便签（加密存储）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteReq' }
+      responses:
+        '200':
+          description: 保存结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+
+  # ---------- 手作 ----------
+  /api/craft/projects:
+    get:
+      summary: 手作项目列表（已上架）
+      parameters:
+        - { name: tag, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer }, description: 页码，从 1 开始 }
+        - { name: size, in: query, schema: { type: integer }, description: 每页条数，默认 10 }
+      responses:
+        '200': { description: 分页项目列表 }
+
+  /api/craft/projects/{id}/steps:
+    get:
+      summary: 项目步骤详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: 步骤列表 }
+
+  /api/craft/recommend:
+    get:
+      summary: 根据当前心情推荐手作
+      parameters:
+        - { name: sessionId, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: 推荐项目列表 + 个性化理由 }
+
+  /api/craft/session:
+    post:
+      summary: 创建创作会话（状态：待开始→进行中）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId]
+              properties:
+                projectId: { type: integer }
+      responses:
+        '200': { description: 会话信息 }
+
+  /api/craft/session/{id}:
+    get:
+      summary: 查询创作会话进度
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: 会话状态、当前步骤、心流时长 }
+
+  /api/craft/session/{id}/status:
+    put:
+      summary: 推进创作会话状态机
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [start, pause, resume, finish, abandon] }
+      responses:
+        '200':
+          description: 状态推进成功；非法流转返回 code=3001
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+
+  /api/craft/session/{id}/heartbeat:
+    post:
+      summary: 上报步骤心跳，驱动心流/焦躁判定
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HeartbeatReq' }
+      responses:
+        '200':
+          description: 返回是否心流 / 是否需要呼吸引导
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inFlow: { type: boolean }
+                  needBreathing: { type: boolean }
+
+  # ---------- 作品社区 ----------
+  /api/works:
+    get:
+      summary: 作品社区流
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: size, in: query, schema: { type: integer } }
+    post:
+      summary: 发布作品
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkPublishReq' }
+      responses:
+        '200': { description: 发布结果 }
+
+  /api/works/{id}/like:
+    post:
+      summary: 点赞/收藏作品
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: { type: integer, enum: [1, 0], description: 1点赞 0收藏, default: 1 }
+
+  /api/works/{id}/comments:
+    post:
+      summary: 发表留暖评论
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentReq' }
+
+  # ---------- 互助小组 ----------
+  /api/groups:
+    get:
+      summary: 小组列表
+    post:
+      summary: 创建小组（学生/组长）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+                maxCount: { type: integer, default: 50 }
+
+  /api/groups/{id}/join:
+    post:
+      summary: 加入小组
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+
+  # ---------- 传承人 ----------
+  /api/inheritor/projects:
+    post:
+      summary: 传承人提交手作项目（进入待审）
+    get:
+      summary: 传承人查看自己提交的项目
+
+  /api/inheritor/courses:
+    get:
+      summary: 传承人课程列表
+    post:
+      summary: 传承人新建课程
+
+  # ---------- 管理端 ----------
+  /api/admin/audit-queue:
+    get:
+      summary: 管理员：待审核内容队列（项目/作品/评论）
+      parameters:
+        - { name: type, in: query, schema: { type: string, enum: [project, work, comment] } }
+        - { name: page, in: query, schema: { type: integer } }
+
+  /api/admin/projects/{id}/audit:
+    put:
+      summary: 管理员：审核手作项目（通过/驳回）
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [approve, reject] }
+                reason: { type: string }
+
+  /api/admin/care-reminders:
+    get:
+      summary: 咨询师/管理员：脱敏关怀提醒汇总
+
+  /api/admin/dashboard/stats:
+    get:
+      summary: 数据看板指标（闭环完成率、心流时长、作品数等）

@@ -1,0 +1,113 @@
+# 织愈（ZhiYu）
+
+> 用一针一线，缝补青春的焦虑。
+>
+> AI 引导下的非遗艺术疗愈平台 —— 把情绪倾听、手作推荐、专注创作与社区分享串成完整疗愈闭环。
+
+## 这是什么
+
+面向在校大学生的情绪陪伴与非遗手作疗愈应用。学生在情绪低落时可与 AI 陪伴助手对话，
+系统根据其当下状态推荐合适的非遗手作项目（赣绣、剪纸、扎染、陶艺等），在分步引导下完成创作，
+并通过匿名作品分享获得同伴温暖反馈。
+
+**产品定位**：陪伴与引导，非医疗诊断。本系统不能替代专业心理咨询。
+
+## 技术栈
+
+- 后端：Java 17 · Spring Boot 3.2 · Spring AI · MyBatis-Plus 3.5 · MySQL 8 · Redis 7
+- 学生端：UniApp（Vue3 + Vite + Pinia）→ 微信小程序 + H5
+- 管理端：Vue3 + Vite + Element Plus + ECharts
+- AI：DeepSeek / 通义千问（云端），Ollama + Qwen（本地模式）
+- 向量库：Milvus / Chroma（非遗知识库 RAG）
+
+## 目录结构
+
+```
+织愈/
+├── AGENTS.md                  # AI 编码 Agent 必读约定
+├── docs/
+│   ├── project-context.md    # 项目上下文与架构约束、历史决策
+│   ├── task-breakdown.md      # 任务拆解与里程碑
+│   └── privacy-policy.md      # 隐私政策与用户协议
+├── features/                  # Gherkin BDD 用例
+├── openapi/openapi.yaml       # 后端接口契约
+├── ai-config/ai-capabilities.yaml  # AI 能力与阈值配置
+├── sql/
+│   ├── schema.sql             # 建表 DDL
+│   └── init-data.sql          # 字典/初始数据
+├── .env.example               # 环境变量模板
+├── zhiyu-backend/             # Spring Boot 后端（待建）
+├── zhiyu-app/                 # UniApp 学生端（待建）
+└── zhiyu-admin/               # Vue3 管理端（待建）
+```
+
+## 快速开始
+
+### 1. 准备环境
+
+```bash
+cp .env.example .env
+# 编辑 .env，填入数据库、Redis、大模型 API Key 等
+```
+
+### 2. 初始化数据库
+
+```bash
+mysql -u root -p < sql/schema.sql
+mysql -u root -p zhiyu < sql/init-data.sql
+```
+
+### 3. 启动后端
+
+```bash
+cd zhiyu-backend
+mvn spring-boot:run
+# 默认 http://localhost:8080
+# Swagger UI: http://localhost:8080/swagger-ui/index.html
+```
+
+### 4. 启动学生端（UniApp）
+
+```bash
+cd zhiyu-app
+npm install
+npm run dev:h5          # H5 调试
+# 或用 HBuilderX 打开，运行到微信小程序模拟器
+```
+
+### 5. 启动管理端
+
+```bash
+cd zhiyu-admin
+npm install
+npm run dev
+# http://localhost:5173
+```
+
+## 角色
+
+| 角色 | 端 | 主要能力 |
+|---|---|---|
+| 学生 | 小程序 / H5 | AI 情绪倾听、手作推荐、创作、作品社区、互助小组 |
+| 传承人 | Web | 上传手作项目/步骤/语音、开课、一对一指导 |
+| 心理咨询师 | Web | 查看脱敏关怀提醒汇总，线下兜底 |
+| 管理员 | Web | 内容审核、用户管理、数据看板、团体活动、配置 |
+
+## 核心闭环
+
+```
+情绪表达（AI 对话）
+   ↓
+疗愈推荐（规则 + LLM 生成理由）
+   ↓
+专注创作（分步引导 + 心流检测 + 呼吸提醒）
+   ↓
+作品分享（匿名发布 + 留暖 + 寄语）
+   ↓
+社区互助（小组结伴，循环回到情绪表达）
+```
+
+## 文档
+
+- 设计文档（概要/详细/需求规格）见仓库根目录 `.docx`。
+- 开发者与 AI Agent 协作先读 [`AGENTS.md`](./AGENTS.md)。

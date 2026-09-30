@@ -1,0 +1,81 @@
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+*.log
+
+# ===== IDE / Editor =====
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.factorypath
+*.swp
+*.swo
+
+# ===== Java / Maven / Spring Boot =====
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*
+HELP.md
+
+# ===== Node / npm / pnpm / yarn =====
+node_modules/
+dist/
+dist-ssr/
+.unpackage/
+.hbuilderx/
+*.local
+.npm
+.pnpm-store/
+.yarn/cache/
+
+# ===== UniApp / HBuilderX =====
+unpackage/
+.hbuilderx/
+
+# ===== Vite / 前端构建 =====
+.vite/
+*.tsbuildinfo
+stats.html
+
+# ===== 环境变量与密钥（.env.example 必须提交，其余忽略）=====
+.env
+.env.*
+!.env.example
+
+# ===== 日志 =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== 本地数据与上传文件 =====
+data/upload/
+data/
+uploads/
+!sql/*.sql
+
+# ===== 临时/压缩包 =====
+*.tmp
+*.bak
+*.zip
+*.rar
+*.7z
