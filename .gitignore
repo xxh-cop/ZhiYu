@@ -106,6 +106,7 @@ application-test.yaml
 .continue/
 .windsurf/
 .ai-tmp/
+.acl-recovery/
 .deepseek/
 .dsh/
 .qoder/

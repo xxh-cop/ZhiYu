@@ -6,6 +6,10 @@ info:
     「织愈」后端接口契约。统一响应体：
     `{ code: 0, message: "操作成功", data: {} }`
     错误码见 AGENTS.md §3。对话接口使用 SSE（text/event-stream）。
+
+    约定：
+    - 除 SSE 接口外，所有接口的响应 body 统一包 Result。
+    - SSE 接口（/api/emotion/chat）不使用 HTTP 层错误码，失败通过 `event: error` 推送，由前端降级。
 servers:
   - url: http://localhost:8080
     description: 本地开发
@@ -24,9 +28,9 @@ components:
     Result:
       type: object
       properties:
-        code: { type: integer, example: 0 }
-        message: { type: string, example: 操作成功 }
-        data: { type: object }
+        code: { type: integer, default: 0, example: 0 }
+        message: { type: string, default: 操作成功, example: 操作成功 }
+        data: { description: 业务数据，结构随接口而定（对象/数组/标量均可） }
 
     LoginReq:
       type: object
@@ -59,13 +63,37 @@ components:
 
     HeartbeatReq:
       type: object
-      required: [action]
+      description: |
+        步骤心跳：只上报步骤推进与心流信号，不修改会话主状态机。
+        主状态机流转请使用 PUT /api/craft/session/{id}/status。
       properties:
         stepNo: { type: integer, description: 当前步骤序号 }
-        action: { type: string, enum: [next, pause, resume, finish, abandon] }
         dwellSeconds: { type: integer, description: 在本步骤停留秒数 }
         isExited: { type: boolean, description: 是否主动退出 }
         isBreathingResponded: { type: boolean, description: 是否响应了呼吸提醒 }
+
+    HeartbeatResult:
+      description: 心跳响应，统一包 Result，data 为心流判定信号
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                inFlow: { type: boolean, description: 是否处于心流状态（连续 5 分钟无步骤切换且未主动退出） }
+                needBreathing: { type: boolean, description: 是否需要呼吸引导（焦躁：同一步骤反复停留>3 次且未响应呼吸提醒） }
+
+    LikeResult:
+      description: 点赞/收藏 toggle 结果，统一包 Result，data.active 表示本次请求后的状态
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                active: { type: boolean, description: true=已点赞/已收藏；false=本次请求执行了取消 }
 
     WorkPublishReq:
       type: object
@@ -75,6 +103,10 @@ components:
         title: { type: string }
         message: { type: string, nullable: true, description: AI 寄语，可由系统生成 }
         visible: { type: integer, enum: [0, 1, 2], description: 0私密 1公开 2仅小组, default: 1 }
+        anonymous:
+          type: boolean
+          default: true
+          description: 后端仍存 user_id，anonymous 仅控制展示层；true 时展示为「匿名同学」。与 visible 正交共存。
 
     CraftProject:
       type: object
@@ -85,7 +117,8 @@ components:
         cultureBg: { type: string }
         level: { type: integer, description: 1入门 2进阶 3高阶 }
         estMinutes: { type: integer }
-        therapyTags: { type: array, items: { type: string } }
+        category: { type: string, description: 技艺品类，取值见 dict_category.label }
+        therapyTags: { type: array, items: { type: string }, description: 疗愈效果标签，词表见 dict_therapy_tags }
 
     CommentReq:
       type: object
@@ -130,16 +163,21 @@ paths:
     get:
       summary: 当前用户会话历史列表
       responses:
-        '200': { description: 会话列表 }
+        '200':
+          description: 会话列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/emotion/chat:
     post:
       summary: AI 情绪对话（SSE 流式）
       description: |
-        返回 Content-Type: text/event-stream。事件：
+        返回 Content-Type: text/event-stream，HTTP 状态码恒为 200。
+        事件：
         - message: { "delta": "你好" }
         - done: { "sessionId": 123 }
-        - error: 失败（熔断/超时），前端降级为缓存图文陪伴话术
+        - error: 失败（熔断/超时），不使用 HTTP 层错误码，前端降级为缓存图文陪伴话术
       requestBody:
         required: true
         content:
@@ -176,7 +214,18 @@ paths:
         - { name: page, in: query, schema: { type: integer }, description: 页码，从 1 开始 }
         - { name: size, in: query, schema: { type: integer }, description: 每页条数，默认 10 }
       responses:
-        '200': { description: 分页项目列表 }
+        '200':
+          description: 分页项目列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/CraftProject' }
 
   /api/craft/projects/{id}/steps:
     get:
@@ -184,7 +233,11 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: 步骤列表 }
+        '200':
+          description: 步骤列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/craft/recommend:
     get:
@@ -192,11 +245,18 @@ paths:
       parameters:
         - { name: sessionId, in: query, schema: { type: integer } }
       responses:
-        '200': { description: 推荐项目列表 + 个性化理由 }
+        '200':
+          description: 推荐项目列表 + 个性化理由
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/craft/session:
     post:
-      summary: 创建创作会话（状态：待开始→进行中）
+      summary: 创建会话，状态直接为进行中
+      description: |
+        创建后 craft_session.status 直接为 1（进行中），不存在「待开始」中间态。
+        状态机只有 pause / resume / finish / abandon 四个流转动作，没有 start。
       requestBody:
         required: true
         content:
@@ -207,7 +267,11 @@ paths:
               properties:
                 projectId: { type: integer }
       responses:
-        '200': { description: 会话信息 }
+        '200':
+          description: 会话信息（status=1 进行中）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/craft/session/{id}:
     get:
@@ -215,7 +279,11 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: 会话状态、当前步骤、心流时长 }
+        '200':
+          description: 会话状态、当前步骤、心流时长（flow_seconds，占比 = flow_seconds/(end_time-start_time)）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/craft/session/{id}/status:
     put:
@@ -230,7 +298,7 @@ paths:
               type: object
               required: [action]
               properties:
-                action: { type: string, enum: [start, pause, resume, finish, abandon] }
+                action: { type: string, enum: [pause, resume, finish, abandon], description: 无 start；创建即为进行中 }
       responses:
         '200':
           description: 状态推进成功；非法流转返回 code=3001
@@ -241,6 +309,7 @@ paths:
   /api/craft/session/{id}/heartbeat:
     post:
       summary: 上报步骤心跳，驱动心流/焦躁判定
+      description: 只上报步骤推进与心流信号，不改动会话主状态机。
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:
@@ -250,14 +319,10 @@ paths:
             schema: { $ref: '#/components/schemas/HeartbeatReq' }
       responses:
         '200':
-          description: 返回是否心流 / 是否需要呼吸引导
+          description: '返回是否心流 / 是否需要呼吸引导，形如 { code: 0, data: { inFlow: false, needBreathing: false } }'
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  inFlow: { type: boolean }
-                  needBreathing: { type: boolean }
+              schema: { $ref: '#/components/schemas/HeartbeatResult' }
 
   # ---------- 作品社区 ----------
   /api/works:
@@ -266,6 +331,12 @@ paths:
       parameters:
         - { name: page, in: query, schema: { type: integer } }
         - { name: size, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: 作品列表（anonymous=1 的作品展示为「匿名同学」，后端仍存 user_id）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
     post:
       summary: 发布作品
       requestBody:
@@ -274,11 +345,18 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/WorkPublishReq' }
       responses:
-        '200': { description: 发布结果 }
+        '200':
+          description: 发布结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/works/{id}/like:
     post:
-      summary: 点赞/收藏作品
+      summary: 点赞/收藏作品（toggle）
+      description: |
+        toggle 语义：同一 user + work + type 重复请求即取消。
+        点赞（type=1）与收藏（type=0）可并存，唯一键为 (work_id, user_id, type)。
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:
@@ -288,6 +366,12 @@ paths:
               type: object
               properties:
                 type: { type: integer, enum: [1, 0], description: 1点赞 0收藏, default: 1 }
+      responses:
+        '200':
+          description: 本次请求后的状态，data.active=true 表示已点赞/已收藏，false 表示已取消
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LikeResult' }
 
   /api/works/{id}/comments:
     post:
@@ -299,11 +383,23 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/CommentReq' }
+      responses:
+        '200':
+          description: 评论结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   # ---------- 互助小组 ----------
   /api/groups:
     get:
       summary: 小组列表
+      responses:
+        '200':
+          description: 小组列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
     post:
       summary: 创建小组（学生/组长）
       requestBody:
@@ -316,37 +412,81 @@ paths:
                 name: { type: string }
                 description: { type: string }
                 maxCount: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: 创建结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/groups/{id}/join:
     post:
       summary: 加入小组
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: 加入结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   # ---------- 传承人 ----------
   /api/inheritor/projects:
     post:
       summary: 传承人提交手作项目（进入待审）
+      responses:
+        '200':
+          description: 提交结果（进入待审队列）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
     get:
       summary: 传承人查看自己提交的项目
+      responses:
+        '200':
+          description: 自己提交的项目列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/inheritor/courses:
     get:
       summary: 传承人课程列表
+      responses:
+        '200':
+          description: 课程列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
     post:
       summary: 传承人新建课程
+      responses:
+        '200':
+          description: 新建结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   # ---------- 管理端 ----------
   /api/admin/audit-queue:
     get:
       summary: 管理员：待审核内容队列（项目/作品/评论）
+      x-required-role: admin
       parameters:
         - { name: type, in: query, schema: { type: string, enum: [project, work, comment] } }
         - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: 待审队列
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/admin/projects/{id}/audit:
     put:
       summary: 管理员：审核手作项目（通过/驳回）
+      x-required-role: admin
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:
@@ -359,11 +499,31 @@ paths:
               properties:
                 action: { type: string, enum: [approve, reject] }
                 reason: { type: string }
+      responses:
+        '200':
+          description: 审核结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/admin/care-reminders:
     get:
       summary: 咨询师/管理员：脱敏关怀提醒汇总
+      x-required-role: admin
+      responses:
+        '200':
+          description: 脱敏关怀提醒列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
 
   /api/admin/dashboard/stats:
     get:
       summary: 数据看板指标（闭环完成率、心流时长、作品数等）
+      x-required-role: admin
+      responses:
+        '200':
+          description: 看板指标
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }

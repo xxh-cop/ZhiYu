@@ -16,10 +16,13 @@
 
 ## M0 · 工程地基（P0）
 
+- [x] T0.0 契约与文档修正：按 AI Agent 审查口径统一 A/B/C 三组口径，修正 `sql/`、`openapi/openapi.yaml`、`features/`、`ai-config/` 与文档配置
+  - Done：`schema.sql` + `dict-*.sql` + `init-data.sql` 可重复执行无报错；`openapi.yaml` 通过 lint 与结构校验；7 个 `.feature` 均可被 Gherkin 解析且 Background 生效。
 - [ ] T0.1 后端脚手架：Spring Boot 3.2、包结构、统一 Result、全局异常处理（错误码见 AGENTS.md §3）
   - Done：`mvn compile` 通过；`/api/auth/register`、`/api/auth/login` 可用；返回统一体。
 - [ ] T0.2 数据库：执行 `sql/schema.sql`、`sql/init-data.sql`；MyBatis-Plus 分页插件、逻辑删除、自动填充
   - Done：`User` 表 CRUD 单测通过；`create_time/update_time/deleted` 自动维护。
+  - 测试库策略：单元测试用 **H2 + MySQL 模式**，DDL 见 `sql/schema-h2.sql`；JDBC URL **必须包含 `NON_KEYWORDS=USER`**（H2 2.x 中 `user` 是保留字，否则建表与 `SELECT ... FROM user` 都报 `expected identifier`）；集成测试用真实 MySQL。
 - [ ] T0.3 JWT 鉴权过滤器 + ThreadLocal 当前用户；角色拦截器
   - Done：未登录访问 `/api/emotion/**` 返回 1002；学生访问 `/api/admin/**` 返回 1003。
 - [ ] T0.4 跨域、全局异常、参数校验（`@Valid` + JSR-303）
@@ -30,6 +33,9 @@
   - Done：浏览器登录后看到空看板。
 - [ ] T0.7 仓库基线：AGENTS.md 自检、`.env.example` 校验、SQL 可重复执行、`openapi.yaml` 可解析
   - Done：`sql/schema.sql` 与 `init-data.sql` 全新环境执行无报错；OpenAPI YAML 可被 Swagger/Apifox 导入。
+- [ ] T0.8 AI 资源占位（占位文件已在 T0.0 顺带完成，Done 待 M1 验证）
+  - 内容：`resources/prompts/*.st` ×4（`companion.st` / `recommend.st` / `work_message.st` / `safety.st`）、`resources/lexicon/high-risk.txt`、`resources/fallback/` ×2。
+  - Done：应用启动时 `PromptTemplate` 加载不报错（**待 M1 验证**）；Prompt 正文与高危词库的内容完善留到 T1.1 / T1.4。
 
 ## M1 · 疗愈闭环 MVP（P0）
 

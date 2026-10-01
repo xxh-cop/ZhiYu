@@ -53,9 +53,15 @@ cp .env.example .env
 ### 2. 初始化数据库
 
 ```bash
+# 按此顺序执行。schema.sql 不传库名，因为它内部已 `USE zhiyu`
 mysql -u root -p < sql/schema.sql
+mysql -u root -p zhiyu < sql/dict-category.sql
+mysql -u root -p zhiyu < sql/dict-therapy-tags.sql
 mysql -u root -p zhiyu < sql/init-data.sql
 ```
+
+> 以上脚本均幂等（`CREATE TABLE IF NOT EXISTS` + `ON DUPLICATE KEY UPDATE`），可重复执行。
+> 本地需要重置时：先 `mysql -u root -p < sql/reset.sql`，再重跑上面四条。
 
 ### 3. 启动后端
 

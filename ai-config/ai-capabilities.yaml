@@ -32,13 +32,15 @@ ai:
     rule_first: true
     rules:
       - mood: anxious
-        prefer_tags: [编织, 刺绣, 赣绣]
+        prefer_tags: [静心, 专注, 安抚]
       - mood: stressed
-        prefer_tags: [扎染, 陶艺, 篆刻]
+        prefer_tags: [放空, 释放, 触觉安抚]
       - mood: depressed
-        prefer_tags: [剪纸, 纸艺, 拼贴]
+        prefer_tags: [成就感, 陪伴, 创造表达]
       - mood: angry
-        prefer_tags: [陶艺, 捶草印花]
+        prefer_tags: [物理宣泄, 释放, 触觉安抚]
+      - mood: tired
+        prefer_tags: [轻量成就, 安抚, 陪伴]
     llm:
       enabled: true
       purpose: 生成个性化推荐理由与引导语，不决定选品

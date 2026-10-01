@@ -63,6 +63,9 @@ com.zhiyu
 | 4001 | AI 服务不可用（已降级） | 200 |
 | 5000 | 服务器内部错误 | 500 |
 
+> 注：错误码 `4001` 仅用于**非 SSE 接口**（推荐、寄语等）。SSE 接口（`POST /api/emotion/chat`）
+> 的 AI 故障不使用 `4001`，改用 `event: error` 推送，前端收到后**降级为缓存图文**。
+
 统一响应体：
 ```json
 { "code": 0, "message": "操作成功", "data": {} }
@@ -82,8 +85,12 @@ com.zhiyu
 
 - 所有业务表必须含 `id`、`create_time`、`update_time`、`deleted`（逻辑删除）；
   **审计日志表 `ai_audit_log` 例外**，只追加不更新不删除，可只保留 `create_time`。
-- 敏感字段（对话内容、心情便签、关怀提醒）**应用层加密**，密钥只存服务端；
+- **主键策略**：主键由应用侧 MyBatis-Plus `ASSIGN_ID`（雪花算法）生成，**DDL 不设 `AUTO_INCREMENT`**；
+  种子数据可手动指定小整数 ID。
+- 敏感字段（对话内容、心情便签）**应用层加密**，密钥只存服务端；
   前端拿到的永远是服务端解密后的明文，**不得在前端做加解密**。
+- **上一条的例外**：`care_reminder.summary` 存**脱敏文本、不加密**（已去除可识别身份的信息，供授权角色查看）；
+  `ai_audit_log.raw_input` / `ai_output` **加密存储**。
 - 查询必须带「本人数据」或「授权范围」过滤；咨询师看到的是脱敏汇总。
 - 建表 DDL 一律放 `sql/schema.sql`，**不要写在 .md 代码块里**；初始化数据放 `sql/init-data.sql`。
 
@@ -121,7 +128,19 @@ com.zhiyu
 | 初始化数据 | `sql/init-data.sql` |
 | 环境变量模板 | `.env.example` |
 
-## 10. Git 约定
+> 根目录 docx（概要设计说明书 V4 / 详细设计说明书上、下篇 / 需求规格说明书）为历史交付物；
+> 当 docx 与仓库内的 `.md` / `.yaml` / `.sql` 冲突时，**以仓库内为准**。
+
+## 10. 环境注意（Windows + DSH 沙箱）
+
+- **Maven 本地仓库**：默认路径 `D:\Java\mvn-repository` 在工作区之外，沙箱会拒绝写入并报
+  `AccessDeniedException`。拉依赖时加 `-Dmaven.repo.local=.ai-tmp/m2` 指到仓库内。
+- **出网**：pwsh 侧的 `curl` / `Invoke-WebRequest` 被沙箱阻断（`schannel: SEC_E_NO_CREDENTIALS`）；
+  走 Maven / Java 自己的 TLS 栈可正常访问网络。
+- **中文文件分析**：**禁止**用 pwsh 的 `Get-Content` / `Select-String` 读本仓库的 `.md` / `.sql`
+  （会把 UTF-8 当 GBK 解码，产生乱码并合并相邻行）；一律用 node 或 Java 显式按 UTF-8 读取。
+
+## 11. Git 约定
 
 - 分支：`main`（可运行）/ `dev`（集成）/ `feature/*`（AI 工作分支）
 - 提交信息：`feat(模块): 描述` / `fix(模块): 描述` / `docs: 描述` / `chore: 描述`
