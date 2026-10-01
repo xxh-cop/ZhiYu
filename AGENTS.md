@@ -139,6 +139,10 @@ com.zhiyu
   走 Maven / Java 自己的 TLS 栈可正常访问网络。
 - **中文文件分析**：**禁止**用 pwsh 的 `Get-Content` / `Select-String` 读本仓库的 `.md` / `.sql`
   （会把 UTF-8 当 GBK 解码，产生乱码并合并相邻行）；一律用 node 或 Java 显式按 UTF-8 读取。
+- **运行期读 UTF-8 中文资源**：读取 UTF-8 中文资源（`resources/prompts/*.st`、
+  `resources/lexicon/*.txt`、`resources/fallback/*.md`）时，必须显式指定 UTF-8，
+  不得依赖 `file.encoding`（JDK 17 在 Windows 下默认 GBK）。
+  例：`new InputStreamReader(in, StandardCharsets.UTF_8)`
 
 ## 11. Git 约定
 
