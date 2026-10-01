@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS user (
   avatar_url  VARCHAR(255) DEFAULT NULL COMMENT '头像',
   school      VARCHAR(100) DEFAULT NULL COMMENT '所在学校',
   craft_preferences VARCHAR(255) DEFAULT NULL COMMENT '手作偏好标签,逗号分隔',
-  can_contact TINYINT      NOT NULL DEFAULT 1 COMMENT '0不允许 1允许心理咨询师联系',
+  can_contact TINYINT      NOT NULL DEFAULT 0 COMMENT '0不允许 1允许心理咨询师联系；默认 0，需用户单独授权',
   role        TINYINT      NOT NULL DEFAULT 0 COMMENT '0学生 1传承人 2咨询师 3管理员',
   status      TINYINT      NOT NULL DEFAULT 1 COMMENT '0禁用 1正常',
   create_time DATETIME     DEFAULT NULL,
@@ -330,3 +330,16 @@ CREATE TABLE IF NOT EXISTS ai_audit_log (
   PRIMARY KEY (id),
   KEY idx_scene (scene)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI审核日志表';
+
+-- ============================================================
+-- 老库补丁区（幂等，可重复执行）
+--
+-- 上面的建表语句一律是 CREATE TABLE IF NOT EXISTS，所以「修改列定义」（如改 DEFAULT、
+-- 改 COMMENT）不会作用到已存在的表 —— 这类变更必须在这里显式 ALTER 一次。
+-- 本区放在 schema.sql 末尾而不是 reset.sql：reset.sql 只负责重建空库，
+-- 它执行时 user 表尚不存在，把 ALTER 放那里必然报 ERROR 1146。
+-- ============================================================
+
+-- T0.2b：user.can_contact 默认值 1 → 0（咨询师联系用户须由用户单独授权）
+ALTER TABLE user MODIFY COLUMN can_contact TINYINT NOT NULL DEFAULT 0
+  COMMENT '0不允许 1允许心理咨询师联系；默认 0，需用户单独授权';
