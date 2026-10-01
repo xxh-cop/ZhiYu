@@ -57,6 +57,14 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- 密码哈希：只用 BCryptPasswordEncoder。
+             刻意不引 spring-boot-starter-security（那会拉起整个安全框架，T0.3 才需要）。
+             版本由 spring-boot-starter-parent 统一管理。 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
         <!-- Lombok，仅编译期 -->
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -159,6 +159,9 @@ com.zhiyu
 - **改 `openapi/openapi.yaml`**：**优先用 `edit` 工具，不要用 node / pwsh 脚本批量改**
   （沙箱对该文件的脚本写入直接拒绝：`EPERM: operation not permitted`；`edit` / `write` 工具
   走的是另一条通道，不受此限）。确有必要用脚本时，需把该次命令升级到 `danger-full-access`。
+- **`application-dev.yml` 的密码默认值**：`DB_PASSWORD` 的默认值（`123456`）是**本地开发密码**，
+  生产 / 演示环境必须通过环境变量 `DB_PASSWORD` 覆盖。
+  CI / 评审部署前必须确认该文件不含真实生产密码。
 
 ## 11. Git 约定
 
