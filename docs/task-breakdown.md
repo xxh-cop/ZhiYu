@@ -29,13 +29,16 @@
   - 实现归属：这两条路径由 `JwtAuthFilter` / 权限拦截器**直接写响应**，**不经过** `GlobalExceptionHandler`（该 handler 只接 `BusinessException` 与 `MethodArgumentNotValidException`）。
 - [ ] T0.4 跨域、全局异常、参数校验（`@Valid` + JSR-303）
   - Done：缺字段返回 1001；错误信息温和。
-  - 必须覆盖的 5 类异常：
+  - 必须覆盖的 5 类异常（**M0/T0.3 收尾批次已全部落地**）：
     1. `MethodArgumentNotValidException` —— **已处理**（`@RequestBody` + `@Valid`），1001 / HTTP 400
-    2. `HandlerMethodValidationException` —— 待处理（Spring Boot 3.2 / Spring 6.1 新增；`@RequestParam`、`@PathVariable` 校验失败走它，**不是** `ConstraintViolationException`），1001 / HTTP 400
-    3. `HttpMessageNotReadableException` —— 待处理（请求体 JSON 格式错），1001 / HTTP 400
-    4. `NoHandlerFoundException` —— 待处理，HTTP 404
-    5. `HttpRequestMethodNotSupportedException` —— 待处理，HTTP 405
-  - 现状提醒：2–5 目前全部落到兜底 handler，返回 `5000` + HTTP 500；在补齐之前，`openapi/openapi.yaml` 里各接口声明的 `400` 是**超前**的。
+    2. `HandlerMethodValidationException` —— **已处理**（Spring Boot 3.2 / Spring 6.1 新增；`@RequestParam`、`@PathVariable` 校验失败走它，**不是** `ConstraintViolationException`），1001 / HTTP 400
+    3. `HttpMessageNotReadableException` —— **已处理**（请求体 JSON 格式错），1001 / HTTP 400
+    4. `NoHandlerFoundException` / `NoResourceFoundException` —— **已处理**，1004 / HTTP 404
+       - Boot 3.2 默认 `spring.mvc.throw-exception-if-no-handler-found=false`，实际抛出并被接住的是 `NoResourceFoundException`；`NoHandlerFoundException` 是防御性保留
+       - 匿名访问未注册路径会**先**被 Spring Security 拦成 401（1002），不泄露「哪些路径存在」
+    5. `HttpRequestMethodNotSupportedException` —— **已处理**，1005 / HTTP 405
+  - 对应错误码 `1004 资源不存在 | 404`、`1005 请求方法不支持 | 405` 已写入 AGENTS.md §3 与 `openapi/openapi.yaml`（所有 operation 均声明 404/405，且所有错误响应用 `ErrorResult`）。
+  - **待验证**：第 2 项目前**没有可触发的接口**（现有接口只在 body 上用 `@Valid`，没有 `@RequestParam` / `@PathVariable` 上的约束注解），属「代码就绪、未经运行期验证」，回归见 T1.1。
 - [ ] T0.5 学生端 UniApp 工程初始化：pages.json、Pinia、request 封装（token 注入、401 跳登录）
   - Done：H5 能登录、拿到用户信息。
 - [ ] T0.6 管理端 Vue3 工程初始化：路由守卫、Element Plus、Pinia
@@ -50,6 +53,10 @@
 
 - [ ] T1.1 `AiClient` 门面：LLM 对话（SSE）、推荐理由生成、作品寄语生成
   - Done：能流式返回；超时降级为图文。
+  - 回归清单（承接 T0.4 遗留）：**本里程碑第一个使用 `@RequestParam` / `@PathVariable` 校验注解的接口**，
+    必须补一条用例验证「校验失败 → HTTP 400 + `code=1001`」。
+    T0.4 已写好 `HandlerMethodValidationException` 处理器，但 M0 阶段没有任何接口能触发它，
+    属「代码就绪、未经运行期验证」。
 - [ ] T1.2 熔断：按资源 key 隔离（`llm-chat`/`llm-recommend`/`llm-message`/`asr`/`tts`），连续 5 次失败熔断 60s
   - Done：mock AI 故障后，第 6 次请求走降级。
 - [ ] T1.3 情绪会话：`emotion_session` + `emotion_message` 多轮；SSE 接口 `POST /api/emotion/chat`
