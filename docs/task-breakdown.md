@@ -25,8 +25,17 @@
   - 测试库策略：单元测试用 **H2 + MySQL 模式**，DDL 见 `sql/schema-h2.sql`；JDBC URL **必须包含 `NON_KEYWORDS=USER`**（H2 2.x 中 `user` 是保留字，否则建表与 `SELECT ... FROM user` 都报 `expected identifier`）；集成测试用真实 MySQL。
 - [ ] T0.3 JWT 鉴权过滤器 + ThreadLocal 当前用户；角色拦截器
   - Done：未登录访问 `/api/emotion/**` 返回 1002；学生访问 `/api/admin/**` 返回 1003。
+  - Done（HTTP 层）：未登录访问受保护接口 → **HTTP 401** + body `Result.error(1002)`；越权访问 → **HTTP 403** + body `Result.error(1003)`。
+  - 实现归属：这两条路径由 `JwtAuthFilter` / 权限拦截器**直接写响应**，**不经过** `GlobalExceptionHandler`（该 handler 只接 `BusinessException` 与 `MethodArgumentNotValidException`）。
 - [ ] T0.4 跨域、全局异常、参数校验（`@Valid` + JSR-303）
   - Done：缺字段返回 1001；错误信息温和。
+  - 必须覆盖的 5 类异常：
+    1. `MethodArgumentNotValidException` —— **已处理**（`@RequestBody` + `@Valid`），1001 / HTTP 400
+    2. `HandlerMethodValidationException` —— 待处理（Spring Boot 3.2 / Spring 6.1 新增；`@RequestParam`、`@PathVariable` 校验失败走它，**不是** `ConstraintViolationException`），1001 / HTTP 400
+    3. `HttpMessageNotReadableException` —— 待处理（请求体 JSON 格式错），1001 / HTTP 400
+    4. `NoHandlerFoundException` —— 待处理，HTTP 404
+    5. `HttpRequestMethodNotSupportedException` —— 待处理，HTTP 405
+  - 现状提醒：2–5 目前全部落到兜底 handler，返回 `5000` + HTTP 500；在补齐之前，`openapi/openapi.yaml` 里各接口声明的 `400` 是**超前**的。
 - [ ] T0.5 学生端 UniApp 工程初始化：pages.json、Pinia、request 封装（token 注入、401 跳登录）
   - Done：H5 能登录、拿到用户信息。
 - [ ] T0.6 管理端 Vue3 工程初始化：路由守卫、Element Plus、Pinia
@@ -73,6 +82,9 @@
 - [ ] T3.5 隐私：首次进入单独同意、撤回授权、导出/删除入口
 - [ ] T3.6 试点：心理中心 4 周，30–50 人，前后 PHQ-9/GAD-7（仅自我了解，不做诊断）+ 满意度
 - [ ] T3.7 RAG：非遗知识库向量化（Milvus/Chroma），推荐时召回
+- [ ] T3.8 为 `openapi/openapi.yaml` 全部 operation 补 `operationId`（契约质量；补完可清掉 Redocly 的 28 条 `operation-operationId` warning）
+  - 命名规则：`<模块><动作>`，小驼峰，如 `authRegister`、`craftSessionHeartbeat`、`adminDashboardStats`。
+  - 注意：`operationId` 一旦定名会影响后续 SDK 生成，需先确认命名口径再批量补。
 
 ---
 
