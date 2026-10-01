@@ -83,8 +83,6 @@ uploads/
 # ===== 安全与 AI Agent =====
 application-local.yml
 application-local.yaml
-application-dev.yml
-application-dev.yaml
 application-prod.yml
 application-prod.yaml
 application-test.yml

@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    # 一律走环境变量，不硬编码任何真实密码
+    url: ${DB_URL:jdbc:mysql://localhost:3306/zhiyu?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:change_me}
+    driver-class-name: com.mysql.cj.jdbc.Driver
