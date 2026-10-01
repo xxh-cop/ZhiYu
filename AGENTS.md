@@ -143,6 +143,9 @@ com.zhiyu
   `resources/lexicon/*.txt`、`resources/fallback/*.md`）时，必须显式指定 UTF-8，
   不得依赖 `file.encoding`（JDK 17 在 Windows 下默认 GBK）。
   例：`new InputStreamReader(in, StandardCharsets.UTF_8)`
+- **改 `openapi/openapi.yaml`**：**优先用 `edit` 工具，不要用 node / pwsh 脚本批量改**
+  （沙箱对该文件的脚本写入直接拒绝：`EPERM: operation not permitted`；`edit` / `write` 工具
+  走的是另一条通道，不受此限）。确有必要用脚本时，需把该次命令升级到 `danger-full-access`。
 
 ## 11. Git 约定
 

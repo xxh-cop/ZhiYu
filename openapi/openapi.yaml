@@ -139,6 +139,8 @@ paths:
             schema: { $ref: '#/components/schemas/RegisterReq' }
       responses:
         '200': { description: 注册结果，code=2002 表示用户名已存在, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/auth/login:
     post:
@@ -151,12 +153,16 @@ paths:
             schema: { $ref: '#/components/schemas/LoginReq' }
       responses:
         '200': { description: 成功返回 token；失败 code=2001, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/auth/me:
     get:
       summary: 当前用户信息
       responses:
         '200': { description: 当前用户, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   # ---------- 情绪 ----------
   /api/emotion/sessions:
@@ -168,6 +174,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/emotion/chat:
     post:
@@ -189,6 +197,7 @@ paths:
           content:
             text/event-stream:
               schema: { type: string }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/emotion/note:
     post:
@@ -204,6 +213,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   # ---------- 手作 ----------
   /api/craft/projects:
@@ -226,6 +237,8 @@ paths:
                       data:
                         type: array
                         items: { $ref: '#/components/schemas/CraftProject' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/craft/projects/{id}/steps:
     get:
@@ -238,6 +251,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/craft/recommend:
     get:
@@ -250,6 +265,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/craft/session:
     post:
@@ -272,6 +289,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/craft/session/{id}:
     get:
@@ -284,6 +303,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/craft/session/{id}/status:
     put:
@@ -305,6 +326,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/craft/session/{id}/heartbeat:
     post:
@@ -323,6 +346,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/HeartbeatResult' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   # ---------- 作品社区 ----------
   /api/works:
@@ -337,6 +362,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
     post:
       summary: 发布作品
       requestBody:
@@ -350,6 +377,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/works/{id}/like:
     post:
@@ -372,6 +401,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/LikeResult' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/works/{id}/comments:
     post:
@@ -389,6 +420,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   # ---------- 互助小组 ----------
   /api/groups:
@@ -400,6 +433,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
     post:
       summary: 创建小组（学生/组长）
       requestBody:
@@ -418,6 +453,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/groups/{id}/join:
     post:
@@ -430,6 +467,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   # ---------- 传承人 ----------
   /api/inheritor/projects:
@@ -441,6 +480,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
     get:
       summary: 传承人查看自己提交的项目
       responses:
@@ -449,6 +490,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/inheritor/courses:
     get:
@@ -459,6 +502,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
     post:
       summary: 传承人新建课程
       responses:
@@ -467,6 +512,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   # ---------- 管理端 ----------
   /api/admin/audit-queue:
@@ -482,6 +529,9 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/admin/projects/{id}/audit:
     put:
@@ -505,6 +555,9 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/admin/care-reminders:
     get:
@@ -516,6 +569,9 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
 
   /api/admin/dashboard/stats:
     get:
@@ -527,3 +583,6 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
