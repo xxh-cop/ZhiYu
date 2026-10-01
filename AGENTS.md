@@ -71,6 +71,19 @@ com.zhiyu
 { "code": 0, "message": "操作成功", "data": {} }
 ```
 
+### 3.1 角色码（全局唯一，不要新造）
+
+| code | 角色 | 说明 |
+|---|---|---|
+| 0 | 学生 | 默认角色；管理端守卫拒绝，跳转学生端 |
+| 1 | 传承人 | 管理端守卫放行（可维护非遗项目与课程） |
+| 2 | 咨询师 | 管理端守卫放行（可查看脱敏关怀汇总） |
+| 3 | 管理员 | 管理端守卫放行（可访问 `/api/admin/**`） |
+
+> 与 `sql/schema.sql` 的 `user.role TINYINT` 一一对应，后端由
+> `com.zhiyu.modules.auth.enums.RoleEnum` 承载。管理端路由守卫按 `role ∈ {1,2,3}` 放行，
+> `role = 0` 跳转学生端或提示无权限；管理端不做独立登录入口。
+
 ## 4. AI 能力硬约束
 
 - 所有 AI 调用必须经过统一门面 `AiClient`，**禁止业务代码直接 RestTemplate/OpenAI 客户端**。
@@ -154,3 +167,4 @@ com.zhiyu
 - 一次提交只做一件事；不提交 `.env`、`target/`、`node_modules/`。
 - 每个任务完成后先 `git status` 检查，再提交。
 - AI 不得执行 `git push --force`、不得删除 `main` 分支。
+- 只读命令**允许**。约定只针对写操作。
