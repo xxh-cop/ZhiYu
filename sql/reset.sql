@@ -21,3 +21,7 @@ CREATE DATABASE zhiyu DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- 建表与数据请继续执行：
 --   sql/schema.sql
 --   sql/init-data.sql
+--
+-- 注意：本文件只做「重建空库」，执行时任何业务表都还不存在，
+--       因此所有老库补丁（如 ALTER TABLE 改默认值）都放在 sql/schema.sql 末尾的
+--       「老库补丁区」，不要加到这里来。

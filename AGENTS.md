@@ -105,6 +105,7 @@ com.zhiyu
 - **上一条的例外**：`care_reminder.summary` 存**脱敏文本、不加密**（已去除可识别身份的信息，供授权角色查看）；
   `ai_audit_log.raw_input` / `ai_output` **加密存储**。
 - 查询必须带「本人数据」或「授权范围」过滤；咨询师看到的是脱敏汇总。
+- 用户注册默认 `can_contact=0`；咨询师联系用户必须由用户单独授权，代码不得默认置 1。
 - 建表 DDL 一律放 `sql/schema.sql`，**不要写在 .md 代码块里**；初始化数据放 `sql/init-data.sql`。
 
 ## 6. 接口约定
