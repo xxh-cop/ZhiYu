@@ -28,6 +28,10 @@
              mybatis-plus-jsqlparser，分页插件 PaginationInnerInterceptor 需额外引依赖；
              3.5.7 仍内置，T0.2 接分页插件时更省事。 -->
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
+
+        <!-- JWT 0.12.x（AGENTS.md §2 鉴权：JWT 无状态）。
+             0.12.6 是 0.12 线的稳定版，API 与 0.11 不兼容（parser/verifyWith）。 -->
+        <jjwt.version>0.12.6</jjwt.version>
     </properties>
 
     <dependencies>
@@ -57,12 +61,41 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 密码哈希：只用 BCryptPasswordEncoder。
-             刻意不引 spring-boot-starter-security（那会拉起整个安全框架，T0.3 才需要）。
-             版本由 spring-boot-starter-parent 统一管理。 -->
+        <!-- Spring Security：T0.3 起启用（JWT 过滤器链 + 401/403 JSON 出口）。
+             注意：引入本 starter 后所有请求默认「需要认证」，
+             公开接口必须在 com.zhiyu.config.SecurityConfig 里显式放行
+             （当前只有 /api/auth/register 与 /api/auth/login）。 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- 密码哈希：BCryptPasswordEncoder。
+             该 jar 已由上面的 security starter 传递引入，这里显式声明
+             是为了表明它是被直接使用的 API（版本仍由 parent 托管）。 -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
+        <!-- JWT：jjwt 0.12.x。官方推荐引法 —— api 编译期可见，
+             impl 与 jackson（JSON 序列化）运行期提供实现。 -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- Lombok，仅编译期 -->
@@ -99,6 +132,20 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- 测试 JVM 参数。
+                 jdk.attach.allowAttachSelf=true：Spring Boot 对每个 @SpringBootTest 都会初始化
+                 Mockito，而 Mockito 5 的内联 mock maker 需要向当前 JVM attach Java agent。
+                 JDK 默认禁止 self-attach，此时 ByteBuddy 会退化为「另起一个 java 进程做 attach」——
+                 在禁止派生进程的沙箱里必然失败（报 Could not self-attach to current VM
+                 using external process）。放开 self-attach 后走进程内路径，本机与 CI 都受益。 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Djdk.attach.allowAttachSelf=true</argLine>
                 </configuration>
             </plugin>
         </plugins>

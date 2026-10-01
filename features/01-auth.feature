@@ -36,3 +36,12 @@
   场景: 未登录访问受保护接口
     当 客户端不带 token 访问 /api/emotion/chat
     那么 系统应返回 code=1002
+
+  场景: 携带有效 token 查询当前用户
+    假定 用户 "alice" 已登录并持有有效 token
+    当 客户端携带该 token 访问 /api/auth/me
+    那么 系统应返回 code=0，data 中含当前用户的 id/username/nickname/role
+
+  场景: token 非法时查询当前用户
+    当 客户端携带非法 token 访问 /api/auth/me
+    那么 系统应返回 HTTP 401，且 code=1002

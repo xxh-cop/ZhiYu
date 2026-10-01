@@ -29,6 +29,12 @@ public enum ResultCode {
     /** 无权限 */
     FORBIDDEN(1003, "无访问权限", HttpStatus.FORBIDDEN),
 
+    /** 资源不存在：路径未匹配到任何 Controller，或目标资源本身不存在 */
+    RESOURCE_NOT_FOUND(1004, "资源不存在", HttpStatus.NOT_FOUND),
+
+    /** 请求方法不支持：路径存在但使用了错误的 HTTP 方法（如对 POST 接口发 GET） */
+    METHOD_NOT_ALLOWED(1005, "请求方法不支持", HttpStatus.METHOD_NOT_ALLOWED),
+
     /** 用户名或密码错误（业务失败，HTTP 200） */
     BAD_CREDENTIAL(2001, "用户名或密码错误", HttpStatus.OK),
 

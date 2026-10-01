@@ -57,6 +57,8 @@ com.zhiyu
 | 1001 | 参数校验失败 | 400 |
 | 1002 | 未登录 / token 失效 | 401 |
 | 1003 | 无权限 | 403 |
+| 1004 | 资源不存在 | 404 |
+| 1005 | 请求方法不支持 | 405 |
 | 2001 | 用户名或密码错误 | 200（业务失败） |
 | 2002 | 用户名已存在 | 200 |
 | 3001 | 非法状态流转 | 200 |
@@ -65,6 +67,16 @@ com.zhiyu
 
 > 注：错误码 `4001` 仅用于**非 SSE 接口**（推荐、寄语等）。SSE 接口（`POST /api/emotion/chat`）
 > 的 AI 故障不使用 `4001`，改用 `event: error` 推送，前端收到后**降级为缓存图文**。
+
+> 注：`1002` / `1003` 由 Spring Security 过滤器链**直接写出响应体**，不经过
+> `GlobalExceptionHandler`（401/403 发生在 DispatcherServlet 之前）。JWT 未通过（未带 token、
+> token 非法或过期）时返回 **HTTP 401 + body `Result(1002)`**；已认证但权限不足时返回
+> **HTTP 403 + body `Result(1003)`**。两者**都不是空响应体**，且 `data` 固定为 `null`。
+
+> 注：`1004` / `1005` 由 `GlobalExceptionHandler` 捕获 `NoResourceFoundException` /
+> `NoHandlerFoundException` 与 `HttpRequestMethodNotSupportedException` 后返回，
+> HTTP 状态分别为 **404 / 405**。注意顺序：**匿名**访问未注册路径仍先被 Spring Security
+> 拦成 401（不泄露「哪些路径存在」），只有**已认证**用户的路径 / 方法失误才拿到 1004 / 1005。
 
 统一响应体：
 ```json
@@ -163,6 +175,15 @@ com.zhiyu
 - **`application-dev.yml` 的密码默认值**：`DB_PASSWORD` 的默认值（`123456`）是**本地开发密码**，
   生产 / 演示环境必须通过环境变量 `DB_PASSWORD` 覆盖。
   CI / 评审部署前必须确认该文件不含真实生产密码。
+- **`zhiyu.jwt.secret` 的默认值**：`application.yml` 里的
+  `zhiyu-local-dev-only-secret-0123456789abcdef` 是**本地开发用的假密钥**（放在
+  `application.yml` 而非 `application-dev.yml`，是为了让 `@ActiveProfiles("test")` 的单测
+  也能拿到密钥）；生产 / 演示环境必须通过环境变量 `JWT_SECRET` 覆盖。
+  `JwtUtil` 在密钥短于 32 字节时**构造即抛异常**，启动直接失败，不会静默降级。
+- **改 `openapi/openapi.yaml` 的文本字段**：YAML 中 `冒号 + 空格` 是映射分隔符，
+  自由文本（`description` / `summary`）里出现 `: ` **必须加引号**，否则解析直接报
+  `bad indentation of a mapping entry`。例：
+  `description: '以 "Authorization: Bearer <token>" 携带'`
 
 ## 11. Git 约定
 
