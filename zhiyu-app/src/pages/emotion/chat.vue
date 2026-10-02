@@ -92,8 +92,11 @@ const scrollTop = ref(0)
 let sseController = null
 let lastSentContent = ''
 
-const BASE_URL =
-	(import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://localhost:8080'
+// 小程序端用局域网 IP，H5 端用 localhost
+let BASE_URL = 'http://localhost:8080'
+// #ifdef MP-WEIXIN
+BASE_URL = 'http://192.168.0.102:8080'
+// #endif
 
 onLoad(() => {
 	// 每次进入 chat 页，重置会话

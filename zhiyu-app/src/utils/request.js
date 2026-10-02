@@ -11,8 +11,12 @@
  */
 import { useUserStore } from '../stores/user'
 
-const BASE_URL =
-	(import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://localhost:8080'
+// 小程序端不能用 localhost，需用局域网 IP；H5 端用 localhost
+// 通过条件编译区分平台，构建时自动选择
+let BASE_URL = 'http://localhost:8080'
+// #ifdef MP-WEIXIN
+BASE_URL = 'http://192.168.0.102:8080'
+// #endif
 
 const LOGIN_PAGE = '/pages/login/index'
 const TOKEN_KEY = 'token'

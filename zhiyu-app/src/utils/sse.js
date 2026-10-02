@@ -102,26 +102,78 @@ function startSSEH5({ url, body, token, onMessage, onDone, onError }) {
 // #ifdef MP-WEIXIN
 /**
  * 微信小程序端实现：wx.request + enableChunked + onChunkReceived。
+ *
+ * 兼容策略：
+ * 1. 优先使用 enableChunked + onChunkReceived 实现真正的流式接收（基础库 ≥ 2.20.1）
+ * 2. 如果 onChunkReceived 不可用，退回 enableChunked: false 一次性接收完整 SSE 再逐块解析
+ * 3. 如果流式模式 success 回调里 onChunkReceived 未触发，也在 success 中处理完整响应
  */
 function startSSEMP({ url, body, token, onMessage, onDone, onError }) {
 	let aborted = false
 	let buffer = ''
+	let chunkReceived = false
+
+	// 检测 onChunkReceived 是否可用（基础库 ≥ 2.20.1）
+	// 通过创建一个临时 RequestTask 来检测不可行，改用 canIUse
+	const chunkSupported = wx.canIUse && wx.canIUse('RequestTask.onChunkReceived')
+
+	const headers = {
+		'Content-Type': 'application/json',
+		Accept: 'text/event-stream',
+		Authorization: token ? 'Bearer ' + token : '',
+	}
+
+	/** 处理完整 SSE 文本（fallback 模式或 success 剩余） */
+	function processFullText(fullText) {
+		if (!fullText || !fullText.trim()) return
+		const parts = fullText.split('\n\n')
+		for (const part of parts) {
+			if (part.trim()) {
+				parseSSEChunk(part, onMessage, onDone, onError, aborted)
+			}
+		}
+	}
 
 	const requestTask = wx.request({
 		url: url,
 		method: 'POST',
-		enableChunked: true,
-		header: {
-			'Content-Type': 'application/json',
-			Accept: 'text/event-stream',
-			Authorization: token ? 'Bearer ' + token : '',
-		},
+		enableChunked: chunkSupported,
+		header: headers,
 		data: JSON.stringify(body),
 		success(res) {
-			// 请求完成（流结束），处理 buffer 剩余
-			if (buffer.trim()) {
-				parseSSEChunk(buffer, onMessage, onDone, onError, aborted)
+			if (aborted) return
+
+			// 流式模式：onChunkReceived 已处理了大部分数据，只处理 buffer 剩余
+			if (chunkSupported && chunkReceived) {
+				if (buffer.trim()) {
+					parseSSEChunk(buffer, onMessage, onDone, onError, aborted)
+				}
+				return
 			}
+
+			// Fallback 模式：处理完整响应
+			// res.data 可能是字符串、ArrayBuffer 或被自动解析的对象
+			let fullText = ''
+			if (res.data != null) {
+				if (typeof res.data === 'string') {
+					fullText = res.data
+				} else if (res.data instanceof ArrayBuffer) {
+					fullText = arrayBufferToUtf8(res.data)
+				} else {
+					// 微信可能根据 Content-Type 自动解析，SSE 的 text/event-stream
+					// 可能被当作纯文本处理，也可能被当作其他格式
+					fullText = String(res.data)
+				}
+			}
+
+			// 如果 enableChunked 模式下 success 拿不到 data，
+			// 但 buffer 有内容（onChunkReceived 触发过），处理 buffer
+			if (!fullText && buffer.trim()) {
+				parseSSEChunk(buffer, onMessage, onDone, onError, aborted)
+				return
+			}
+
+			processFullText(fullText)
 		},
 		fail(err) {
 			if (!aborted) {
@@ -130,9 +182,10 @@ function startSSEMP({ url, body, token, onMessage, onDone, onError }) {
 		},
 	})
 
-	// 监听分块数据
-	if (requestTask && requestTask.onChunkReceived) {
+	// 监听分块数据（仅流式模式）
+	if (chunkSupported && requestTask && requestTask.onChunkReceived) {
 		requestTask.onChunkReceived((res) => {
+			chunkReceived = true
 			// res.data 是 ArrayBuffer
 			try {
 				const text = arrayBufferToUtf8(res.data)
