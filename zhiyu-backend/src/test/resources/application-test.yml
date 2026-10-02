@@ -1,0 +1,52 @@
+# ============================================================
+# 单元测试专用配置（@ActiveProfiles("test") 激活）
+#
+# 单测一律用 H2 + MySQL 兼容模式，不连真实 MySQL；
+# 集成测试再切回 application-dev.yml 的 MySQL（见 docs/task-breakdown.md T0.2）。
+# 本文件只影响 src/test，不参与打包。
+# ============================================================
+
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    # NON_KEYWORDS=USER 必须保留：H2 2.x 把 USER 列为保留字（MySQL 不是），
+    # 不加则 `CREATE TABLE user (...)` 与 MyBatis-Plus 生成的
+    # `SELECT ... FROM user` 都会报 "Syntax error ... expected identifier"。
+    # DATABASE_TO_LOWER=TRUE 让表名/字段名按小写处理，与 MySQL 行为接近。
+    url: jdbc:h2:mem:zhiyu_test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER
+    username: sa
+    password: ""
+
+  sql:
+    init:
+      # 每个测试上下文启动时按 schema-h2.sql 建表（内存库，用完即弃）
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+      encoding: UTF-8
+
+  # ── Spring AI：单测完全禁用，不连真 API ──
+  # 单测不需要 LLM，禁用所有 OpenAI 自动装配，避免无 key 时启动失败。
+  ai:
+    openai:
+      api-key: test-not-real
+      chat:
+        enabled: false
+      audio:
+        speech:
+          enabled: false
+        transcription:
+          enabled: false
+      image:
+        enabled: false
+      moderation:
+        enabled: false
+      embedding:
+        enabled: false
+
+  # ── Redis：单测不连真 Redis，用自动装配的最小配置 ──
+  # Spring Boot 在 classpath 有 redis starter 但无连接时不会启动失败，
+  # 只有在实际调用 RedisTemplate 时才会报连接异常。
+  data:
+    redis:
+      host: localhost
+      port: 6379

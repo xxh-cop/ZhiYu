@@ -1,0 +1,81 @@
+package com.zhiyu.ai.client;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+/**
+ * 基于 Spring AI {@link ChatClient} 的 {@link LlmClient} 实现（T1.1a）。
+ *
+ * <p>通过 Spring AI 的 OpenAI starter 调 DeepSeek API（DeepSeek 兼容 OpenAI 规范）。
+ *
+ * <p>生效条件：{@code spring.ai.openai.api-key} 存在且不为占位值 {@code sk-placeholder}。
+ * 当 API Key 为占位值时，{@link MockLlmClient} 接管。
+ *
+ * <p>本批次不写熔断 / 安全过滤 / 审计日志（T1.1b 做）。
+ */
+@Slf4j
+@Component
+@ConditionalOnProperty(name = "spring.ai.openai.api-key", matchIfMissing = false)
+public class SpringAiLlmClient implements LlmClient {
+
+    private final ChatClient chatClient;
+
+    public SpringAiLlmClient(ChatClient.Builder builder) {
+        this.chatClient = builder.build();
+        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API）");
+    }
+
+    @Override
+    public void streamChat(List<ChatMessage> history, Consumer<String> onToken) {
+        var promptBuilder = chatClient.prompt().messages(toSpringMessages(history));
+        promptBuilder.stream().content().doOnNext(onToken).blockLast();
+    }
+
+    @Override
+    public String recommendReason(String mood, List<String> craftNames) {
+        // T1.1a 先硬编码 prompt；T1.1b/T1.3 外置到 prompts/recommend.st
+        String promptText = String.format(
+                "你是一位非遗艺术疗愈助手。用户当前情绪是「%s」，" +
+                "为ta推荐以下手作项目：%s。" +
+                "请用温暖、简洁的语言（不超过80字）说明为什么这些手作适合ta的当下状态。" +
+                "注意：不得出现任何诊断性措辞，只做陪伴与引导。",
+                mood, String.join("、", craftNames));
+        return chatClient.prompt().user(promptText).call().content();
+    }
+
+    @Override
+    public String workMessage(String workTitle, String mood) {
+        // T1.1a 先硬编码 prompt；T1.1b/T1.3 外置到 prompts/work_message.st
+        String promptText = String.format(
+                "你是一位非遗艺术疗愈助手。用户刚完成了作品「%s」，" +
+                "创作时的心情是「%s」。请为ta写一段简短的寄语（不超过50字），" +
+                "肯定ta的专注与表达，语气温暖但不夸张。",
+                workTitle, mood);
+        return chatClient.prompt().user(promptText).call().content();
+    }
+
+    /**
+     * 把 {@link ChatMessage} 列表转换成 Spring AI 的 {@link Message} 列表。
+     */
+    private List<Message> toSpringMessages(List<ChatMessage> history) {
+        return history.stream().map(this::toSpringMessage).collect(Collectors.toList());
+    }
+
+    private Message toSpringMessage(ChatMessage msg) {
+        return switch (msg.role()) {
+            case "system" -> new SystemMessage(msg.content());
+            case "assistant" -> new AssistantMessage(msg.content());
+            default -> new UserMessage(msg.content());
+        };
+    }
+}
