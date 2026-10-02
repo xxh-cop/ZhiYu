@@ -6,9 +6,11 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -29,15 +31,22 @@ import java.util.stream.Collectors;
 public class SpringAiLlmClient implements LlmClient {
 
     private final ChatClient chatClient;
+    private final String companionPrompt;
 
-    public SpringAiLlmClient(ChatClient.Builder builder) {
+    public SpringAiLlmClient(ChatClient.Builder builder,
+                             @Qualifier("companionPrompt") String companionPrompt) {
         this.chatClient = builder.build();
-        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API）");
+        this.companionPrompt = companionPrompt;
+        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st 已注入）");
     }
 
     @Override
     public void streamChat(List<ChatMessage> history, Consumer<String> onToken) {
-        var promptBuilder = chatClient.prompt().messages(toSpringMessages(history));
+        // prepend 系统提示词到 history 最前面
+        List<ChatMessage> withSystem = new ArrayList<>(history.size() + 1);
+        withSystem.add(ChatMessage.system(companionPrompt));
+        withSystem.addAll(history);
+        var promptBuilder = chatClient.prompt().messages(toSpringMessages(withSystem));
         promptBuilder.stream().content().doOnNext(onToken).blockLast();
     }
 
