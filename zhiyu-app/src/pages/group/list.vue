@@ -1,27 +1,33 @@
 <template>
-	<view class="page">
+	<view class="page zy-page-enter">
 		<!-- 顶部标题 + 创建入口 -->
 		<view class="header">
 			<text class="page-title">互助小组</text>
-			<view class="create-btn" @click="goCreate">
+			<view class="create-btn zy-btn-outline" @click="goCreate">
 				<text class="create-text">+ 创建小组</text>
 			</view>
 		</view>
 
-		<!-- 加载中 -->
-		<view v-if="loading" class="status-box">
-			<text class="status-text">正在加载…</text>
+		<!-- 骨架屏 -->
+		<view v-if="loading" class="card-list">
+			<view v-for="i in 3" :key="'sk-'+i" class="skeleton-card zy-card">
+				<view class="skeleton-body">
+					<view class="zy-skeleton skeleton-title"></view>
+					<view class="zy-skeleton skeleton-text"></view>
+				</view>
+			</view>
 		</view>
 
 		<!-- 空状态 -->
 		<view v-else-if="groups.length === 0 && !errorMsg" class="status-box">
+			<text class="empty-emoji">🌿</text>
 			<text class="status-text">还没有小组，来创建第一个吧</text>
 		</view>
 
 		<!-- 错误状态 -->
 		<view v-else-if="errorMsg" class="status-box">
 			<text class="error-text">{{ errorMsg }}</text>
-			<view class="retry-btn" @click="loadData">
+			<view class="retry-btn zy-btn-primary" @click="loadData">
 				<text class="retry-text">重试</text>
 			</view>
 		</view>
@@ -31,7 +37,7 @@
 			<view
 				v-for="group in groups"
 				:key="group.id"
-				class="group-card"
+				class="group-card zy-card"
 			>
 				<view class="card-header">
 					<text class="group-name">{{ group.name }}</text>
@@ -58,7 +64,7 @@
 					<!-- 加入 -->
 					<view
 						v-else
-						class="join-btn"
+						class="join-btn zy-btn-primary"
 						:class="{ 'btn-loading': joiningId === group.id }"
 						@click="handleJoin(group)"
 					>
@@ -126,9 +132,8 @@ function goCreate() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 80rpx;
+	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: #f7f4ef;
 }
 
 .header {
@@ -146,13 +151,29 @@ function goCreate() {
 
 .create-btn {
 	padding: 8rpx 24rpx;
-	border: 2rpx solid #8b6f47;
-	border-radius: 8px;
 }
 
 .create-text {
 	font-size: 26rpx;
 	color: #8b6f47;
+}
+
+/* 骨架屏 */
+.skeleton-card {
+	padding: 24rpx;
+}
+.skeleton-body {
+	display: flex;
+	flex-direction: column;
+	gap: 16rpx;
+}
+.skeleton-title {
+	height: 36rpx;
+	width: 50%;
+}
+.skeleton-text {
+	height: 28rpx;
+	width: 80%;
 }
 
 .status-box {
@@ -162,6 +183,10 @@ function goCreate() {
 	justify-content: center;
 	padding: 80rpx 0;
 	gap: 24rpx;
+}
+
+.empty-emoji {
+	font-size: 64rpx;
 }
 
 .status-text {
@@ -176,8 +201,6 @@ function goCreate() {
 
 .retry-btn {
 	padding: 12rpx 40rpx;
-	border-radius: 8px;
-	background-color: #8b6f47;
 }
 
 .retry-text {
@@ -193,10 +216,6 @@ function goCreate() {
 
 .group-card {
 	padding: 24rpx;
-	border-radius: 12px;
-	background-color: #fffdfa;
-	border: 2rpx solid #e6ddcf;
-	box-shadow: 0 2px 8px rgba(139, 111, 71, 0.08);
 }
 
 .card-header {
@@ -206,15 +225,15 @@ function goCreate() {
 }
 
 .group-name {
-	font-size: 34rpx;
-	font-weight: 600;
+	font-size: 32rpx;
+	font-weight: 500;
 	color: #3d3a34;
 }
 
 .role-badge {
 	padding: 4rpx 16rpx;
 	border-radius: 999rpx;
-	background-color: rgba(200, 155, 110, 0.15);
+	background-color: rgba(200, 155, 110, 0.12);
 }
 
 .role-text {
@@ -249,8 +268,8 @@ function goCreate() {
 
 .joined-tag {
 	padding: 8rpx 24rpx;
-	border-radius: 8px;
-	background-color: #f0ebe1;
+	border-radius: 12px;
+	background-color: rgba(139, 111, 71, 0.06);
 }
 
 .joined-text {
@@ -260,8 +279,8 @@ function goCreate() {
 
 .full-btn {
 	padding: 8rpx 24rpx;
-	border-radius: 8px;
-	background-color: #f0ebe1;
+	border-radius: 12px;
+	background-color: rgba(139, 111, 71, 0.06);
 	opacity: 0.6;
 }
 
@@ -272,8 +291,6 @@ function goCreate() {
 
 .join-btn {
 	padding: 8rpx 32rpx;
-	border-radius: 8px;
-	background-color: #8b6f47;
 }
 
 .btn-loading {

@@ -327,12 +327,14 @@ function handleAudio() {
 }
 
 function handlePublish() {
-	uni.showToast({ title: '作品发布即将上线', icon: 'none' })
+	uni.navigateTo({
+		url: `/pages/work/publish?sessionId=${sessionId}&projectId=${craftStore.projectId || ''}&projectTitle=${encodeURIComponent(craftStore.projectTitle || '')}`,
+	})
 }
 
 function handleBackHome() {
 	craftStore.reset()
-	uni.reLaunch({ url: '/pages/home/index' })
+	uni.switchTab({ url: '/pages/home/index' })
 }
 </script>
 
