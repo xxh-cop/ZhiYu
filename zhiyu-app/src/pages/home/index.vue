@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view class="page zy-page-enter">
 		<view class="greeting">
 			<text class="hello">你好，{{ nickname }}</text>
 			<text class="welcome">{{ welcome }}</text>
@@ -8,50 +8,29 @@
 
 		<!-- 功能入口网格 -->
 		<view class="grid">
-			<view class="grid-item" @click="goEmotion">
+			<view class="grid-item zy-card zy-clickable" @click="goEmotion">
 				<view class="grid-icon">
 					<text class="icon-emoji">💬</text>
 				</view>
 				<text class="grid-label">情绪倾听</text>
 			</view>
 
-			<view class="grid-item" @click="goRecommend">
+			<view class="grid-item zy-card zy-clickable" @click="goRecommend">
 				<view class="grid-icon">
 					<text class="icon-emoji">🧶</text>
 				</view>
 				<text class="grid-label">疗愈推荐</text>
 			</view>
 
-			<view class="grid-item" @click="toastComing">
+			<view class="grid-item zy-card zy-clickable" @click="toastComing">
 				<view class="grid-icon">
 					<text class="icon-emoji">✂️</text>
 				</view>
 				<text class="grid-label">创作引导</text>
 			</view>
-
-			<view class="grid-item" @click="goWorkList">
-				<view class="grid-icon">
-					<text class="icon-emoji">❤️</text>
-				</view>
-				<text class="grid-label">作品社区</text>
-			</view>
-
-			<view class="grid-item" @click="goGroupList">
-				<view class="grid-icon">
-					<text class="icon-emoji">👥</text>
-				</view>
-				<text class="grid-label">互助小组</text>
-			</view>
 		</view>
 
-		<!-- 我的 -->
-		<view class="card profile-card" @click="toastComing">
-			<text class="card-title">我的</text>
-			<text class="card-hint">个人信息与设置</text>
-		</view>
-
-		<button class="logout" @click="handleLogout">退出登录</button>
-
+		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
@@ -121,29 +100,16 @@ function goRecommend() {
 	uni.navigateTo({ url: '/pages/craft/recommend' })
 }
 
-function goWorkList() {
-	uni.navigateTo({ url: '/pages/work/list' })
-}
-
-function goGroupList() {
-	uni.navigateTo({ url: '/pages/group/list' })
-}
-
 function toastComing() {
 	uni.showToast({ title: '即将上线', icon: 'none' })
-}
-
-function handleLogout() {
-	userStore.logout()
 }
 </script>
 
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 48rpx 40rpx 80rpx;
+	padding: 48rpx 40rpx 120rpx;
 	box-sizing: border-box;
-	background-color: #f7f4ef;
 }
 
 .greeting {
@@ -169,9 +135,9 @@ function handleLogout() {
 	align-self: flex-start;
 	padding: 6rpx 20rpx;
 	border-radius: 999rpx;
-	background-color: #ece3d5;
+	background-color: rgba(200, 155, 110, 0.12);
 	font-size: 24rpx;
-	color: #8b6f47;
+	color: #c89b6e;
 }
 
 /* 功能入口网格 */
@@ -188,11 +154,7 @@ function handleLogout() {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding: 32rpx 0;
-	border-radius: 24rpx;
-	background-color: #fffdfa;
-	border: 2rpx solid #e6ddcf;
-	box-shadow: 0 2px 8px rgba(139, 111, 71, 0.08);
+	padding: 36rpx 0;
 }
 
 .grid-icon {
@@ -211,40 +173,6 @@ function handleLogout() {
 .grid-label {
 	font-size: 26rpx;
 	color: #8b6f47;
-}
-
-/* 我的卡片 */
-.card {
-	padding: 40rpx 32rpx;
-	border-radius: 24rpx;
-	background-color: #fffdfa;
-	border: 2rpx solid #e6ddcf;
-}
-
-.profile-card {
-	margin-bottom: 40rpx;
-}
-
-.card-title {
-	font-size: 34rpx;
-	font-weight: 600;
-	color: #8b6f47;
-}
-
-.card-hint {
-	display: block;
-	margin-top: 16rpx;
-	font-size: 26rpx;
-	color: #9c8f7d;
-}
-
-.logout {
-	margin-top: 24rpx;
-	background-color: transparent;
-	border: 2rpx solid #d9cdb9;
-	border-radius: 20rpx;
-	color: #8b6f47;
-	font-size: 28rpx;
 }
 
 .footnote {

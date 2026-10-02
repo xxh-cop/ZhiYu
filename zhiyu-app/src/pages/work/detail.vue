@@ -2,8 +2,9 @@
 	<view class="page">
 		<!-- 404 状态 -->
 		<view v-if="notFound" class="not-found">
+			<text class="not-found-emoji">🍂</text>
 			<text class="not-found-text">作品不存在或已下架</text>
-			<view class="back-btn" @click="goBack">
+			<view class="back-btn zy-btn-primary" @click="goBack">
 				<text class="back-text">返回</text>
 			</view>
 		</view>
@@ -12,7 +13,7 @@
 		<template v-else>
 			<!-- 作品信息区 -->
 			<scroll-view class="content-area" scroll-y>
-				<view class="work-info" v-if="work">
+				<view class="work-info zy-page-enter" v-if="work">
 					<view class="work-cover" :style="coverStyle(work.coverUrl)"></view>
 					<text class="work-title">{{ work.title }}</text>
 					<view class="work-meta">
@@ -21,13 +22,16 @@
 					</view>
 					<text v-if="work.message" class="work-message">{{ work.message }}</text>
 
-					<!-- 点赞按钮 -->
-					<view class="like-area">
-						<view class="like-btn" @click="handleLike">
-							<text class="like-icon" :class="{ 'liked': liked }">{{ liked ? '♥' : '♡' }}</text>
-							<text class="like-count">{{ likeCount }}</text>
+					<!-- 点赞 + 收藏按钮 -->
+					<view class="action-area">
+						<view class="action-btn zy-clickable" @click="handleLike">
+							<text class="action-icon" :class="{ 'liked': liked }">{{ liked ? '♥' : '♡' }}</text>
+							<text class="action-count">{{ likeCount }}</text>
 						</view>
-						<!-- TODO(T1.9d): 增加收藏按钮（type=0） -->
+						<view class="action-btn zy-clickable" @click="handleFavorite">
+							<text class="action-icon" :class="{ 'favorited': favorited }">{{ favorited ? '★' : '☆' }}</text>
+							<text class="action-label">收藏</text>
+						</view>
 					</view>
 				</view>
 
@@ -36,6 +40,7 @@
 					<text class="section-title">留暖评论 {{ commentCount }} 条</text>
 
 					<view v-if="comments.length === 0 && !commentLoading" class="comment-empty">
+						<text class="empty-emoji">💬</text>
 						<text class="empty-text">还没有评论，留下第一句温暖吧</text>
 					</view>
 
@@ -52,7 +57,7 @@
 					<view v-if="commentLoading" class="comment-more">
 						<text class="more-text">正在加载评论...</text>
 					</view>
-					<view v-else-if="!hasMoreComments" class="comment-more">
+					<view v-else-if="!hasMoreComments && comments.length > 0" class="comment-more">
 						<text class="more-text">没有更多评论了</text>
 					</view>
 				</view>
@@ -70,7 +75,7 @@
 					maxlength="255"
 				/>
 				<view
-					class="send-btn"
+					class="send-btn zy-btn-primary"
 					:class="{ 'btn-disabled': !commentText.trim() || sending }"
 					@click="handleSendComment"
 				>
@@ -93,6 +98,7 @@ const work = ref(null)
 const notFound = ref(false)
 const liked = ref(false)
 const likeCount = ref(0)
+const favorited = ref(false)
 const commentCount = ref(0)
 
 const comments = ref([])
@@ -188,6 +194,19 @@ async function handleLike() {
 	}
 }
 
+async function handleFavorite() {
+	try {
+		const res = await http.post(`/api/works/${workId}/like`, { type: 0 })
+		favorited.value = res.active
+		uni.showToast({
+			title: res.active ? '已收藏' : '已取消收藏',
+			icon: 'none',
+		})
+	} catch (e) {
+		uni.showToast({ title: (e && e.message) || '操作失败', icon: 'none' })
+	}
+}
+
 async function handleSendComment() {
 	const content = commentText.value.trim()
 	if (!content || sending.value) return
@@ -237,7 +256,6 @@ function goBack() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: #f7f4ef;
 }
 
 /* 404 */
@@ -247,7 +265,11 @@ function goBack() {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 32rpx;
+	gap: 24rpx;
+}
+
+.not-found-emoji {
+	font-size: 80rpx;
 }
 
 .not-found-text {
@@ -257,8 +279,6 @@ function goBack() {
 
 .back-btn {
 	padding: 16rpx 48rpx;
-	border-radius: 8px;
-	background-color: #8b6f47;
 }
 
 .back-text {
@@ -278,7 +298,7 @@ function goBack() {
 
 .work-cover {
 	height: 300rpx;
-	border-radius: 8px;
+	border-radius: 16px;
 }
 
 .work-title {
@@ -314,32 +334,42 @@ function goBack() {
 	color: #5a534a;
 }
 
-/* 点赞 */
-.like-area {
+/* 点赞 + 收藏 */
+.action-area {
 	display: flex;
 	align-items: center;
+	gap: 48rpx;
 	margin-top: 24rpx;
 	padding-bottom: 24rpx;
-	border-bottom: 2rpx solid #e5ddd0;
+	border-bottom: 1px solid rgba(139, 111, 71, 0.08);
 }
 
-.like-btn {
+.action-btn {
 	display: flex;
 	align-items: center;
 	gap: 8rpx;
 	padding: 8rpx 20rpx;
 }
 
-.like-icon {
+.action-icon {
 	font-size: 36rpx;
 	color: #8a8378;
 }
 
-.like-icon.liked {
+.action-icon.liked {
 	color: #b85450;
 }
 
-.like-count {
+.action-icon.favorited {
+	color: #c89b6e;
+}
+
+.action-count {
+	font-size: 28rpx;
+	color: #8a8378;
+}
+
+.action-label {
 	font-size: 28rpx;
 	color: #8a8378;
 }
@@ -351,13 +381,20 @@ function goBack() {
 
 .section-title {
 	font-size: 30rpx;
-	font-weight: 600;
+	font-weight: 500;
 	color: #3d3a34;
 }
 
 .comment-empty {
 	padding: 40rpx 0;
-	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16rpx;
+}
+
+.empty-emoji {
+	font-size: 48rpx;
 }
 
 .empty-text {
@@ -367,12 +404,12 @@ function goBack() {
 
 .comment-item {
 	padding: 20rpx 0;
-	border-bottom: 2rpx solid #f0ebe1;
+	border-bottom: 1px solid rgba(139, 111, 71, 0.06);
 }
 
 .comment-author {
 	font-size: 26rpx;
-	font-weight: 600;
+	font-weight: 500;
 	color: #8b6f47;
 }
 
@@ -407,17 +444,17 @@ function goBack() {
 	align-items: center;
 	padding: 16rpx 24rpx;
 	gap: 16rpx;
-	background-color: #fffdfa;
-	border-top: 2rpx solid #e5ddd0;
+	background-color: rgba(255, 255, 255, 0.92);
+	border-top: 1px solid rgba(139, 111, 71, 0.08);
 }
 
 .comment-input {
 	flex: 1;
 	height: 72rpx;
 	padding: 0 20rpx;
-	border-radius: 8px;
-	border: 2rpx solid #e5ddd0;
-	background-color: #f7f4ef;
+	border-radius: 12px;
+	border: 1px solid rgba(139, 111, 71, 0.08);
+	background-color: rgba(247, 244, 239, 0.6);
 	font-size: 28rpx;
 	color: #2b2b2b;
 }
@@ -428,8 +465,6 @@ function goBack() {
 
 .send-btn {
 	padding: 12rpx 32rpx;
-	border-radius: 8px;
-	background-color: #8b6f47;
 }
 
 .btn-disabled {
@@ -447,6 +482,6 @@ function goBack() {
 	font-size: 22rpx;
 	color: #bdb2a1;
 	text-align: center;
-	background-color: #fffdfa;
+	background-color: rgba(255, 255, 255, 0.92);
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view class="page zy-page-enter">
 		<view class="header">
 			<text class="page-title">创建小组</text>
 		</view>
@@ -45,7 +45,7 @@
 
 			<!-- 提交按钮 -->
 			<view
-				class="submit-btn"
+				class="submit-btn zy-btn-primary"
 				:class="{ 'btn-disabled': !canSubmit || submitting }"
 				@click="handleSubmit"
 			>
@@ -102,9 +102,8 @@ async function handleSubmit() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 80rpx;
+	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: #f7f4ef;
 }
 
 .header {
@@ -131,7 +130,7 @@ async function handleSubmit() {
 
 .form-label {
 	font-size: 28rpx;
-	font-weight: 600;
+	font-weight: 500;
 	color: #3d3a34;
 }
 
@@ -142,9 +141,9 @@ async function handleSubmit() {
 .form-input {
 	height: 80rpx;
 	padding: 0 20rpx;
-	border: 2rpx solid #e5ddd0;
-	border-radius: 8px;
-	background-color: #fffdfa;
+	border: 1px solid rgba(139, 111, 71, 0.08);
+	border-radius: 12px;
+	background-color: rgba(255, 255, 255, 0.85);
 	font-size: 28rpx;
 	color: #2b2b2b;
 }
@@ -152,9 +151,9 @@ async function handleSubmit() {
 .form-textarea {
 	min-height: 160rpx;
 	padding: 20rpx;
-	border: 2rpx solid #e5ddd0;
-	border-radius: 8px;
-	background-color: #fffdfa;
+	border: 1px solid rgba(139, 111, 71, 0.08);
+	border-radius: 12px;
+	background-color: rgba(255, 255, 255, 0.85);
 	font-size: 28rpx;
 	color: #2b2b2b;
 	box-sizing: border-box;
@@ -174,8 +173,6 @@ async function handleSubmit() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 8px;
-	background-color: #8b6f47;
 	margin-top: 16rpx;
 }
 

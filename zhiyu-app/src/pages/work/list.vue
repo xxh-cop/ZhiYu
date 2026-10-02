@@ -1,24 +1,31 @@
 <template>
-	<view class="page">
+	<view class="page zy-page-enter">
 		<!-- 顶部标题 -->
 		<view class="header">
 			<text class="page-title">作品社区</text>
 		</view>
 
-		<!-- 加载中 -->
-		<view v-if="loading && records.length === 0" class="status-box">
-			<text class="status-text">正在加载…</text>
+		<!-- 骨架屏 -->
+		<view v-if="loading && records.length === 0" class="card-list">
+			<view v-for="i in 3" :key="'sk-'+i" class="skeleton-card zy-card">
+				<view class="zy-skeleton skeleton-cover"></view>
+				<view class="skeleton-body">
+					<view class="zy-skeleton skeleton-title"></view>
+					<view class="zy-skeleton skeleton-text"></view>
+				</view>
+			</view>
 		</view>
 
 		<!-- 空状态 -->
 		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="status-box">
+			<text class="empty-emoji">🌱</text>
 			<text class="status-text">还没有人分享作品，来成为第一个吧</text>
 		</view>
 
 		<!-- 错误状态 -->
 		<view v-else-if="errorMsg && records.length === 0" class="status-box">
 			<text class="error-text">{{ errorMsg }}</text>
-			<view class="retry-btn" @click="loadData(1)">
+			<view class="retry-btn zy-btn-primary" @click="loadData(1)">
 				<text class="retry-text">重试</text>
 			</view>
 		</view>
@@ -28,7 +35,7 @@
 			<view
 				v-for="item in records"
 				:key="item.id"
-				class="work-card"
+				class="work-card zy-card zy-clickable"
 				@click="goDetail(item)"
 			>
 				<!-- 封面图 -->
@@ -131,7 +138,6 @@ function coverStyle(coverUrl) {
 
 function formatTime(time) {
 	if (!time) return ''
-	// 取 "2026-10-02T18:11:52" → "10月2日"
 	const parts = time.split('T')
 	if (parts.length < 2) return time
 	const dateParts = parts[0].split('-')
@@ -152,9 +158,8 @@ loadData(1)
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 80rpx;
+	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: #f7f4ef;
 }
 
 .header {
@@ -167,6 +172,27 @@ loadData(1)
 	color: #3d3a34;
 }
 
+/* 骨架屏 */
+.skeleton-card {
+	overflow: hidden;
+}
+.skeleton-cover {
+	height: 200rpx;
+	border-radius: 0;
+}
+.skeleton-body {
+	padding: 24rpx;
+}
+.skeleton-title {
+	height: 36rpx;
+	width: 60%;
+	margin-bottom: 16rpx;
+}
+.skeleton-text {
+	height: 28rpx;
+	width: 90%;
+}
+
 .status-box {
 	display: flex;
 	flex-direction: column;
@@ -174,6 +200,10 @@ loadData(1)
 	justify-content: center;
 	padding: 80rpx 0;
 	gap: 24rpx;
+}
+
+.empty-emoji {
+	font-size: 64rpx;
 }
 
 .status-text {
@@ -188,8 +218,6 @@ loadData(1)
 
 .retry-btn {
 	padding: 12rpx 40rpx;
-	border-radius: 8px;
-	background-color: #8b6f47;
 }
 
 .retry-text {
@@ -204,10 +232,6 @@ loadData(1)
 }
 
 .work-card {
-	border-radius: 12px;
-	background-color: #fffdfa;
-	border: 2rpx solid #e6ddcf;
-	box-shadow: 0 2px 8px rgba(139, 111, 71, 0.08);
 	overflow: hidden;
 }
 
@@ -220,8 +244,8 @@ loadData(1)
 }
 
 .card-title {
-	font-size: 34rpx;
-	font-weight: 600;
+	font-size: 32rpx;
+	font-weight: 500;
 	color: #3d3a34;
 }
 

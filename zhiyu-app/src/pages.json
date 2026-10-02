@@ -46,6 +46,12 @@
 			}
 		},
 		{
+			"path": "pages/work/publish",
+			"style": {
+				"navigationBarTitleText": "发布作品"
+			}
+		},
+		{
 			"path": "pages/group/list",
 			"style": {
 				"navigationBarTitleText": "互助小组"
@@ -56,6 +62,12 @@
 			"style": {
 				"navigationBarTitleText": "创建小组"
 			}
+		},
+		{
+			"path": "pages/profile/index",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
 		}
 	],
 	"globalStyle": {
@@ -63,5 +75,29 @@
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "织愈",
 		"backgroundColor": "#F7F4EF"
+	},
+	"tabBar": {
+		"color": "#8a8378",
+		"selectedColor": "#8b6f47",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "white",
+		"list": [
+			{
+				"pagePath": "pages/home/index",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/work/list",
+				"text": "社区"
+			},
+			{
+				"pagePath": "pages/group/list",
+				"text": "小组"
+			},
+			{
+				"pagePath": "pages/profile/index",
+				"text": "我的"
+			}
+		]
 	}
 }
