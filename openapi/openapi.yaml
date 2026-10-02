@@ -142,6 +142,15 @@ components:
           default: true
           description: 后端仍存 user_id，anonymous 仅控制展示层；true 时展示为「匿名同学」。与 visible 正交共存。
 
+    CraftStepVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        stepNo: { type: integer, description: 步骤序号 }
+        title: { type: string, description: 步骤标题 }
+        guide: { type: string, description: 引导语 }
+        audioUrl: { type: string, nullable: true, description: 引导语音频 URL }
+
     CraftProject:
       type: object
       properties:
@@ -428,14 +437,23 @@ paths:
     get:
       summary: 项目步骤详情
       parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
       responses:
         '200':
-          description: 步骤列表
+          description: 步骤列表（按 stepNo 升序）
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Result' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/CraftStepVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
