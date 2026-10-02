@@ -75,7 +75,7 @@ public class EmotionController {
                 }
 
                 // 2. 输入侧安全检查（T1.3b）
-                SafetyResult inputResult = safetyFilter.checkInput(userId, sessionId, dto.getContent());
+                SafetyResult inputResult = safetyFilter.checkInput(userId, sessionId, "chat", dto.getContent());
 
                 // 2a. 命中高危 → 危机干预流程：不调 LLM
                 if (inputResult.getAction() == SafetyAction.BLOCK) {
@@ -113,7 +113,7 @@ public class EmotionController {
                 });
 
                 // 6. 输出侧安全检查（事后审计；流式无法拦截，命中 REWRITE 仅记审计不改已推送内容）
-                SafetyResult outputResult = safetyFilter.checkOutput(userId, fullReply.toString());
+                SafetyResult outputResult = safetyFilter.checkOutput(userId, "chat", fullReply.toString());
                 if (outputResult.getAction() == SafetyAction.REWRITE) {
                     log.warn("AI 输出越界已记审计（已推送内容不改）: userId={}, sessionId={}",
                             userId, sessionId);

@@ -60,7 +60,7 @@ public class KeywordContentSafetyFilter implements ContentSafetyFilter {
     private String nationalHotline;
 
     @Override
-    public SafetyResult checkInput(Long userId, Long sessionId, String text) {
+    public SafetyResult checkInput(Long userId, Long sessionId, String scene, String text) {
         // 1. 空输入 → PASS，不写审计
         if (text == null || text.isBlank()) {
             return SafetyResult.pass("空输入");
@@ -77,20 +77,20 @@ public class KeywordContentSafetyFilter implements ContentSafetyFilter {
             careReminderService.trigger(userId, sessionId, 2, summary);
 
             // 写 ai_audit_log（raw_input 加密）
-            aiAuditLogService.log(userId, "chat", text, null, "BLOCK", reason);
+            aiAuditLogService.log(userId, scene, text, null, "BLOCK", reason);
 
-            log.warn("输入侧高危命中: userId={}, sessionId={}, keyword={}, action=BLOCK",
-                    userId, sessionId, matchedKeyword);
+            log.warn("输入侧高危命中: userId={}, sessionId={}, scene={}, keyword={}, action=BLOCK",
+                    userId, sessionId, scene, matchedKeyword);
             return SafetyResult.block(reason, careMessage);
         }
 
         // 3. 普通 → PASS + 写审计
-        aiAuditLogService.log(userId, "chat", text, null, "PASS", "输入检查通过");
+        aiAuditLogService.log(userId, scene, text, null, "PASS", "输入检查通过");
         return SafetyResult.pass("输入检查通过");
     }
 
     @Override
-    public SafetyResult checkOutput(Long userId, String text) {
+    public SafetyResult checkOutput(Long userId, String scene, String text) {
         // 1. 空输出 → PASS，不写审计
         if (text == null || text.isBlank()) {
             return SafetyResult.pass("空输出");
@@ -100,15 +100,15 @@ public class KeywordContentSafetyFilter implements ContentSafetyFilter {
         for (Pattern p : BOUNDARY_PATTERNS) {
             if (p.matcher(text).find()) {
                 String reason = "输出越界词命中: " + p.pattern();
-                aiAuditLogService.log(userId, "chat", null, text, "REWRITE", reason);
-                log.warn("输出侧越界命中: userId={}, pattern={}, action=REWRITE",
-                        userId, p.pattern());
+                aiAuditLogService.log(userId, scene, null, text, "REWRITE", reason);
+                log.warn("输出侧越界命中: userId={}, scene={}, pattern={}, action=REWRITE",
+                        userId, scene, p.pattern());
                 return SafetyResult.rewrite(reason, SAFE_REWRITE);
             }
         }
 
         // 3. 正常 → PASS + 写审计
-        aiAuditLogService.log(userId, "chat", null, text, "PASS", "输出检查通过");
+        aiAuditLogService.log(userId, scene, null, text, "PASS", "输出检查通过");
         return SafetyResult.pass("输出检查通过");
     }
 
