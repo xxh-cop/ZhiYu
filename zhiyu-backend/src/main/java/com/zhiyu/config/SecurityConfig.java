@@ -43,12 +43,12 @@ public class SecurityConfig {
     /**
      * 本地开发的跨域白名单。
      *
-     * <p>5173 是 Vite 默认端口：学生端 UniApp H5（T0.5a）用它；该端口原本预留给管理端（T0.6），
-     * 两者同时 `npm run dev` 会撞端口，届时管理端需改用其他端口并加进这里。
-     * 8080 预留给后端自带页面的本地联调。
+     * <p>端口分配：5173 是学生端 UniApp H5（T0.5a）的 Vite 开发端口，
+     * 5174 是管理端 Vue3（T0.6a）的 Vite 开发端口；8080 预留给后端自带页面的本地联调。
      */
     private static final List<String> ALLOWED_ORIGINS = List.of(
             "http://localhost:5173", "http://127.0.0.1:5173",
+            "http://localhost:5174", "http://127.0.0.1:5174",
             "http://localhost:8080", "http://127.0.0.1:8080");
 
     private static final List<String> ALLOWED_METHODS =

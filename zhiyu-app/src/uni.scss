@@ -74,3 +74,42 @@ $uni-color-subtitle: #555; // 二级标题颜色
 $uni-font-size-subtitle: 18px;
 $uni-color-paragraph: #3f536e; // 文章段落颜色
 $uni-font-size-paragraph: 15px;
+
+/* ============================================================
+ * 织愈设计变量（学生端）
+ * 与 docs/ui-guidelines.md 及 zhiyu-admin/src/styles/variables.scss 一一对应，
+ * 三处的值必须保持一致：改一处就要改三处。
+ * ============================================================ */
+
+/* 色板 */
+$zy-color-primary: #8b6f47; // 主色 · 茶褐
+$zy-color-bg: #f7f4ef; // 背景 · 米白
+$zy-color-text: #2b2b2b; // 文字主色
+$zy-color-accent: #c89b6e; // 强调色 · 暖驼
+$zy-color-border: #e5ddd0; // 边框
+$zy-color-danger: #b85450; // 危险
+
+/* 辅助文字 */
+$zy-color-text-weak: #8a8378; // 说明、占位
+$zy-color-text-faint: #a49c90; // 更弱的提示
+
+/* 字体 */
+$zy-font-size-h1: 22px; // 页面标题
+$zy-font-size-h2: 18px; // 区块标题
+$zy-font-size-body: 15px; // 正文
+$zy-font-size-small: 13px; // 辅助文字
+$zy-line-height-base: 1.6;
+
+/* 间距（基准 4px，实际只用这 5 档） */
+$zy-space-8: 8px;
+$zy-space-12: 12px;
+$zy-space-16: 16px;
+$zy-space-24: 24px;
+$zy-space-32: 32px;
+
+/* 圆角 */
+$zy-radius-card: 12px;
+$zy-radius-button: 8px;
+
+/* 阴影（全局唯一阴影） */
+$zy-shadow-card: 0 2px 8px rgba(139, 111, 71, 0.08);

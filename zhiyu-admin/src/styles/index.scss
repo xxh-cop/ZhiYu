@@ -1,0 +1,58 @@
+// ============================================================
+// 全局样式：把 variables.scss 的设计变量暴露为 CSS 自定义属性，
+// 并覆盖 Element Plus 的主题变量（只调主色，不改默认组件观感）。
+// ============================================================
+@use './variables' as *;
+
+:root {
+  /* 织愈自有变量（SFC 的 <style> 里用 var(--zy-*) 引用） */
+  --zy-primary: #{$color-primary};
+  --zy-bg: #{$color-bg};
+  --zy-text: #{$color-text};
+  --zy-accent: #{$color-accent};
+  --zy-border: #{$color-border};
+  --zy-danger: #{$color-danger};
+  --zy-shadow-card: #{$shadow-card};
+  --zy-radius-card: #{$radius-card};
+  --zy-radius-button: #{$radius-button};
+  --zy-space-8: #{$space-8};
+  --zy-space-12: #{$space-12};
+  --zy-space-16: #{$space-16};
+  --zy-space-24: #{$space-24};
+  --zy-space-32: #{$space-32};
+
+  /* Element Plus 主题覆盖：只调主色与危险色 */
+  --el-color-primary: #{$color-primary};
+  --el-color-primary-light-3: #{$color-primary-light-3};
+  --el-color-primary-light-5: #{$color-primary-light-5};
+  --el-color-primary-light-7: #{$color-primary-light-7};
+  --el-color-primary-light-8: #{$color-primary-light-8};
+  --el-color-primary-light-9: #{$color-primary-light-9};
+  --el-color-primary-dark-2: #{$color-primary-dark-2};
+  --el-color-danger: #{$color-danger};
+  --el-border-radius-base: #{$radius-button};
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: $color-bg;
+  color: $color-text;
+  font-family: $font-family-base;
+  font-size: $font-size-body;
+  line-height: $line-height-base;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+  font-size: $font-size-h1;
+}
+
+h2 {
+  font-size: $font-size-h2;
+}
