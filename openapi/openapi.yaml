@@ -182,6 +182,31 @@ components:
           type: array
           items: { $ref: '#/components/schemas/RecommendItemVO' }
 
+    CreateSessionDTO:
+      type: object
+      required: [projectId]
+      properties:
+        projectId: { type: integer, format: int64, description: 手作项目 ID }
+
+    SessionStatusDTO:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [pause, resume, finish, abandon], description: '无 start；创建即为进行中' }
+
+    CraftSessionVO:
+      type: object
+      properties:
+        sessionId: { type: integer, format: int64 }
+        projectId: { type: integer, format: int64 }
+        projectTitle: { type: string, description: 项目标题（join craft_project 取） }
+        status: { type: integer, description: '0待开始 1进行中 2已暂停 3已完成 4已放弃' }
+        statusLabel: { type: string, description: '状态中文标签' }
+        currentStep: { type: integer }
+        totalSteps: { type: integer, description: '项目总步骤数（count craft_step）' }
+        startTime: { type: string, format: date-time, nullable: true }
+        endTime: { type: string, format: date-time, nullable: true }
+
 paths:
   # ---------- 认证 ----------
   /api/auth/register:
@@ -379,18 +404,21 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [projectId]
-              properties:
-                projectId: { type: integer }
+            schema: { $ref: '#/components/schemas/CreateSessionDTO' }
       responses:
         '200':
           description: 会话信息（status=1 进行中）
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Result' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CraftSessionVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -405,8 +433,14 @@ paths:
           description: 会话状态、当前步骤、心流时长（flow_seconds，占比 = flow_seconds/(end_time-start_time)）
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Result' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CraftSessionVO' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -420,18 +454,21 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [action]
-              properties:
-                action: { type: string, enum: [pause, resume, finish, abandon], description: 无 start；创建即为进行中 }
+            schema: { $ref: '#/components/schemas/SessionStatusDTO' }
       responses:
         '200':
           description: 状态推进成功；非法流转返回 code=3001
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Result' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CraftSessionVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }

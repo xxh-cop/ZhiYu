@@ -1,20 +1,25 @@
 package com.zhiyu.modules.craft.controller;
 
 import com.zhiyu.common.result.Result;
+import com.zhiyu.modules.craft.dto.CreateSessionDTO;
+import com.zhiyu.modules.craft.dto.SessionStatusDTO;
 import com.zhiyu.modules.craft.service.CraftRecommendService;
+import com.zhiyu.modules.craft.service.CraftSessionService;
+import com.zhiyu.modules.craft.vo.CraftSessionVO;
 import com.zhiyu.modules.craft.vo.RecommendVO;
 import com.zhiyu.security.UserContext;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
- * 手作推荐控制器（T1.5）。
+ * 手作模块控制器（T1.5 / T1.6）。
  *
- * <p>GET /api/craft/recommend —— 根据当前心情推荐手作。
+ * <p>GET  /api/craft/recommend          —— 根据当前心情推荐手作（T1.5）
+ * <p>POST /api/craft/session             —— 创建创作会话（T1.6）
+ * <p>PUT  /api/craft/session/{id}/status —— 推进会话状态机（T1.6）
+ * <p>GET  /api/craft/session/{id}        —— 查询会话进度（T1.6）
  *
  * <p>JWT 鉴权走 {@code SecurityConfig} 的 {@code anyRequest().authenticated()}，
  * 无需额外配置。
@@ -26,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CraftController {
 
     private final CraftRecommendService craftRecommendService;
+    private final CraftSessionService craftSessionService;
 
     /**
      * 根据当前心情推荐手作。
@@ -42,5 +48,27 @@ public class CraftController {
             @RequestParam(defaultValue = "60") Integer minutes) {
         Long userId = UserContext.getUserId();
         return Result.success(craftRecommendService.recommend(userId, sessionId, skillLevel, minutes));
+    }
+
+    // ── T1.6 创作会话 ──
+
+    @PostMapping("/session")
+    public Result<CraftSessionVO> createSession(@Valid @RequestBody CreateSessionDTO dto) {
+        Long userId = UserContext.getUserId();
+        return Result.success(craftSessionService.create(userId, dto.getProjectId()));
+    }
+
+    @PutMapping("/session/{id}/status")
+    public Result<CraftSessionVO> changeStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody SessionStatusDTO dto) {
+        Long userId = UserContext.getUserId();
+        return Result.success(craftSessionService.changeStatus(userId, id, dto.getAction()));
+    }
+
+    @GetMapping("/session/{id}")
+    public Result<CraftSessionVO> getProgress(@PathVariable Long id) {
+        Long userId = UserContext.getUserId();
+        return Result.success(craftSessionService.getProgress(userId, id));
     }
 }
