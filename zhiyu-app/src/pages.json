@@ -84,19 +84,27 @@
 		"list": [
 			{
 				"pagePath": "pages/home/index",
-				"text": "首页"
+				"text": "首页",
+				"iconPath": "static/tabbar/home-normal.png",
+				"selectedIconPath": "static/tabbar/home-active.png"
 			},
 			{
 				"pagePath": "pages/work/list",
-				"text": "社区"
+				"text": "社区",
+				"iconPath": "static/tabbar/community-normal.png",
+				"selectedIconPath": "static/tabbar/community-active.png"
 			},
 			{
 				"pagePath": "pages/group/list",
-				"text": "小组"
+				"text": "小组",
+				"iconPath": "static/tabbar/group-normal.png",
+				"selectedIconPath": "static/tabbar/group-active.png"
 			},
 			{
 				"pagePath": "pages/profile/index",
-				"text": "我的"
+				"text": "我的",
+				"iconPath": "static/tabbar/profile-normal.png",
+				"selectedIconPath": "static/tabbar/profile-active.png"
 			}
 		]
 	}
