@@ -4,9 +4,11 @@ import com.zhiyu.common.result.Result;
 import com.zhiyu.modules.craft.dto.CreateSessionDTO;
 import com.zhiyu.modules.craft.dto.HeartbeatReq;
 import com.zhiyu.modules.craft.dto.SessionStatusDTO;
+import com.zhiyu.modules.craft.service.CraftProjectService;
 import com.zhiyu.modules.craft.service.CraftRecommendService;
 import com.zhiyu.modules.craft.service.CraftSessionService;
 import com.zhiyu.modules.craft.vo.CraftSessionVO;
+import com.zhiyu.modules.craft.vo.CraftStepVO;
 import com.zhiyu.modules.craft.vo.HeartbeatResult;
 import com.zhiyu.modules.craft.vo.RecommendVO;
 import com.zhiyu.security.UserContext;
@@ -15,13 +17,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
- * 手作模块控制器（T1.5 / T1.6）。
+ * 手作模块控制器（T1.5 / T1.6 / T1.9b-backend）。
  *
- * <p>GET  /api/craft/recommend          —— 根据当前心情推荐手作（T1.5）
- * <p>POST /api/craft/session             —— 创建创作会话（T1.6）
- * <p>PUT  /api/craft/session/{id}/status —— 推进会话状态机（T1.6）
- * <p>GET  /api/craft/session/{id}        —— 查询会话进度（T1.6）
+ * <p>GET  /api/craft/recommend             —— 根据当前心情推荐手作（T1.5）
+ * <p>GET  /api/craft/projects/{id}/steps   —— 项目步骤列表（T1.9b-backend）
+ * <p>POST /api/craft/session                —— 创建创作会话（T1.6）
+ * <p>PUT  /api/craft/session/{id}/status    —— 推进会话状态机（T1.6）
+ * <p>GET  /api/craft/session/{id}           —— 查询会话进度（T1.6）
  * <p>POST /api/craft/session/{id}/heartbeat —— 上报步骤心跳（T1.7）
  *
  * <p>JWT 鉴权走 {@code SecurityConfig} 的 {@code anyRequest().authenticated()}，
@@ -35,6 +40,7 @@ public class CraftController {
 
     private final CraftRecommendService craftRecommendService;
     private final CraftSessionService craftSessionService;
+    private final CraftProjectService craftProjectService;
 
     /**
      * 根据当前心情推荐手作。
@@ -51,6 +57,19 @@ public class CraftController {
             @RequestParam(defaultValue = "60") Integer minutes) {
         Long userId = UserContext.getUserId();
         return Result.success(craftRecommendService.recommend(userId, sessionId, skillLevel, minutes));
+    }
+
+    // ── T1.9b-backend 项目步骤 ──
+
+    /**
+     * 查询项目步骤列表（按 stepNo 升序）。
+     *
+     * @param id 项目 ID
+     * @return 步骤列表
+     */
+    @GetMapping("/projects/{id}/steps")
+    public Result<List<CraftStepVO>> listSteps(@PathVariable Long id) {
+        return Result.success(craftProjectService.listSteps(id));
     }
 
     // ── T1.6 创作会话 ──

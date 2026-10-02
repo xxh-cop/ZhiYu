@@ -187,7 +187,10 @@ function handleRetry() {
 }
 
 function handleRecommend() {
-	uni.showToast({ title: '即将上线', icon: 'none' })
+	const sid = emotionStore.sessionId || ''
+	uni.navigateTo({
+		url: `/pages/craft/recommend${sid ? '?sessionId=' + sid : ''}`,
+	})
 }
 
 function handleVoice() {

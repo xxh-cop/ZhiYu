@@ -15,7 +15,7 @@
 				<text class="grid-label">情绪倾听</text>
 			</view>
 
-			<view class="grid-item" @click="toastComing">
+			<view class="grid-item" @click="goRecommend">
 				<view class="grid-icon">
 					<text class="icon-emoji">🧶</text>
 				</view>
@@ -115,6 +115,10 @@ async function loadCurrentUser() {
 
 function goEmotion() {
 	uni.navigateTo({ url: '/pages/emotion/chat' })
+}
+
+function goRecommend() {
+	uni.navigateTo({ url: '/pages/craft/recommend' })
 }
 
 function toastComing() {

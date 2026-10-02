@@ -17,6 +17,18 @@
 			"style": {
 				"navigationBarTitleText": "情绪倾听"
 			}
+		},
+		{
+			"path": "pages/craft/recommend",
+			"style": {
+				"navigationBarTitleText": "疗愈推荐"
+			}
+		},
+		{
+			"path": "pages/craft/session",
+			"style": {
+				"navigationBarTitleText": "创作引导"
+			}
 		}
 	],
 	"globalStyle": {
