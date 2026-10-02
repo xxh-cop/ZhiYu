@@ -85,8 +85,6 @@ application-local.yml
 application-local.yaml
 application-prod.yml
 application-prod.yaml
-application-test.yml
-application-test.yaml
 
 *.jks
 *.keystore
