@@ -6,7 +6,7 @@ import { useUserStore } from '../stores/user'
 const ADMIN_ROLES = [1, 2, 3]
 
 const routes = [
-  { path: '/', redirect: '/login' },
+  { path: '/', redirect: '/dashboard' },
   {
     path: '/login',
     name: 'login',
@@ -14,10 +14,46 @@ const routes = [
     meta: { public: true, title: '登录' },
   },
   {
-    path: '/dashboard',
-    name: 'dashboard',
-    component: () => import('../views/Dashboard.vue'),
-    meta: { title: '工作台' },
+    path: '/',
+    component: () => import('../layouts/AdminLayout.vue'),
+    children: [
+      {
+        path: 'dashboard',
+        name: 'dashboard',
+        component: () => import('../views/Dashboard.vue'),
+        meta: { title: '工作台' },
+      },
+      {
+        path: 'audit',
+        name: 'audit',
+        component: () => import('../views/Audit.vue'),
+        meta: { title: '内容审核' },
+      },
+      {
+        path: 'care-reminders',
+        name: 'care-reminders',
+        component: () => import('../views/CareReminders.vue'),
+        meta: { title: '关怀提醒' },
+      },
+      {
+        path: 'analytics',
+        name: 'analytics',
+        component: () => import('../views/Analytics.vue'),
+        meta: { title: '数据看板' },
+      },
+      {
+        path: 'inheritors',
+        name: 'inheritors',
+        component: () => import('../views/Inheritors.vue'),
+        meta: { title: '传承人管理' },
+      },
+      {
+        path: 'users',
+        name: 'users',
+        component: () => import('../views/Users.vue'),
+        meta: { title: '用户管理' },
+      },
+    ],
   },
   // 兜底：未匹配路径回登录页
   { path: '/:pathMatch(.*)*', redirect: '/login' },
