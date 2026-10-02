@@ -1,8 +1,12 @@
 package com.zhiyu.modules.craft.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhiyu.ai.flow.FlowDetectionResult;
+import com.zhiyu.ai.flow.FlowDetectionService;
+import com.zhiyu.ai.flow.FlowState;
 import com.zhiyu.common.exception.BusinessException;
 import com.zhiyu.common.result.ResultCode;
+import com.zhiyu.modules.craft.dto.HeartbeatReq;
 import com.zhiyu.modules.craft.entity.CraftProject;
 import com.zhiyu.modules.craft.entity.CraftSession;
 import com.zhiyu.modules.craft.entity.CraftStep;
@@ -12,6 +16,7 @@ import com.zhiyu.modules.craft.mapper.CraftSessionMapper;
 import com.zhiyu.modules.craft.mapper.CraftStepMapper;
 import com.zhiyu.modules.craft.service.CraftSessionService;
 import com.zhiyu.modules.craft.vo.CraftSessionVO;
+import com.zhiyu.modules.craft.vo.HeartbeatResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +40,7 @@ public class CraftSessionServiceImpl implements CraftSessionService {
     private final CraftSessionMapper craftSessionMapper;
     private final CraftProjectMapper craftProjectMapper;
     private final CraftStepMapper craftStepMapper;
+    private final FlowDetectionService flowDetectionService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -124,6 +130,56 @@ public class CraftSessionServiceImpl implements CraftSessionService {
         }
         CraftProject project = craftProjectMapper.selectById(session.getProjectId());
         return buildVO(session, project);
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  T1.7 心跳
+    // ──────────────────────────────────────────────────────
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public HeartbeatResult heartbeat(Long userId, Long sessionId, HeartbeatReq req) {
+        // 1. 查 session
+        CraftSession session = craftSessionMapper.selectById(sessionId);
+        if (session == null) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+        // 所有权校验 → 403
+        if (!session.getUserId().equals(userId)) {
+            throw new BusinessException(ResultCode.FORBIDDEN);
+        }
+
+        // 2. 状态校验：只允许 DOING 状态的心跳
+        SessionStatus current = SessionStatus.fromCode(session.getStatus());
+        if (current != SessionStatus.DOING) {
+            throw new BusinessException(ResultCode.BAD_STATE.getCode(),
+                    "会话当前状态不允许心跳: " + (current != null ? current.getLabel() : "未知"));
+        }
+
+        // 3. 调 FlowDetectionService 做心流检测
+        FlowDetectionResult detection = flowDetectionService.evaluate(
+                sessionId,
+                req.getStepNo(),
+                req.getDwellSeconds(),
+                req.getIsExited(),
+                req.getIsBreathingResponded());
+
+        // 4. 更新 current_step（如果 stepNo 变了）——只更新这一个字段，避免覆盖 flow_seconds
+        if (!req.getStepNo().equals(session.getCurrentStep())) {
+            craftSessionMapper.updateCurrentStep(sessionId, req.getStepNo());
+            log.info("心跳推进步骤: sessionId={}, currentStep={}", sessionId, req.getStepNo());
+        }
+
+        // 5. flowDelta > 0 时原子累加 flow_seconds
+        if (detection.flowDelta() > 0) {
+            craftSessionMapper.addFlowSeconds(sessionId, detection.flowDelta());
+            log.info("心流累加: sessionId={}, delta={}, state={}", sessionId, detection.flowDelta(), detection.state());
+        }
+
+        // 6. 返回心流判定信号
+        boolean inFlow = detection.state() == FlowState.FLOW;
+        boolean needBreathing = detection.state() == FlowState.ANXIOUS;
+        return new HeartbeatResult(inFlow, needBreathing);
     }
 
     // ──────────────────────────────────────────────────────

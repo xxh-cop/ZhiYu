@@ -98,6 +98,7 @@ components:
       description: |
         步骤心跳：只上报步骤推进与心流信号，不修改会话主状态机。
         主状态机流转请使用 PUT /api/craft/session/{id}/status。
+      required: [stepNo, dwellSeconds]
       properties:
         stepNo: { type: integer, description: 当前步骤序号 }
         dwellSeconds: { type: integer, description: 在本步骤停留秒数 }
@@ -490,7 +491,9 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/HeartbeatResult' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }

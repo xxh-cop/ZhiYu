@@ -77,6 +77,14 @@ zhiyu:
     psych-center-phone: ${PSYCH_CENTER_PHONE:0791-0000000}
     national-hotline: ${NATIONAL_HOTLINE:12356}
 
+  # ── 心流检测配置（T1.7） ──
+  # store: redis（多实例共享） | memory（单机，默认）
+  # 阈值与 ai-config/ai-capabilities.yaml 的 flow 段对应
+  flow:
+    store: ${ZHIYU_FLOW_STORE:memory}
+    focus-idle-seconds: 300
+    stuck-repeat-times: 3
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
