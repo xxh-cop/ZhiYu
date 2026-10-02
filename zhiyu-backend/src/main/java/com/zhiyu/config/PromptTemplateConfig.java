@@ -12,11 +12,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 /**
- * Prompt 模板配置（T1.3a）。
+ * Prompt 模板配置（T1.3a / T1.3b）。
  *
  * <p>从 {@code resources/prompts/*.st} 加载外置 Prompt，避免硬编码在 Java 里（AGENTS.md §4）。
- * 本批次只加载 {@code companion.st}（系统提示词），其他 Prompt（recommend / work_message）
- * 后续批次外置。
+ *
+ * <p>本配置加载：
+ * <ul>
+ *   <li>{@code companion.st} —— 陪伴者人设（系统提示词第一条）</li>
+ *   <li>{@code safety.st} —— 安全边界约束（系统提示词第二条，T1.3b 引入）</li>
+ * </ul>
  */
 @Slf4j
 @Configuration
@@ -25,19 +29,35 @@ public class PromptTemplateConfig {
     @Value("classpath:prompts/companion.st")
     private Resource companionPromptResource;
 
+    @Value("classpath:prompts/safety.st")
+    private Resource safetyPromptResource;
+
     /**
-     * 系统提示词（companion.st 内容原文）。
-     * 由 SpringAiLlmClient 在 streamChat 时 prepend 到 history 最前面。
+     * 陪伴者系统提示词（companion.st 内容原文）。
+     * 由 SpringAiLlmClient 在 streamChat 时作为第一条 system message 注入。
      */
     @Bean("companionPrompt")
     public String companionPrompt() {
+        return loadPrompt(companionPromptResource, "prompts/companion.st");
+    }
+
+    /**
+     * 安全边界系统提示词（safety.st 内容原文，T1.3b 引入）。
+     * 由 SpringAiLlmClient 在 streamChat 时作为第二条 system message 追加。
+     */
+    @Bean("safetyPrompt")
+    public String safetyPrompt() {
+        return loadPrompt(safetyPromptResource, "prompts/safety.st");
+    }
+
+    private String loadPrompt(Resource resource, String desc) {
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(companionPromptResource.getInputStream(), StandardCharsets.UTF_8))) {
+                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
             String text = reader.lines().collect(Collectors.joining("\n"));
-            log.info("companion.st 加载成功（{} 字符）", text.length());
+            log.info("{} 加载成功（{} 字符）", desc, text.length());
             return text;
         } catch (Exception e) {
-            throw new IllegalStateException("加载 prompts/companion.st 失败", e);
+            throw new IllegalStateException("加载 " + desc + " 失败", e);
         }
     }
 }
