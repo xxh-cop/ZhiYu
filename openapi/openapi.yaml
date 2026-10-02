@@ -633,6 +633,34 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/works/{id}:
+    get:
+      summary: 作品详情
+      description: |
+        返回单条作品详情。权限规则：
+        - visible=1（公开）：所有人可看
+        - visible=2（仅小组）：M1 暂时当公开处理
+        - visible=0（私密）：只有作者能看，其他人返回 1004
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 作品详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/WorkVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   /api/works/{id}/like:
     post:
       summary: 点赞/收藏作品（toggle）

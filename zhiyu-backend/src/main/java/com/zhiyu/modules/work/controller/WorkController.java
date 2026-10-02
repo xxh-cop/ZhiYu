@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>GET  /api/works                  —— 作品社区流（分页）
  * <p>POST /api/works                  —— 发布作品
+ * <p>GET  /api/works/{id}             —— 作品详情
  * <p>POST /api/works/{id}/like        —— 点赞/收藏（toggle）
  * <p>POST /api/works/{id}/comments    —— 发表留暖评论
  * <p>GET  /api/works/{id}/comments    —— 评论列表（分页）
@@ -46,6 +47,13 @@ public class WorkController {
     public Result<WorkVO> publish(@Valid @RequestBody WorkPublishReq req) {
         Long userId = UserContext.getUserId();
         return Result.success(workService.publish(userId, req));
+    }
+
+    // ── T1.9c-backend 作品详情 ──
+    @GetMapping("/{id}")
+    public Result<WorkVO> getWork(@PathVariable Long id) {
+        Long userId = UserContext.getUserId();
+        return Result.success(workService.getWork(userId, id));
     }
 
     @PostMapping("/{id}/like")

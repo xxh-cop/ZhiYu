@@ -1,5 +1,6 @@
 package com.zhiyu.modules.work;
 
+import com.zhiyu.common.exception.BusinessException;
 import com.zhiyu.modules.auth.entity.User;
 import com.zhiyu.modules.auth.mapper.UserMapper;
 import com.zhiyu.modules.craft.entity.CraftProject;
@@ -192,6 +193,56 @@ class WorkServiceTest {
         WorkPageVO result = workService.listWorks(1, 100);
 
         assertEquals(50, result.getSize());
+    }
+
+    // ── T1.9c-backend: getWork ──
+
+    @Test
+    @DisplayName("getWork：公开作品 → 返回 WorkVO")
+    void testGetWork_Success() {
+        insertWork(USER_ID, "公开作品", 3, 1, 1); // visible=1, status=1
+
+        // 取刚插入的 work id
+        Work inserted = workMapper.selectList(null).stream()
+                .filter(w -> "公开作品".equals(w.getTitle()))
+                .findFirst().orElse(null);
+        assertNotNull(inserted);
+
+        WorkVO vo = workService.getWork(USER_ID, inserted.getId());
+
+        assertEquals("公开作品", vo.getTitle());
+        assertEquals(3, vo.getLikeCount());
+        assertEquals("匿名同学", vo.getAuthorName()); // insertWork 设 anonymous=1
+    }
+
+    @Test
+    @DisplayName("getWork：id 不存在 → 1004")
+    void testGetWork_NotFound() {
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> workService.getWork(USER_ID, 99999999L)
+        );
+        assertEquals(1004, ex.getCode());
+    }
+
+    @Test
+    @DisplayName("getWork：私密作品被其他用户查看 → 1004")
+    void testGetWork_PrivateByOther() {
+        Long otherUserId = 8002L;
+        insertUser(otherUserId, "其他用户");
+        insertWork(otherUserId, "私密作品", 0, 0, 1); // visible=0
+
+        Work privateWork = workMapper.selectList(null).stream()
+                .filter(w -> "私密作品".equals(w.getTitle()))
+                .findFirst().orElse(null);
+        assertNotNull(privateWork);
+
+        // USER_ID 不是作者，查看私密作品应 1004
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> workService.getWork(USER_ID, privateWork.getId())
+        );
+        assertEquals(1004, ex.getCode());
     }
 
     // ──────────────────────────────────────────────────────
