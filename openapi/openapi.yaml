@@ -81,10 +81,11 @@ components:
 
     ChatReq:
       type: object
-      required: [message]
+      required: [content]
       properties:
         sessionId: { type: integer, nullable: true }
-        message: { type: string, example: 今天考试周压力很大 }
+        mood: { type: string, nullable: true }
+        content: { type: string, example: 今天考试周压力很大 }
 
     NoteReq:
       type: object

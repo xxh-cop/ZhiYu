@@ -4,6 +4,7 @@ import com.zhiyu.security.JwtAuthFilter;
 import com.zhiyu.security.JwtUtil;
 import com.zhiyu.security.RestAccessDeniedHandler;
 import com.zhiyu.security.RestAuthenticationEntryPoint;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +50,7 @@ public class SecurityConfig {
     private static final List<String> ALLOWED_ORIGINS = List.of(
             "http://localhost:5173", "http://127.0.0.1:5173",
             "http://localhost:5174", "http://127.0.0.1:5174",
+            "http://localhost:5175", "http://127.0.0.1:5175",
             "http://localhost:8080", "http://127.0.0.1:8080");
 
     private static final List<String> ALLOWED_METHODS =
@@ -75,6 +77,9 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // SSE 异步 dispatch 时 SecurityContext 已被清除，
+                        // 原始请求已通过鉴权，这里放行 ASYNC dispatch 避免重复鉴权失败
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                         // CORS 预检请求不带 Authorization，必须放行，否则浏览器直接拿到 401
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
