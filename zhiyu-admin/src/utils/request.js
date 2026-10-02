@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
 
 /** localStorage 里存 token 的 key（与 stores/user.js 共用） */
 export const TOKEN_KEY = 'token'

@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS work (
   cover_url   VARCHAR(255),
   message     TEXT         COMMENT 'AI 寄语',
   visible     TINYINT      NOT NULL DEFAULT 1 COMMENT '0私密 1公开 2仅小组',
-  anonymous   TINYINT      NOT NULL DEFAULT 0 COMMENT '0显示昵称 1匿名展示',
+  anonymous   TINYINT      NOT NULL DEFAULT 1 COMMENT '0显示昵称 1匿名展示；默认匿名',
   like_count  INT          NOT NULL DEFAULT 0,
   status      TINYINT      NOT NULL DEFAULT 1 COMMENT '0待审 1已发布 2下架',
   create_time DATETIME     DEFAULT NULL,
@@ -343,3 +343,7 @@ CREATE TABLE IF NOT EXISTS ai_audit_log (
 -- T0.2b：user.can_contact 默认值 1 → 0（咨询师联系用户须由用户单独授权）
 ALTER TABLE user MODIFY COLUMN can_contact TINYINT NOT NULL DEFAULT 0
   COMMENT '0不允许 1允许心理咨询师联系；默认 0，需用户单独授权';
+
+-- T0.6a：work.anonymous 默认值 0 → 1（默认匿名发布，符合产品定位；与 openapi.yaml WorkPublishReq.anonymous default=true 对齐）
+ALTER TABLE work MODIFY COLUMN anonymous TINYINT NOT NULL DEFAULT 1
+  COMMENT '0显示昵称 1匿名展示；默认匿名';
