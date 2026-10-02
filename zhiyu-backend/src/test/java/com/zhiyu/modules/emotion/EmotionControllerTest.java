@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 class EmotionControllerTest {
 
@@ -88,6 +90,40 @@ class EmotionControllerTest {
         String token = validToken(9002L, 0);
 
         String body = "{\"sessionId\":null,\"content\":\"第一轮对话\"}";
+
+        mockMvc.perform(post("/api/emotion/chat")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(request().asyncStarted());
+    }
+
+    // ── T1.3b 增加安全过滤场景 ──
+
+    @Test
+    @DisplayName("高危输入 → 200 + SSE 流启动（危机干预不调 LLM）")
+    void testHighRiskInput_SseStarted() throws Exception {
+        String token = validToken(9003L, 0);
+        String body = "{\"sessionId\":null,\"mood\":\"低落\",\"content\":\"我不想活了，我想自杀\"}";
+
+        // MockMvc + SSE + async 兼容性限制：只验证 status + asyncStarted。
+        // 危机干预路径不调 LLM，响应应更快（端到端冒烟验证完整流）。
+        mockMvc.perform(post("/api/emotion/chat")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(request().asyncStarted());
+    }
+
+    @Test
+    @DisplayName("正常输入 → 200 + SSE 流启动（走完整流程，MockLlmClient 接管）")
+    void testNormalInput_SseStarted() throws Exception {
+        String token = validToken(9004L, 0);
+        String body = "{\"sessionId\":null,\"mood\":\"焦虑\",\"content\":\"最近考试压力大\"}";
 
         mockMvc.perform(post("/api/emotion/chat")
                         .header("Authorization", "Bearer " + token)

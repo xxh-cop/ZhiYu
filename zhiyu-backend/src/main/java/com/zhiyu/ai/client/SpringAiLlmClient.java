@@ -32,19 +32,23 @@ public class SpringAiLlmClient implements LlmClient {
 
     private final ChatClient chatClient;
     private final String companionPrompt;
+    private final String safetyPrompt;
 
     public SpringAiLlmClient(ChatClient.Builder builder,
-                             @Qualifier("companionPrompt") String companionPrompt) {
+                             @Qualifier("companionPrompt") String companionPrompt,
+                             @Qualifier("safetyPrompt") String safetyPrompt) {
         this.chatClient = builder.build();
         this.companionPrompt = companionPrompt;
-        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st 已注入）");
+        this.safetyPrompt = safetyPrompt;
+        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st + safety.st 已注入）");
     }
 
     @Override
     public void streamChat(List<ChatMessage> history, Consumer<String> onToken) {
-        // prepend 系统提示词到 history 最前面
-        List<ChatMessage> withSystem = new ArrayList<>(history.size() + 1);
+        // prepend 系统提示词到 history 最前面：companion.st（人设）+ safety.st（安全边界）
+        List<ChatMessage> withSystem = new ArrayList<>(history.size() + 2);
         withSystem.add(ChatMessage.system(companionPrompt));
+        withSystem.add(ChatMessage.system(safetyPrompt));
         withSystem.addAll(history);
         var promptBuilder = chatClient.prompt().messages(toSpringMessages(withSystem));
         promptBuilder.stream().content().doOnNext(onToken).blockLast();
