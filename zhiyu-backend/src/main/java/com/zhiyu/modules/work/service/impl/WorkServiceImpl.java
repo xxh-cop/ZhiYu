@@ -143,6 +143,37 @@ public class WorkServiceImpl implements WorkService {
         return result;
     }
 
+    // ── T1.9c-backend 作品详情 ──
+
+    @Override
+    public WorkVO getWork(Long userId, Long workId) {
+        // 1. 查作品
+        Work work = workMapper.selectById(workId);
+        if (work == null || work.getStatus() == null || work.getStatus() != 1) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+
+        // 2. 权限校验：visible=0（私密）只有作者能看
+        if (work.getVisible() != null && work.getVisible() == 0
+                && !userId.equals(work.getUserId())) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+        // visible=2（仅小组）：M1 暂时当公开处理，不拦截
+
+        // 3. 组装 VO
+        String nickname = getNickname(work.getUserId());
+        WorkVO vo = buildVO(work, nickname);
+
+        // 4. 查 commentCount
+        LambdaQueryWrapper<WorkComment> commentWrapper = new LambdaQueryWrapper<>();
+        commentWrapper.eq(WorkComment::getWorkId, workId)
+                .eq(WorkComment::getStatus, 1);
+        Long count = workCommentMapper.selectCount(commentWrapper);
+        vo.setCommentCount(count != null ? count.intValue() : 0);
+
+        return vo;
+    }
+
     // ──────────────────────────────────────────────────────
     //  内部方法
     // ──────────────────────────────────────────────────────

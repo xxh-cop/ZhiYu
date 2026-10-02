@@ -29,6 +29,33 @@
 			"style": {
 				"navigationBarTitleText": "创作引导"
 			}
+		},
+		{
+			"path": "pages/work/list",
+			"style": {
+				"navigationBarTitleText": "作品社区",
+				"enablePullDownRefresh": true,
+				"onReachBottomDistance": 50
+			}
+		},
+		{
+			"path": "pages/work/detail",
+			"style": {
+				"navigationBarTitleText": "作品详情",
+				"onReachBottomDistance": 50
+			}
+		},
+		{
+			"path": "pages/group/list",
+			"style": {
+				"navigationBarTitleText": "互助小组"
+			}
+		},
+		{
+			"path": "pages/group/create",
+			"style": {
+				"navigationBarTitleText": "创建小组"
+			}
 		}
 	],
 	"globalStyle": {

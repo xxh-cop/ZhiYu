@@ -26,4 +26,21 @@ public interface WorkService {
      * @return 分页结果
      */
     WorkPageVO listWorks(Integer page, Integer size);
+
+    /**
+     * 作品详情（T1.9c-backend）。
+     *
+     * <p>权限规则：
+     * <ul>
+     *   <li>visible=1（公开）：所有人可看</li>
+     *   <li>visible=2（仅小组）：M1 暂时当公开处理</li>
+     *   <li>visible=0（私密）：只有作者可看，其他人 1004</li>
+     * </ul>
+     *
+     * @param userId 当前用户 ID
+     * @param workId 作品 ID
+     * @return 作品 VO
+     * @throws com.zhiyu.common.exception.BusinessException code=1004 如果作品不存在、未发布或无权查看
+     */
+    WorkVO getWork(Long userId, Long workId);
 }
