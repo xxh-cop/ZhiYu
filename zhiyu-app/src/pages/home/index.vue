@@ -6,14 +6,48 @@
 			<text v-if="roleLabel" class="role">{{ roleLabel }}</text>
 		</view>
 
-		<view class="card">
-			<text class="card-title">今日推荐手作</text>
-			<text class="card-hint">根据你此刻的心情，为你挑一件合适的手作</text>
-			<view class="placeholder">推荐内容将在后续版本接入</view>
+		<!-- 功能入口网格 -->
+		<view class="grid">
+			<view class="grid-item" @click="goEmotion">
+				<view class="grid-icon">
+					<text class="icon-emoji">💬</text>
+				</view>
+				<text class="grid-label">情绪倾听</text>
+			</view>
+
+			<view class="grid-item" @click="toastComing">
+				<view class="grid-icon">
+					<text class="icon-emoji">🧶</text>
+				</view>
+				<text class="grid-label">疗愈推荐</text>
+			</view>
+
+			<view class="grid-item" @click="toastComing">
+				<view class="grid-icon">
+					<text class="icon-emoji">✂️</text>
+				</view>
+				<text class="grid-label">创作引导</text>
+			</view>
+
+			<view class="grid-item" @click="toastComing">
+				<view class="grid-icon">
+					<text class="icon-emoji">❤️</text>
+				</view>
+				<text class="grid-label">作品社区</text>
+			</view>
+
+			<view class="grid-item" @click="toastComing">
+				<view class="grid-icon">
+					<text class="icon-emoji">👥</text>
+				</view>
+				<text class="grid-label">互助小组</text>
+			</view>
 		</view>
 
-		<view class="cta">
-			<text class="cta-text">开始疗愈之旅</text>
+		<!-- 我的 -->
+		<view class="card profile-card" @click="toastComing">
+			<text class="card-title">我的</text>
+			<text class="card-hint">个人信息与设置</text>
 		</view>
 
 		<button class="logout" @click="handleLogout">退出登录</button>
@@ -57,12 +91,12 @@ const roleLabel = computed(() => {
 })
 
 onShow(() => {
-	// 路由守卫：未登录直接回登录页（只做跳转，不做安全决策）
+	// 路由守卫：未登录直接回登录页
 	if (!userStore.isLogin) {
 		uni.reLaunch({ url: '/pages/login/index' })
 		return
 	}
-	// 每次进入都向后端确认一次身份，顺便刷新昵称等展示信息
+	// 每次进入都向后端确认一次身份
 	loadCurrentUser()
 })
 
@@ -73,11 +107,18 @@ async function loadCurrentUser() {
 		const data = await request({ url: '/api/auth/me', method: 'GET' })
 		userStore.setUserInfo(data)
 	} catch (e) {
-		// code=1002 已由 utils/request.js 清凭证并跳登录页；
-		// 其余错误保留当前页面与已缓存的昵称，不白屏
+		// code=1002 已由 utils/request.js 处理
 	} finally {
 		loadingMe.value = false
 	}
+}
+
+function goEmotion() {
+	uni.navigateTo({ url: '/pages/emotion/chat' })
+}
+
+function toastComing() {
+	uni.showToast({ title: '即将上线', icon: 'none' })
 }
 
 function handleLogout() {
@@ -121,11 +162,55 @@ function handleLogout() {
 	color: #8b6f47;
 }
 
+/* 功能入口网格 */
+.grid {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 24rpx;
+	margin-bottom: 48rpx;
+}
+
+.grid-item {
+	width: 31%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 32rpx 0;
+	border-radius: 24rpx;
+	background-color: #fffdfa;
+	border: 2rpx solid #e6ddcf;
+	box-shadow: 0 2px 8px rgba(139, 111, 71, 0.08);
+}
+
+.grid-icon {
+	width: 80rpx;
+	height: 80rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 16rpx;
+}
+
+.icon-emoji {
+	font-size: 48rpx;
+}
+
+.grid-label {
+	font-size: 26rpx;
+	color: #8b6f47;
+}
+
+/* 我的卡片 */
 .card {
 	padding: 40rpx 32rpx;
 	border-radius: 24rpx;
 	background-color: #fffdfa;
 	border: 2rpx solid #e6ddcf;
+}
+
+.profile-card {
+	margin-bottom: 40rpx;
 }
 
 .card-title {
@@ -141,32 +226,8 @@ function handleLogout() {
 	color: #9c8f7d;
 }
 
-.placeholder {
-	margin-top: 32rpx;
-	padding: 48rpx 0;
-	border-radius: 16rpx;
-	background-color: #f7f4ef;
-	font-size: 26rpx;
-	color: #bdb2a1;
-	text-align: center;
-}
-
-.cta {
-	margin-top: 40rpx;
-	padding: 32rpx 0;
-	border-radius: 24rpx;
-	background-color: #8b6f47;
-	text-align: center;
-}
-
-.cta-text {
-	font-size: 32rpx;
-	color: #fffdfa;
-	letter-spacing: 6rpx;
-}
-
 .logout {
-	margin-top: 56rpx;
+	margin-top: 24rpx;
 	background-color: transparent;
 	border: 2rpx solid #d9cdb9;
 	border-radius: 20rpx;

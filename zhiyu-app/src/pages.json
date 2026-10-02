@@ -11,6 +11,12 @@
 			"style": {
 				"navigationBarTitleText": "织愈"
 			}
+		},
+		{
+			"path": "pages/emotion/chat",
+			"style": {
+				"navigationBarTitleText": "情绪倾听"
+			}
 		}
 	],
 	"globalStyle": {
