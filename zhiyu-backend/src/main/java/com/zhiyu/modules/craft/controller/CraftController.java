@@ -2,10 +2,12 @@ package com.zhiyu.modules.craft.controller;
 
 import com.zhiyu.common.result.Result;
 import com.zhiyu.modules.craft.dto.CreateSessionDTO;
+import com.zhiyu.modules.craft.dto.HeartbeatReq;
 import com.zhiyu.modules.craft.dto.SessionStatusDTO;
 import com.zhiyu.modules.craft.service.CraftRecommendService;
 import com.zhiyu.modules.craft.service.CraftSessionService;
 import com.zhiyu.modules.craft.vo.CraftSessionVO;
+import com.zhiyu.modules.craft.vo.HeartbeatResult;
 import com.zhiyu.modules.craft.vo.RecommendVO;
 import com.zhiyu.security.UserContext;
 import jakarta.validation.Valid;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * <p>POST /api/craft/session             —— 创建创作会话（T1.6）
  * <p>PUT  /api/craft/session/{id}/status —— 推进会话状态机（T1.6）
  * <p>GET  /api/craft/session/{id}        —— 查询会话进度（T1.6）
+ * <p>POST /api/craft/session/{id}/heartbeat —— 上报步骤心跳（T1.7）
  *
  * <p>JWT 鉴权走 {@code SecurityConfig} 的 {@code anyRequest().authenticated()}，
  * 无需额外配置。
@@ -70,5 +73,15 @@ public class CraftController {
     public Result<CraftSessionVO> getProgress(@PathVariable Long id) {
         Long userId = UserContext.getUserId();
         return Result.success(craftSessionService.getProgress(userId, id));
+    }
+
+    // ── T1.7 心跳 ──
+
+    @PostMapping("/session/{id}/heartbeat")
+    public Result<HeartbeatResult> heartbeat(
+            @PathVariable Long id,
+            @Valid @RequestBody HeartbeatReq req) {
+        Long userId = UserContext.getUserId();
+        return Result.success(craftSessionService.heartbeat(userId, id, req));
     }
 }
