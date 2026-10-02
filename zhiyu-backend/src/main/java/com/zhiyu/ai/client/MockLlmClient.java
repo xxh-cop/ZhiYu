@@ -19,6 +19,7 @@ import java.util.function.Consumer;
  */
 @Slf4j
 @Component
+// 当 api-key 为占位值 sk-placeholder 或缺失时生效，此时 SpringAiLlmClient 不创建（互斥）
 @ConditionalOnProperty(name = "spring.ai.openai.api-key", havingValue = "sk-placeholder", matchIfMissing = true)
 public class MockLlmClient implements LlmClient {
 
