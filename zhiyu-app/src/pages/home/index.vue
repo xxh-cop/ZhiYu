@@ -29,14 +29,14 @@
 				<text class="grid-label">创作引导</text>
 			</view>
 
-			<view class="grid-item" @click="toastComing">
+			<view class="grid-item" @click="goWorkList">
 				<view class="grid-icon">
 					<text class="icon-emoji">❤️</text>
 				</view>
 				<text class="grid-label">作品社区</text>
 			</view>
 
-			<view class="grid-item" @click="toastComing">
+			<view class="grid-item" @click="goGroupList">
 				<view class="grid-icon">
 					<text class="icon-emoji">👥</text>
 				</view>
@@ -119,6 +119,14 @@ function goEmotion() {
 
 function goRecommend() {
 	uni.navigateTo({ url: '/pages/craft/recommend' })
+}
+
+function goWorkList() {
+	uni.navigateTo({ url: '/pages/work/list' })
+}
+
+function goGroupList() {
+	uni.navigateTo({ url: '/pages/group/list' })
 }
 
 function toastComing() {
