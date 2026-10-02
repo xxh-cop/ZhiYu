@@ -1,0 +1,43 @@
+// ============================================================
+// 织愈设计变量（管理端）
+// 与 docs/ui-guidelines.md 一一对应；学生端同名变量追加在
+// zhiyu-app/src/uni.scss 末尾，两处值必须保持一致。
+// ============================================================
+
+/* ---------- 色板 ---------- */
+$color-primary: #8b6f47; // 主色 · 茶褐
+$color-bg: #f7f4ef; // 背景 · 米白
+$color-text: #2b2b2b; // 文字主色
+$color-accent: #c89b6e; // 强调色 · 暖驼
+$color-border: #e5ddd0; // 边框
+$color-danger: #b85450; // 危险
+
+/* Element Plus 主色梯度（由主色向白色/黑色插值，供 :root 覆盖使用） */
+$color-primary-light-3: #ae9a7e;
+$color-primary-light-5: #c5b7a3;
+$color-primary-light-7: #dcd4c8;
+$color-primary-light-8: #e8e3da;
+$color-primary-light-9: #f3f1ed;
+$color-primary-dark-2: #6f5939;
+
+/* ---------- 字体 ---------- */
+$font-size-h1: 22px; // 页面标题
+$font-size-h2: 18px; // 区块标题
+$font-size-body: 15px; // 正文
+$font-size-small: 13px; // 辅助文字
+$line-height-base: 1.6;
+$font-family-base: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+
+/* ---------- 间距（基准 4px，实际只用这 5 档） ---------- */
+$space-8: 8px;
+$space-12: 12px;
+$space-16: 16px;
+$space-24: 24px;
+$space-32: 32px;
+
+/* ---------- 圆角 ---------- */
+$radius-card: 12px;
+$radius-button: 8px;
+
+/* ---------- 阴影（全局唯一阴影） ---------- */
+$shadow-card: 0 2px 8px rgba(139, 111, 71, 0.08);

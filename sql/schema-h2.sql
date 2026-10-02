@@ -232,7 +232,7 @@ CREATE TABLE IF NOT EXISTS work (
   cover_url   VARCHAR(255),
   message     CLOB,
   visible     TINYINT      NOT NULL DEFAULT 1,
-  anonymous   TINYINT      NOT NULL DEFAULT 0,
+  anonymous   TINYINT      NOT NULL DEFAULT 1,
   like_count  INT          NOT NULL DEFAULT 0,
   status      TINYINT      NOT NULL DEFAULT 1,
   create_time TIMESTAMP    DEFAULT NULL,
