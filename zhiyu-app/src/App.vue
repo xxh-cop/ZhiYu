@@ -8,8 +8,11 @@ export default {
 }
 </script>
 
-<style>
-/* 每个页面公共 css —— 暖色调疗愈主题 + 呼吸渐变背景 */
+<style lang="less">
+/* Leaf Island UI 全局样式（CSS 变量 + reset） */
+@import '@/uni_modules/leaf-island/index.less';
+
+/* 每个页面公共 css —— 暖色调疗愈主题 + 呼吸渐变背景（覆盖 leaf-island 默认 page 样式） */
 page {
 	background: radial-gradient(circle at 30% 20%, #f5ede1 0%, #f7f4ef 50%, #f0ebe1 100%);
 	background-size: 200% 200%;
