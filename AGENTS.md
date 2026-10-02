@@ -24,6 +24,8 @@
 | 存储 | MySQL 8.0、Redis 7、向量库（Milvus 或 Chroma）、对象存储（本地/MinIO） |
 | 学生端 | UniApp（Vue3 + Vite + Pinia2），编译微信小程序 + H5；SSE 用 uni-sse 插件 |
 | 管理端 | Vue3.4 + Vite + Element Plus 2 + ECharts5 + Pinia2 |
+| 学生端构建 | Vite 5.x | UniApp 官方锁定版本 |
+| 管理端构建 | Vite 8.x | create-vite@9 默认；与 UniApp 独立 |
 | AI | 大模型 DeepSeek / 通义千问（云端）；本地化模式 Ollama + Qwen |
 | 鉴权 | JWT（无状态），Authorization: Bearer <token> |
 
@@ -147,6 +149,7 @@ com.zhiyu
 | 项目上下文/架构约束 | `docs/project-context.md` |
 | 任务拆解 | `docs/task-breakdown.md` |
 | 隐私政策/用户协议 | `docs/privacy-policy.md` |
+| 视觉规范（色板/字体/间距） | `docs/ui-guidelines.md` |
 | Gherkin 用例 | `features/` |
 | OpenAPI 契约 | `openapi/openapi.yaml` |
 | AI 能力配置 | `ai-config/ai-capabilities.yaml` |
@@ -184,12 +187,34 @@ com.zhiyu
   自由文本（`description` / `summary`）里出现 `: ` **必须加引号**，否则解析直接报
   `bad indentation of a mapping entry`。例：
   `description: '以 "Authorization: Bearer <token>" 携带'`
+- **换行符与 `core.autocrlf`**：Windows 上 `core.autocrlf=true` 会让工作区文件显示为 CRLF，
+  但只要 `git ls-files --eol` 显示 `i/lf`，索引就是规范的。
+  不要为此执行 `git add --renormalize`（对 `i/lf` 文件无效），
+  也不要重写工作区（有风险）。跨平台协作由 `.gitattributes`
+  保证：Linux/CI checkout 时得到 LF，Windows 视编辑需求处理。
 
 ## 11. Git 约定
 
-- 分支：`main`（可运行）/ `dev`（集成）/ `feature/*`（AI 工作分支）
-- 提交信息：`feat(模块): 描述` / `fix(模块): 描述` / `docs: 描述` / `chore: 描述`
-- 一次提交只做一件事；不提交 `.env`、`target/`、`node_modules/`。
-- 每个任务完成后先 `git status` 检查，再提交。
-- AI 不得执行 `git push --force`、不得删除 `main` 分支。
-- 只读命令**允许**。约定只针对写操作。
+**分支模型**：
+- `main` —— 永远可运行，只接受合并
+- `dev` —— 日常集成分支
+- `feature/*` —— 单个任务的工作分支，**只在本地存在**，不 push 到远程
+- 远程只保留 `main` 和 `dev`
+
+**Commit 信息**：`<type>(<scope>): <description>`
+- type：`feat` / `fix` / `docs` / `chore` / `test` / `refactor`
+- scope：模块名（如 `T0.3` / `auth` / `sql` / `openapi`）
+- 中文描述，一行标题 + 空行 + 分点详情
+
+**AI Agent 的权限**：
+- 允许：`git add` / `git commit` / 只读命令（status/diff/log/show/ls-tree/branch -a）
+- **禁止**：`git push` / `merge` / `rebase` / `reset` / `checkout`（切换分支）
+- 允许 commit，但**必须先给用户看** `git status --short` 与 `git diff --stat`，
+  得到明确确认后再执行
+- 允许 commit message 由 Agent 起草，用户可以 commit 后 `--amend` 修改
+
+**禁止**：
+- 提交 `.env` / `application-local.yml` / 任何真实密钥
+- 提交 `target/` / `node_modules/` / `dist/` / `.ai-tmp/`（.gitignore 已覆盖）
+- `git push --force`（除非用户明确要求，且用 `--force-with-lease`）
+- 删除 `main` 或 `dev` 分支
