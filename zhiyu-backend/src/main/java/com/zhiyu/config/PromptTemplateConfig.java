@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 /**
- * Prompt 模板配置（T1.3a / T1.3b）。
+ * Prompt 模板配置（T1.3a / T1.3b / T1.5）。
  *
  * <p>从 {@code resources/prompts/*.st} 加载外置 Prompt，避免硬编码在 Java 里（AGENTS.md §4）。
  *
@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
  * <ul>
  *   <li>{@code companion.st} —— 陪伴者人设（系统提示词第一条）</li>
  *   <li>{@code safety.st} —— 安全边界约束（系统提示词第二条，T1.3b 引入）</li>
+ *   <li>{@code recommend.st} —— 推荐理由 Prompt 模板（T1.5 引入）</li>
  * </ul>
  */
 @Slf4j
@@ -31,6 +32,9 @@ public class PromptTemplateConfig {
 
     @Value("classpath:prompts/safety.st")
     private Resource safetyPromptResource;
+
+    @Value("classpath:prompts/recommend.st")
+    private Resource recommendPromptResource;
 
     /**
      * 陪伴者系统提示词（companion.st 内容原文）。
@@ -48,6 +52,15 @@ public class PromptTemplateConfig {
     @Bean("safetyPrompt")
     public String safetyPrompt() {
         return loadPrompt(safetyPromptResource, "prompts/safety.st");
+    }
+
+    /**
+     * 推荐理由 Prompt 模板（recommend.st 内容原文，T1.5 引入）。
+     * 由 SpringAiLlmClient.recommendReason 使用，占位符 {mood} / {craftNames} 渲染后发给 LLM。
+     */
+    @Bean("recommendPrompt")
+    public String recommendPrompt() {
+        return loadPrompt(recommendPromptResource, "prompts/recommend.st");
     }
 
     private String loadPrompt(Resource resource, String desc) {

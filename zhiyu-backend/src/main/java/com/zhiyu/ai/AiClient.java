@@ -50,6 +50,17 @@ public class AiClient {
     private static final String KEY_RECOMMEND = "llm-recommend";
     private static final String FALLBACK_RECOMMEND = "（暂时无法生成个性化理由，先看看这些手作吧）";
 
+    /**
+     * 生成推荐理由。
+     *
+     * <p>调用方（Service 层）负责在拿到返回值后调用
+     * {@code ContentSafetyFilter.checkOutput(userId, reason)} 做输出过滤，
+     * 并写 ai_audit_log。AiClient 无用户上下文，无法内部完成。
+     *
+     * @param mood       用户当前情绪
+     * @param craftNames 候选手作名称列表
+     * @return LLM 生成的推荐理由文本；熔断或失败时返回降级文案
+     */
     public String recommendReason(String mood, List<String> craftNames) {
         if (!breaker.allowRequest(KEY_RECOMMEND)) {
             log.warn("熔断中，走降级: key={}", KEY_RECOMMEND);
@@ -71,6 +82,17 @@ public class AiClient {
     private static final String KEY_MESSAGE = "llm-message";
     private static final String FALLBACK_MESSAGE = "（暂时无法生成寄语，你的专注本身就很美好）";
 
+    /**
+     * 生成作品寄语。
+     *
+     * <p>调用方（Service 层）负责在拿到返回值后调用
+     * {@code ContentSafetyFilter.checkOutput(userId, message)} 做输出过滤，
+     * 并写 ai_audit_log。AiClient 无用户上下文，无法内部完成。
+     *
+     * @param workTitle 作品标题
+     * @param mood      创作时的心情
+     * @return LLM 生成的寄语文本；熔断或失败时返回降级文案
+     */
     public String workMessage(String workTitle, String mood) {
         if (!breaker.allowRequest(KEY_MESSAGE)) {
             log.warn("熔断中，走降级: key={}", KEY_MESSAGE);

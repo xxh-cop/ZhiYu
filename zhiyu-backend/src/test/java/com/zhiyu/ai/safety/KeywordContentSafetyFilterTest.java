@@ -40,7 +40,7 @@ class KeywordContentSafetyFilterTest {
     @Test
     @DisplayName("普通输入 → PASS + 写审计")
     void testCheckInput_Normal_Pass() {
-        SafetyResult result = safetyFilter.checkInput(5001L, 100L, "最近考试压力大");
+        SafetyResult result = safetyFilter.checkInput(5001L, 100L, "chat", "最近考试压力大");
 
         assertEquals(SafetyAction.PASS, result.getAction());
         assertFalse(result.isHighRisk());
@@ -54,7 +54,7 @@ class KeywordContentSafetyFilterTest {
     @Test
     @DisplayName("高危输入 → BLOCK + 写 care_reminder + 写审计")
     void testCheckInput_HighRisk_Block() {
-        SafetyResult result = safetyFilter.checkInput(5002L, 101L, "我不想活了，我想自杀");
+        SafetyResult result = safetyFilter.checkInput(5002L, 101L, "chat", "我不想活了，我想自杀");
 
         assertEquals(SafetyAction.BLOCK, result.getAction());
         assertTrue(result.isHighRisk());
@@ -75,7 +75,7 @@ class KeywordContentSafetyFilterTest {
     @Test
     @DisplayName("输出含\"抑郁症\" → REWRITE")
     void testCheckOutput_Boundary_Rewrite() {
-        SafetyResult result = safetyFilter.checkOutput(5001L, "你可能患有抑郁症，建议就医");
+        SafetyResult result = safetyFilter.checkOutput(5001L, "chat", "你可能患有抑郁症，建议就医");
 
         assertEquals(SafetyAction.REWRITE, result.getAction());
         assertNotNull(result.getRewrittenText());
@@ -85,7 +85,7 @@ class KeywordContentSafetyFilterTest {
     @Test
     @DisplayName("输出正常 → PASS")
     void testCheckOutput_Normal_Pass() {
-        SafetyResult result = safetyFilter.checkOutput(5001L, "我在这里陪你，慢慢说");
+        SafetyResult result = safetyFilter.checkOutput(5001L, "chat", "我在这里陪你，慢慢说");
 
         assertEquals(SafetyAction.PASS, result.getAction());
     }
@@ -96,7 +96,7 @@ class KeywordContentSafetyFilterTest {
         long auditBefore = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM ai_audit_log", Long.class);
 
-        SafetyResult result = safetyFilter.checkInput(5001L, 100L, "");
+        SafetyResult result = safetyFilter.checkInput(5001L, 100L, "chat", "");
 
         assertEquals(SafetyAction.PASS, result.getAction());
         long auditAfter = jdbcTemplate.queryForObject(
@@ -107,7 +107,7 @@ class KeywordContentSafetyFilterTest {
     @Test
     @DisplayName("careMessage 含热线号码")
     void testCareMessage_ContainsHotline() {
-        SafetyResult result = safetyFilter.checkInput(5003L, 102L, "想死");
+        SafetyResult result = safetyFilter.checkInput(5003L, 102L, "chat", "想死");
 
         assertEquals(SafetyAction.BLOCK, result.getAction());
         String care = result.getCareMessage();
@@ -115,5 +115,16 @@ class KeywordContentSafetyFilterTest {
         // 默认热线号码（test profile 未覆盖环境变量，用 application.yml 默认值）
         assertTrue(care.contains("心理中心") || care.contains("热线"),
                 "关怀话术应含热线信息: " + care);
+    }
+
+    @Test
+    @DisplayName("scene 传播：checkOutput(userId, 'recommend', text) → ai_audit_log.scene='recommend'")
+    void testScenePropagation() {
+        safetyFilter.checkOutput(5001L, "recommend", "这段推荐理由很温暖");
+
+        // 查 ai_audit_log 中 scene='recommend' 的记录
+        long count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM ai_audit_log WHERE scene = 'recommend'", Long.class);
+        assertEquals(1, count, "应有一条 scene='recommend' 的审计记录");
     }
 }

@@ -158,6 +158,30 @@ components:
       properties:
         content: { type: string, maxLength: 255 }
 
+    RecommendItemVO:
+      type: object
+      properties:
+        projectId: { type: integer, format: int64 }
+        title: { type: string }
+        intro: { type: string }
+        cultureBg: { type: string }
+        level: { type: integer }
+        estMinutes: { type: integer }
+        therapyTags: { type: string }
+        coverUrl: { type: string, nullable: true }
+        score: { type: number, format: double }
+        reason: { type: string }
+
+    RecommendVO:
+      type: object
+      properties:
+        recommendationId: { type: integer, format: int64 }
+        mood: { type: string }
+        reason: { type: string, description: 整体推荐理由 }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/RecommendItemVO' }
+
 paths:
   # ---------- 认证 ----------
   /api/auth/register:
@@ -327,12 +351,19 @@ paths:
       summary: 根据当前心情推荐手作
       parameters:
         - { name: sessionId, in: query, schema: { type: integer } }
+        - { name: skillLevel, in: query, required: false, schema: { type: integer, default: 1, minimum: 1, maximum: 3 } }
+        - { name: minutes, in: query, required: false, schema: { type: integer, default: 60, minimum: 10 } }
       responses:
         '200':
           description: 推荐项目列表 + 个性化理由
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Result' }
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RecommendVO' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }

@@ -33,14 +33,17 @@ public class SpringAiLlmClient implements LlmClient {
     private final ChatClient chatClient;
     private final String companionPrompt;
     private final String safetyPrompt;
+    private final String recommendPrompt;
 
     public SpringAiLlmClient(ChatClient.Builder builder,
                              @Qualifier("companionPrompt") String companionPrompt,
-                             @Qualifier("safetyPrompt") String safetyPrompt) {
+                             @Qualifier("safetyPrompt") String safetyPrompt,
+                             @Qualifier("recommendPrompt") String recommendPrompt) {
         this.chatClient = builder.build();
         this.companionPrompt = companionPrompt;
         this.safetyPrompt = safetyPrompt;
-        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st + safety.st 已注入）");
+        this.recommendPrompt = recommendPrompt;
+        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st + safety.st + recommend.st 已注入）");
     }
 
     @Override
@@ -56,13 +59,10 @@ public class SpringAiLlmClient implements LlmClient {
 
     @Override
     public String recommendReason(String mood, List<String> craftNames) {
-        // T1.1a 先硬编码 prompt；T1.1b/T1.3 外置到 prompts/recommend.st
-        String promptText = String.format(
-                "你是一位非遗艺术疗愈助手。用户当前情绪是「%s」，" +
-                "为ta推荐以下手作项目：%s。" +
-                "请用温暖、简洁的语言（不超过80字）说明为什么这些手作适合ta的当下状态。" +
-                "注意：不得出现任何诊断性措辞，只做陪伴与引导。",
-                mood, String.join("、", craftNames));
+        // T1.5：Prompt 外置到 prompts/recommend.st，占位符 {mood} / {craftNames} 渲染
+        String promptText = recommendPrompt
+                .replace("{mood}", mood)
+                .replace("{craftNames}", String.join("、", craftNames));
         return chatClient.prompt().user(promptText).call().content();
     }
 
