@@ -1,0 +1,22 @@
+{
+	"pages": [
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "织愈"
+			}
+		},
+		{
+			"path": "pages/home/index",
+			"style": {
+				"navigationBarTitleText": "织愈"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarBackgroundColor": "#F7F4EF",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "织愈",
+		"backgroundColor": "#F7F4EF"
+	}
+}
