@@ -7,6 +7,40 @@ spring:
   profiles:
     active: dev
 
+  # ── Spring AI（T1.1a 引入） ──
+  # DeepSeek 兼容 OpenAI API 规范，只需改 base-url。
+  # API Key 只通过环境变量 DEEPSEEK_API_KEY 注入，默认 sk-placeholder 仅占位。
+  # 当 api-key=sk-placeholder 时，SpringAiLlmClient 不生效（@ConditionalOnProperty），
+  # MockLlmClient 接管，应用仍能正常启动。
+  ai:
+    openai:
+      base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+      api-key: ${DEEPSEEK_API_KEY:sk-placeholder}
+      chat:
+        options:
+          model: ${DEEPSEEK_CHAT_MODEL:deepseek-chat}
+          temperature: 0.7
+          max-tokens: 600
+      # 织愈只用 chat model，禁用其他 OpenAI 模型的自动装配
+      #（避免无 key 时 AudioSpeech / Transcription / Image / Moderation 报错）
+      audio:
+        speech:
+          enabled: false
+        transcription:
+          enabled: false
+      image:
+        enabled: false
+      moderation:
+        enabled: false
+
+  # ── Redis（T1.1b 用：熔断状态存储。本批次只配连接） ──
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+
 # 织愈自定义配置
 zhiyu:
   jwt:

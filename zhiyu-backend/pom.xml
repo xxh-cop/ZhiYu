@@ -4,11 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Spring Boot 3.2.x（AGENTS.md §2 固定 3.2，不升 3.3+） -->
+    <!-- Spring Boot 3.4.x（T1.1a 升级：Spring AI 1.0.0 要求 Boot ≥ 3.4）
+         AGENTS.md §2 原记 3.2，本次升级由用户在 M1 收尾时统一同步。 -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.12</version>
+        <version>3.4.13</version>
         <relativePath/>
     </parent>
 
@@ -24,15 +25,29 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- MyBatis-Plus 3.5.x（boot3 专用 starter）。
-             刻意不用 3.5.9：该版本把 JSqlParser 拆成独立模块
-             mybatis-plus-jsqlparser，分页插件 PaginationInnerInterceptor 需额外引依赖；
-             3.5.7 仍内置，T0.2 接分页插件时更省事。 -->
+             3.5.7 与 Boot 3.4.x 兼容（T1.1a 实测通过）。 -->
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
 
         <!-- JWT 0.12.x（AGENTS.md §2 鉴权：JWT 无状态）。
              0.12.6 是 0.12 线的稳定版，API 与 0.11 不兼容（parser/verifyWith）。 -->
         <jjwt.version>0.12.6</jjwt.version>
+
+        <!-- Spring AI 1.0.0（T1.1a 引入：OpenAI starter 兼容 DeepSeek API 规范） -->
+        <spring-ai.version>1.0.0</spring-ai.version>
     </properties>
+
+    <!-- Spring AI BOM（统一管理 Spring AI 全家桶版本） -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Web -->
@@ -103,6 +118,18 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!-- Spring AI（OpenAI starter，兼容 DeepSeek API 规范，只需改 base-url） -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
+        </dependency>
+
+        <!-- Redis（T1.1b 用：熔断状态存储。本批次只引入 starter + 配置） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- 测试 -->
