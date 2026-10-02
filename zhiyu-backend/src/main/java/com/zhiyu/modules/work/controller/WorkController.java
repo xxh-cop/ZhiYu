@@ -1,0 +1,75 @@
+package com.zhiyu.modules.work.controller;
+
+import com.zhiyu.common.result.Result;
+import com.zhiyu.modules.work.dto.CommentReq;
+import com.zhiyu.modules.work.dto.LikeReq;
+import com.zhiyu.modules.work.dto.WorkPublishReq;
+import com.zhiyu.modules.work.service.WorkInteractionService;
+import com.zhiyu.modules.work.service.WorkService;
+import com.zhiyu.modules.work.vo.CommentPageVO;
+import com.zhiyu.modules.work.vo.CommentVO;
+import com.zhiyu.modules.work.vo.LikeVO;
+import com.zhiyu.modules.work.vo.WorkPageVO;
+import com.zhiyu.modules.work.vo.WorkVO;
+import com.zhiyu.security.UserContext;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 作品社区控制器（T1.8a）。
+ *
+ * <p>GET  /api/works                  —— 作品社区流（分页）
+ * <p>POST /api/works                  —— 发布作品
+ * <p>POST /api/works/{id}/like        —— 点赞/收藏（toggle）
+ * <p>POST /api/works/{id}/comments    —— 发表留暖评论
+ * <p>GET  /api/works/{id}/comments    —— 评论列表（分页）
+ */
+@Slf4j
+@RestController
+@RequestMapping("/api/works")
+@RequiredArgsConstructor
+public class WorkController {
+
+    private final WorkService workService;
+    private final WorkInteractionService workInteractionService;
+
+    @GetMapping
+    public Result<WorkPageVO> listWorks(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return Result.success(workService.listWorks(page, size));
+    }
+
+    @PostMapping
+    public Result<WorkVO> publish(@Valid @RequestBody WorkPublishReq req) {
+        Long userId = UserContext.getUserId();
+        return Result.success(workService.publish(userId, req));
+    }
+
+    @PostMapping("/{id}/like")
+    public Result<LikeVO> toggleLike(
+            @PathVariable Long id,
+            @Valid @RequestBody(required = false) LikeReq req) {
+        Long userId = UserContext.getUserId();
+        Integer type = (req != null) ? req.getType() : null;
+        return Result.success(workInteractionService.toggleLike(userId, id, type));
+    }
+
+    @PostMapping("/{id}/comments")
+    public Result<CommentVO> comment(
+            @PathVariable Long id,
+            @Valid @RequestBody CommentReq req) {
+        Long userId = UserContext.getUserId();
+        return Result.success(workInteractionService.comment(userId, id, req.getContent()));
+    }
+
+    @GetMapping("/{id}/comments")
+    public Result<CommentPageVO> listComments(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return Result.success(workInteractionService.listComments(id, page, size));
+    }
+}
