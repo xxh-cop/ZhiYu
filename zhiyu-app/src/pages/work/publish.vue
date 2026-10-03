@@ -8,13 +8,12 @@
 			<!-- 作品标题 -->
 			<view class="form-item">
 				<text class="form-label">作品标题 <text class="required">*</text></text>
-				<input
-					class="form-input"
-					type="text"
+				<wd-input
 					v-model="form.title"
 					placeholder="给作品起个名字"
-					placeholder-class="input-placeholder"
 					:maxlength="100"
+					no-border
+					custom-class="form-input-el"
 				/>
 			</view>
 
@@ -23,19 +22,19 @@
 				<text class="form-label">谁可以看到</text>
 				<view class="radio-group">
 					<view
-						class="radio-item zy-clickable"
+						class="radio-item"
 						:class="{ 'radio-active': form.visible === 1 }"
 						@click="form.visible = 1"
 					>
-						<text class="radio-text">{{ form.visible === 1 ? '◉' : '○' }}</text>
+						<view class="radio-dot" :class="{ 'dot-active': form.visible === 1 }"></view>
 						<text class="radio-label">公开</text>
 					</view>
 					<view
-						class="radio-item zy-clickable"
+						class="radio-item"
 						:class="{ 'radio-active': form.visible === 0 }"
 						@click="form.visible = 0"
 					>
-						<text class="radio-text">{{ form.visible === 0 ? '◉' : '○' }}</text>
+						<view class="radio-dot" :class="{ 'dot-active': form.visible === 0 }"></view>
 						<text class="radio-label">私密</text>
 					</view>
 				</view>
@@ -48,7 +47,7 @@
 					<text class="form-hint">隐藏你的昵称，显示为「匿名同学」</text>
 				</view>
 				<view
-					class="switch zy-clickable"
+					class="switch"
 					:class="{ 'switch-on': form.anonymous }"
 					@click="form.anonymous = !form.anonymous"
 				>
@@ -58,8 +57,10 @@
 
 			<!-- AI 寄语提示 -->
 			<view class="form-item">
-				<view class="ai-hint zy-card">
-					<text class="ai-hint-icon">✨</text>
+				<view class="ai-hint">
+					<view class="ai-hint-icon-wrap">
+						<wd-icon name="sparkles" size="36rpx" color="#2D9B8F" />
+					</view>
 					<view class="ai-hint-info">
 						<text class="ai-hint-title">AI 寄语</text>
 						<text class="ai-hint-text">作品发布后，AI 会根据你的创作过程自动生成一句温暖寄语</text>
@@ -68,13 +69,13 @@
 			</view>
 
 			<!-- 提交按钮 -->
-			<view
-				class="submit-btn zy-btn-primary"
-				:class="{ 'btn-disabled': !canSubmit || submitting }"
+			<wd-button
+				type="primary"
+				block
+				size="large"
+				:disabled="!canSubmit || submitting"
 				@click="handleSubmit"
-			>
-				<text class="submit-text">{{ submitting ? '发布中...' : '发布作品' }}</text>
-			</view>
+			>{{ submitting ? '发布中…' : '发布作品' }}</wd-button>
 		</view>
 
 		<!-- 底部免责声明 -->
@@ -138,57 +139,45 @@ async function handleSubmit() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 120rpx;
+	padding: 32rpx 32rpx 120rpx;
 	box-sizing: border-box;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
 .header {
-	margin-bottom: 32rpx;
+	margin-bottom: 40rpx;
 }
 
 .page-title {
+	font-family: var(--zy-serif);
 	font-size: 44rpx;
-	font-weight: 600;
-	color: #3d3a34;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
 }
 
 .form {
 	display: flex;
 	flex-direction: column;
-	gap: 32rpx;
+	gap: 36rpx;
 }
 
 .form-item {
 	display: flex;
 	flex-direction: column;
-	gap: 12rpx;
+	gap: 16rpx;
 }
 
 .form-label {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: #3d3a34;
+	color: var(--zy-title, #1F2937);
 }
 
 .required {
-	color: #b85450;
+	color: #FF6B6B;
 }
 
-.form-input {
-	height: 80rpx;
-	padding: 0 20rpx;
-	border: 1px solid rgba(139, 111, 71, 0.08);
-	border-radius: 12px;
-	background-color: rgba(255, 255, 255, 0.85);
-	font-size: 28rpx;
-	color: #2b2b2b;
-}
-
-.input-placeholder {
-	color: #a49c90;
-}
-
-/* radio */
+/* ── radio ── */
 .radio-group {
 	display: flex;
 	gap: 24rpx;
@@ -197,29 +186,40 @@ async function handleSubmit() {
 .radio-item {
 	display: flex;
 	align-items: center;
-	gap: 8rpx;
-	padding: 16rpx 32rpx;
-	border: 1px solid rgba(139, 111, 71, 0.08);
-	border-radius: 12px;
-	background-color: rgba(255, 255, 255, 0.85);
+	gap: 12rpx;
+	padding: 20rpx 36rpx;
+	border: 2rpx solid var(--zy-border, #E5E7EB);
+	border-radius: 32rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	transition: all 0.2s ease;
 }
 
 .radio-active {
-	border-color: #8b6f47;
-	background-color: rgba(139, 111, 71, 0.04);
+	border-color: var(--wot-color-theme, #2D9B8F);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
-.radio-text {
-	font-size: 32rpx;
-	color: #8b6f47;
+.radio-dot {
+	width: 28rpx;
+	height: 28rpx;
+	border-radius: 50%;
+	border: 4rpx solid var(--zy-border, #E5E7EB);
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	transition: all 0.2s ease;
+}
+
+.dot-active {
+	border-color: var(--wot-color-theme, #2D9B8F);
+	background-color: var(--wot-color-theme, #2D9B8F);
+	box-shadow: inset 0 0 0 4rpx var(--zy-bg-warm, #FFFFFF);
 }
 
 .radio-label {
 	font-size: 28rpx;
-	color: #3d3a34;
+	color: var(--zy-content, #4B5563);
 }
 
-/* switch row */
+/* ── switch ── */
 .form-row {
 	flex-direction: row;
 	align-items: center;
@@ -234,20 +234,20 @@ async function handleSubmit() {
 
 .form-hint {
 	font-size: 24rpx;
-	color: #9c8f7d;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .switch {
 	width: 88rpx;
 	height: 48rpx;
 	border-radius: 24rpx;
-	background-color: #e0d5c5;
+	background-color: var(--zy-border, #E5E7EB);
 	position: relative;
 	transition: background-color 0.2s ease;
 }
 
 .switch-on {
-	background-color: #8b6f47;
+	background-color: var(--wot-color-theme, #2D9B8F);
 }
 
 .switch-knob {
@@ -257,7 +257,7 @@ async function handleSubmit() {
 	width: 40rpx;
 	height: 40rpx;
 	border-radius: 50%;
-	background-color: #fffdfa;
+	background-color: #FFFFFF;
 	transition: transform 0.2s ease;
 }
 
@@ -265,16 +265,25 @@ async function handleSubmit() {
 	transform: translateX(40rpx);
 }
 
-/* AI 寄语提示 */
+/* ── AI 寄语提示 ── */
 .ai-hint {
 	display: flex;
 	align-items: flex-start;
-	gap: 16rpx;
-	padding: 24rpx;
+	gap: 20rpx;
+	padding: 28rpx;
+	border-radius: 24rpx;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	border: 1rpx solid rgba(45, 155, 143, 0.12);
 }
 
-.ai-hint-icon {
-	font-size: 36rpx;
+.ai-hint-icon-wrap {
+	width: 56rpx;
+	height: 56rpx;
+	border-radius: 50%;
+	background-color: rgba(45, 155, 143, 0.1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
 }
 
@@ -288,37 +297,20 @@ async function handleSubmit() {
 .ai-hint-title {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: #3d3a34;
+	color: var(--zy-title, #1F2937);
 }
 
 .ai-hint-text {
 	font-size: 24rpx;
-	color: #9c8f7d;
+	color: var(--zy-content, #4B5563);
 	line-height: 1.5;
-}
-
-.submit-btn {
-	height: 88rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-top: 16rpx;
-}
-
-.btn-disabled {
-	opacity: 0.4;
-}
-
-.submit-text {
-	font-size: 30rpx;
-	color: #fffdfa;
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 24rpx;
-	color: #bdb2a1;
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
 	text-align: center;
 }
 </style>

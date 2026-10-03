@@ -4,16 +4,22 @@
 		<view v-if="notFound" class="not-found">
 			<text class="not-found-emoji">🍂</text>
 			<text class="not-found-text">作品不存在或已下架</text>
-			<view class="back-btn zy-btn-primary" @click="goBack">
-				<text class="back-text">返回</text>
-			</view>
+			<wd-button type="primary" plain @click="goBack">返回</wd-button>
 		</view>
 
 		<!-- 正常内容 -->
 		<template v-else>
+			<!-- 顶部导航 -->
+			<view class="nav-bar">
+				<view class="nav-back" @click="goBack">
+					<wd-icon name="arrow-left" size="40rpx" color="#1F2937" />
+				</view>
+				<text class="nav-title">作品详情</text>
+			</view>
+
 			<!-- 作品信息区 -->
 			<scroll-view class="content-area" scroll-y>
-				<view class="work-info zy-page-enter" v-if="work">
+				<view class="work-info" v-if="work">
 					<view class="work-cover" :style="coverStyle(work.coverUrl)"></view>
 					<text class="work-title">{{ work.title }}</text>
 					<view class="work-meta">
@@ -24,13 +30,21 @@
 
 					<!-- 点赞 + 收藏按钮 -->
 					<view class="action-area">
-						<view class="action-btn zy-clickable" @click="handleLike">
-							<text class="action-icon" :class="{ 'liked': liked }">{{ liked ? '♥' : '♡' }}</text>
-							<text class="action-count">{{ likeCount }}</text>
+						<view class="action-btn" @click="handleLike">
+							<wd-icon
+								:name="liked ? 'heart' : 'heart'"
+								size="44rpx"
+								:color="liked ? '#FF6B6B' : '#9CA3AF'"
+							/>
+							<text class="action-count" :class="{ 'count-liked': liked }">{{ likeCount }}</text>
 						</view>
-						<view class="action-btn zy-clickable" @click="handleFavorite">
-							<text class="action-icon" :class="{ 'favorited': favorited }">{{ favorited ? '★' : '☆' }}</text>
-							<text class="action-label">收藏</text>
+						<view class="action-btn" @click="handleFavorite">
+							<wd-icon
+								:name="favorited ? 'star' : 'star'"
+								size="44rpx"
+								:color="favorited ? '#FFB547' : '#9CA3AF'"
+							/>
+							<text class="action-label" :class="{ 'label-favorited': favorited }">收藏</text>
 						</view>
 					</view>
 				</view>
@@ -41,7 +55,7 @@
 
 					<view v-if="comments.length === 0 && !commentLoading" class="comment-empty">
 						<text class="empty-emoji">💬</text>
-						<text class="empty-text">还没有评论，留下第一句温暖吧</text>
+						<text class="empty-text">还没有人留言，说句温暖的话吧</text>
 					</view>
 
 					<view
@@ -49,13 +63,21 @@
 						:key="comment.id"
 						class="comment-item"
 					>
-						<text class="comment-author">{{ comment.authorName }}</text>
-						<text class="comment-content">{{ comment.content }}</text>
-						<text class="comment-time">{{ formatTime(comment.createTime) }}</text>
+						<view class="comment-avatar">
+							<text class="avatar-text">{{ (comment.authorName || '匿')[0] }}</text>
+						</view>
+						<view class="comment-main">
+							<view class="comment-header">
+								<text class="comment-author">{{ comment.authorName }}</text>
+								<text class="comment-time">{{ formatTime(comment.createTime) }}</text>
+							</view>
+							<text class="comment-content">{{ comment.content }}</text>
+						</view>
 					</view>
 
 					<view v-if="commentLoading" class="comment-more">
-						<text class="more-text">正在加载评论...</text>
+						<view class="loading-dot"></view>
+						<text class="more-text">正在加载评论…</text>
 					</view>
 					<view v-else-if="!hasMoreComments && comments.length > 0" class="comment-more">
 						<text class="more-text">没有更多评论了</text>
@@ -65,22 +87,21 @@
 
 			<!-- 底部输入区 -->
 			<view class="input-area">
-				<input
-					class="comment-input"
-					type="text"
-					v-model="commentText"
-					placeholder="留下一句温暖..."
-					placeholder-class="input-placeholder"
-					:disabled="sending"
-					maxlength="255"
-				/>
-				<view
-					class="send-btn zy-btn-primary"
-					:class="{ 'btn-disabled': !commentText.trim() || sending }"
-					@click="handleSendComment"
-				>
-					<text class="send-text">{{ sending ? '发送中...' : '发送' }}</text>
+				<view class="input-wrap">
+					<wd-input
+						v-model="commentText"
+						placeholder="留下一句温暖..."
+						:disabled="sending"
+						no-border
+						custom-class="comment-input-el"
+					/>
 				</view>
+				<wd-button
+					type="primary"
+					round
+					:disabled="!commentText.trim() || sending"
+					@click="handleSendComment"
+				>{{ sending ? '发送中' : '发送' }}</wd-button>
 			</view>
 
 			<!-- 底部免责声明 -->
@@ -234,7 +255,7 @@ function coverStyle(coverUrl) {
 	if (coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
-	return 'background-color: #ece3d5;'
+	return 'background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);'
 }
 
 function formatTime(time) {
@@ -256,57 +277,89 @@ function goBack() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
-/* 404 */
+/* ── 404 ── */
 .not-found {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 24rpx;
+	gap: 32rpx;
 }
 
 .not-found-emoji {
-	font-size: 80rpx;
+	font-size: 96rpx;
 }
 
 .not-found-text {
 	font-size: 32rpx;
-	color: #8a8378;
+	color: var(--zy-aid, #9CA3AF);
 }
 
-.back-btn {
-	padding: 16rpx 48rpx;
+/* ── 导航栏 ── */
+.nav-bar {
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+	padding: 20rpx 32rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+	flex-shrink: 0;
 }
 
-.back-text {
-	font-size: 28rpx;
-	color: #fffdfa;
+.nav-back {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 64rpx;
+	height: 64rpx;
+	border-radius: 50%;
+	transition: background-color 0.15s ease;
 }
 
-/* 内容区 */
+.nav-back:active {
+	background-color: var(--zy-border, #E5E7EB);
+}
+
+.nav-title {
+	font-family: var(--zy-serif);
+	font-size: 34rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+}
+
+/* ── 内容区 ── */
 .content-area {
 	flex: 1;
 	overflow: hidden;
 }
 
 .work-info {
-	padding: 24rpx 24rpx 0;
+	padding: 32rpx 32rpx 0;
+	animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+	from { opacity: 0; transform: translateY(16rpx); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .work-cover {
-	height: 300rpx;
-	border-radius: 16px;
+	height: 360rpx;
+	border-radius: 24rpx;
 }
 
 .work-title {
 	display: block;
-	margin-top: 20rpx;
+	margin-top: 24rpx;
+	font-family: var(--zy-serif);
 	font-size: 38rpx;
-	font-weight: 600;
-	color: #2b2b2b;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+	line-height: 1.4;
 }
 
 .work-meta {
@@ -318,75 +371,77 @@ function goBack() {
 
 .work-author {
 	font-size: 26rpx;
-	color: #8b6f47;
+	color: var(--zy-content, #4B5563);
 }
 
 .work-time {
 	font-size: 24rpx;
-	color: #bdb2a1;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .work-message {
 	display: block;
-	margin-top: 16rpx;
+	margin-top: 20rpx;
 	font-size: 28rpx;
-	line-height: 1.6;
-	color: #5a534a;
+	line-height: 1.7;
+	color: var(--zy-content, #4B5563);
 }
 
-/* 点赞 + 收藏 */
+/* ── 点赞 + 收藏 ── */
 .action-area {
 	display: flex;
 	align-items: center;
-	gap: 48rpx;
-	margin-top: 24rpx;
-	padding-bottom: 24rpx;
-	border-bottom: 1px solid rgba(139, 111, 71, 0.08);
+	gap: 56rpx;
+	margin-top: 32rpx;
+	padding-bottom: 28rpx;
+	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
 .action-btn {
 	display: flex;
 	align-items: center;
-	gap: 8rpx;
+	gap: 10rpx;
 	padding: 8rpx 20rpx;
+	transition: transform 0.15s ease;
 }
 
-.action-icon {
-	font-size: 36rpx;
-	color: #8a8378;
-}
-
-.action-icon.liked {
-	color: #b85450;
-}
-
-.action-icon.favorited {
-	color: #c89b6e;
+.action-btn:active {
+	transform: scale(0.92);
 }
 
 .action-count {
 	font-size: 28rpx;
-	color: #8a8378;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.count-liked {
+	color: #FF6B6B;
+	font-weight: 500;
 }
 
 .action-label {
 	font-size: 28rpx;
-	color: #8a8378;
+	color: var(--zy-aid, #9CA3AF);
 }
 
-/* 评论 */
+.label-favorited {
+	color: #FFB547;
+	font-weight: 500;
+}
+
+/* ── 评论 ── */
 .comment-section {
-	padding: 24rpx;
+	padding: 32rpx;
 }
 
 .section-title {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: #3d3a34;
+	color: var(--zy-title, #1F2937);
 }
 
 .comment-empty {
-	padding: 40rpx 0;
+	padding: 60rpx 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -394,94 +449,120 @@ function goBack() {
 }
 
 .empty-emoji {
-	font-size: 48rpx;
+	font-size: 56rpx;
 }
 
 .empty-text {
 	font-size: 26rpx;
-	color: #bdb2a1;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .comment-item {
-	padding: 20rpx 0;
-	border-bottom: 1px solid rgba(139, 111, 71, 0.06);
+	display: flex;
+	gap: 20rpx;
+	padding: 24rpx 0;
+	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+}
+
+.comment-avatar {
+	width: 56rpx;
+	height: 56rpx;
+	border-radius: 50%;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.avatar-text {
+	font-size: 26rpx;
+	font-weight: 500;
+	color: var(--wot-color-theme, #2D9B8F);
+}
+
+.comment-main {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 8rpx;
+}
+
+.comment-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 .comment-author {
 	font-size: 26rpx;
 	font-weight: 500;
-	color: #8b6f47;
-}
-
-.comment-content {
-	display: block;
-	margin-top: 8rpx;
-	font-size: 28rpx;
-	line-height: 1.6;
-	color: #2b2b2b;
+	color: var(--zy-title, #1F2937);
 }
 
 .comment-time {
-	display: block;
-	margin-top: 8rpx;
 	font-size: 22rpx;
-	color: #bdb2a1;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.comment-content {
+	font-size: 28rpx;
+	line-height: 1.6;
+	color: var(--zy-content, #4B5563);
 }
 
 .comment-more {
-	padding: 16rpx 0;
-	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12rpx;
+	padding: 24rpx 0;
+}
+
+.loading-dot {
+	width: 32rpx;
+	height: 32rpx;
+	border-radius: 50%;
+	border: 3rpx solid var(--zy-border, #E5E7EB);
+	border-top-color: var(--wot-color-theme, #2D9B8F);
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
 }
 
 .more-text {
 	font-size: 24rpx;
-	color: #bdb2a1;
+	color: var(--zy-aid, #9CA3AF);
 }
 
-/* 输入区 */
+/* ── 输入区 ── */
 .input-area {
 	display: flex;
 	align-items: center;
 	padding: 16rpx 24rpx;
 	gap: 16rpx;
-	background-color: rgba(255, 255, 255, 0.92);
-	border-top: 1px solid rgba(139, 111, 71, 0.08);
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	flex-shrink: 0;
 }
 
-.comment-input {
+.input-wrap {
 	flex: 1;
-	height: 72rpx;
-	padding: 0 20rpx;
-	border-radius: 12px;
-	border: 1px solid rgba(139, 111, 71, 0.08);
-	background-color: rgba(247, 244, 239, 0.6);
-	font-size: 28rpx;
-	color: #2b2b2b;
-}
-
-.input-placeholder {
-	color: #a49c90;
-}
-
-.send-btn {
-	padding: 12rpx 32rpx;
-}
-
-.btn-disabled {
-	opacity: 0.4;
-}
-
-.send-text {
-	font-size: 28rpx;
-	color: #fffdfa;
+	background-color: var(--zy-bg, #F8F9FB);
+	border-radius: 32rpx;
+	padding: 0 8rpx;
+	overflow: hidden;
 }
 
 .footnote {
 	display: block;
-	padding: 8rpx 0 12rpx;
+	padding: 8rpx 0 16rpx;
 	font-size: 22rpx;
-	color: #bdb2a1;
+	color: var(--zy-aid, #9CA3AF);
 	text-align: center;
-	background-color: rgba(255, 255, 255, 0.92);
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	flex-shrink: 0;
 }
 </style>
