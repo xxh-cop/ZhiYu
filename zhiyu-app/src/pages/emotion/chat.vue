@@ -78,6 +78,7 @@ import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
 import { startSSE } from '../../utils/sse'
+import { API_BASE_URL } from '@/utils/config.js'
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
@@ -92,11 +93,7 @@ const scrollTop = ref(0)
 let sseController = null
 let lastSentContent = ''
 
-// 小程序端用局域网 IP，H5 端用 localhost
-let BASE_URL = 'http://localhost:8080'
-// #ifdef MP-WEIXIN
-BASE_URL = 'http://192.168.0.102:8080'
-// #endif
+const BASE_URL = API_BASE_URL
 
 onLoad(() => {
 	// 每次进入 chat 页，重置会话

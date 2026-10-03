@@ -98,6 +98,25 @@ ON DUPLICATE KEY UPDATE
   update_time = new.update_time,
   deleted     = new.deleted;
 
+-- ---------- 步骤（赣绣小书签 / 剪纸释压团花） ----------
+INSERT INTO craft_step (id, project_id, step_no, title, guide, audio_url, create_time, update_time, deleted) VALUES
+(2001, 102, 1, '准备绣线', '挑选你喜欢的颜色，把线穿进针孔。', NULL, NOW(), NOW(), 0),
+(2002, 102, 2, '起针',     '从布的反面起针，让线头藏在背面。', NULL, NOW(), NOW(), 0),
+(2003, 102, 3, '绣制图案', '沿着图案慢慢走针，不用追求完美。', NULL, NOW(), NOW(), 0),
+(2004, 102, 4, '收针与整理', '把线头藏好，书签就完成了。',     NULL, NOW(), NOW(), 0),
+(3001, 103, 1, '折纸',     '把正方形红纸对折三次，形成一个小三角。', NULL, NOW(), NOW(), 0),
+(3002, 103, 2, '画稿',     '在折好的纸上画上你想要的图案。',         NULL, NOW(), NOW(), 0),
+(3003, 103, 3, '剪制',     '沿着画线慢慢剪，注意不要剪断连接处。',   NULL, NOW(), NOW(), 0),
+(3004, 103, 4, '展开',     '轻轻展开纸张，看看你的团花。',           NULL, NOW(), NOW(), 0) AS new
+ON DUPLICATE KEY UPDATE
+  project_id  = new.project_id,
+  step_no     = new.step_no,
+  title       = new.title,
+  guide       = new.guide,
+  audio_url   = new.audio_url,
+  update_time = new.update_time,
+  deleted     = new.deleted;
+
 -- ---------- 互助小组 ----------
 INSERT INTO support_group (id, name, description, status, create_time, update_time, deleted) VALUES
 (1, '考试周搭子',   '一起熬过期末周的手作搭子们',       1, NOW(), NOW(), 0),

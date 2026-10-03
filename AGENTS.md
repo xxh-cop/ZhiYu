@@ -20,13 +20,14 @@
 
 | 层 | 选型 |
 |---|---|
-| 后端 | Java 17、Spring Boot 3.2、Spring AI 1.0、MyBatis-Plus 3.5 |
+| 后端 | Java 17、Spring Boot 3.4.13、Spring AI 1.0.0、MyBatis-Plus 3.5.7 |
 | 存储 | MySQL 8.0、Redis 7、向量库（Milvus 或 Chroma）、对象存储（本地/MinIO） |
-| 学生端 | UniApp（Vue3 + Vite + Pinia2），编译微信小程序 + H5；SSE 用 uni-sse 插件 |
+| 学生端 | UniApp（Vue3.4 + Vite 5 + Pinia2），编译微信小程序 + H5；SSE 用自研 sse.js（H5: fetch + ReadableStream / MP-WEIXIN: wx.request enableChunked） |
 | 管理端 | Vue3.4 + Vite + Element Plus 2 + ECharts5 + Pinia2 |
 | 学生端构建 | Vite 5.x | UniApp 官方锁定版本 |
 | 管理端构建 | Vite 8.x | create-vite@9 默认；与 UniApp 独立 |
 | AI | 大模型 DeepSeek / 通义千问（云端）；本地化模式 Ollama + Qwen |
+| UI 组件库（学生端） | Leaf Island UI | 仅引入全局样式，组件使用待 M1.5 决策 |
 | 鉴权 | JWT（无状态），Authorization: Bearer <token> |
 
 **三个工程目录（与 README 一致）**：
@@ -192,6 +193,17 @@ com.zhiyu
   不要为此执行 `git add --renormalize`（对 `i/lf` 文件无效），
   也不要重写工作区（有风险）。跨平台协作由 `.gitattributes`
   保证：Linux/CI checkout 时得到 LF，Windows 视编辑需求处理。
+- **PowerShell 下 mvn 的 `-D` 参数**：必须用引号包住，否则 PowerShell 会把 `.` 解析为
+  属性访问或断句。例：`mvn test "-Dmaven.repo.local=../.ai-tmp/m2"`（**不是**
+  `mvn test -Dmaven.repo.local=../.ai-tmp/m2`）。
+- **多行 commit message**：用 `git commit -F <文件>`，不要用 `-m "..."` 拼多行
+  （PowerShell 对引号转义处理不可靠，容易截断或混入换行符）。
+- **小程序端 baseURL**：微信小程序不能用 `localhost`，需用局域网 IP（如
+  `http://192.168.x.x:8080`）。`zhiyu-app/src/utils/request.js` 和
+  `src/pages/emotion/chat.vue` 已用条件编译区分平台。
+- **微信小程序 enableChunked**：`wx.request` 的 `enableChunked: true` +
+  `onChunkReceived` 需要基础库 **≥ 2.20.1**。`sse.js` 已用 `wx.canIUse` 检测并
+  提供 fallback（`enableChunked: false` + `success` 回调一次性解析）。
 
 ## 11. Git 约定
 

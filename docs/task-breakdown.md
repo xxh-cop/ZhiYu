@@ -65,26 +65,53 @@
 
 ## M1 · 疗愈闭环 MVP（P0）
 
-- [ ] T1.1 `AiClient` 门面：LLM 对话（SSE）、推荐理由生成、作品寄语生成
+- [x] T1.1 `AiClient` 门面：LLM 对话（SSE）、推荐理由生成、作品寄语生成
   - Done：能流式返回；超时降级为图文。
   - 回归清单（承接 T0.4 遗留）：**本里程碑第一个使用 `@RequestParam` / `@PathVariable` 校验注解的接口**，
     必须补一条用例验证「校验失败 → HTTP 400 + `code=1001`」。
     T0.4 已写好 `HandlerMethodValidationException` 处理器，但 M0 阶段没有任何接口能触发它，
     属「代码就绪、未经运行期验证」。
-- [ ] T1.2 熔断：按资源 key 隔离（`llm-chat`/`llm-recommend`/`llm-message`/`asr`/`tts`），连续 5 次失败熔断 60s
+- [x] T1.2 熔断：按资源 key 隔离（`llm-chat`/`llm-recommend`/`llm-message`/`asr`/`tts`），连续 5 次失败熔断 60s
   - Done：mock AI 故障后，第 6 次请求走降级。
-- [ ] T1.3 情绪会话：`emotion_session` + `emotion_message` 多轮；SSE 接口 `POST /api/emotion/chat`
+- [x] T1.3 情绪会话：`emotion_session` + `emotion_message` 多轮；SSE 接口 `POST /api/emotion/chat`
   - Done：学生端 uni-sse 能逐字接收中文。
-- [ ] T1.4 内容安全过滤：输入输出双向过滤，命中时改安全话术；写 `ai_audit_log`
+- [x] T1.4 内容安全过滤：输入输出双向过滤，命中时改安全话术；写 `ai_audit_log`
   - Done：输入辱骂/自杀倾向能被识别并落入审核日志。
-- [ ] T1.5 手作推荐：规则层（焦虑→编织、压力→扎染…）+ LLM 生成个性化理由
+- [x] T1.5 手作推荐：规则层（焦虑→编织、压力→扎染…）+ LLM 生成个性化理由
   - Done：返回 2–3 个项目，含理由。
-- [ ] T1.6 创作会话状态机：待开始/进行中/暂停/完成/放弃
+- [x] T1.6 创作会话状态机：待开始/进行中/暂停/完成/放弃
   - Done：非法跳转返回 3001。
-- [ ] T1.7 分步引导：项目步骤、引导语、引导音频
+- [x] T1.7 分步引导：项目步骤、引导语、引导音频
   - Done：学生端按步骤前进，进度上报 heartbeat。
-- [ ] T1.8 作品发布：匿名上传照片、可见性控制、点赞、留暖评论
+- [x] T1.8 作品发布：匿名上传照片、可见性控制、点赞、留暖评论
   - Done：作品能出现在社区流。
+
+- [x] T1.9 学生端 5 个页面 + 小程序端联调
+  - Done：H5 + 微信小程序端 4 步闭环全通过（实际拆为 T1.9a/b/c/d，2026-10 完成）
+
+## M1 收尾技术债（不阻塞 M2，建议 M1.5 或 M2 处理）
+
+**AI 与数据层：**
+- [ ] RedisFlowStatStore 未用 Lua 脚本，依赖「同 session 心跳串行」假设
+- [ ] `craft_session` 缺 `emotion_session_id` 外键，`mood` 暂用空字符串
+- [ ] `work.like_count` 未做 `GREATEST(x, 0)` 保护
+- [ ] `work.message` 明文存储（按 T1.5 reason 处理一致）
+- [ ] MockLlmClient 与 SpringAiLlmClient 的切换依赖 `sk-placeholder` 字面值
+- [ ] ContentSafetyFilter 未嵌入 AiClient，Controller 层显式调用
+
+**测试与验证：**
+- [ ] SSE happy path 的 MockMvc 测试受限（Security + async 上下文丢失）
+- [ ] EmotionControllerTest 的 `@DirtiesContext` 是 workaround
+- [ ] EasyCom 未真实验证（未实际使用 `<li-card>` 组件）
+
+**前端与视觉：**
+- [ ] `work/detail.vue` 点赞乐观更新的失败回滚未实现
+- [ ] 小程序端呼吸动画性能待评估
+- [ ] 小程序端 baseURL 硬编码（批 B 处理）
+
+**契约与路径：**
+- [ ] 仓库根 `resources/` 是 T0.8 路径笔误产物
+- [ ] 项目 102/103 缺 init-data 步骤数据（批 B 处理）
 
 ## M2 · 管理端 + 非遗内容（P1）
 
