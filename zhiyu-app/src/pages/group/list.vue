@@ -3,17 +3,15 @@
 		<!-- 顶部标题 + 创建入口 -->
 		<view class="header">
 			<text class="page-title">互助小组</text>
-			<view class="create-btn zy-btn-outline" @click="goCreate">
-				<text class="create-text">+ 创建小组</text>
-			</view>
+			<wd-button size="small" plain @click="goCreate">+ 创建小组</wd-button>
 		</view>
 
 		<!-- 骨架屏 -->
 		<view v-if="loading" class="card-list">
-			<view v-for="i in 3" :key="'sk-'+i" class="skeleton-card zy-card">
+			<view v-for="i in 3" :key="'sk-'+i" class="skeleton-card">
 				<view class="skeleton-body">
-					<view class="zy-skeleton skeleton-title"></view>
-					<view class="zy-skeleton skeleton-text"></view>
+					<view class="skeleton-title zy-skeleton"></view>
+					<view class="skeleton-text zy-skeleton"></view>
 				</view>
 			</view>
 		</view>
@@ -27,17 +25,16 @@
 		<!-- 错误状态 -->
 		<view v-else-if="errorMsg" class="status-box">
 			<text class="error-text">{{ errorMsg }}</text>
-			<view class="retry-btn zy-btn-primary" @click="loadData">
-				<text class="retry-text">重试</text>
-			</view>
+			<wd-button type="primary" plain size="small" @click="loadData">重试</wd-button>
 		</view>
 
 		<!-- 小组卡片列表 -->
 		<view v-else class="card-list">
 			<view
-				v-for="group in groups"
+				v-for="(group, idx) in groups"
 				:key="group.id"
-				class="group-card zy-card"
+				class="group-card"
+				:style="{ '--stagger-i': idx }"
 			>
 				<view class="card-header">
 					<text class="group-name">{{ group.name }}</text>
@@ -50,7 +47,8 @@
 
 				<view class="card-footer">
 					<view class="member-info">
-						<text class="member-text">👥 {{ group.memberCount }} / {{ group.maxCount }}</text>
+						<wd-icon name="user" size="28rpx" color="#9CA3AF" />
+						<text class="member-text">{{ group.memberCount }} / {{ group.maxCount }}</text>
 					</view>
 
 					<!-- 已加入 -->
@@ -58,18 +56,17 @@
 						<text class="joined-text">已加入</text>
 					</view>
 					<!-- 已满 -->
-					<view v-else-if="group.memberCount >= group.maxCount" class="full-btn">
+					<view v-else-if="group.memberCount >= group.maxCount" class="full-tag">
 						<text class="full-text">已满</text>
 					</view>
 					<!-- 加入 -->
-					<view
+					<wd-button
 						v-else
-						class="join-btn zy-btn-primary"
-						:class="{ 'btn-loading': joiningId === group.id }"
+						type="primary"
+						size="small"
+						:loading="joiningId === group.id"
 						@click="handleJoin(group)"
-					>
-						<text class="join-text">{{ joiningId === group.id ? '...' : '加入' }}</text>
-					</view>
+					>加入</wd-button>
 				</view>
 			</view>
 		</view>
@@ -134,33 +131,29 @@ function goCreate() {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
 .header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 24rpx;
+	margin-bottom: 32rpx;
 }
 
 .page-title {
+	font-family: var(--zy-serif);
 	font-size: 44rpx;
-	font-weight: 600;
-	color: #3d3a34;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
 }
 
-.create-btn {
-	padding: 8rpx 24rpx;
-}
-
-.create-text {
-	font-size: 26rpx;
-	color: #8b6f47;
-}
-
-/* 骨架屏 */
+/* ── 骨架屏 ── */
 .skeleton-card {
-	padding: 24rpx;
+	padding: 28rpx;
+	border-radius: 32rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 .skeleton-body {
 	display: flex;
@@ -176,38 +169,31 @@ function goCreate() {
 	width: 80%;
 }
 
+/* ── 状态 ── */
 .status-box {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	padding: 80rpx 0;
+	padding: 120rpx 0;
 	gap: 24rpx;
 }
 
 .empty-emoji {
-	font-size: 64rpx;
+	font-size: 80rpx;
 }
 
 .status-text {
 	font-size: 28rpx;
-	color: #9c8f7d;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .error-text {
 	font-size: 28rpx;
-	color: #b85450;
+	color: var(--zy-danger, #FF6B6B);
 }
 
-.retry-btn {
-	padding: 12rpx 40rpx;
-}
-
-.retry-text {
-	font-size: 26rpx;
-	color: #fffdfa;
-}
-
+/* ── 卡片列表 ── */
 .card-list {
 	display: flex;
 	flex-direction: column;
@@ -215,7 +201,23 @@ function goCreate() {
 }
 
 .group-card {
-	padding: 24rpx;
+	padding: 28rpx;
+	border-radius: 32rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
+	transition: transform 0.15s ease;
+	animation: cardEnter 0.35s ease both;
+	animation-delay: calc(var(--stagger-i, 0) * 80ms);
+}
+
+.group-card:active {
+	transform: scale(0.98);
+}
+
+@keyframes cardEnter {
+	from { opacity: 0; transform: translateY(20rpx); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .card-header {
@@ -225,88 +227,77 @@ function goCreate() {
 }
 
 .group-name {
-	font-size: 32rpx;
+	font-size: 30rpx;
 	font-weight: 500;
-	color: #3d3a34;
+	color: var(--zy-title, #1F2937);
+	line-height: 1.4;
 }
 
 .role-badge {
 	padding: 4rpx 16rpx;
 	border-radius: 999rpx;
-	background-color: rgba(200, 155, 110, 0.12);
+	background-color: var(--zy-bg-tint-warm, #FFF8EE);
 }
 
 .role-text {
 	font-size: 22rpx;
-	color: #c89b6e;
+	color: #FFB547;
 }
 
 .group-desc {
 	display: block;
 	margin-top: 12rpx;
-	font-size: 28rpx;
+	font-size: 26rpx;
 	line-height: 1.6;
-	color: #5a534a;
+	color: var(--zy-content, #4B5563);
 }
 
 .card-footer {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-top: 20rpx;
+	margin-top: 24rpx;
 }
 
 .member-info {
 	display: flex;
 	align-items: center;
+	gap: 8rpx;
 }
 
 .member-text {
 	font-size: 26rpx;
-	color: #8a8378;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .joined-tag {
 	padding: 8rpx 24rpx;
-	border-radius: 12px;
-	background-color: rgba(139, 111, 71, 0.06);
+	border-radius: 32rpx;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
 .joined-text {
 	font-size: 26rpx;
-	color: #8a8378;
+	color: var(--zy-aid, #9CA3AF);
 }
 
-.full-btn {
+.full-tag {
 	padding: 8rpx 24rpx;
-	border-radius: 12px;
-	background-color: rgba(139, 111, 71, 0.06);
+	border-radius: 32rpx;
+	background-color: var(--zy-bg, #F8F9FB);
 	opacity: 0.6;
 }
 
 .full-text {
 	font-size: 26rpx;
-	color: #bdb2a1;
-}
-
-.join-btn {
-	padding: 8rpx 32rpx;
-}
-
-.btn-loading {
-	opacity: 0.6;
-}
-
-.join-text {
-	font-size: 26rpx;
-	color: #fffdfa;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 24rpx;
-	color: #bdb2a1;
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
 	text-align: center;
 }
 </style>
