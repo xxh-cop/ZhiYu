@@ -102,6 +102,9 @@
 			<view class="loading-dot"></view>
 			<text class="loading-text">正在准备…</text>
 		</view>
+
+		<!-- 全局 AI 伴侣 -->
+		<AiCompanion />
 	</view>
 </template>
 
@@ -111,6 +114,7 @@ import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useCraftStore } from '../../stores/craft'
 import { http } from '../../utils/request'
 import BreathingAnimation from '../../components/BreathingAnimation.vue'
+import AiCompanion from '@/components/AiCompanion.vue'
 
 const craftStore = useCraftStore()
 

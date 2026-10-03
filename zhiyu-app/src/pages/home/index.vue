@@ -89,6 +89,9 @@
 
 		<!-- ═══ 模块 6：底部免责声明 ═══ -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
+
+		<!-- 全局 AI 伴侣 -->
+		<AiCompanion />
 	</view>
 </template>
 
@@ -97,6 +100,7 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
+import AiCompanion from '@/components/AiCompanion.vue'
 
 const userStore = useUserStore()
 const loadingMe = ref(false)

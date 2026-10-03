@@ -100,6 +100,9 @@
 		<view class="footer-disclaimer">
 			<text class="footer-disclaimer-text">本系统不能替代专业心理咨询</text>
 		</view>
+
+		<!-- 全局 AI 伴侣 -->
+		<AiCompanion />
 	</view>
 </template>
 
@@ -111,6 +114,7 @@ import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
 import { startSSE } from '../../utils/sse'
 import { API_BASE_URL } from '@/utils/config.js'
+import AiCompanion from '@/components/AiCompanion.vue'
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
