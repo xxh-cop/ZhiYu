@@ -10,13 +10,9 @@
  * 不引入 axios —— uni.request 在 H5 与小程序端行为一致，已经够用。
  */
 import { useUserStore } from '../stores/user'
+import { API_BASE_URL } from './config.js'
 
-// 小程序端不能用 localhost，需用局域网 IP；H5 端用 localhost
-// 通过条件编译区分平台，构建时自动选择
-let BASE_URL = 'http://localhost:8080'
-// #ifdef MP-WEIXIN
-BASE_URL = 'http://192.168.0.102:8080'
-// #endif
+const BASE_URL = API_BASE_URL
 
 const LOGIN_PAGE = '/pages/login/index'
 const TOKEN_KEY = 'token'

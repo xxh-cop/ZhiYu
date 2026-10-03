@@ -14,8 +14,8 @@
 
 ## 技术栈
 
-- 后端：Java 17 · Spring Boot 3.2 · Spring AI · MyBatis-Plus 3.5 · MySQL 8 · Redis 7
-- 学生端：UniApp（Vue3 + Vite + Pinia）→ 微信小程序 + H5
+- 后端：Java 17 · Spring Boot 3.4.13 · Spring AI 1.0.0 · MyBatis-Plus 3.5.7 · MySQL 8 · Redis 7
+- 学生端：UniApp（Vue3.4 + Vite 5 + Pinia2）→ 微信小程序 + H5；自研 SSE 封装
 - 管理端：Vue3 + Vite + Element Plus + ECharts
 - AI：DeepSeek / 通义千问（云端），Ollama + Qwen（本地模式）
 - 向量库：Milvus / Chroma（非遗知识库 RAG）
@@ -36,9 +36,9 @@
 │   ├── schema.sql             # 建表 DDL
 │   └── init-data.sql          # 字典/初始数据
 ├── .env.example               # 环境变量模板
-├── zhiyu-backend/             # Spring Boot 后端（待建）
-├── zhiyu-app/                 # UniApp 学生端（待建）
-└── zhiyu-admin/               # Vue3 管理端（待建）
+├── zhiyu-backend/             # Spring Boot 后端
+├── zhiyu-app/                 # UniApp 学生端（小程序 + H5）
+└── zhiyu-admin/               # Vue3 管理端
 ```
 
 ## 快速开始
@@ -49,6 +49,14 @@
 cp .env.example .env
 # 编辑 .env，填入数据库、Redis、大模型 API Key 等
 ```
+
+**必需环境变量：**
+
+| 变量 | 用途 | 默认值 |
+|---|---|---|
+| `DEEPSEEK_API_KEY` | DeepSeek 大模型 API Key（必填，否则走 MockLlmClient 降级话术） | `sk-placeholder` |
+| `DB_PASSWORD` | MySQL 密码 | `123456`（本地开发） |
+| `JWT_SECRET` | JWT 签名密钥（≥ 32 字节） | 本地开发假密钥 |
 
 ### 2. 初始化数据库
 
@@ -65,11 +73,13 @@ mysql -u root -p zhiyu < sql/init-data.sql
 
 ### 3. 启动后端
 
-```bash
+```powershell
 cd zhiyu-backend
-mvn spring-boot:run
+# PowerShell 下 -D 参数必须用引号包住
+mvn spring-boot:run "-Dmaven.repo.local=../.ai-tmp/m2"
 # 默认 http://localhost:8080
-# Swagger UI: http://localhost:8080/swagger-ui/index.html
+# 如需 AI 对话功能，先设置环境变量：
+#   $env:DEEPSEEK_API_KEY='sk-your-key'
 ```
 
 ### 4. 启动学生端（UniApp）
@@ -77,8 +87,9 @@ mvn spring-boot:run
 ```bash
 cd zhiyu-app
 npm install
-npm run dev:h5          # H5 调试
-# 或用 HBuilderX 打开，运行到微信小程序模拟器
+npm run dev:h5              # H5 调试（http://localhost:5175）
+npm run build:mp-weixin      # 构建微信小程序（输出 dist/build/mp-weixin/）
+# 微信开发者工具导入 dist/build/mp-weixin 目录调试
 ```
 
 ### 5. 启动管理端
@@ -87,7 +98,7 @@ npm run dev:h5          # H5 调试
 cd zhiyu-admin
 npm install
 npm run dev
-# http://localhost:5173
+# http://localhost:5174
 ```
 
 ## 角色

@@ -68,3 +68,14 @@ box-shadow: 0 2px 8px rgba(139, 111, 71, 0.08);
 - 正文与背景对比度 ≥ 4.5:1（`#2B2B2B` on `#F7F4EF` 满足）。
 - 涉及心理的页面必须出现「本系统不能替代专业心理咨询」声明。
 - **禁止**诊断性措辞：「抑郁症」「焦虑症」「你患有」等一律不得出现在任何界面（含错误提示、占位文案）。
+
+## 7. 组件库策略
+
+| 阶段 | 方案 | 说明 |
+|---|---|---|
+| M1（当前） | 自研 `zy-*` CSS 类 | `zy-card` / `zy-btn-primary` / `zy-clickable` / `zy-skeleton` 等，定义在 `App.vue` 全局样式中 |
+| M1（已集成） | Leaf Island UI 全局样式 | `@import '@/uni_modules/leaf-island/index.less'` 已引入 `App.vue`，但**未实际使用 `<li-card>` 等组件**（EasyCom 自动扫描就绪） |
+| M1.5（待决策） | 组件库选型评估 | 评估是否全面采用 Leaf Island UI 组件，或切换 wot-design-uni，或保持自研 |
+| M2+（可选） | wot-design-uni 或保持自研 | 视 M1.5 评估结果而定 |
+
+**当前状态**：M1 阶段主要使用自研 `zy-*` CSS 类，视觉风格已达到疗愈主题要求（暖色卡片、柔和阴影、呼吸渐变背景）。Leaf Island UI 仅引入全局样式作为基础，组件级别的使用留待 M1.5 决策。

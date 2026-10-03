@@ -42,16 +42,14 @@ import java.util.List;
 public class SecurityConfig {
 
     /**
-     * 本地开发的跨域白名单。
+     * 本地开发的跨域白名单（通配模式）。
      *
-     * <p>端口分配：5173 是学生端 UniApp H5（T0.5a）的 Vite 开发端口，
-     * 5174 是管理端 Vue3（T0.6a）的 Vite 开发端口；8080 预留给后端自带页面的本地联调。
+     * <p>使用 {@code allowedOriginPatterns} 支持端口通配符 {@code *}<br>
+     * 生产环境部署时必须收紧为具体域名，不得使用通配。
      */
-    private static final List<String> ALLOWED_ORIGINS = List.of(
-            "http://localhost:5173", "http://127.0.0.1:5173",
-            "http://localhost:5174", "http://127.0.0.1:5174",
-            "http://localhost:5175", "http://127.0.0.1:5175",
-            "http://localhost:8080", "http://127.0.0.1:8080");
+    private static final List<String> ALLOWED_ORIGIN_PATTERNS = List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*");
 
     private static final List<String> ALLOWED_METHODS =
             List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
@@ -96,13 +94,16 @@ public class SecurityConfig {
     /**
      * 跨域配置。
      *
-     * <p>{@code allowCredentials(true)} 时浏览器禁止 {@code Origin: *}，
-     * 所以这里必须逐个列出合法来源，不能用通配符。
+     * <p>使用 {@code allowedOriginPatterns} 而非 {@code allowedOrigins}，
+     * 因为 {@code allowCredentials(true)} 时浏览器禁止 {@code Origin: *}，
+     * 而 {@code allowedOriginPatterns} 支持端口通配符 {@code *}。
+     * 生产环境必须收紧白名单为具体域名。
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(ALLOWED_ORIGINS);
+        config.setAllowedOriginPatterns(ALLOWED_ORIGIN_PATTERNS);
+        config.setAllowedOrigins(null);
         config.setAllowedMethods(ALLOWED_METHODS);
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
