@@ -1,10 +1,5 @@
 <template>
 	<view class="page">
-		<!-- 顶部免责提示 -->
-		<view class="topbar">
-			<text class="topbar-text">本系统不能替代专业心理咨询</text>
-		</view>
-
 		<!-- 对话区 -->
 		<scroll-view
 			class="chat-area"
@@ -13,19 +8,49 @@
 			:scroll-with-animation="true"
 		>
 			<view class="chat-list">
+				<!-- 空状态欢迎区 -->
+				<view v-if="messages.length === 0" class="welcome">
+					<view class="welcome-avatar">
+						<text class="welcome-avatar-text">织</text>
+					</view>
+					<text class="welcome-title">我在这里陪你</text>
+					<text class="welcome-sub">我是织愈，一个耐心的倾听者</text>
+					<text class="welcome-hint">说说今天发生了什么？</text>
+				</view>
+
 				<view
 					v-for="(msg, idx) in messages"
 					:key="idx"
 					class="msg-row"
 					:class="msg.role === 'user' ? 'msg-right' : 'msg-left'"
 				>
-					<view
-						class="bubble"
-						:class="msg.role === 'user' ? 'bubble-user' : 'bubble-ai'"
-					>
-						<text class="bubble-text" :class="msg.role === 'user' ? 'text-user' : 'text-ai'">{{ msg.text }}</text>
-						<text v-if="msg.role === 'assistant' && !msg.done" class="typing">...</text>
+					<!-- AI 消息：头像 + 气泡 -->
+					<view v-if="msg.role === 'assistant'" class="msg-content">
+						<view class="ai-avatar">
+							<text class="ai-avatar-text">织</text>
+							<view class="ai-avatar-dot"></view>
+						</view>
+						<view class="msg-main">
+							<view class="bubble bubble-ai">
+								<text class="bubble-text text-ai">{{ msg.text }}</text>
+								<text v-if="!msg.done" class="typing">▋</text>
+							</view>
+							<text v-if="msg.done" class="msg-time">{{ formatTime(msg) }}</text>
+						</view>
 					</view>
+
+						<!-- 用户消息：气泡 + 头像 -->
+						<view v-else class="msg-content msg-content--user">
+							<view class="msg-main msg-main--user">
+								<view class="bubble bubble-user">
+									<text class="bubble-text text-user">{{ msg.text }}</text>
+								</view>
+								<text class="msg-time msg-time--user">{{ formatTime(msg) }}</text>
+							</view>
+							<view class="user-avatar">
+								<text class="user-avatar-text">{{ userInitial }}</text>
+							</view>
+						</view>
 
 					<!-- 最后一条 assistant 消息完成后，显示推荐入口 -->
 					<view
@@ -40,39 +65,46 @@
 				<!-- 错误重试 -->
 				<view v-if="errorMsg" class="error-row">
 					<text class="error-text">{{ errorMsg }}</text>
-					<button class="retry-btn" size="mini" @click="handleRetry">重试</button>
+					<wd-button type="error" size="small" plain @click="handleRetry">重试</wd-button>
 				</view>
 			</view>
 		</scroll-view>
 
-		<!-- 输入区 -->
+		<!-- 输入区（固定底部） -->
 		<view class="input-area">
-			<input
-				class="text-input"
-				type="text"
+			<wd-input
+				custom-class="chat-input"
 				v-model="inputText"
 				placeholder="说说你现在的感受..."
-				placeholder-class="input-placeholder"
 				:disabled="streaming"
 				confirm-type="send"
 				@confirm="handleSend"
+				no-border
+				custom-style="flex: 1;"
 			/>
 			<view class="voice-btn" @click="handleVoice">
 				<text class="voice-icon">🎤</text>
 			</view>
-			<button
-				class="send-btn"
+			<wd-button
+				type="primary"
+				size="small"
 				:disabled="streaming || !inputText.trim()"
 				@click="handleSend"
+				custom-style="border-radius: 999rpx; min-width: 120rpx;"
 			>
 				发送
-			</button>
+			</wd-button>
+		</view>
+
+		<!-- 底部免责声明（固定在输入区下方） -->
+		<view class="footer-disclaimer">
+			<text class="footer-disclaimer-text">本系统不能替代专业心理咨询</text>
 		</view>
 	</view>
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
@@ -196,40 +228,89 @@ function handleRecommend() {
 function handleVoice() {
 	uni.showToast({ title: '语音功能即将上线', icon: 'none' })
 }
+
+// ── 纯展示辅助函数（不涉及 SSE / store 逻辑） ──
+const userInitial = computed(() => {
+	const n = (userStore.userInfo && userStore.userInfo.nickname) || '同'
+	return n ? n.charAt(0) : '同'
+})
+
+function formatTime(msg) {
+	const d = new Date()
+	const h = String(d.getHours()).padStart(2, '0')
+	const m = String(d.getMinutes()).padStart(2, '0')
+	return `${h}:${m}`
+}
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .page {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: #f7f4ef;
+	overflow: hidden;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
-/* 顶部免责提示 */
-.topbar {
-	padding: 8px 16px;
-	background-color: #ece3d5;
-	text-align: center;
-}
-
-.topbar-text {
-	font-size: 12px;
-	color: #8a8378;
-}
-
-/* 对话区 */
+/* ── 对话区（flex: 1 占满剩余空间） ── */
 .chat-area {
 	flex: 1;
 	overflow: hidden;
 }
 
 .chat-list {
-	padding: 16px 12px;
+	padding: 24rpx 32rpx;
 }
 
+/* ── 空状态欢迎区 ── */
+.welcome {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 160rpx 0 120rpx;
+}
+
+.welcome-avatar {
+	width: 96rpx;
+	height: 96rpx;
+	border-radius: 50%;
+	background: linear-gradient(135deg, #2D9B8F, #5BCFBF);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 32rpx;
+}
+
+.welcome-avatar-text {
+	font-size: 40rpx;
+	font-weight: 600;
+	color: #FFFFFF;
+	font-family: var(--zy-serif);
+}
+
+.welcome-title {
+	font-size: 44rpx;
+	font-weight: 600;
+	color: var(--zy-title, #1F2937);
+	font-family: var(--zy-serif);
+}
+
+.welcome-sub {
+	margin-top: 16rpx;
+	font-size: 28rpx;
+	color: var(--wot-color-theme, #2D9B8F);
+}
+
+.welcome-hint {
+	margin-top: 32rpx;
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+/* ── 消息行 ── */
 .msg-row {
-	margin-bottom: 12px;
+	margin-bottom: 32rpx;
 	display: flex;
 	flex-direction: column;
 }
@@ -242,19 +323,95 @@ function handleVoice() {
 	align-items: flex-start;
 }
 
+/* ── 消息内容容器（头像+气泡） ── */
+.msg-content {
+	display: flex;
+	align-items: flex-start;
+	gap: 16rpx;
+	max-width: 100%;
+}
+
+.msg-content--user {
+	flex-direction: row-reverse;
+}
+
+.msg-main {
+	display: flex;
+	flex-direction: column;
+	max-width: 72%;
+}
+
+.msg-main--user {
+	align-items: flex-end;
+}
+
+/* ── 用户头像 ── */
+.user-avatar {
+	width: 64rpx;
+	height: 64rpx;
+	border-radius: 50%;
+	background-color: #F3F4F6;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.user-avatar-text {
+	font-size: 28rpx;
+	font-weight: 500;
+	color: #6B7280;
+}
+
+/* ── AI 头像 ── */
+.ai-avatar {
+	position: relative;
+	width: 64rpx;
+	height: 64rpx;
+	border-radius: 50%;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.ai-avatar-text {
+	font-size: 28rpx;
+	font-weight: 600;
+	color: var(--wot-color-theme, #2D9B8F);
+	font-family: var(--zy-serif);
+}
+
+.ai-avatar-dot {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 16rpx;
+	height: 16rpx;
+	border-radius: 50%;
+	background-color: #2D9B8F;
+	border: 3rpx solid #FFFFFF;
+	box-sizing: border-box;
+}
+
+/* ── 气泡 ── */
 .bubble {
-	max-width: 75%;
-	padding: 10px 14px;
-	border-radius: 8px;
+	padding: 24rpx 32rpx;
+	border-radius: 16px;
+	max-width: 100%;
+	width: fit-content;
+	word-break: break-word;
 }
 
 .bubble-user {
-	background-color: #8b6f47;
+	background-color: var(--wot-color-theme, #2D9B8F);
 }
 
 .bubble-ai {
-	background-color: #ffffff;
-	border: 1px solid #e5ddd0;
+	background-color: #FFFFFF;
+	border: 1px solid var(--zy-border, #E5E7EB);
+	box-shadow: 0 2rpx 8rpx rgba(45, 155, 143, 0.06);
 }
 
 .bubble-text {
@@ -263,34 +420,51 @@ function handleVoice() {
 }
 
 .text-user {
-	color: #fffdfa;
+	color: #FFFFFF;
 }
 
 .text-ai {
-	color: #2b2b2b;
+	color: var(--zy-content, #4B5563);
 }
 
+/* ── 打字机光标 ── */
 .typing {
-	font-size: 13px;
-	color: #a49c90;
-	margin-left: 4px;
+	font-size: 15px;
+	color: var(--wot-color-theme, #2D9B8F);
+	margin-left: 2px;
+	animation: blink 0.8s steps(2) infinite;
 }
 
-/* 推荐入口 */
+@keyframes blink {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0; }
+}
+
+/* ── 时间戳 ── */
+.msg-time {
+	margin-top: 8rpx;
+	font-size: 24rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.msg-time--user {
+	text-align: right;
+}
+
+/* ── 推荐入口 ── */
 .recommend-entry {
 	margin-top: 8px;
-	padding: 8px 16px;
-	border: 1px solid #c89b6e;
-	border-radius: 8px;
-	background-color: #ffffff;
+	padding: 10px 16px;
+	border-radius: 12px;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
 .recommend-text {
 	font-size: 13px;
-	color: #c89b6e;
+	color: var(--wot-color-theme, #2D9B8F);
 }
 
-/* 错误重试 */
+/* ── 错误重试 ── */
 .error-row {
 	display: flex;
 	align-items: center;
@@ -301,39 +475,18 @@ function handleVoice() {
 
 .error-text {
 	font-size: 13px;
-	color: #b85450;
+	color: var(--zy-danger, #FF6B6B);
 }
 
-.retry-btn {
-	font-size: 13px;
-	background-color: #8b6f47;
-	color: #fffdfa;
-	border-radius: 8px;
-}
-
-/* 输入区 */
+/* ── 输入区（固定底部，不被压缩） ── */
 .input-area {
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
-	padding: 8px 12px 12px;
+	padding: 16rpx 24rpx;
 	gap: 8px;
-	background-color: #fffdfa;
-	border-top: 1px solid #e5ddd0;
-}
-
-.text-input {
-	flex: 1;
-	height: 40px;
-	padding: 0 12px;
-	border-radius: 8px;
-	border: 1px solid #e5ddd0;
-	background-color: #f7f4ef;
-	font-size: 15px;
-	color: #2b2b2b;
-}
-
-.input-placeholder {
-	color: #a49c90;
+	background-color: #FFFFFF;
+	border-top: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
 .voice-btn {
@@ -342,24 +495,35 @@ function handleVoice() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-shrink: 0;
 }
 
 .voice-icon {
 	font-size: 20px;
 }
 
-.send-btn {
-	min-width: 60px;
+:deep(.chat-input) {
+	flex: 1;
+	background-color: var(--zy-bg, #F8F9FB);
+	border-radius: 12px;
+	padding: 0 12px;
 	height: 40px;
-	line-height: 40px;
-	padding: 0 16px;
-	border-radius: 8px;
-	background-color: #8b6f47;
-	color: #fffdfa;
 	font-size: 15px;
+	color: var(--zy-title, #1F2937);
 }
 
-.send-btn[disabled] {
-	opacity: 0.5;
+/* ── 底部免责声明（固定在输入区下方） ── */
+.footer-disclaimer {
+	flex-shrink: 0;
+	padding: 8rpx 0;
+	text-align: center;
+	background-color: var(--zy-bg, #F8F9FB);
+	padding-bottom: calc(8rpx + constant(safe-area-inset-bottom));
+	padding-bottom: calc(8rpx + env(safe-area-inset-bottom));
+}
+
+.footer-disclaimer-text {
+	font-size: 20rpx;
+	color: var(--zy-aid, #9CA3AF);
 }
 </style>
