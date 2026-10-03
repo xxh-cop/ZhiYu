@@ -15,11 +15,13 @@
 
 		<!-- 步骤内容区 -->
 		<scroll-view class="step-area" scroll-y>
-			<view class="step-content">
-				<text class="step-title">{{ currentStepData.title }}</text>
-				<text class="step-guide">{{ currentStepData.guide }}</text>
+			<view class="step-content" :key="currentStep">
+				<view class="step-card">
+					<text class="step-title">{{ currentStepData.title }}</text>
+					<text class="step-guide">{{ currentStepData.guide }}</text>
+				</view>
 
-				<!-- 音频播放占位 -->
+				<!-- 音频播放按钮 -->
 				<view v-if="currentStepData.audioUrl" class="audio-btn" @click="handleAudio">
 					<text class="audio-icon">🔊</text>
 					<text class="audio-text">播放引导语音</text>
@@ -30,40 +32,46 @@
 		<!-- 操作按钮区 -->
 		<view class="action-area">
 			<view class="step-btns">
-				<view
+				<wd-button
 					v-if="!craftStore.inFlow && currentStep > 1"
-					class="step-btn btn-prev"
+					class="step-btn"
+					plain
 					@click="handlePrev"
-				>
-					<text class="btn-text">上一步</text>
-				</view>
-				<view
+				>上一步</wd-button>
+				<wd-button
 					v-if="currentStep < totalSteps"
-					class="step-btn btn-next"
+					class="step-btn"
+					type="primary"
 					@click="handleNext"
-				>
-					<text class="btn-text">下一步</text>
-				</view>
-				<view
+				>下一步</wd-button>
+				<wd-button
 					v-if="currentStep === totalSteps"
-					class="step-btn btn-finish"
+					class="step-btn"
+					type="primary"
 					@click="handleFinish"
-				>
-					<text class="btn-text">完成创作</text>
-				</view>
+				>完成创作</wd-button>
 			</view>
 
 			<!-- 底部状态操作 -->
 			<view class="bottom-actions">
-				<view v-if="craftStore.status === 1" class="action-btn" @click="handlePause">
-					<text class="action-text">暂停</text>
-				</view>
-				<view v-if="craftStore.status === 2" class="action-btn btn-resume" @click="handleResume">
-					<text class="action-text">继续</text>
-				</view>
-				<view class="action-btn btn-abandon" @click="handleAbandon">
-					<text class="action-text">放弃</text>
-				</view>
+				<wd-button
+					v-if="craftStore.status === 1"
+					class="action-btn"
+					plain
+					@click="handlePause"
+				>暂停</wd-button>
+				<wd-button
+					v-if="craftStore.status === 2"
+					class="action-btn"
+					plain
+					@click="handleResume"
+				>继续</wd-button>
+				<wd-button
+					class="action-btn"
+					plain
+					type="error"
+					@click="handleAbandon"
+				>放弃</wd-button>
 			</view>
 		</view>
 
@@ -83,18 +91,15 @@
 				<text class="success-title">创作完成！</text>
 				<text class="success-hint">你用双手完成了一件作品，很棒</text>
 				<view class="success-btns">
-					<view class="success-btn btn-primary" @click="handlePublish">
-						<text class="success-btn-text">去发布作品</text>
-					</view>
-					<view class="success-btn btn-secondary" @click="handleBackHome">
-						<text class="success-btn-text">回到首页</text>
-					</view>
+					<wd-button type="primary" block @click="handlePublish">去发布作品</wd-button>
+					<wd-button plain block @click="handleBackHome">回到首页</wd-button>
 				</view>
 			</view>
 		</view>
 
 		<!-- 加载中 -->
 		<view v-if="pageLoading" class="loading-overlay">
+			<view class="loading-dot"></view>
 			<text class="loading-text">正在准备…</text>
 		</view>
 	</view>
@@ -343,271 +348,257 @@ function handleBackHome() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: #f7f4ef;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
-/* 进度条 */
+/* ── 进度条 ── */
 .progress-bar {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 12px 16px;
-	background-color: #fffdfa;
-	border-bottom: 1px solid #e5ddd0;
+	gap: 24rpx;
+	padding: 20rpx 32rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
 .progress-track {
 	flex: 1;
-	height: 6px;
-	border-radius: 3px;
-	background-color: #ece3d5;
+	height: 8rpx;
+	border-radius: 4rpx;
+	background-color: var(--wot-color-border-light, #F3F4F6);
 }
 
 .progress-fill {
 	height: 100%;
-	border-radius: 3px;
-	background-color: #8b6f47;
-	transition: width 0.3s ease;
+	border-radius: 4rpx;
+	background-color: var(--wot-color-theme, #2D9B8F);
+	transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .progress-text {
-	font-size: 13px;
-	color: #8a8378;
+	font-family: var(--zy-serif);
+	font-size: 28rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
 	white-space: nowrap;
 }
 
-/* 心流提示 */
+/* ── 心流提示 ── */
 .flow-hint {
-	padding: 8px 16px;
-	background-color: rgba(200, 155, 110, 0.12);
+	padding: 16rpx 32rpx;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 	text-align: center;
+	animation: flowFadeIn 0.3s ease;
 }
 
 .flow-text {
-	font-size: 13px;
-	color: #c89b6e;
+	font-size: 26rpx;
+	color: var(--wot-color-theme, #2D9B8F);
+	letter-spacing: 4rpx;
 }
 
-/* 步骤内容 */
+@keyframes flowFadeIn {
+	from { opacity: 0; transform: translateY(-8rpx); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── 步骤内容 ── */
 .step-area {
 	flex: 1;
 	overflow: hidden;
 }
 
 .step-content {
-	padding: 24px 20px;
+	padding: 40rpx 32rpx;
+	animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+	from { opacity: 0; transform: translateY(16rpx); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.step-card {
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: 32rpx;
+	padding: 40rpx 32rpx;
+	box-shadow: 0 2rpx 12rpx rgba(31, 41, 55, 0.04);
 }
 
 .step-title {
-	font-size: 20px;
-	font-weight: 600;
-	color: #2b2b2b;
+	display: block;
+	font-family: var(--zy-serif);
+	font-size: 36rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+	line-height: 1.4;
 }
 
 .step-guide {
 	display: block;
-	margin-top: 16px;
-	font-size: 15px;
+	margin-top: 24rpx;
+	font-size: 28rpx;
 	line-height: 1.8;
-	color: #5a534a;
+	color: var(--zy-content, #4B5563);
 }
 
+/* ── 音频按钮 ── */
 .audio-btn {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	margin-top: 24px;
-	padding: 10px 20px;
-	border: 1px solid #c89b6e;
-	border-radius: 8px;
-	align-self: flex-start;
+	gap: 12rpx;
+	margin-top: 32rpx;
+	padding: 16rpx 32rpx;
+	border: 2rpx solid var(--wot-color-theme, #2D9B8F);
+	border-radius: 40rpx;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	transition: transform 0.15s ease;
+}
+
+.audio-btn:active {
+	transform: scale(0.96);
 }
 
 .audio-icon {
-	font-size: 18px;
+	font-size: 32rpx;
 }
 
 .audio-text {
-	font-size: 14px;
-	color: #c89b6e;
+	font-size: 28rpx;
+	color: var(--wot-color-theme, #2D9B8F);
 }
 
-/* 操作按钮区 */
+/* ── 操作按钮区 ── */
 .action-area {
-	padding: 12px 16px 8px;
-	background-color: #fffdfa;
-	border-top: 1px solid #e5ddd0;
+	padding: 24rpx 32rpx 16rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-top: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
 .step-btns {
 	display: flex;
-	gap: 12px;
-	margin-bottom: 12px;
+	gap: 24rpx;
+	margin-bottom: 20rpx;
 }
 
 .step-btn {
 	flex: 1;
-	height: 44px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 8px;
-}
-
-.btn-prev {
-	background-color: #f0ebe1;
-}
-
-.btn-next {
-	background-color: #8b6f47;
-}
-
-.btn-finish {
-	background-color: #c89b6e;
-}
-
-.btn-text {
-	font-size: 15px;
-	color: #fffdfa;
-}
-
-.btn-prev .btn-text {
-	color: #8a8378;
 }
 
 .bottom-actions {
 	display: flex;
-	gap: 12px;
+	gap: 24rpx;
 	justify-content: center;
 }
 
 .action-btn {
-	padding: 6px 24px;
-	border: 1px solid #e5ddd0;
-	border-radius: 8px;
-	background-color: transparent;
+	min-width: 160rpx;
 }
 
-.btn-resume {
-	border-color: #8b6f47;
-}
-
-.btn-abandon {
-	border-color: #e0d5c5;
-}
-
-.action-text {
-	font-size: 13px;
-	color: #8a8378;
-}
-
-.btn-resume .action-text {
-	color: #8b6f47;
-}
-
-.btn-abandon .action-text {
-	color: #b85450;
-}
-
+/* ── 免责 ── */
 .footnote {
 	display: block;
-	padding: 4px 0 8px;
-	font-size: 12px;
-	color: #bdb2a1;
+	padding: 8rpx 0 16rpx;
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
 	text-align: center;
-	background-color: #fffdfa;
+	background-color: var(--zy-bg-warm, #FFFFFF);
 }
 
-/* 成功卡片 */
+/* ── 成功卡片 ── */
 .success-overlay {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.6);
+	background-color: rgba(31, 41, 55, 0.5);
 	z-index: 9998;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
 .success-card {
 	width: 80%;
-	padding: 40px 32px;
-	border-radius: 12px;
-	background-color: #fffdfa;
+	padding: 64rpx 48rpx;
+	border-radius: 32rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 16px;
+	gap: 24rpx;
+	animation: cardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardIn {
+	from { opacity: 0; transform: scale(0.85); }
+	to { opacity: 1; transform: scale(1); }
 }
 
 .success-emoji {
-	font-size: 48px;
+	font-size: 96rpx;
 }
 
 .success-title {
-	font-size: 20px;
-	font-weight: 600;
-	color: #2b2b2b;
+	font-family: var(--zy-serif);
+	font-size: 36rpx;
+	font-weight: 500;
+	color: var(--wot-color-theme, #2D9B8F);
 }
 
 .success-hint {
-	font-size: 14px;
-	color: #8a8378;
+	font-size: 28rpx;
+	color: var(--zy-content, #4B5563);
 	text-align: center;
+	line-height: 1.6;
 }
 
 .success-btns {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
-	margin-top: 8px;
+	gap: 20rpx;
+	margin-top: 16rpx;
 	width: 100%;
 }
 
-.success-btn {
-	height: 44px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 8px;
-}
-
-.btn-primary {
-	background-color: #8b6f47;
-}
-
-.btn-secondary {
-	background-color: #f0ebe1;
-}
-
-.success-btn-text {
-	font-size: 15px;
-	color: #fffdfa;
-}
-
-.btn-secondary .success-btn-text {
-	color: #8b6f47;
-}
-
-/* 加载中 */
+/* ── 加载中 ── */
 .loading-overlay {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: rgba(247, 244, 239, 0.9);
+	background-color: rgba(248, 249, 251, 0.95);
 	z-index: 9997;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 24rpx;
+}
+
+.loading-dot {
+	width: 48rpx;
+	height: 48rpx;
+	border-radius: 50%;
+	border: 4rpx solid var(--zy-border, #E5E7EB);
+	border-top-color: var(--wot-color-theme, #2D9B8F);
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
 }
 
 .loading-text {
-	font-size: 15px;
-	color: #8a8378;
+	font-size: 28rpx;
+	color: var(--zy-aid, #9CA3AF);
 }
 </style>
