@@ -8,49 +8,48 @@
 			<!-- 小组名称 -->
 			<view class="form-item">
 				<text class="form-label">小组名称 <text class="required">*</text></text>
-				<input
-					class="form-input"
-					type="text"
+				<wd-input
 					v-model="form.name"
 					placeholder="给小组起个名字"
-					placeholder-class="input-placeholder"
 					:maxlength="100"
+					no-border
+					custom-class="form-input-el"
 				/>
 			</view>
 
 			<!-- 小组描述 -->
 			<view class="form-item">
 				<text class="form-label">小组描述</text>
-				<textarea
-					class="form-textarea"
+				<wd-textarea
 					v-model="form.description"
 					placeholder="简单介绍一下这个小组"
-					placeholder-class="input-placeholder"
 					:maxlength="255"
+					no-border
+					custom-class="form-textarea-el"
 				/>
 			</view>
 
 			<!-- 人数上限 -->
 			<view class="form-item">
 				<text class="form-label">人数上限</text>
-				<input
-					class="form-input"
-					type="number"
+				<wd-input
 					v-model="form.maxCount"
 					placeholder="默认 50"
-					placeholder-class="input-placeholder"
+					type="number"
+					no-border
+					custom-class="form-input-el"
 				/>
 				<text class="form-hint">1 ~ 500，默认 50</text>
 			</view>
 
 			<!-- 提交按钮 -->
-			<view
-				class="submit-btn zy-btn-primary"
-				:class="{ 'btn-disabled': !canSubmit || submitting }"
+			<wd-button
+				type="primary"
+				block
+				size="large"
+				:disabled="!canSubmit || submitting"
 				@click="handleSubmit"
-			>
-				<text class="submit-text">{{ submitting ? '提交中...' : '创建小组' }}</text>
-			</view>
+			>{{ submitting ? '提交中…' : '创建小组' }}</wd-button>
 		</view>
 
 		<!-- 底部免责声明 -->
@@ -102,94 +101,54 @@ async function handleSubmit() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 120rpx;
+	padding: 32rpx 32rpx 120rpx;
 	box-sizing: border-box;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
 .header {
-	margin-bottom: 32rpx;
+	margin-bottom: 40rpx;
 }
 
 .page-title {
+	font-family: var(--zy-serif);
 	font-size: 44rpx;
-	font-weight: 600;
-	color: #3d3a34;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
 }
 
 .form {
 	display: flex;
 	flex-direction: column;
-	gap: 32rpx;
+	gap: 36rpx;
 }
 
 .form-item {
 	display: flex;
 	flex-direction: column;
-	gap: 12rpx;
+	gap: 16rpx;
 }
 
 .form-label {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: #3d3a34;
+	color: var(--zy-title, #1F2937);
 }
 
 .required {
-	color: #b85450;
-}
-
-.form-input {
-	height: 80rpx;
-	padding: 0 20rpx;
-	border: 1px solid rgba(139, 111, 71, 0.08);
-	border-radius: 12px;
-	background-color: rgba(255, 255, 255, 0.85);
-	font-size: 28rpx;
-	color: #2b2b2b;
-}
-
-.form-textarea {
-	min-height: 160rpx;
-	padding: 20rpx;
-	border: 1px solid rgba(139, 111, 71, 0.08);
-	border-radius: 12px;
-	background-color: rgba(255, 255, 255, 0.85);
-	font-size: 28rpx;
-	color: #2b2b2b;
-	box-sizing: border-box;
-}
-
-.input-placeholder {
-	color: #a49c90;
+	color: #FF6B6B;
 }
 
 .form-hint {
 	font-size: 22rpx;
-	color: #bdb2a1;
-}
-
-.submit-btn {
-	height: 88rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-top: 16rpx;
-}
-
-.btn-disabled {
-	opacity: 0.4;
-}
-
-.submit-text {
-	font-size: 30rpx;
-	color: #fffdfa;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 24rpx;
-	color: #bdb2a1;
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
 	text-align: center;
 }
 </style>
