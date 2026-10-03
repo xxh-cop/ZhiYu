@@ -1,35 +1,47 @@
 <template>
 	<view class="page">
+		<!-- 顶部品牌区 -->
 		<view class="hero">
 			<text class="brand">织愈</text>
 			<text class="slogan">用一针一线，缝补青春的焦虑</text>
 		</view>
 
-		<view class="form">
-			<input
-				class="input"
-				type="text"
-				v-model="form.username"
-				placeholder="登录名（学号或昵称）"
-				placeholder-class="input-placeholder"
-				:disabled="loading"
-			/>
-			<input
-				class="input"
-				type="text"
-				password
-				v-model="form.password"
-				placeholder="密码"
-				placeholder-class="input-placeholder"
-				:disabled="loading"
-				@confirm="handleLogin"
-			/>
-			<button class="submit" :loading="loading" :disabled="loading" @click="handleLogin">
-				登 录
-			</button>
-			<text v-if="errMsg" class="error">{{ errMsg }}</text>
+		<!-- 登录表单卡 -->
+		<view class="form-card">
+			<view class="form">
+				<view class="input-wrap">
+					<wd-input
+						v-model="form.username"
+						placeholder="登录名（学号或昵称）"
+						:disabled="loading"
+						no-border
+						custom-class="form-input-el"
+					/>
+				</view>
+				<view class="input-wrap">
+					<wd-input
+						v-model="form.password"
+						placeholder="密码"
+						show-password
+						:disabled="loading"
+						no-border
+						custom-class="form-input-el"
+						@confirm="handleLogin"
+					/>
+				</view>
+				<wd-button
+					type="primary"
+					block
+					size="large"
+					:loading="loading"
+					:disabled="loading"
+					@click="handleLogin"
+				>登 录</wd-button>
+				<text v-if="errMsg" class="error">{{ errMsg }}</text>
+			</view>
 		</view>
 
+		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
@@ -93,78 +105,78 @@ async function handleLogin() {
 	align-items: center;
 	padding: 0 64rpx;
 	box-sizing: border-box;
-	background-color: #f7f4ef;
+	background: linear-gradient(180deg, #F0F9F7 0%, #F8F9FB 50%);
 }
 
+/* ── 品牌区 ── */
 .hero {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-bottom: 80rpx;
+	margin-bottom: 64rpx;
+	animation: heroFadeIn 0.5s ease;
+}
+
+@keyframes heroFadeIn {
+	from { opacity: 0; transform: translateY(-12rpx); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .brand {
-	font-size: 72rpx;
+	font-family: var(--zy-serif);
+	font-size: 64rpx;
 	font-weight: 600;
 	letter-spacing: 12rpx;
-	color: #8b6f47;
+	color: var(--zy-title, #1F2937);
 }
 
 .slogan {
-	margin-top: 24rpx;
-	font-size: 28rpx;
-	color: #9c8f7d;
+	margin-top: 20rpx;
+	font-size: 26rpx;
+	color: var(--zy-content, #4B5563);
+}
+
+/* ── 表单卡 ── */
+.form-card {
+	width: 100%;
+	border-radius: 48rpx;
+	background-color: var(--zy-bg-warm, #FFFFFF);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+	box-shadow: 0 8rpx 40rpx rgba(31, 41, 55, 0.06);
+	padding: 48rpx 40rpx;
+	box-sizing: border-box;
+	animation: cardSlideUp 0.4s ease 0.1s both;
+}
+
+@keyframes cardSlideUp {
+	from { opacity: 0; transform: translateY(24rpx); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .form {
-	width: 100%;
 	display: flex;
 	flex-direction: column;
+	gap: 28rpx;
 }
 
-.input {
-	width: 100%;
-	height: 96rpx;
-	padding: 0 32rpx;
-	margin-bottom: 28rpx;
-	box-sizing: border-box;
-	background-color: #fffdfa;
-	border: 2rpx solid #e6ddcf;
-	border-radius: 20rpx;
-	font-size: 30rpx;
-	color: #3d3a34;
-}
-
-.input-placeholder {
-	color: #bdb2a1;
-}
-
-.submit {
-	width: 100%;
-	height: 96rpx;
-	line-height: 96rpx;
-	margin-top: 12rpx;
-	border-radius: 20rpx;
-	background-color: #8b6f47;
-	color: #fffdfa;
-	font-size: 32rpx;
-	letter-spacing: 8rpx;
-}
-
-.submit[disabled] {
-	opacity: 0.6;
+.input-wrap {
+	background-color: var(--zy-bg, #F8F9FB);
+	border-radius: 24rpx;
+	padding: 0 8rpx;
+	overflow: hidden;
 }
 
 .error {
-	margin-top: 24rpx;
+	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: #c1584a;
+	color: var(--zy-danger, #FF6B6B);
 	text-align: center;
 }
 
+/* ── 底部 ── */
 .footnote {
-	margin-top: 72rpx;
-	font-size: 24rpx;
-	color: #bdb2a1;
+	margin-top: 64rpx;
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
 }
 </style>
