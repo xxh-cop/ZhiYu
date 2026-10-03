@@ -1,0 +1,45 @@
+/**
+ * 织愈 · 清爽现代 + 薄荷青亮点主题
+ *
+ * 设计气质参考：Notion Calendar / Bear / Craft / Arc Browser
+ * 冷色调但不冷淡，克制但有节奏。
+ * 保留宋体标题作为"非遗文化感"锚点。
+ */
+
+:root,
+page {
+	/* ── wot-design-uni 主题变量 ── */
+	--wot-color-theme: #2D9B8F;        /* 薄荷青 — 主色 */
+	--wot-color-success: #3B5F4A;       /* 松绿 */
+	--wot-color-warning: #FFB547;       /* 暖橙 */
+	--wot-color-danger: #FF6B6B;        /* 珊瑚红 */
+	--wot-color-info: #9CA3AF;          /* 浅灰 */
+
+	--wot-color-bg: #F8F9FB;            /* 冷白背景 */
+	--wot-color-border: #E5E7EB;        /* 冷灰边框 */
+	--wot-color-border-light: #F3F4F6;  /* 浅冷灰 */
+
+	--wot-color-title: #1F2937;         /* 深灰蓝 — 标题 */
+	--wot-color-content: #4B5563;       /* 中灰 — 正文 */
+	--wot-color-secondary: #4B5563;     /* 中灰 — 次要 */
+	--wot-color-aid: #9CA3AF;           /* 浅灰 — 辅助 */
+	--wot-color-tip: #D1D5DB;           /* 银灰 — 提示 */
+
+	/* ── 织愈自定义变量 ── */
+	--zy-accent: #FFB547;               /* 暖橙 — 徽章、数字 */
+	--zy-danger: #FF6B6B;               /* 珊瑚红 — 点赞、删除 */
+
+	--zy-bg: #F8F9FB;                   /* 冷白背景 */
+	--zy-bg-warm: #FFFFFF;              /* 卡片纯白 */
+	--zy-bg-tint-mint: #F0F9F7;         /* 薄荷青 4% — 模块底色 */
+	--zy-bg-tint-warm: #FFF8EE;         /* 暖橙 4% */
+
+	--zy-title: #1F2937;                /* 深灰蓝 */
+	--zy-content: #4B5563;              /* 中灰 */
+	--zy-aid: #9CA3AF;                  /* 浅灰 */
+
+	--zy-border: #E5E7EB;               /* 冷灰边框 */
+
+	--zy-serif: 'Songti SC', 'STSong', 'SimSun', 'Noto Serif CJK SC', serif;
+	--zy-sans: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+}

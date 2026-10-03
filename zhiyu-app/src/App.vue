@@ -86,3 +86,8 @@ page {
 	transform: scale(0.98);
 }
 </style>
+
+<style lang="scss">
+/* wot-design-uni 青绿山水主题覆盖 */
+@import '@/styles/theme.scss';
+</style>
