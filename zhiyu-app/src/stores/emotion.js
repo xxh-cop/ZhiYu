@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { startSSE } from '../utils/sse'
 import { useUserStore } from './user'
+import { useAiCompanionStore } from './aiCompanion'
 import { API_BASE_URL } from '../utils/config.js'
 
 /**
@@ -100,6 +101,10 @@ export const useEmotionStore = defineStore('emotion', {
 			this.streaming = true
 			this._triggerScroll()
 
+			// 【触发点 1】用户发消息后 → 小织变 thinking
+			const aiStore = useAiCompanionStore()
+			aiStore.showThinking()
+
 			// 4. 发起 SSE
 			this._startSSE(content)
 		},
@@ -120,6 +125,10 @@ export const useEmotionStore = defineStore('emotion', {
 			this.streaming = true
 			this._triggerScroll()
 
+			// 【触发点 1】重试也触发 thinking
+			const aiStore = useAiCompanionStore()
+			aiStore.showThinking()
+
 			// 发起 SSE（用上次发送的内容）
 			this._startSSE(this._lastSentContent)
 		},
@@ -139,6 +148,9 @@ export const useEmotionStore = defineStore('emotion', {
 
 			const userStore = useUserStore()
 
+			// 首 token 标记：用于 thinking → talking 切换
+			let isFirstToken = true
+
 			sseController = startSSE({
 				url: API_BASE_URL + '/api/emotion/chat',
 				body: {
@@ -147,6 +159,12 @@ export const useEmotionStore = defineStore('emotion', {
 				},
 				token: userStore.token,
 				onMessage: (text) => {
+					// 【触发点 2】收到第一个 token → 小织变 talking
+					if (isFirstToken) {
+						isFirstToken = false
+						const aiStore = useAiCompanionStore()
+						aiStore.showTalking()
+					}
 					this.appendAssistantChunk(text)
 					this._triggerScroll()
 				},
@@ -157,12 +175,24 @@ export const useEmotionStore = defineStore('emotion', {
 					}
 					this.streaming = false
 					this._triggerScroll()
+					// 【触发点 3】SSE 完成 → 延迟回 idle
+					const aiStore = useAiCompanionStore()
+					aiStore.stopTalking()
 				},
 				onError: (err) => {
 					this.finishAssistant()
 					this.streaming = false
 					this.errorMsg = (err && err.message) || '服务暂时不可用，请稍后重试'
 					this._triggerScroll()
+					// 【触发点 3+4】SSE 错误 → 回 idle 或变 caring
+					const aiStore = useAiCompanionStore()
+					if (err && err.code === 1001) {
+						// 内容安全过滤触发 → 关怀态
+						aiStore.showCaring()
+					} else {
+						// 其他错误 → 立即回 idle
+						aiStore.setPetState('idle')
+					}
 				},
 			})
 		},

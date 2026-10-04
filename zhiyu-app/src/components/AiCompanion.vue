@@ -37,11 +37,11 @@
 			<text class="bubble-text">{{ breathingText }}</text>
 		</view>
 
-		<!-- 小织形象（动态切换 avatar/blink/talk） — H5 + 小程序共用 -->
+		<!-- 小织形象（petState 驱动 + blink 叠加） — H5 + 小程序共用 -->
 		<!-- #ifdef H5 -->
 		<view
 			class="xiaozhi-wrapper"
-			:class="{ breathing: mode === 'breathing' }"
+			:class="{ breathing: mode === 'breathing', 'thinking-fallback': needsFallback }"
 			@mousedown="onMouseDown"
 			@click="onCompanionClick"
 		>
@@ -50,6 +50,7 @@
 				:src="currentSrc"
 				mode="aspectFit"
 				draggable="false"
+				@error="onImageError"
 			/>
 		</view>
 		<!-- #endif -->
@@ -57,13 +58,14 @@
 		<!-- #ifndef H5 -->
 		<view
 			class="xiaozhi-wrapper"
-			:class="{ breathing: mode === 'breathing' }"
+			:class="{ breathing: mode === 'breathing', 'thinking-fallback': needsFallback }"
 			@click="onCompanionClick"
 		>
 			<image
 				class="xiaozhi-img"
 				:src="currentSrc"
 				mode="aspectFit"
+				@error="onImageError"
 			/>
 		</view>
 			<!-- #endif -->
@@ -81,7 +83,8 @@ const aiStore = useAiCompanionStore()
 const pos = computed(() => aiStore.position)
 const mode = computed(() => aiStore.mode)
 const visible = computed(() => aiStore.visible)
-const currentImage = computed(() => aiStore.currentImage)
+const petState = computed(() => aiStore.petState)
+const isBlinking = computed(() => aiStore.isBlinking)
 const isHidden = computed(() => aiStore.isHidden)
 const isDragging = computed(() => aiStore.isDragging)
 const showBubble = computed(() => aiStore.showBubble)
@@ -89,13 +92,22 @@ const bubbleContent = computed(() => aiStore.bubbleText)
 const bubbleSide = computed(() => aiStore.bubbleSide)
 const breathingText = ref('跟着我，慢慢吸…')
 
-// 图片路径映射
-const IMAGE_MAP = {
-	avatar: '/static/xiaozhi-avatar.png',
-	blink: '/static/xiaozhi-blink.png',
-	talk: '/static/xiaozhi-talk.png',
+// 图片路径：blink 叠加优先，否则用 petState 对应图
+const BLINK_IMG = '/static/xiaozhi-blink.png'
+const currentSrc = computed(() => {
+	if (isBlinking.value) return BLINK_IMG
+	return aiStore.currentImagePath
+})
+
+// 降级标记：图片加载失败时回 idle
+const needsFallback = computed(() => petState.value === 'thinking' && imageFailed.value)
+const imageFailed = ref(false)
+
+// 图片加载失败 → 回 idle（降级方案）
+function onImageError() {
+	imageFailed.value = true
+	aiStore.petState = 'idle'
 }
-const currentSrc = computed(() => IMAGE_MAP[currentImage.value] || IMAGE_MAP.avatar)
 
 // 拖动状态
 let dragging = false
@@ -387,6 +399,15 @@ watch(mode, (newMode) => {
 }
 
 /* ── 呼吸动画 ── */
+.xiaozhi-wrapper.thinking-fallback {
+	animation: thinkingFloat 1.5s ease-in-out infinite;
+}
+
+@keyframes thinkingFloat {
+	0%, 100% { transform: translateY(0); }
+	50%      { transform: translateY(-4rpx); }
+}
+
 .xiaozhi-wrapper.breathing {
 	animation: breathe 10s ease-in-out infinite;
 }

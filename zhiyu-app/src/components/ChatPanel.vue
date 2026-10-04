@@ -6,10 +6,17 @@
 			<!-- ═══ 头部 ═══ -->
 			<view class="cp-header">
 				<view class="cp-header-left">
-					<view class="cp-avatar">
-						<text class="cp-avatar-text">织</text>
-						<view class="cp-avatar-dot"></view>
-					</view>
+				<view class="cp-avatar-dynamic">
+					<image
+						v-if="!avatarError"
+						:src="avatarSrc"
+						mode="aspectFit"
+						class="cp-avatar-img"
+						@error="onAvatarError"
+					/>
+					<text v-else class="cp-avatar-text">织</text>
+					<view class="cp-avatar-dot"></view>
+				</view>
 					<view class="cp-header-info">
 						<text class="cp-header-title">小织</text>
 						<text class="cp-header-sub">在线 · 陪伴你</text>
@@ -119,15 +126,36 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useEmotionStore } from '../stores/emotion'
 import { useUserStore } from '../stores/user'
+import { useAiCompanionStore } from '../stores/aiCompanion'
 
 const emit = defineEmits(['close'])
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
+const aiStore = useAiCompanionStore()
 const { messages, streaming, errorMsg, scrollSignal } = storeToRefs(emotionStore)
 
 const inputText = ref('')
 const scrollTop = ref(0)
+
+// ── 头像图片加载失败降级 ──
+const avatarError = ref(false)
+function onAvatarError() {
+	avatarError.value = true
+}
+
+// ── 头部小织动态图（直接追踪 petState 确保响应式） ──
+const STATE_IMAGE_MAP = {
+	idle: '/static/xiaozhi-avatar.png',
+	thinking: '/static/xiaozhi-thinking.png',
+	talking: '/static/xiaozhi-talk.png',
+	happy: '/static/xiaozhi-happy.png',
+	caring: '/static/xiaozhi-caring.png',
+}
+const avatarSrc = ref(STATE_IMAGE_MAP.idle)
+watch(() => aiStore.petState, (newState) => {
+	avatarSrc.value = STATE_IMAGE_MAP[newState] || STATE_IMAGE_MAP.idle
+}, { immediate: true })
 
 // ── 键盘高度（小程序端） ──
 const keyboardHeight = ref(0)
@@ -286,9 +314,11 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 24rpx 32rpx;
+	padding: 20rpx 32rpx;
 	background-color: #FFFFFF;
 	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+	min-height: 140rpx;
+	box-sizing: border-box;
 }
 
 .cp-header-left {
@@ -297,16 +327,21 @@ onUnmounted(() => {
 	gap: 16rpx;
 }
 
-.cp-avatar {
+/* ── 头部动态小织头像 ── */
+.cp-avatar-dynamic {
 	position: relative;
-	width: 64rpx;
-	height: 64rpx;
-	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	width: 96rpx;
+	height: 128rpx;
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	flex-shrink: 0;
+}
+
+.cp-avatar-img {
+	width: 96rpx;
+	height: 128rpx;
+	object-fit: contain;
 }
 
 .cp-avatar-text {
@@ -317,13 +352,13 @@ onUnmounted(() => {
 
 .cp-avatar-dot {
 	position: absolute;
-	bottom: 0;
-	right: 0;
+	top: 8rpx;
+	right: 8rpx;
 	width: 16rpx;
 	height: 16rpx;
 	border-radius: 50%;
-	background-color: #2D9B8F;
-	border: 3rpx solid #FFFFFF;
+	background-color: #10B981;
+	border: 2rpx solid #FFFFFF;
 	box-sizing: border-box;
 }
 
