@@ -91,7 +91,10 @@
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<!-- 全局 AI 伴侣 -->
-		<AiCompanion />
+		<AiCompanion @open-panel="showChatPanel = true" />
+
+		<!-- 悬浮聊天面板 -->
+		<ChatPanel v-if="showChatPanel" @close="onPanelClose" />
 	</view>
 </template>
 
@@ -100,12 +103,21 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
+import { useAiCompanionStore } from '../../stores/aiCompanion'
 import AiCompanion from '../../components/AiCompanion.vue'
+import ChatPanel from '../../components/ChatPanel.vue'
 
 const userStore = useUserStore()
+const aiStore = useAiCompanionStore()
 const loadingMe = ref(false)
 const quoteIndex = ref(0)
 const moodIndex = ref(null)
+const showChatPanel = ref(false)
+
+function onPanelClose() {
+	showChatPanel.value = false
+	aiStore.visible = true
+}
 
 const QUOTES = [
 	'每一针都是与自己和解的过程',

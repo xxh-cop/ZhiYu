@@ -137,10 +137,13 @@ async function loadMore() {
 	}
 }
 
+// 封面图样式：小程序 background-image 不支持本地路径，用渐变占位
 function coverStyle(coverUrl) {
+	// #ifdef H5
 	if (coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
+	// #endif
 	return 'background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);'
 }
 

@@ -100,48 +100,45 @@
 		<view class="footer-disclaimer">
 			<text class="footer-disclaimer-text">本系统不能替代专业心理咨询</text>
 		</view>
-
-		<!-- 全局 AI 伴侣 -->
-		<AiCompanion />
 	</view>
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
-import { startSSE } from '../../utils/sse'
-import { API_BASE_URL } from '../../utils/config.js'
-import AiCompanion from '../../components/AiCompanion.vue'
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
-const { messages } = storeToRefs(emotionStore)
+const { messages, streaming, errorMsg, scrollSignal } = storeToRefs(emotionStore)
 
 const inputText = ref('')
-const streaming = ref(false)
-const errorMsg = ref('')
 const showRecommendBtn = ref(false)
 const scrollTop = ref(0)
 
-let sseController = null
-let lastSentContent = ''
-
-const BASE_URL = API_BASE_URL
-
 onLoad(() => {
-	// 每次进入 chat 页，重置会话
-	emotionStore.reset()
+	// 面板关闭后跳来时 preserveMessages=true，保留消息上下文
+	if (emotionStore.preserveMessages) {
+		emotionStore.preserveMessages = false // 消费掉
+	} else {
+		// 正常进入（如首页点「情绪倾听」），重置会话
+		emotionStore.reset()
+	}
 })
 
 onUnload(() => {
 	// 页面卸载时 abort SSE
-	if (sseController) {
-		sseController.abort()
-		sseController = null
-	}
+	emotionStore.abortSSE()
+})
+
+// watch scrollSignal 触发滚动到底部
+watch(scrollSignal, () => {
+	scrollToBottom()
+})
+watch(() => messages.length, () => {
+	scrollToBottom()
 })
 
 function scrollToBottom() {
@@ -155,71 +152,15 @@ function handleSend() {
 	const content = inputText.value.trim()
 	if (!content) return
 
-	errorMsg.value = ''
 	showRecommendBtn.value = false
-	lastSentContent = content
 	inputText.value = ''
 
-	// 1. 追加用户消息
-	emotionStore.appendUser(content)
-	// 2. 开始 assistant 消息
-	emotionStore.startAssistant()
-	// 3. 禁用发送
-	streaming.value = true
-	scrollToBottom()
-
-	// 4. 发起 SSE
-	sendMessage(content)
-}
-
-function sendMessage(content) {
-	if (sseController) {
-		sseController.abort()
-		sseController = null
-	}
-
-	sseController = startSSE({
-		url: BASE_URL + '/api/emotion/chat',
-		body: {
-			sessionId: emotionStore.sessionId,
-			content: content,
-		},
-		token: userStore.token,
-		onMessage(text) {
-			emotionStore.appendAssistantChunk(text)
-			scrollToBottom()
-		},
-		onDone(data) {
-			emotionStore.finishAssistant()
-			if (data && data.sessionId) {
-				emotionStore.setSessionId(data.sessionId)
-			}
-			streaming.value = false
-			showRecommendBtn.value = true
-			scrollToBottom()
-		},
-		onError(err) {
-			emotionStore.finishAssistant()
-			streaming.value = false
-			errorMsg.value = (err && err.message) || '服务暂时不可用，请稍后重试'
-			scrollToBottom()
-		},
-	})
+	// 调用 store 的 sendMessage（SSE 逻辑已抽取到 store）
+	emotionStore.sendMessage(content)
 }
 
 function handleRetry() {
-	errorMsg.value = ''
-	// 移除上一条空的 assistant 消息
-	if (emotionStore.messages.length > 0) {
-		const last = emotionStore.messages[emotionStore.messages.length - 1]
-		if (last.role === 'assistant' && !last.text) {
-			emotionStore.messages.pop()
-		}
-	}
-	// 重新发送
-	emotionStore.startAssistant()
-	streaming.value = true
-	sendMessage(lastSentContent)
+	emotionStore.retryLast()
 }
 
 function handleRecommend() {
@@ -245,6 +186,14 @@ function formatTime(msg) {
 	const m = String(d.getMinutes()).padStart(2, '0')
 	return `${h}:${m}`
 }
+
+// SSE done 后显示推荐按钮（watch 最后一条消息的 done 状态）
+watch(() => {
+	const last = messages.value[messages.value.length - 1]
+	return last && last.role === 'assistant' && last.done
+}, (val) => {
+	if (val) showRecommendBtn.value = true
+})
 </script>
 
 <style lang="scss" scoped>
