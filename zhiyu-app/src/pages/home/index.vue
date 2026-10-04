@@ -100,7 +100,7 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
-import AiCompanion from '@/components/AiCompanion.vue'
+import AiCompanion from '../../components/AiCompanion.vue'
 
 const userStore = useUserStore()
 const loadingMe = ref(false)

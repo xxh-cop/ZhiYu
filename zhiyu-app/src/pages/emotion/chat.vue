@@ -113,8 +113,8 @@ import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
 import { startSSE } from '../../utils/sse'
-import { API_BASE_URL } from '@/utils/config.js'
-import AiCompanion from '@/components/AiCompanion.vue'
+import { API_BASE_URL } from '../../utils/config.js'
+import AiCompanion from '../../components/AiCompanion.vue'
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()

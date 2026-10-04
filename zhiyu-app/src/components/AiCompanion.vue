@@ -71,7 +71,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useAiCompanionStore } from '@/stores/aiCompanion'
+import { useAiCompanionStore } from '../stores/aiCompanion'
 
 const aiStore = useAiCompanionStore()
 const pos = computed(() => aiStore.position)

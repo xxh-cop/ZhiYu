@@ -114,7 +114,7 @@ import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useCraftStore } from '../../stores/craft'
 import { http } from '../../utils/request'
 import BreathingAnimation from '../../components/BreathingAnimation.vue'
-import AiCompanion from '@/components/AiCompanion.vue'
+import AiCompanion from '../../components/AiCompanion.vue'
 
 const craftStore = useCraftStore()
 
