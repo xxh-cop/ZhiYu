@@ -13,6 +13,15 @@ const BUBBLE_TEXTS = [
 	'累了就歇一会儿吧',
 ]
 
+// ── 主动气泡话术池（M2-b3B，独立于 BUBBLE_TEXTS）──
+const PROACTIVE_TEXTS = [
+	'还在吗？',
+	'歇口气也没关系',
+	'需要我陪你一会儿吗？',
+	'我在这儿呢',
+	'慢慢来，不着急',
+]
+
 // ── 状态优先级（高 → 低）──
 const STATE_PRIORITY = {
 	caring: 5,
@@ -61,6 +70,11 @@ export const useAiCompanionStore = defineStore('aiCompanion', {
 		isHidden: false,
 		// 拖动状态
 		isDragging: false,
+		// 主动气泡（M2-b3B）
+		proactiveEnabled: false,
+		proactiveCount: 0,
+		proactiveMax: 2,
+		proactiveIdleMs: 60000,
 	}),
 
 	getters: {
@@ -256,6 +270,83 @@ export const useAiCompanionStore = defineStore('aiCompanion', {
 			}
 			// 恢复后重置为 idle 状态
 			this.setPetState('idle')
+		},
+
+		/* ═══════════════════════════════════════ *
+		 *  主动气泡（M2-b3B）
+		 * ═══════════════════════════════════════ */
+
+		enableProactive() {
+			this.proactiveEnabled = true
+			this.proactiveCount = 0
+			this.resetIdle()
+		},
+
+		disableProactive() {
+			this.proactiveEnabled = false
+			this.pauseIdle()
+		},
+
+		resetIdle() {
+			this.pauseIdle()
+			if (!this.proactiveEnabled) return
+			this._idleTimer = setTimeout(() => {
+				this._idleTimer = null
+				this._fireProactive()
+			}, this.proactiveIdleMs)
+		},
+
+		pauseIdle() {
+			if (this._idleTimer) {
+				clearTimeout(this._idleTimer)
+				this._idleTimer = null
+			}
+		},
+
+		_canProactive() {
+			return (
+				this.proactiveEnabled &&
+				this.proactiveCount < this.proactiveMax &&
+				this.visible &&
+				!this.isHidden &&
+				!this.isDragging &&
+				this.mode !== 'breathing' &&
+				!['caring', 'happy', 'talking', 'thinking'].includes(this.petState)
+			)
+		},
+
+		_fireProactive() {
+			if (!this._canProactive()) {
+				// 条件不满足，重新等待下一个 60s
+				this.resetIdle()
+				return
+			}
+			this.proactiveCount++
+			this._displayBubble(
+				PROACTIVE_TEXTS[Math.floor(Math.random() * PROACTIVE_TEXTS.length)]
+			)
+		},
+
+		/** 私有：显示气泡 + 方向自适应 + 3 秒后隐藏 + 重新计时 */
+		_displayBubble(text) {
+			this.bubbleText = text
+			const r = this.position.right
+			const leftEdge = 750 - r - 140
+			if (r < 100) {
+				this.bubbleSide = 'left'
+			} else if (leftEdge < 100) {
+				this.bubbleSide = 'right'
+			} else {
+				this.bubbleSide = r > 375 ? 'left' : 'right'
+			}
+			this.showBubble = true
+			if (this._bubbleTimer) clearTimeout(this._bubbleTimer)
+			this._bubbleTimer = setTimeout(() => {
+				this.showBubble = false
+				this._bubbleTimer = null
+				// 气泡消失后重新开始 60s 计时
+				this.resetIdle()
+			}, 3000)
 		},
 	},
 })

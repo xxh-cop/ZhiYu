@@ -77,6 +77,13 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAiCompanionStore } from '../stores/aiCompanion'
 
+const props = defineProps({
+	proactive: {
+		type: Boolean,
+		default: false,
+	},
+})
+
 const emit = defineEmits(['open-panel'])
 
 const aiStore = useAiCompanionStore()
@@ -205,6 +212,10 @@ function handleMouseUp() {
 onMounted(() => {
 	aiStore.loadPosition()
 
+	if (props.proactive) {
+		aiStore.enableProactive()
+	}
+
 	// #ifdef H5
 	// 暴露 store 到 window，方便调试
 	window.__aiStore = aiStore
@@ -213,6 +224,11 @@ onMounted(() => {
 
 onUnmounted(() => {
 	if (phaseTimer) clearInterval(phaseTimer)
+
+	if (props.proactive) {
+		aiStore.disableProactive()
+	}
+
 	// #ifdef H5
 	delete window.__aiStore
 	// #endif
@@ -232,6 +248,19 @@ watch(mode, (newMode) => {
 		}
 	}
 })
+
+// 面板打开时 visible=false → 暂停计时；关闭后恢复
+watch(
+	() => aiStore.visible,
+	(v) => {
+		if (!props.proactive) return
+		if (!v) {
+			aiStore.pauseIdle()
+		} else {
+			aiStore.resetIdle()
+		}
+	}
+)
 </script>
 
 <style scoped>

@@ -91,7 +91,7 @@
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<!-- 全局 AI 伴侣 -->
-		<AiCompanion @open-panel="showChatPanel = true" />
+		<AiCompanion :proactive="true" @open-panel="showChatPanel = true" />
 
 		<!-- 悬浮聊天面板 -->
 		<ChatPanel v-if="showChatPanel" @close="onPanelClose" />
@@ -100,7 +100,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onHide } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
 import { useAiCompanionStore } from '../../stores/aiCompanion'
@@ -188,6 +188,19 @@ onShow(() => {
 		return
 	}
 	loadCurrentUser()
+})
+
+// 页面级生命周期：tab 切换时暂停/重置主动气泡计时（M2-b3B）
+onShow(() => {
+	if (aiStore.proactiveEnabled) {
+		aiStore.proactiveCount = 0
+		aiStore.resetIdle()
+	}
+})
+onHide(() => {
+	if (aiStore.proactiveEnabled) {
+		aiStore.pauseIdle()
+	}
 })
 
 async function loadCurrentUser() {
