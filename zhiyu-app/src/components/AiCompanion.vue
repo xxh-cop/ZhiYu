@@ -1,27 +1,28 @@
 <template>
-	<!-- 恢复按钮（小织隐藏时显示） -->
-	<view v-if="isHidden" class="restore-dot" @click="onRestore">
-		<text class="restore-emoji">🐾</text>
-	</view>
+	<view class="ai-companion-root">
+		<!-- 恢复按钮（小织隐藏时显示） -->
+		<view v-if="isHidden" class="restore-dot" @click="onRestore">
+			<text class="restore-emoji">🐾</text>
+		</view>
 
-	<!-- 隐藏区提示条（拖动时显示） -->
-	<view
-		v-if="isDragging && !isHidden"
-		class="hide-zone-hint"
-		:class="{ active: pos.bottom < 80 }"
-	>
-		<text class="hide-zone-text">{{ pos.bottom < 80 ? '松手即可收起' : '拖到此处收起' }}</text>
-	</view>
+		<!-- 隐藏区提示条（拖动时显示） -->
+		<view
+			v-if="isDragging && !isHidden"
+			class="hide-zone-hint"
+			:class="{ active: pos.bottom < 80 }"
+		>
+			<text class="hide-zone-text">{{ pos.bottom < 80 ? '松手即可收起' : '拖到此处收起' }}</text>
+		</view>
 
-	<view
-		v-if="visible"
-		class="ai-companion"
-		:class="{ hidden: isHidden }"
-		:style="{ right: pos.right + 'rpx', bottom: pos.bottom + 'rpx' }"
-		@touchstart="onTouchStart"
-		@touchmove.stop.prevent="onTouchMove"
-		@touchend="onTouchEnd"
-	>
+		<view
+			v-if="visible"
+			class="ai-companion"
+			:class="{ hidden: isHidden }"
+			:style="{ right: pos.right + 'rpx', bottom: pos.bottom + 'rpx' }"
+			@touchstart="onTouchStart"
+			@touchmove.stop.prevent="onTouchMove"
+			@touchend="onTouchEnd"
+		>
 		<!-- 点击气泡 -->
 		<view
 			v-if="showBubble && !isHidden"
@@ -65,13 +66,16 @@
 				mode="aspectFit"
 			/>
 		</view>
-		<!-- #endif -->
+			<!-- #endif -->
+		</view>
 	</view>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAiCompanionStore } from '../stores/aiCompanion'
+
+const emit = defineEmits(['open-panel'])
 
 const aiStore = useAiCompanionStore()
 const pos = computed(() => aiStore.position)
@@ -146,16 +150,19 @@ function onTouchEnd() {
 	dragging = false
 }
 
-// 点击（未拖动）→ 先眨眼 150ms → 再弹气泡
+// 点击（未拖动）→ 眨眼 150ms → 打开聊天面板
 function onCompanionClick() {
 	if (dragging || suppressClick) return
 
 	// 1. 先眨眼（150ms 反馈）
 	aiStore.blink()
 
-	// 2. 延迟 150ms 再弹气泡（等眨眼结束）
+	// 2. 眨眼结束后立即打开面板（不再弹气泡）
+	//    只设 visible=false 隐藏小织，不动 isHidden（避免触发恢复按钮）
 	setTimeout(() => {
-		aiStore.showRandomBubble()
+		aiStore.hideBubble()
+		aiStore.visible = false
+		emit('open-panel')
 	}, 150)
 }
 
@@ -216,6 +223,14 @@ watch(mode, (newMode) => {
 </script>
 
 <style scoped>
+/* 唯一根节点容器：不设 position/transform/overflow/filter，
+   确保子元素的 position: fixed 仍相对视口定位。
+   子元素全部 fixed 脱离文档流，此容器不占空间。 */
+.ai-companion-root {
+	width: 0;
+	height: 0;
+}
+
 .ai-companion {
 	position: fixed;
 	z-index: 9999;

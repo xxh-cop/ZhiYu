@@ -156,6 +156,30 @@
 
 ## M2 · 管理端 + 非遗内容（P1）
 
+### M2 批 1：悬浮聊天面板（已完成）
+
+- [x] M2-1 悬浮聊天面板：点击小织 → 悬浮面板 → 复用 SSE 对话
+  - 新增 `ChatPanel.vue`（底部滑出 75vh，三段式：头部/消息区/输入区）
+  - SSE 逻辑从 `chat.vue` 抽取到 `emotionStore`（`sendMessage`/`retryLast`/`abortSSE`）
+  - `AiCompanion.vue` 点击改为眨眼 → 打开面板（不再弹气泡）
+  - 面板打开时小织隐藏（`visible=false`，不动 `isHidden`）；关闭后恢复
+  - `preserveMessages` 机制：面板关闭后跳 chat.vue 保留消息上下文
+  - 小程序端键盘遮挡：`onKeyboardHeightChange` 条件编译 + `cursor-spacing`
+  - H5 6 步测试全通过（打开/关闭/发消息/流式回复/消息保留/跨页面跳转）
+  - 小程序构建通过（键盘行为待微信工具实测）
+
+**M2 批 1 技术债：**
+- [ ] 小程序端键盘遮挡方案未经真机/微信工具实测——`onKeyboardHeightChange` +
+      `cursor-spacing` 在 fixed 面板内的实际效果待验证
+- [ ] ChatPanel 未引入 AiCompanion.vue——面板内无小织形象（后续可考虑在面板头部
+      加入小织 mini 形象 + 说话动效联动）
+- [ ] `preserveMessages` 目前无场景触发——面板内暂无「跳转完整对话」按钮，
+      后续加入时需在跳转前设 `emotionStore.preserveMessages = true`
+- [ ] `emotionStore.sendMessage` 和 `retryLast` 中 SSE 配置代码重复（~30 行），
+      可抽为内部方法 `_startSSE(content)`
+- [ ] 面板和 chat.vue 共享 `scrollSignal`——如果同时渲染（不会发生但未防护），
+      滚动信号会互相干扰
+
 - [ ] T2.1 传承人端：项目/步骤/语音上传，提交后待审核
 - [ ] T2.2 管理员：内容审核队列、上下架
 - [ ] T2.3 数据看板：闭环完成率、心流时长占比、作品数（ECharts）

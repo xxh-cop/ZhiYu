@@ -1,11 +1,18 @@
 import { defineStore } from 'pinia'
+import { startSSE } from '../utils/sse'
+import { useUserStore } from './user'
+import { API_BASE_URL } from '../utils/config.js'
 
 /**
- * 情绪对话 Pinia store（T1.9a）。
+ * 情绪对话 Pinia store（T1.9a → M2 重构）。
  *
- * 管理 sessionId + 消息列表 + 流式状态。
- * 每次进入 chat 页调 reset()，sessionId 重置为 null。
+ * M2 变更：SSE 逻辑从 chat.vue 抽取到 store，ChatPanel 与 chat.vue 共用。
+ * 管理 sessionId + 消息列表 + 流式状态 + SSE 控制器。
+ *
+ * sseController 是模块级变量（不需要响应式），在 reset() 中必须清空。
  */
+let sseController = null
+
 export const useEmotionStore = defineStore('emotion', {
 	state: () => ({
 		/** 当前会话 ID，null 表示新会话（后端创建后返回） */
@@ -14,14 +21,26 @@ export const useEmotionStore = defineStore('emotion', {
 		messages: [],
 		/** 是否正在流式接收 */
 		streaming: false,
+		/** 错误信息（空字符串表示无错误） */
+		errorMsg: '',
+		/** 滚动信号——每次消息变化时递增，组件 watch 此值触发滚动到底部 */
+		scrollSignal: 0,
+		/** 是否保留消息（面板关闭后跳 chat.vue 时不 reset） */
+		preserveMessages: false,
 	}),
 
 	actions: {
-		/** 清空消息列表 + 重置 sessionId（每次进入 chat 页调一次） */
+		/**
+		 * 重置会话：中断 SSE + 清空消息 + 重置 sessionId。
+		 * chat.vue onLoad 在 preserveMessages=false 时调此方法。
+		 */
 		reset() {
+			this.abortSSE()
 			this.sessionId = null
 			this.messages = []
 			this.streaming = false
+			this.errorMsg = ''
+			this.preserveMessages = false
 		},
 
 		/** 追加用户消息 */
@@ -53,6 +72,108 @@ export const useEmotionStore = defineStore('emotion', {
 		/** 设置会话 ID（从 done 事件返回后保存，用于连续对话） */
 		setSessionId(id) {
 			this.sessionId = id
+		},
+
+		/** 触发滚动到底部（组件 watch scrollSignal） */
+		_triggerScroll() {
+			this.scrollSignal++
+		},
+
+		/**
+		 * 发送消息 + 启动 SSE。
+		 * chat.vue 和 ChatPanel 共用此方法。
+		 *
+		 * @param {string} content 用户输入文本
+		 */
+		sendMessage(content) {
+			if (this.streaming) return
+			if (!content || !content.trim()) return
+
+			this.errorMsg = ''
+			this._lastSentContent = content
+
+			// 1. 追加用户消息
+			this.appendUser(content)
+			// 2. 开始 assistant 消息
+			this.startAssistant()
+			// 3. 禁用发送
+			this.streaming = true
+			this._triggerScroll()
+
+			// 4. 发起 SSE
+			this._startSSE(content)
+		},
+
+		/** 重试上一次发送 */
+		retryLast() {
+			if (this.streaming) return
+			this.errorMsg = ''
+			// 移除上一条空的 assistant 消息
+			if (this.messages.length > 0) {
+				const last = this.messages[this.messages.length - 1]
+				if (last.role === 'assistant' && !last.text) {
+					this.messages.pop()
+				}
+			}
+			// 重新发送
+			this.startAssistant()
+			this.streaming = true
+			this._triggerScroll()
+
+			// 发起 SSE（用上次发送的内容）
+			this._startSSE(this._lastSentContent)
+		},
+
+		/**
+		 * 内部方法：发起 SSE 请求并绑定回调。
+		 * sendMessage 和 retryLast 共用，消除重复代码。
+		 *
+		 * @param {string} content 要发送的文本
+		 */
+		_startSSE(content) {
+			// 中断旧 SSE（如果有）
+			if (sseController) {
+				sseController.abort()
+				sseController = null
+			}
+
+			const userStore = useUserStore()
+
+			sseController = startSSE({
+				url: API_BASE_URL + '/api/emotion/chat',
+				body: {
+					sessionId: this.sessionId,
+					content: content,
+				},
+				token: userStore.token,
+				onMessage: (text) => {
+					this.appendAssistantChunk(text)
+					this._triggerScroll()
+				},
+				onDone: (data) => {
+					this.finishAssistant()
+					if (data && data.sessionId) {
+						this.setSessionId(data.sessionId)
+					}
+					this.streaming = false
+					this._triggerScroll()
+				},
+				onError: (err) => {
+					this.finishAssistant()
+					this.streaming = false
+					this.errorMsg = (err && err.message) || '服务暂时不可用，请稍后重试'
+					this._triggerScroll()
+				},
+			})
+		},
+
+		/** 中断当前 SSE（面板关闭 / 页面卸载时调） */
+		abortSSE() {
+			if (sseController) {
+				sseController.abort()
+				sseController = null
+			}
+			this.streaming = false
 		},
 	},
 })

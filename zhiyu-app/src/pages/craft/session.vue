@@ -104,7 +104,10 @@
 		</view>
 
 		<!-- 全局 AI 伴侣 -->
-		<AiCompanion />
+		<AiCompanion @open-panel="showChatPanel = true" />
+
+		<!-- 悬浮聊天面板 -->
+		<ChatPanel v-if="showChatPanel" @close="onPanelClose" />
 	</view>
 </template>
 
@@ -112,15 +115,24 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useCraftStore } from '../../stores/craft'
+import { useAiCompanionStore } from '../../stores/aiCompanion'
 import { http } from '../../utils/request'
 import BreathingAnimation from '../../components/BreathingAnimation.vue'
 import AiCompanion from '../../components/AiCompanion.vue'
+import ChatPanel from '../../components/ChatPanel.vue'
 
 const craftStore = useCraftStore()
+const aiStore = useAiCompanionStore()
 
 const pageLoading = ref(true)
 const showBreathing = ref(false)
 const showSuccess = ref(false)
+const showChatPanel = ref(false)
+
+function onPanelClose() {
+	showChatPanel.value = false
+	aiStore.visible = true
+}
 
 let sessionId = null
 let stepStartTime = Date.now()
