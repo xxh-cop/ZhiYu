@@ -875,8 +875,8 @@ paths:
       summary: 管理员：待审核内容队列（项目/作品/评论）
       x-required-role: admin
       parameters:
-        - { name: type, in: query, schema: { type: string, enum: [project, work, comment] } }
-        - { name: page, in: query, schema: { type: integer } }
+        - { name: type, in: query, schema: { type: string, enum: [project, work, comment], default: project } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
       responses:
         '200':
           description: 待审队列
@@ -921,6 +921,9 @@ paths:
     get:
       summary: 咨询师/管理员：脱敏关怀提醒汇总
       x-required-role: admin
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] }, description: '0待处理 1已跟进' }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
       responses:
         '200':
           description: 脱敏关怀提醒列表

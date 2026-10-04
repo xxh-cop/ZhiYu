@@ -81,6 +81,8 @@ public class SecurityConfig {
                         // CORS 预检请求不带 Authorization，必须放行，否则浏览器直接拿到 401
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        // 审核手作项目：仅管理员（role=3）可操作
+                        .requestMatchers(HttpMethod.PUT, "/api/admin/projects/*/audit").hasAuthority("ROLE_3")
                         .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN_ROLES)
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling

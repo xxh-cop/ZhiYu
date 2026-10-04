@@ -37,10 +37,10 @@ ON DUPLICATE KEY UPDATE
 -- 哈希由 spring-security-crypto BCryptPasswordEncoder（strength=10, $2a）生成，
 -- 并已用 matches() 对正确密码返回 true、对错误密码返回 false 完成自校验。
 INSERT INTO user (id, username, password, nickname, role, status, create_time, update_time, deleted) VALUES
-(1, 'admin',       '$2a$10$Yy.Y2aYDe8nWvGZeeHoglOmSzr3akq9KjqXxANwILZx/E64TteNf6', '平台管理员',     3, 1, NOW(), NOW(), 0),
-(2, 'inheritor01', '$2a$10$..MRYVCls3pPx7YVSaicLONcPGX2QjGmni6tiq6cP1MWQjaCI9Jgm', '赣绣王老师',     1, 1, NOW(), NOW(), 0),
-(3, 'counselor01', '$2a$10$.P0kxS2d7DePY3Fe5CaP.eX3JwJTdO9oiyDLMDh9iXQRMhI7hHOoO', '心理中心李老师', 2, 1, NOW(), NOW(), 0),
-(4, 'student01',   '$2a$10$oHN82aQYzGcPPEURa3ULd.k7F7QpINqvARIuW/iLQ.r9ncqAujAHq', '小织',           0, 1, NOW(), NOW(), 0) AS new
+(1, 'admin',       '$2a$10$VUaOZLrJTBAV8mFNIQhyQuN4L57Rx3F0O.2wMN.NeJsYewugLhZUe', '平台管理员',     3, 1, NOW(), NOW(), 0),
+(2, 'inheritor01', '$2a$10$SkoqaZwcHYU7jjxedvgb0uiQhA8DKuogRMMC1fDY3aHAp8U.RbJMa', '赣绣王老师',     1, 1, NOW(), NOW(), 0),
+(3, 'counselor01', '$2a$10$/b6a4w9m.fmCSMkD7fceKe0bNqhq9BlqfgE.1jJyvQ.YLep7/8QSm', '心理中心李老师', 2, 1, NOW(), NOW(), 0),
+(4, 'student01',   '$2a$10$8Tht4s3O87qsAffuzJOo2elEDFdDIMrt/1GdZ0Loot3KaDmddaElu', '小织',           0, 1, NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   password    = new.password,
   nickname    = new.nickname,
