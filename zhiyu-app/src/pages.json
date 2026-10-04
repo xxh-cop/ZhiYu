@@ -77,10 +77,10 @@
 		}
 	],
 	"globalStyle": {
-		"navigationBarBackgroundColor": "#F7F4EF",
+		"navigationBarBackgroundColor": "#F8F9FB",
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "织愈",
-		"backgroundColor": "#F7F4EF"
+		"backgroundColor": "#F8F9FB"
 	},
 	"tabBar": {
 		"color": "#8A8A8A",
