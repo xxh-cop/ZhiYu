@@ -41,6 +41,9 @@ public class User extends BaseEntity {
     /** 0 不允许 1 允许心理咨询师联系 */
     private Integer canContact;
 
+    /** 隐私政策是否同意：0 未同意 1 已同意 */
+    private Integer privacyAgreed;
+
     /** 角色码：0 学生 1 传承人 2 咨询师 3 管理员，见 AGENTS.md §3.1 */
     private Integer role;
 

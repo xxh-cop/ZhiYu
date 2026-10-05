@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS user (
   school      VARCHAR(100) DEFAULT NULL COMMENT '所在学校',
   craft_preferences VARCHAR(255) DEFAULT NULL COMMENT '手作偏好标签,逗号分隔',
   can_contact TINYINT      NOT NULL DEFAULT 0 COMMENT '0不允许 1允许心理咨询师联系；默认 0，需用户单独授权',
+  privacy_agreed TINYINT   NOT NULL DEFAULT 0 COMMENT '隐私政策是否同意：0未同意 1已同意',
   role        TINYINT      NOT NULL DEFAULT 0 COMMENT '0学生 1传承人 2咨询师 3管理员',
   status      TINYINT      NOT NULL DEFAULT 1 COMMENT '0禁用 1正常',
   create_time DATETIME     DEFAULT NULL,

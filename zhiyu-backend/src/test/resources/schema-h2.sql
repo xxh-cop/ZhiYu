@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS user (
   school            VARCHAR(100) DEFAULT NULL,
   craft_preferences VARCHAR(255) DEFAULT NULL,
   can_contact       TINYINT      NOT NULL DEFAULT 0,
+  privacy_agreed    TINYINT      NOT NULL DEFAULT 0,
   role              TINYINT      NOT NULL DEFAULT 0,
   status            TINYINT      NOT NULL DEFAULT 1,
   create_time       TIMESTAMP    DEFAULT NULL,

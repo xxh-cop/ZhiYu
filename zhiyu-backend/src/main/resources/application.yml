@@ -75,7 +75,9 @@ zhiyu:
   # 默认值仅本地开发用，生产/演示环境必须通过环境变量覆盖。
   crisis:
     psych-center-phone: ${PSYCH_CENTER_PHONE:0791-0000000}
+    psych-center-name: ${PSYCH_CENTER_NAME:学校心理中心}
     national-hotline: ${NATIONAL_HOTLINE:12356}
+    national-hotline-name: ${NATIONAL_HOTLINE_NAME:全国心理援助热线}
 
   # ── 心流检测配置（T1.7） ──
   # store: redis（多实例共享） | memory（单机，默认）

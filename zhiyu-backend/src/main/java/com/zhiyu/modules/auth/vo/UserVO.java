@@ -23,6 +23,9 @@ public class UserVO {
     /** 学校名称 */
     private String school;
 
+    /** 隐私政策是否同意：0 未同意 1 已同意 */
+    private Integer privacyAgreed;
+
     /** 角色码：0 学生 / 1 传承人 / 2 咨询师 / 3 管理员 */
     private Integer role;
 }

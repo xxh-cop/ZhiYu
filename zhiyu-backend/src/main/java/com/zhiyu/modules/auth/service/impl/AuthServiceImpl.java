@@ -52,6 +52,8 @@ public class AuthServiceImpl implements AuthService {
         user.setStatus(1);
         // AGENTS.md §5：注册默认 can_contact=0，联系用户必须由用户单独授权
         user.setCanContact(0);
+        // 隐私政策默认未同意，需用户主动同意（M3-B1）
+        user.setPrivacyAgreed(0);
 
         // 单表插入，依赖 MyBatis-Plus 自身的事务语义，暂不加 @Transactional；
         // 若后续扩展为多表写入（如同时建 group_member），再补事务注解。
@@ -115,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
         vo.setUsername(user.getUsername());
         vo.setNickname(user.getNickname());
         vo.setSchool(user.getSchool());
+        vo.setPrivacyAgreed(user.getPrivacyAgreed());
         vo.setRole(user.getRole());
         return vo;
     }

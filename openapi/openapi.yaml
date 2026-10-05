@@ -285,6 +285,34 @@ components:
         startTime: { type: string, format: date-time, nullable: true }
         endTime: { type: string, format: date-time, nullable: true }
 
+
+    PrivacyStatusVO:
+      type: object
+      description: 隐私政策状态
+      properties:
+        privacyAgreed: { type: integer, description: '隐私政策是否同意：0未同意 1已同意' }
+        canContact: { type: integer, description: '是否允许心理咨询师联系：0不允许 1允许' }
+
+    CanContactReq:
+      type: object
+      required: [canContact]
+      properties:
+        canContact: { type: integer, description: '0不允许 1允许心理咨询师联系' }
+
+    DeleteAccountReq:
+      type: object
+      required: [confirm]
+      properties:
+        confirm: { type: boolean, description: '二次确认，必须为 true 才执行注销' }
+
+    HotlinesVO:
+      type: object
+      description: 心理援助热线信息
+      properties:
+        psychCenterPhone: { type: string, description: 学校心理中心电话 }
+        nationalHotline: { type: string, description: 全国心理援助热线号码 }
+        psychCenterName: { type: string, description: 学校心理中心名称 }
+        nationalHotlineName: { type: string, description: 全国心理援助热线名称 }
 paths:
   # ---------- 认证 ----------
   /api/auth/register:
@@ -371,7 +399,7 @@ paths:
         返回 Content-Type: text/event-stream，HTTP 状态码恒为 200。
         事件：
         - message: { "delta": "你好" }
-        - done: { "sessionId": 123 }
+        - done: { "sessionId": 123, "crisis": false }
         - error: 失败（熔断/超时），不使用 HTTP 层错误码，前端降级为缓存图文陪伴话术
       requestBody:
         required: true
@@ -1731,3 +1759,86 @@ paths:
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004，项目不存在或未上架）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  # ---------- 用户隐私合规（M3-B1） ----------
+  /api/user/privacy/status:
+    get:
+      summary: 查询当前用户的隐私政策状态
+      description: '返回 privacyAgreed 与 canContact 两个字段'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 隐私状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PrivacyStatusVO' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/user/privacy/agree:
+    post:
+      summary: 同意隐私政策
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 同意成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/user/privacy/withdraw:
+    post:
+      summary: 撤回隐私政策同意（同时取消可联系）
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 撤回成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/user/can-contact:
+    put:
+      summary: 更新可联系状态（仅本人可调）
+      description: '设为 1 时需已同意隐私政策，否则返回 1001'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CanContactReq' }
+      responses:
+        '200': { description: 更新成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '400': { description: 参数校验失败（code=1001，未同意隐私政策）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/user/delete:
+    post:
+      summary: 注销账号（匿名化 + 逻辑删除）
+      description: '需 confirm=true 二次确认；匿名化敏感字段后逻辑删除，不物理删除'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeleteAccountReq' }
+      responses:
+        '200': { description: 注销成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '400': { description: 参数校验失败（code=1001，confirm 非 true）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  # ---------- 心理援助热线（M3-B1，公开接口） ----------
+  /api/crisis/hotlines:
+    get:
+      summary: 获取心理援助热线信息
+      description: '公开接口，未登录也能访问，用于登录页与危机干预页展示'
+      security: []
+      responses:
+        '200':
+          description: 热线信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/HotlinesVO' }

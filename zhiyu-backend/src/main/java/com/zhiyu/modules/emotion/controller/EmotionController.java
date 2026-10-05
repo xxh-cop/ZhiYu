@@ -8,6 +8,7 @@ import com.zhiyu.ai.safety.SafetyResult;
 import com.zhiyu.modules.emotion.dto.ChatDTO;
 import com.zhiyu.modules.emotion.service.EmotionService;
 import com.zhiyu.security.UserContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 情绪倾听 SSE 控制器（T1.3a / T1.3b）。
@@ -58,6 +61,7 @@ public class EmotionController {
     private final AiClient aiClient;
     private final EmotionService emotionService;
     private final ContentSafetyFilter safetyFilter;
+    private final ObjectMapper objectMapper;
     @Qualifier("sseExecutor")
     private final ThreadPoolTaskExecutor sseExecutor;
 
@@ -68,6 +72,9 @@ public class EmotionController {
 
         sseExecutor.execute(() -> {
             try {
+                // 危机检测标志（M3-B1：done 事件携带，前端据此决定是否展示援助入口）
+                boolean crisisDetected = false;
+
                 // 1. 新建或复用会话
                 Long sessionId = dto.getSessionId();
                 if (sessionId == null) {
@@ -79,6 +86,7 @@ public class EmotionController {
 
                 // 2a. 命中高危 → 危机干预流程：不调 LLM
                 if (inputResult.getAction() == SafetyAction.BLOCK) {
+                    crisisDetected = true;
                     // 保存用户消息（加密）
                     emotionService.appendMessage(sessionId, "user", dto.getContent());
                     // 推送关怀话术
@@ -86,10 +94,10 @@ public class EmotionController {
                     if (careMessage != null) {
                         emitter.send(SseEmitter.event().data(careMessage));
                     }
-                    // 推送 done
+                    // 推送 done（携带 crisis 标志）
                     emitter.send(SseEmitter.event()
                             .name("done")
-                            .data("{\"sessionId\":\"" + sessionId + "\"}"));
+                            .data(donePayload(sessionId, crisisDetected)));
                     emitter.complete();
                     log.warn("危机干预触发: userId={}, sessionId={}, 不调 LLM", userId, sessionId);
                     return;
@@ -115,6 +123,7 @@ public class EmotionController {
                 // 6. 输出侧安全检查（事后审计；流式无法拦截，命中 REWRITE 仅记审计不改已推送内容）
                 SafetyResult outputResult = safetyFilter.checkOutput(userId, "chat", fullReply.toString());
                 if (outputResult.getAction() == SafetyAction.REWRITE) {
+                    crisisDetected = true;
                     log.warn("AI 输出越界已记审计（已推送内容不改）: userId={}, sessionId={}",
                             userId, sessionId);
                 }
@@ -122,10 +131,10 @@ public class EmotionController {
                 // 7. 保存 AI 回复（加密）
                 emotionService.appendMessage(sessionId, "assistant", fullReply.toString());
 
-                // 8. 发送 done 事件
+                // 8. 发送 done 事件（携带 crisis 标志）
                 emitter.send(SseEmitter.event()
                         .name("done")
-                        .data("{\"sessionId\":\"" + sessionId + "\"}"));
+                        .data(donePayload(sessionId, crisisDetected)));
                 emitter.complete();
 
             } catch (Exception e) {
@@ -141,5 +150,23 @@ public class EmotionController {
         });
 
         return emitter;
+    }
+
+    /**
+     * 构造 done 事件的 JSON payload（M3-B1：加 crisis 字段）。
+     *
+     * <p>用 {@link ObjectMapper} 序列化 {@link Map}，避免手工拼 JSON 的转义问题。
+     * 输出示例：{@code {"sessionId":123,"crisis":false}}
+     */
+    private String donePayload(Long sessionId, boolean crisis) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("sessionId", sessionId);
+        payload.put("crisis", crisis);
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (Exception e) {
+            // 兜底：保证 done 事件一定能发出
+            return "{\"sessionId\":\"" + sessionId + "\",\"crisis\":" + crisis + "}";
+        }
     }
 }
