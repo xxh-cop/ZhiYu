@@ -42,12 +42,13 @@ export namespace ZhiyuAdminApi {
 }
 
 export async function getAuditQueue(params: ZhiyuAdminApi.AuditQueueParams) {
-  return requestClient.get<{
+  const res = await requestClient.get<{
     total: number;
     pageNum: number;
     pageSize: number;
     records: ZhiyuAdminApi.AuditQueueItem[];
   }>('/admin/audit-queue', { params });
+  return { ...res, total: Number(res.total) };
 }
 
 export async function auditProject(
@@ -60,12 +61,13 @@ export async function auditProject(
 export async function getCareReminders(
   params: ZhiyuAdminApi.CareRemindersParams,
 ) {
-  return requestClient.get<{
+  const res = await requestClient.get<{
     total: number;
     pageNum: number;
     pageSize: number;
     records: ZhiyuAdminApi.CareReminder[];
   }>('/admin/care-reminders', { params });
+  return { ...res, total: Number(res.total) };
 }
 
 export async function getDashboardStats() {

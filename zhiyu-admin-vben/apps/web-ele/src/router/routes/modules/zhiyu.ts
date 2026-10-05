@@ -43,6 +43,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/zhiyu/care-reminders.vue'),
         meta: { icon: 'lucide:heart', title: '关怀提醒' },
       },
+      {
+        name: 'ZhiyuUsers',
+        path: 'users',
+        component: () => import('#/views/zhiyu/users.vue'),
+        meta: { icon: 'lucide:users', title: '用户管理' },
+      },
+      {
+        name: 'ZhiyuAuditLogs',
+        path: 'audit-logs',
+        component: () => import('#/views/zhiyu/audit-logs.vue'),
+        meta: { icon: 'lucide:scroll-text', title: 'AI审计日志' },
+      },
     ],
   },
 ];

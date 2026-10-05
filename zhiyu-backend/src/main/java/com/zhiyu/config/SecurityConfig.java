@@ -83,6 +83,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         // 审核手作项目：仅管理员（role=3）可操作
                         .requestMatchers(HttpMethod.PUT, "/api/admin/projects/*/audit").hasAuthority("ROLE_3")
+                        // 用户管理敏感操作：仅管理员（role=3）
+                        .requestMatchers(HttpMethod.PUT, "/api/admin/users/*/status").hasAuthority("ROLE_3")
+                        .requestMatchers(HttpMethod.PUT, "/api/admin/users/*/role").hasAuthority("ROLE_3")
+                        .requestMatchers(HttpMethod.PUT, "/api/admin/users/*").hasAuthority("ROLE_3")
+                        .requestMatchers(HttpMethod.DELETE, "/api/admin/users/*").hasAuthority("ROLE_3")
+                        // AI 审计日志详情（含解密内容）：仅管理员（role=3）
+                        .requestMatchers(HttpMethod.GET, "/api/admin/audit-logs/*").hasAuthority("ROLE_3")
                         .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN_ROLES)
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling
