@@ -33,11 +33,9 @@ const errorMsg = ref('');
 
 /** 图表 ref */
 const lineChartRef = ref<EchartsUIType>();
-const pieChartRef = ref<EchartsUIType>();
 const funnelChartRef = ref<EchartsUIType>();
 
 const { renderEcharts: renderLine } = useEcharts(lineChartRef);
-const { renderEcharts: renderPie } = useEcharts(pieChartRef);
 const { renderEcharts: renderFunnel } = useEcharts(funnelChartRef);
 
 /** 拉取数据 */
@@ -92,28 +90,6 @@ async function fetchData() {
       ],
     });
 
-    // 更新饼图
-    const moodDist = data.moodDistribution || [];
-    const pieData = moodDist.map((item: any, idx: number) => ({
-      name: item.mood || '未知',
-      value: item.count || 0,
-      itemStyle: { color: CHART_COLORS.palette[idx % CHART_COLORS.palette.length] },
-    }));
-
-    renderPie({
-      title: { text: '情绪分布', left: 'center', textStyle: { fontSize: 14, color: CHART_COLORS.text } },
-      tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-      legend: { bottom: '5%', textStyle: { color: CHART_COLORS.muted } },
-      series: [
-        {
-          type: 'pie',
-          radius: ['35%', '60%'],
-          center: ['50%', '45%'],
-          data: pieData.length > 0 ? pieData : [{ name: '暂无数据', value: 1, itemStyle: { color: CHART_COLORS.border } }],
-          label: { color: CHART_COLORS.muted },
-        },
-      ],
-    });
   } catch (e: any) {
     errorMsg.value = (e && e.message) || '加载失败';
   } finally {
@@ -184,19 +160,10 @@ onMounted(async () => {
       </el-col>
     </el-row>
 
-    <!-- 中间图表：折线 + 饼图 -->
-    <el-row :gutter="16">
-      <el-col :span="12">
-        <el-card shadow="never">
-          <EchartsUI ref="lineChartRef" height="320px" />
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card shadow="never">
-          <EchartsUI ref="pieChartRef" height="320px" />
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 折线图：近 7 天新增用户 -->
+    <el-card shadow="never">
+      <EchartsUI ref="lineChartRef" height="320px" />
+    </el-card>
 
     <!-- 底部图表：漏斗（Mock，待后端支持） -->
     <el-card shadow="never">
