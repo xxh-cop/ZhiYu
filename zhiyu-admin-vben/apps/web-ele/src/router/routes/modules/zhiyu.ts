@@ -55,6 +55,24 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/zhiyu/audit-logs.vue'),
         meta: { icon: 'lucide:scroll-text', title: 'AI审计日志' },
       },
+      {
+        name: 'ZhiyuInheritors',
+        path: 'inheritors',
+        component: () => import('#/views/zhiyu/inheritors.vue'),
+        meta: { icon: 'lucide:award', title: '传承人管理' },
+      },
+      {
+        name: 'ZhiyuWorks',
+        path: 'works',
+        component: () => import('#/views/zhiyu/works.vue'),
+        meta: { icon: 'lucide:image', title: '作品管理' },
+      },
+      {
+        name: 'ZhiyuGroups',
+        path: 'groups',
+        component: () => import('#/views/zhiyu/groups.vue'),
+        meta: { icon: 'lucide:users-round', title: '小组管理' },
+      },
     ],
   },
 ];
