@@ -4,6 +4,11 @@
  * 设计气质参考：Notion Calendar / Bear / Craft / Arc Browser
  * 冷色调但不冷淡，克制但有节奏。
  * 保留宋体标题作为"非遗文化感"锚点。
+ *
+ * 设计 Token v4.0（UI 冲刺阶段一）
+ * 原先定义在 uni.scss 的 :root, page {} 块已迁移至此，
+ * 因 UniApp 编译器不输出 uni.scss 的 CSS 规则。
+ * 与 docs/ui-tokens.md 一一对应。
  */
 
 :root,
@@ -25,21 +30,73 @@ page {
 	--wot-color-aid: #9CA3AF;           /* 浅灰 — 辅助 */
 	--wot-color-tip: #D1D5DB;           /* 银灰 — 提示 */
 
-	/* ── 织愈自定义变量 ── */
-	--zy-accent: #FFB547;               /* 暖橙 — 徽章、数字 */
-	--zy-danger: #FF6B6B;               /* 珊瑚红 — 点赞、删除 */
+	/* ── 织愈色板（v3.0 薄荷青） ── */
+	--zy-primary: #2D9B8F;
+	--zy-primary-light: #5BC4A8;
+	--zy-bg: #F8F9FB;
+	--zy-card-bg: #FFFFFF;
+	--zy-title: #1F2937;
+	--zy-text: #4B5563;
+	--zy-muted: #9CA3AF;
+	--zy-border: #E5E7EB;
+	--zy-accent: #FFB547;
+	--zy-danger: #FF6B6B;
 
-	--zy-bg: #F8F9FB;                   /* 冷白背景 */
 	--zy-bg-warm: #FFFFFF;              /* 卡片纯白 */
 	--zy-bg-tint-mint: #F0F9F7;         /* 薄荷青 4% — 模块底色 */
 	--zy-bg-tint-warm: #FFF8EE;         /* 暖橙 4% */
-
-	--zy-title: #1F2937;                /* 深灰蓝 */
 	--zy-content: #4B5563;              /* 中灰 */
 	--zy-aid: #9CA3AF;                  /* 浅灰 */
 
-	--zy-border: #E5E7EB;               /* 冷灰边框 */
-
 	--zy-serif: 'Songti SC', 'STSong', 'SimSun', 'Noto Serif CJK SC', serif;
 	--zy-sans: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+
+	/* ── 圆角 ── */
+	--zy-radius-xs: 6rpx;
+	--zy-radius-sm: 12rpx;
+	--zy-radius-md: 24rpx;
+	--zy-radius-lg: 32rpx;
+	--zy-radius-xl: 48rpx;
+	--zy-radius-full: 9999rpx;
+
+	/* ── 阴影 ── */
+	--zy-shadow-xs: 0 2rpx 4rpx rgba(45, 155, 143, 0.04);
+	--zy-shadow-sm: 0 2rpx 8rpx rgba(45, 155, 143, 0.06);
+	--zy-shadow-md: 0 4rpx 16rpx rgba(45, 155, 143, 0.08);
+	--zy-shadow-lg: 0 8rpx 24rpx rgba(45, 155, 143, 0.10);
+	--zy-shadow-xl: 0 12rpx 32rpx rgba(45, 155, 143, 0.12);
+
+	/* ── 间距 ── */
+	--zy-space-2xs: 4rpx;
+	--zy-space-xs: 8rpx;
+	--zy-space-sm: 16rpx;
+	--zy-space-md: 24rpx;
+	--zy-space-lg: 32rpx;
+	--zy-space-xl: 48rpx;
+	--zy-space-2xl: 64rpx;
+
+	/* ── 字体 ── */
+	--zy-font-xs: 20rpx;
+	--zy-font-sm: 24rpx;
+	--zy-font-base: 28rpx;
+	--zy-font-md: 32rpx;
+	--zy-font-lg: 36rpx;
+	--zy-font-xl: 44rpx;
+	--zy-font-2xl: 56rpx;
+
+	/* ── 动效时长 ── */
+	--zy-duration-instant: 100ms;
+	--zy-duration-fast: 150ms;
+	--zy-duration-base: 250ms;
+	--zy-duration-slow: 400ms;
+	--zy-duration-slower: 600ms;
+
+	/* ── 缓动函数 ── */
+	--zy-ease-linear: linear;
+	--zy-ease-in: cubic-bezier(0.4, 0, 1, 1);
+	--zy-ease-out: cubic-bezier(0, 0, 0.2, 1);
+	--zy-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+	--zy-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--zy-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+	--zy-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 }

@@ -1,0 +1,77 @@
+// ============================================================
+// 织愈设计 Token v4.0（管理端 · UI 冲刺阶段一）
+// 与学生端共享间距/圆角/动效，色板可差异化。
+// 参考项目：Art Design Pro / Leaf Island UI / Spark UI
+// 与 docs/ui-tokens.md 一一对应。
+// ============================================================
+
+:root {
+  /* ── 管理端专属色板（更沉稳，适合数据密集场景） ── */
+  --zy-admin-primary: #2D9B8F;          /* 品牌主色，与学生端一致 */
+  --zy-admin-primary-light: #5BC4A8;
+  --zy-admin-bg: #F8F9FB;
+  --zy-admin-card-bg: #FFFFFF;
+  --zy-admin-title: #1F2937;
+  --zy-admin-text: #4B5563;
+  --zy-admin-muted: #9CA3AF;
+  --zy-admin-border: #E5E7EB;
+  --zy-admin-accent: #FFB547;
+  --zy-admin-danger: #FF6B6B;
+  --zy-admin-success: #10B981;
+  --zy-admin-warning: #F59E0B;
+  --zy-admin-info: #6B7280;
+
+  /* ── 圆角（与学生端一致，但用 px 单位） ── */
+  --zy-radius-xs: 2px;
+  --zy-radius-sm: 4px;
+  --zy-radius-md: 8px;
+  --zy-radius-lg: 12px;
+  --zy-radius-xl: 16px;
+  --zy-radius-full: 9999px;
+
+  /* ── 阴影 ── */
+  --zy-shadow-xs: 0 1px 2px rgba(45, 155, 143, 0.04);
+  --zy-shadow-sm: 0 2px 8px rgba(45, 155, 143, 0.06);
+  --zy-shadow-md: 0 4px 16px rgba(45, 155, 143, 0.08);
+  --zy-shadow-lg: 0 8px 24px rgba(45, 155, 143, 0.10);
+  --zy-shadow-xl: 0 12px 32px rgba(45, 155, 143, 0.12);
+
+  /* ── 间距 ── */
+  --zy-space-2xs: 2px;
+  --zy-space-xs: 4px;
+  --zy-space-sm: 8px;
+  --zy-space-md: 12px;
+  --zy-space-lg: 16px;
+  --zy-space-xl: 24px;
+  --zy-space-2xl: 32px;
+  --zy-space-3xl: 48px;
+
+  /* ── 动效时长 ── */
+  --zy-duration-instant: 100ms;
+  --zy-duration-fast: 150ms;
+  --zy-duration-base: 250ms;
+  --zy-duration-slow: 400ms;
+  --zy-duration-slower: 600ms;
+
+  /* ── 缓动函数 ── */
+  --zy-ease-linear: linear;
+  --zy-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --zy-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --zy-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --zy-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --zy-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --zy-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ── Element Plus 主题覆盖 ── */
+  --el-color-primary: #2D9B8F;
+  --el-color-primary-light-3: #5BC4A8;
+  --el-color-primary-light-5: #96D8C7;
+  --el-color-primary-light-7: #BFE7DA;
+  --el-color-primary-light-8: #D2EEE5;
+  --el-color-primary-light-9: #E8F6F2;
+  --el-color-primary-dark-2: #1F7A70;
+  --el-color-danger: #FF6B6B;
+  --el-color-success: #10B981;
+  --el-color-warning: #F59E0B;
+  --el-border-radius-base: 8px;
+}

@@ -7,6 +7,10 @@ import { initStores } from '@vben/stores';
 import '@vben/styles';
 import '@vben/styles/ele';
 
+// 织愈设计 Token + 动效类
+import './styles/variables.scss';
+import './styles/animations.scss';
+
 import { useTitle } from '@vueuse/core';
 import ElementPlus from 'element-plus';
 // eslint-disable-next-line -- 「织愈」页面使用 el-table 等原生 EP 组件，需完整样式

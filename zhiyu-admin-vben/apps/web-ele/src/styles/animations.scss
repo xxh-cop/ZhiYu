@@ -1,0 +1,76 @@
+/**
+ * 织愈 · 可复用动效类（管理端）
+ * UI 冲刺阶段一 · 参考 Spark UI 动效组件思路
+ * 与学生端 animations.scss 同步，两端共用类名。
+ * 依赖 variables.scss 中的 --zy-duration-* / --zy-ease-* Token。
+ */
+
+/* ── 淡入 ── */
+.zy-fade-in {
+  animation: zyFadeIn var(--zy-duration-base) var(--zy-ease-out);
+}
+@keyframes zyFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── 从下滑入 ── */
+.zy-slide-up {
+  animation: zySlideUp var(--zy-duration-slow) var(--zy-ease-smooth);
+}
+@keyframes zySlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── 从右滑入 ── */
+.zy-slide-right {
+  animation: zySlideRight var(--zy-duration-slow) var(--zy-ease-smooth);
+}
+@keyframes zySlideRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ── 弹性弹入 ── */
+.zy-elastic {
+  animation: zyElastic var(--zy-duration-slow) var(--zy-ease-elastic);
+}
+@keyframes zyElastic {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── 错峰入场（配合 --stagger-i） ── */
+.zy-stagger {
+  animation-delay: calc(var(--stagger-i, 0) * 60ms);
+  animation-fill-mode: both;
+}
+
+/* ── 悬浮上浮（管理端用 :hover） ── */
+.zy-hover-lift {
+  transition: transform var(--zy-duration-fast) var(--zy-ease-out),
+              box-shadow var(--zy-duration-fast) var(--zy-ease-out);
+}
+.zy-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--zy-shadow-md);
+}
+
+/* ── 数字滚动 ── */
+.zy-number-roll {
+  animation: zyNumberRoll var(--zy-duration-slower) var(--zy-ease-smooth);
+}
+@keyframes zyNumberRoll {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── 呼吸（用于疗愈元素） ── */
+.zy-breathing {
+  animation: zyBreathing 4s var(--zy-ease-in-out) infinite;
+}
+@keyframes zyBreathing {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
