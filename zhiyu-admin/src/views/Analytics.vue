@@ -1,13 +1,22 @@
 <script setup>
-import { ref, onMounted, onUnmounted, shallowRef } from 'vue'
+import { ref, onMounted, onUnmounted, shallowRef, watch } from 'vue'
+
+import { getDashboardStats } from '../api/admin'
 
 /** KPI 卡片数据 */
-const kpiCards = [
-  { title: '总用户', value: '1,286', unit: '人' },
-  { title: '总作品', value: '342', unit: '件' },
-  { title: '闭环完成率', value: '68.5', unit: '%' },
-  { title: '心流时长占比', value: '42.3', unit: '%' },
-]
+const kpiCards = ref([
+  { title: '总用户', value: '-', unit: '人' },
+  { title: '总作品', value: '-', unit: '件' },
+  { title: '待审项目', value: '-', unit: '个' },
+  { title: '待处理关怀', value: '-', unit: '条' },
+])
+
+/** 加载 / 错误状态 */
+const loading = ref(false)
+const errorMsg = ref('')
+
+/** 后端返回的原始数据（用于图表更新） */
+const statsData = ref(null)
 
 /** 图表 DOM 引用 */
 const lineChartRef = ref(null)
@@ -30,18 +39,49 @@ const CHART_COLORS = {
   palette: ['#8B6F47', '#C89B6E', '#B85450', '#A49C90', '#6F5939'],
 }
 
-onMounted(async () => {
-  const echarts = await import('echarts')
+/** 拉取数据 */
+async function fetchData() {
+  loading.value = true
+  errorMsg.value = ''
+  try {
+    const data = await getDashboardStats()
+    statsData.value = data
 
-  /* ---- 折线图：近 7 天新增用户 ---- */
-  lineChart.value = echarts.init(lineChartRef.value)
+    // 更新 KPI 卡片
+    kpiCards.value = [
+      { title: '总用户', value: data.totalUsers ?? '-', unit: '人' },
+      { title: '总作品', value: data.totalWorks ?? '-', unit: '件' },
+      { title: '待审项目', value: data.pendingProjects ?? '-', unit: '个' },
+      { title: '待处理关怀', value: data.pendingCareReminders ?? '-', unit: '条' },
+    ]
+
+    // 更新图表
+    updateLineChart(data.userTrend7d || [])
+    updatePieChart(data.moodDistribution || [])
+  } catch (e) {
+    errorMsg.value = (e && e.message) || '加载失败'
+  } finally {
+    loading.value = false
+  }
+}
+
+/** 更新折线图 */
+function updateLineChart(trend) {
+  if (!lineChart.value) return
+
+  const dates = trend.map((item) => {
+    const parts = item.date ? item.date.split('-') : []
+    return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : (item.date || '-')
+  })
+  const counts = trend.map((item) => item.count || 0)
+
   lineChart.value.setOption({
     title: { text: '近 7 天新增用户', left: 'center', textStyle: { fontSize: 14, color: CHART_COLORS.text } },
     tooltip: { trigger: 'axis' },
     grid: { left: '8%', right: '8%', bottom: '10%', top: '18%' },
     xAxis: {
       type: 'category',
-      data: ['9/24', '9/25', '9/26', '9/27', '9/28', '9/29', '9/30'],
+      data: dates.length > 0 ? dates : ['暂无数据'],
       axisLine: { lineStyle: { color: CHART_COLORS.border } },
       axisLabel: { color: CHART_COLORS.muted },
     },
@@ -56,16 +96,25 @@ onMounted(async () => {
         name: '新增用户',
         type: 'line',
         smooth: true,
-        data: [12, 18, 15, 22, 28, 31, 25],
+        data: counts.length > 0 ? counts : [0],
         itemStyle: { color: CHART_COLORS.primary },
         lineStyle: { width: 2, color: CHART_COLORS.primary },
         areaStyle: { color: 'rgba(139, 111, 71, 0.08)' },
       },
     ],
   })
+}
 
-  /* ---- 饼图：情绪分布 ---- */
-  pieChart.value = echarts.init(pieChartRef.value)
+/** 更新饼图 */
+function updatePieChart(moodDist) {
+  if (!pieChart.value) return
+
+  const pieData = moodDist.map((item, idx) => ({
+    name: item.mood || '未知',
+    value: item.count || 0,
+    itemStyle: { color: CHART_COLORS.palette[idx % CHART_COLORS.palette.length] },
+  }))
+
   pieChart.value.setOption({
     title: { text: '情绪分布', left: 'center', textStyle: { fontSize: 14, color: CHART_COLORS.text } },
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
@@ -75,19 +124,21 @@ onMounted(async () => {
         type: 'pie',
         radius: ['35%', '60%'],
         center: ['50%', '45%'],
-        data: [
-          { name: '焦虑', value: 386, itemStyle: { color: CHART_COLORS.palette[0] } },
-          { name: '压力', value: 295, itemStyle: { color: CHART_COLORS.palette[1] } },
-          { name: '低落', value: 218, itemStyle: { color: CHART_COLORS.palette[2] } },
-          { name: '烦躁', value: 167, itemStyle: { color: CHART_COLORS.palette[3] } },
-          { name: '疲惫', value: 143, itemStyle: { color: CHART_COLORS.palette[4] } },
-        ],
+        data: pieData.length > 0 ? pieData : [{ name: '暂无数据', value: 1, itemStyle: { color: CHART_COLORS.border } }],
         label: { color: CHART_COLORS.muted },
       },
     ],
   })
+}
 
-  /* ---- 漏斗图：疗愈闭环 ---- */
+onMounted(async () => {
+  const echarts = await import('echarts')
+
+  /* ---- 初始化三个图表实例 ---- */
+  lineChart.value = echarts.init(lineChartRef.value)
+  pieChart.value = echarts.init(pieChartRef.value)
+
+  /* ---- 漏斗图：保留 Mock，待后端支持 ---- */
   funnelChart.value = echarts.init(funnelChartRef.value)
   funnelChart.value.setOption({
     title: { text: '疗愈闭环漏斗', left: 'center', textStyle: { fontSize: 14, color: CHART_COLORS.text } },
@@ -99,6 +150,7 @@ onMounted(async () => {
         right: '15%',
         top: '20%',
         bottom: '10%',
+        // TODO: 待后端支持后替换为真实数据
         data: [
           { name: '情绪表达', value: 1209, itemStyle: { color: CHART_COLORS.palette[0] } },
           { name: '手作推荐', value: 876, itemStyle: { color: CHART_COLORS.palette[1] } },
@@ -112,6 +164,9 @@ onMounted(async () => {
   })
 
   window.addEventListener('resize', handleResize)
+
+  // 拉取真实数据
+  await fetchData()
 })
 
 function handleResize() {
@@ -129,8 +184,17 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="analytics-page">
+  <div class="analytics-page" v-loading="loading">
     <h2 class="page-title">数据看板</h2>
+
+    <el-alert
+      v-if="errorMsg"
+      :title="errorMsg"
+      type="error"
+      :closable="false"
+      show-icon
+      style="margin-bottom: 0;"
+    />
 
     <!-- KPI 卡片 -->
     <el-row :gutter="16" class="kpi-row">
@@ -158,9 +222,10 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <!-- 底部图表：漏斗 -->
+    <!-- 底部图表：漏斗（Mock，待后端支持） -->
     <el-card class="chart-card" shadow="never">
       <div ref="funnelChartRef" class="chart-container" />
+      <p class="mock-tip">漏斗图暂为 Mock 数据，待后端支持</p>
     </el-card>
   </div>
 </template>
@@ -208,5 +273,12 @@ onUnmounted(() => {
 .chart-container {
   width: 100%;
   height: 320px;
+}
+
+.mock-tip {
+  margin: var(--zy-space-8) 0 0;
+  font-size: 12px;
+  color: #a49c90;
+  text-align: center;
 }
 </style>

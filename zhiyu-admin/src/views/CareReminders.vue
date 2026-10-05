@@ -1,5 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+
+import { getCareReminders } from '../api/admin'
 
 /** 状态筛选 */
 const statusOptions = [
@@ -7,91 +9,80 @@ const statusOptions = [
   { value: 0, label: '待处理' },
   { value: 1, label: '已跟进' },
 ]
-const riskOptions = [
-  { value: '', label: '全部等级' },
-  { value: 1, label: '一般' },
-  { value: 2, label: '高危' },
-]
 const filterStatus = ref('')
-const filterRisk = ref('')
 
-/** Mock：脱敏关怀提醒（5 条） */
-const tableData = ref([
-  {
-    id: 201,
-    time: '2026-09-28 22:15',
-    userLabel: '同学-A3F2',
-    riskLevel: 2,
-    riskLabel: '高危',
-    summary: '对话中出现持续低落表述，提及"撑不下去了"，已触发危机干预流程并展示热线。',
-    status: 0,
-    statusLabel: '待处理',
-  },
-  {
-    id: 202,
-    time: '2026-09-28 15:43',
-    userLabel: '同学-B7K9',
-    riskLevel: 1,
-    riskLabel: '一般',
-    summary: '连续三日便签情绪偏低，推荐手作后未进入创作，建议关注。',
-    status: 0,
-    statusLabel: '待处理',
-  },
-  {
-    id: 203,
-    time: '2026-09-27 19:22',
-    userLabel: '同学-C1D5',
-    riskLevel: 1,
-    riskLabel: '一般',
-    summary: '考试周压力较大，对话中多次提及焦虑，已完成一次情绪倾听。',
-    status: 1,
-    statusLabel: '已跟进',
-  },
-  {
-    id: 204,
-    time: '2026-09-26 11:08',
-    userLabel: '同学-D8E3',
-    riskLevel: 2,
-    riskLabel: '高危',
-    summary: '便签中出现自伤倾向表述，系统已展示心理援助热线，建议人工跟进。',
-    status: 1,
-    statusLabel: '已跟进',
-  },
-  {
-    id: 205,
-    time: '2026-09-25 20:37',
-    userLabel: '同学-E2F7',
-    riskLevel: 1,
-    riskLabel: '一般',
-    summary: '人际冲突导致情绪波动，推荐扎染后进入创作，完成后情绪改善。',
-    status: 1,
-    statusLabel: '已跟进',
-  },
-])
+/** 表格数据 */
+const tableData = ref([])
+const loading = ref(false)
+const errorMsg = ref('')
 
-const filteredData = ref(tableData.value)
+/** 分页 */
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = 10
 
-function handleFilter() {
-  filteredData.value = tableData.value.filter((row) => {
-    const matchStatus =
-      filterStatus.value === '' || row.status === filterStatus.value
-    const matchRisk =
-      filterRisk.value === '' || row.riskLevel === filterRisk.value
-    return matchStatus && matchRisk
-  })
+/** 格式化时间 */
+function formatTime(dt) {
+  if (!dt) return '-'
+  return dt.replace('T', ' ').substring(0, 16)
 }
 
-function tagType(riskLevel) {
-  return riskLevel === 2 ? 'danger' : 'info'
+/** 风险标签 */
+function riskLabel(level) {
+  return level === 2 ? '高危' : '一般'
+}
+function riskTagType(level) {
+  return level === 2 ? 'danger' : 'info'
 }
 
+/** 状态标签 */
+function statusLabel(status) {
+  return status === 0 ? '待处理' : '已跟进'
+}
 function statusTagType(status) {
   return status === 0 ? 'warning' : 'success'
+}
+
+/** 拉取列表 */
+async function fetchList() {
+  loading.value = true
+  errorMsg.value = ''
+  try {
+    const params = { page: currentPage.value }
+    if (filterStatus.value !== '') {
+      params.status = filterStatus.value
+    }
+    const data = await getCareReminders(params)
+    tableData.value = data.records || []
+    total.value = data.total || 0
+  } catch (e) {
+    errorMsg.value = (e && e.message) || '加载失败'
+    tableData.value = []
+    total.value = 0
+  } finally {
+    loading.value = false
+  }
+}
+
+/** 状态变化 */
+function handleStatusChange() {
+  currentPage.value = 1
+  fetchList()
+}
+
+/** 翻页 */
+function handlePageChange(page) {
+  currentPage.value = page
+  fetchList()
 }
 
 function handleView(row) {
   ElMessage.info(`关怀提醒 #${row.id} 详情功能开发中`)
 }
+
+onMounted(() => {
+  fetchList()
+})
 </script>
 
 <template>
@@ -108,24 +99,10 @@ function handleView(row) {
           placeholder="状态"
           clearable
           style="width: 140px"
-          @change="handleFilter"
+          @change="handleStatusChange"
         >
           <el-option
             v-for="opt in statusOptions"
-            :key="opt.value"
-            :label="opt.label"
-            :value="opt.value"
-          />
-        </el-select>
-        <el-select
-          v-model="filterRisk"
-          placeholder="风险等级"
-          clearable
-          style="width: 140px"
-          @change="handleFilter"
-        >
-          <el-option
-            v-for="opt in riskOptions"
             :key="opt.value"
             :label="opt.label"
             :value="opt.value"
@@ -135,13 +112,21 @@ function handleView(row) {
     </el-card>
 
     <el-card class="table-card" shadow="never">
-      <el-table :data="filteredData" style="width: 100%">
-        <el-table-column prop="time" label="时间" width="160" />
-        <el-table-column prop="userLabel" label="脱敏用户标识" width="140" />
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        style="width: 100%"
+        :empty-text="errorMsg || '暂无关怀提醒'"
+      >
+        <el-table-column label="时间" width="160">
+          <template #default="{ row }">
+            {{ formatTime(row.createTime) }}
+          </template>
+        </el-table-column>
         <el-table-column label="风险等级" width="100">
           <template #default="{ row }">
-            <el-tag :type="tagType(row.riskLevel)" size="small">
-              {{ row.riskLabel }}
+            <el-tag :type="riskTagType(row.riskLevel)" size="small">
+              {{ riskLabel(row.riskLevel) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -149,7 +134,7 @@ function handleView(row) {
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="statusTagType(row.status)" size="small">
-              {{ row.statusLabel }}
+              {{ statusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -161,6 +146,16 @@ function handleView(row) {
           </template>
         </el-table-column>
       </el-table>
+
+      <el-pagination
+        v-if="total > 0"
+        class="pagination"
+        layout="total, prev, pager, next"
+        :total="total"
+        :page-size="pageSize"
+        :current-page="currentPage"
+        @current-change="handlePageChange"
+      />
     </el-card>
   </div>
 </template>
@@ -197,6 +192,11 @@ function handleView(row) {
   display: flex;
   gap: var(--zy-space-12);
   align-items: center;
+}
+
+.pagination {
+  margin-top: var(--zy-space-16);
+  justify-content: flex-end;
 }
 
 :deep(.el-table th.el-table__cell) {

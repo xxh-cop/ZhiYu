@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 import { useUserStore } from '../stores/user'
+import { getDashboardStats } from '../api/admin'
 
 const userStore = useUserStore()
 
@@ -9,22 +10,57 @@ const nickname = computed(
   () => (userStore.userInfo && userStore.userInfo.nickname) || '管理员',
 )
 
-const placeholderCards = [
-  { title: '待审作品', value: '—' },
-  { title: '待处理关怀提醒', value: '—' },
-  { title: '本周新增作品', value: '—' },
-]
+/** KPI 卡片 */
+const kpiCards = ref([
+  { title: '总用户', value: '-' },
+  { title: '总作品', value: '-' },
+  { title: '待审项目', value: '-' },
+  { title: '待处理关怀', value: '-' },
+])
+
+const loading = ref(false)
+const errorMsg = ref('')
+
+async function fetchStats() {
+  loading.value = true
+  errorMsg.value = ''
+  try {
+    const data = await getDashboardStats()
+    kpiCards.value = [
+      { title: '总用户', value: data.totalUsers ?? '-' },
+      { title: '总作品', value: data.totalWorks ?? '-' },
+      { title: '待审项目', value: data.pendingProjects ?? '-' },
+      { title: '待处理关怀', value: data.pendingCareReminders ?? '-' },
+    ]
+  } catch (e) {
+    errorMsg.value = (e && e.message) || '加载失败'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchStats()
+})
 </script>
 
 <template>
-  <div class="dashboard-page">
+  <div class="dashboard-page" v-loading="loading">
     <h2 class="page-title">欢迎使用织愈管理端</h2>
     <p class="page-tip">
-      内容审核、关怀提醒、数据看板将在 M2 里程碑接入；当前为 T0.6b 页面骨架 + Mock 数据。
+      你好，{{ nickname }}。以下是平台当前的关键指标概览。
     </p>
 
+    <el-alert
+      v-if="errorMsg"
+      :title="errorMsg"
+      type="error"
+      :closable="false"
+      show-icon
+    />
+
     <el-row :gutter="16">
-      <el-col v-for="card in placeholderCards" :key="card.title" :span="8">
+      <el-col v-for="card in kpiCards" :key="card.title" :span="6">
         <el-card class="dash-card" shadow="never">
           <div class="dash-card-title">{{ card.title }}</div>
           <div class="dash-card-value">{{ card.value }}</div>
