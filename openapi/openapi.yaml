@@ -87,12 +87,51 @@ components:
         mood: { type: string, nullable: true }
         content: { type: string, example: 今天考试周压力很大 }
 
-    NoteReq:
+    NoteCreateDTO:
       type: object
       required: [content]
       properties:
-        content: { type: string }
+        mood: { type: string, nullable: true, description: 情绪 code（不加密） }
+        content: { type: string, description: 便签内容（明文，Service 层加密存储） }
+        noteDate: { type: string, format: date, nullable: true, description: 记录日期，默认今天 }
+
+    NoteUpdateDTO:
+      type: object
+      properties:
+        mood: { type: string, nullable: true, description: 情绪 code，null 表示不更新 }
+        content: { type: string, nullable: true, description: 便签内容，null 不更新；非空则重新加密 }
+
+    NoteListItemVO:
+      type: object
+      description: 便签列表项
+      properties:
+        id: { type: integer, format: int64 }
         mood: { type: string, nullable: true }
+        noteDate: { type: string, format: date, nullable: true }
+        createTime: { type: string, format: date-time }
+        excerpt: { type: string, description: 解密后内容的前 30 字摘要 }
+
+    NoteDetailVO:
+      type: object
+      description: 便签详情
+      properties:
+        id: { type: integer, format: int64 }
+        mood: { type: string, nullable: true }
+        content: { type: string, description: 解密后的明文内容 }
+        noteDate: { type: string, format: date, nullable: true }
+        createTime: { type: string, format: date-time }
+        updateTime: { type: string, format: date-time }
+
+    NotePageVO:
+      type: object
+      description: 便签分页响应
+      properties:
+        total: { type: integer, format: int64 }
+        pageNum: { type: integer }
+        pageSize: { type: integer }
+        records:
+          type: array
+          items: { $ref: '#/components/schemas/NoteListItemVO' }
 
     HeartbeatReq:
       type: object
@@ -416,21 +455,107 @@ paths:
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
-  /api/emotion/note:
+  /api/emotion/notes:
     post:
-      summary: 记录心情便签（加密存储）
+      summary: 创建心情便签（加密存储）
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/NoteReq' }
+            schema: { $ref: '#/components/schemas/NoteCreateDTO' }
       responses:
         '200':
-          description: 保存结果
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id: { type: integer, format: int64 }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    get:
+      summary: 分页查询本人心情便签
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 }, description: 页码 }
+        - { name: pageSize, in: query, schema: { type: integer, default: 10 }, description: 每页条数 }
+        - { name: startDate, in: query, schema: { type: string, format: date }, description: 起始日期（可选） }
+        - { name: endDate, in: query, schema: { type: string, format: date }, description: 截止日期（可选） }
+      responses:
+        '200':
+          description: 分页便签列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/NotePageVO' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/emotion/notes/{id}:
+    get:
+      summary: 查询便签详情（返回解密后明文）
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 便签详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/NoteDetailVO' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无访问权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    put:
+      summary: 编辑便签（仅更新非 null 字段）
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteUpdateDTO' }
+      responses:
+        '200':
+          description: 编辑成功
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无访问权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      summary: 删除便签（逻辑删除）
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无访问权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
