@@ -28,6 +28,8 @@ export const useEmotionStore = defineStore('emotion', {
 		scrollSignal: 0,
 		/** 是否保留消息（面板关闭后跳 chat.vue 时不 reset） */
 		preserveMessages: false,
+		/** 危机干预触发标记——SSE done 后检测关怀话术命中 */
+		crisisTriggered: false,
 	}),
 
 	actions: {
@@ -42,6 +44,7 @@ export const useEmotionStore = defineStore('emotion', {
 			this.streaming = false
 			this.errorMsg = ''
 			this.preserveMessages = false
+			this.crisisTriggered = false
 		},
 
 		/** 追加用户消息 */
@@ -168,17 +171,22 @@ export const useEmotionStore = defineStore('emotion', {
 					this.appendAssistantChunk(text)
 					this._triggerScroll()
 				},
-				onDone: (data) => {
-					this.finishAssistant()
-					if (data && data.sessionId) {
-						this.setSessionId(data.sessionId)
-					}
-					this.streaming = false
-					this._triggerScroll()
-					// 【触发点 3】SSE 完成 → 延迟回 idle
-					const aiStore = useAiCompanionStore()
-					aiStore.stopTalking()
-				},
+			onDone: (data) => {
+				this.finishAssistant()
+				if (data && data.sessionId) {
+					this.setSessionId(data.sessionId)
+				}
+				this.streaming = false
+				this._triggerScroll()
+				// 【触发点 3】SSE 完成 → 延迟回 idle
+				const aiStore = useAiCompanionStore()
+				aiStore.stopTalking()
+
+				// 危机干预检测：后端 BLOCK 时不发 error 事件，
+				// 而是将关怀话术作为普通 message 推送。
+				// 关怀话术包含「心理中心」或「热线」关键词，据此识别。
+				this._checkCrisis()
+			},
 				onError: (err) => {
 					this.finishAssistant()
 					this.streaming = false
@@ -195,6 +203,25 @@ export const useEmotionStore = defineStore('emotion', {
 					}
 				},
 			})
+		},
+
+		/**
+		 * 检测最后一条 assistant 消息是否为危机干预关怀话术。
+		 * 后端 KeywordContentSafetyFilter.buildCareMessage() 返回的文案
+		 * 包含「心理中心」和「热线」关键词。命中时设 crisisTriggered=true。
+		 */
+		_checkCrisis() {
+			const last = this.messages[this.messages.length - 1]
+			if (!last || last.role !== 'assistant' || !last.text) return
+			const text = last.text
+			if (text.includes('心理中心') || text.includes('热线') || text.includes('你并不孤单')) {
+				this.crisisTriggered = true
+			}
+		},
+
+		/** 关闭危机卡片（用户点「继续聊聊」） */
+		dismissCrisis() {
+			this.crisisTriggered = false
 		},
 
 		/** 中断当前 SSE（面板关闭 / 页面卸载时调） */

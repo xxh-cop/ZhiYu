@@ -92,6 +92,13 @@
 			"style": {
 				"navigationBarTitleText": "我的"
 			}
+		},
+		{
+			"path": "pages/crisis/index",
+			"style": {
+				"navigationBarTitleText": "心理援助",
+				"navigationBarBackgroundColor": "#F8F9FB"
+			}
 		}
 	],
 	"globalStyle": {

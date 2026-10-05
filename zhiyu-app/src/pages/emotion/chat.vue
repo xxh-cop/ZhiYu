@@ -62,13 +62,33 @@
 					</view>
 				</view>
 
-				<!-- 错误重试 -->
-				<view v-if="errorMsg" class="error-row">
-					<text class="error-text">{{ errorMsg }}</text>
-					<wd-button type="error" size="small" plain @click="handleRetry">重试</wd-button>
+			<!-- 危机关怀卡片 -->
+			<view v-if="showCrisisCard" class="crisis-card">
+				<view class="crisis-card-header">
+					<view class="crisis-avatar">
+						<text class="crisis-avatar-text">织</text>
+					</view>
+					<text class="crisis-card-title">小织想对你说</text>
+				</view>
+				<text class="crisis-card-text">我在这里陪着你。如果需要，可以联系专业资源。</text>
+				<view class="crisis-card-btns">
+					<view class="crisis-btn crisis-btn-primary" @click="goCrisisPage">
+						<wd-icon name="phone" size="28rpx" color="#FFFFFF" />
+						<text class="crisis-btn-text">查看心理援助资源</text>
+					</view>
+					<view class="crisis-btn crisis-btn-secondary" @click="dismissCrisis">
+						<text class="crisis-btn-text-secondary">继续聊聊</text>
+					</view>
 				</view>
 			</view>
-		</scroll-view>
+
+			<!-- 错误重试 -->
+			<view v-if="errorMsg" class="error-row">
+				<text class="error-text">{{ errorMsg }}</text>
+				<wd-button type="error" size="small" plain @click="handleRetry">重试</wd-button>
+			</view>
+		</view>
+	</scroll-view>
 
 		<!-- 输入区（固定底部） -->
 		<view class="input-area">
@@ -112,10 +132,11 @@ import { useUserStore } from '../../stores/user'
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
-const { messages, streaming, errorMsg, scrollSignal } = storeToRefs(emotionStore)
+const { messages, streaming, errorMsg, scrollSignal, crisisTriggered } = storeToRefs(emotionStore)
 
 const inputText = ref('')
 const showRecommendBtn = ref(false)
+const showCrisisCard = ref(false)
 const scrollTop = ref(0)
 
 onLoad(() => {
@@ -174,6 +195,14 @@ function handleVoice() {
 	uni.showToast({ title: '语音功能即将上线', icon: 'none' })
 }
 
+function goCrisisPage() {
+	uni.navigateTo({ url: '/pages/crisis/index' })
+}
+
+function dismissCrisis() {
+	emotionStore.dismissCrisis()
+}
+
 // ── 纯展示辅助函数（不涉及 SSE / store 逻辑） ──
 const userInitial = computed(() => {
 	const n = (userStore.userInfo && userStore.userInfo.nickname) || '同'
@@ -193,6 +222,18 @@ watch(() => {
 	return last && last.role === 'assistant' && last.done
 }, (val) => {
 	if (val) showRecommendBtn.value = true
+})
+
+// 危机卡片：crisisTriggered 延迟 0.5s 显示
+watch(crisisTriggered, (val) => {
+	if (val) {
+		setTimeout(() => {
+			showCrisisCard.value = true
+			nextTick(() => scrollToBottom())
+		}, 500)
+	} else {
+		showCrisisCard.value = false
+	}
 })
 </script>
 
@@ -478,5 +519,101 @@ watch(() => {
 .footer-disclaimer-text {
 	font-size: 20rpx;
 	color: var(--zy-aid, #9CA3AF);
+}
+
+/* ── 危机关怀卡片 ── */
+.crisis-card {
+	margin: 16rpx 0 24rpx;
+	padding: 32rpx 28rpx;
+	border-radius: 32rpx;
+	background: linear-gradient(135deg, #F0F9F7 0%, #FFFFFF 100%);
+	border: 2rpx solid rgba(45, 155, 143, 0.2);
+	box-shadow: 0 4rpx 20rpx rgba(45, 155, 143, 0.08);
+	animation: crisisIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes crisisIn {
+	from { opacity: 0; transform: translateY(16rpx) scale(0.97); }
+	to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.crisis-card-header {
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+	margin-bottom: 20rpx;
+}
+
+.crisis-avatar {
+	width: 56rpx;
+	height: 56rpx;
+	border-radius: 50%;
+	background: linear-gradient(135deg, #2D9B8F, #5BCFBF);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.crisis-avatar-text {
+	font-size: 26rpx;
+	font-weight: 600;
+	color: #FFFFFF;
+	font-family: var(--zy-serif);
+}
+
+.crisis-card-title {
+	font-size: 30rpx;
+	font-weight: 600;
+	color: var(--wot-color-theme, #2D9B8F);
+	font-family: var(--zy-serif);
+}
+
+.crisis-card-text {
+	display: block;
+	font-size: 28rpx;
+	line-height: 1.7;
+	color: var(--zy-content, #4B5563);
+	margin-bottom: 28rpx;
+}
+
+.crisis-card-btns {
+	display: flex;
+	flex-direction: column;
+	gap: 16rpx;
+}
+
+.crisis-btn {
+	height: 76rpx;
+	border-radius: 999rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10rpx;
+	transition: transform 0.2s ease;
+}
+
+.crisis-btn:active {
+	transform: scale(0.97);
+}
+
+.crisis-btn-primary {
+	background: linear-gradient(135deg, #2D9B8F, #5BC4A8);
+}
+
+.crisis-btn-secondary {
+	background-color: var(--zy-bg, #F8F9FB);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+}
+
+.crisis-btn-text {
+	font-size: 28rpx;
+	font-weight: 500;
+	color: #FFFFFF;
+}
+
+.crisis-btn-text-secondary {
+	font-size: 28rpx;
+	color: var(--zy-aid, #6B7280);
 }
 </style>

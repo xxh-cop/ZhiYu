@@ -26,7 +26,7 @@
 				:key="idx"
 				class="menu-item"
 				:style="{ '--stagger-i': idx }"
-				@click="toastComing"
+				@click="handleMenu(item)"
 			>
 				<view class="menu-icon-wrap">
 					<wd-icon :name="item.icon" size="36rpx" color="#2D9B8F" />
@@ -64,9 +64,10 @@ const ROLE_LABEL = {
 }
 
 const menuItems = [
-	{ icon: 'picture', label: '我的作品' },
-	{ icon: 'chat', label: '我的对话历史' },
-	{ icon: 'group', label: '我的小组' },
+	{ icon: 'picture', label: '我的作品', action: 'coming' },
+	{ icon: 'chat', label: '我的对话历史', action: 'coming' },
+	{ icon: 'group', label: '我的小组', action: 'coming' },
+	{ icon: 'phone', label: '心理援助', action: 'crisis' },
 ]
 
 const userStore = useUserStore()
@@ -112,8 +113,12 @@ async function loadCurrentUser() {
 	}
 }
 
-function toastComing() {
-	uni.showToast({ title: '即将上线', icon: 'none' })
+function handleMenu(item) {
+	if (item.action === 'crisis') {
+		uni.navigateTo({ url: '/pages/crisis/index' })
+	} else {
+		uni.showToast({ title: '即将上线', icon: 'none' })
+	}
 }
 
 function handleLogout() {
