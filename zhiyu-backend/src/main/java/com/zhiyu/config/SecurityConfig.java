@@ -99,6 +99,8 @@ public class SecurityConfig {
                         // 小组敏感操作：仅管理员（role=3）
                         .requestMatchers(HttpMethod.PUT, "/api/admin/groups/*/status").hasAuthority("ROLE_3")
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/groups/*").hasAuthority("ROLE_3")
+                        // 传承人端接口：仅传承人（role=1）可访问
+                        .requestMatchers("/api/inheritor/**").hasAuthority("ROLE_1")
                         .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN_ROLES)
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling

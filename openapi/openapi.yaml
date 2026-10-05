@@ -819,54 +819,268 @@ paths:
   # ---------- 传承人 ----------
   /api/inheritor/projects:
     post:
-      summary: 传承人提交手作项目（进入待审）
+      summary: 传承人创建手作项目（进入待审）
+      description: '仅 ROLE_1 可访问。inheritorId 取自 UserContext，status 固定为 0（待审）。'
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, level]
+              properties:
+                title: { type: string, description: 项目标题 }
+                intro: { type: string, description: 简介 }
+                cultureBg: { type: string, description: 文化背景 }
+                level: { type: integer, minimum: 1, maximum: 3, description: '难度 1-3' }
+                estMinutes: { type: integer, description: 预计分钟 }
+                category: { type: string, description: 分类 }
+                therapyTags: { type: string, description: 疗愈标签 }
+                coverUrl: { type: string, description: 封面图 URL }
       responses:
         '200':
-          description: 提交结果（进入待审队列）
+          description: 创建成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Result' }
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string }
+                  data: { type: object, properties: { id: { type: integer, format: int64 } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003，非传承人角色）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     get:
-      summary: 传承人查看自己提交的项目
+      summary: 传承人查看自己提交的项目列表
+      description: '仅 ROLE_1 可访问。分页查询当前传承人的项目，可按 status 过滤。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: status
+          in: query
+          schema: { type: integer, description: '0待审 / 1已上架 / 2已下架' }
       responses:
         '200':
-          description: 自己提交的项目列表
+          description: 项目列表
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
-  /api/inheritor/courses:
+  /api/inheritor/projects/{id}:
     get:
-      summary: 传承人课程列表
+      summary: 传承人查看项目详情（含步骤+材料）
+      description: '仅 ROLE_1 可访问。校验项目属于当前用户，否则 1003。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
       responses:
         '200':
-          description: 课程列表
+          description: 项目详情（含 steps 和 materials 数组）
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    put:
+      summary: 传承人编辑项目
+      description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0（待审），否则 3001。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                intro: { type: string }
+                cultureBg: { type: string }
+                level: { type: integer }
+                estMinutes: { type: integer }
+                category: { type: string }
+                therapyTags: { type: string }
+                coverUrl: { type: string }
+      responses:
+        '200': { description: 编辑成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      summary: 传承人删除项目（逻辑删除，级联删除步骤和材料）
+      description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0（待审），否则 3001。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: 删除成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/inheritor/projects/{id}/steps:
     post:
-      summary: 传承人新建课程
+      summary: 传承人添加步骤
+      description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stepNo, title]
+              properties:
+                stepNo: { type: integer, description: 步骤序号 }
+                title: { type: string, description: 步骤标题 }
+                guide: { type: string, description: 引导语 }
+                audioUrl: { type: string, description: 音频 URL }
       responses:
         '200':
-          description: 新建结果
+          description: 添加成功
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Result' }
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string }
+                  data: { type: object, properties: { id: { type: integer, format: int64 } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/inheritor/projects/{id}/steps/{stepId}:
+    put:
+      summary: 传承人编辑步骤
+      description: '仅 ROLE_1 可访问。校验项目+步骤归属且 status=0。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: stepId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stepNo, title]
+              properties:
+                stepNo: { type: integer }
+                title: { type: string }
+                guide: { type: string }
+                audioUrl: { type: string }
+      responses:
+        '200': { description: 编辑成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      summary: 传承人删除步骤（逻辑删除）
+      description: '仅 ROLE_1 可访问。校验项目+步骤归属且 status=0。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: stepId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: 删除成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/inheritor/projects/{id}/materials:
+    post:
+      summary: 传承人添加材料
+      description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, description: 材料名称 }
+                qty: { type: string, description: 用量 }
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string }
+                  data: { type: object, properties: { id: { type: integer, format: int64 } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/inheritor/projects/{id}/materials/{materialId}:
+    delete:
+      summary: 传承人删除材料（逻辑删除）
+      description: '仅 ROLE_1 可访问。校验项目+材料归属且 status=0。'
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: materialId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: 删除成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- 管理端 ----------
