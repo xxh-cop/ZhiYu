@@ -51,6 +51,7 @@ unpackage/
 
 # ===== Vite / 前端构建 =====
 .vite/
+.turbo/
 *.tsbuildinfo
 stats.html
 
@@ -132,3 +133,4 @@ replay_pid*
 .fseventsd/
 .sts4-cache/
 .springBeans
+lefthook.yml
