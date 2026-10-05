@@ -1107,7 +1107,237 @@ paths:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
       responses:
         '200':
-          description: 审计日志详情（含解密明文）
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  # ── P1-B1：传承人管理（4 个接口） ──
+
+  /api/admin/inheritors:
+    get:
+      summary: '管理员/咨询师：传承人分页列表'
+      x-required-role: admin
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 10 } }
+        - { name: verified, in: query, required: false, schema: { type: integer, enum: [0, 1] }, description: '0未认证 1已认证' }
+        - { name: keyword, in: query, required: false, schema: { type: string }, description: '匹配 skill' }
+      responses:
+        '200':
+          description: 传承人分页列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/inheritors/{id}:
+    get:
+      summary: '管理员/咨询师：传承人详情'
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 传承人详情
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    put:
+      summary: '管理员：编辑传承人资料（skill/intro/honor）'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skill: { type: string }
+                intro: { type: string }
+                honor: { type: string }
+      responses:
+        '200':
+          description: 更新后的传承人详情
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/inheritors/{id}/verify:
+    put:
+      summary: '管理员：认证/取消认证传承人'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verified]
+              properties:
+                verified: { type: integer, enum: [0, 1], description: '0取消认证 1认证通过' }
+      responses:
+        '200':
+          description: 认证操作成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  # ── P1-B1：作品管理（4 个接口） ──
+
+  /api/admin/works:
+    get:
+      summary: '管理员/咨询师：作品分页列表'
+      x-required-role: admin
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 10 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1, 2] }, description: '0待审 1已发布 2下架' }
+        - { name: visible, in: query, required: false, schema: { type: integer, enum: [0, 1, 2] }, description: '0私密 1公开 2仅小组' }
+        - { name: keyword, in: query, required: false, schema: { type: string }, description: '匹配 title' }
+      responses:
+        '200':
+          description: 作品分页列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/works/{id}:
+    get:
+      summary: '管理员/咨询师：作品详情'
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 作品详情
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      summary: '管理员：逻辑删除作品'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/works/{id}/status:
+    put:
+      summary: '管理员：变更作品状态（发布/下架）'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: integer, enum: [1, 2], description: '1发布 2下架' }
+      responses:
+        '200':
+          description: 状态变更成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  # ── P1-B1：小组管理（4 个接口） ──
+
+  /api/admin/groups:
+    get:
+      summary: '管理员/咨询师：小组分页列表'
+      x-required-role: admin
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 10 } }
+        - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] }, description: '0关闭 1开放' }
+        - { name: keyword, in: query, required: false, schema: { type: string }, description: '匹配 name' }
+      responses:
+        '200':
+          description: 小组分页列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/groups/{id}:
+    get:
+      summary: '管理员/咨询师：小组详情'
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 小组详情
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      summary: '管理员：逻辑删除小组'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/groups/{id}/status:
+    put:
+      summary: '管理员：变更小组状态（开放/关闭）'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: integer, enum: [0, 1], description: '0关闭 1开放' }
+      responses:
+        '200':
+          description: 状态变更成功
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
