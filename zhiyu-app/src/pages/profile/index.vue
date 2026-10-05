@@ -67,6 +67,7 @@ const menuItems = [
 	{ icon: 'picture', label: '我的作品', action: 'coming' },
 	{ icon: 'chat', label: '我的对话历史', action: 'coming' },
 	{ icon: 'group', label: '我的小组', action: 'coming' },
+	{ icon: 'setting1', label: '隐私设置', action: 'privacy' },
 	{ icon: 'phone', label: '心理援助', action: 'crisis' },
 ]
 
@@ -116,6 +117,8 @@ async function loadCurrentUser() {
 function handleMenu(item) {
 	if (item.action === 'crisis') {
 		uni.navigateTo({ url: '/pages/crisis/index' })
+	} else if (item.action === 'privacy') {
+		uni.navigateTo({ url: '/pages/privacy/settings' })
 	} else {
 		uni.showToast({ title: '即将上线', icon: 'none' })
 	}

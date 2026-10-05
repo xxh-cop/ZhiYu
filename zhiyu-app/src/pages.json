@@ -99,6 +99,18 @@
 				"navigationBarTitleText": "心理援助",
 				"navigationBarBackgroundColor": "#F8F9FB"
 			}
+		},
+		{
+			"path": "pages/privacy/index",
+			"style": {
+				"navigationBarTitleText": "隐私政策"
+			}
+		},
+		{
+			"path": "pages/privacy/settings",
+			"style": {
+				"navigationBarTitleText": "隐私设置"
+			}
 		}
 	],
 	"globalStyle": {

@@ -16,7 +16,7 @@
 					<wd-icon name="phone" size="40rpx" color="#FFB547" />
 				</view>
 				<view class="card-header-info">
-					<text class="card-title">学校心理中心</text>
+					<text class="card-title">{{ psychCenterName }}</text>
 					<text class="card-desc">校内专业心理咨询资源</text>
 				</view>
 			</view>
@@ -34,7 +34,7 @@
 					<wd-icon name="phone" size="40rpx" color="#2D9B8F" />
 				</view>
 				<view class="card-header-info">
-					<text class="card-title">全国心理援助热线</text>
+					<text class="card-title">{{ nationalHotlineName }}</text>
 					<text class="card-desc">24 小时全国心理援助</text>
 				</view>
 			</view>
@@ -70,11 +70,39 @@
 
 <script setup>
 import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { http } from '../../utils/request'
 
-// TODO(M3-D): 后端提供 GET /api/crisis/hotlines 接口后改为动态获取
-// 当前硬编码与 application.yml 默认值一致
-const psychCenterPhone = ref('0791-0000000')
-const nationalHotline = ref('12356')
+// 兜底值：请求失败时保证页面仍可用（与 application.yml 默认值一致）
+const FALLBACK = {
+	psychCenterName: '学校心理中心',
+	psychCenterPhone: '0791-0000000',
+	nationalHotlineName: '全国心理援助热线',
+	nationalHotline: '12356',
+}
+
+const psychCenterName = ref(FALLBACK.psychCenterName)
+const psychCenterPhone = ref(FALLBACK.psychCenterPhone)
+const nationalHotlineName = ref(FALLBACK.nationalHotlineName)
+const nationalHotline = ref(FALLBACK.nationalHotline)
+
+onShow(() => {
+	fetchHotlines()
+})
+
+async function fetchHotlines() {
+	try {
+		const data = await http.get('/api/crisis/hotlines')
+		if (data) {
+			if (data.psychCenterName) psychCenterName.value = data.psychCenterName
+			if (data.psychCenterPhone) psychCenterPhone.value = data.psychCenterPhone
+			if (data.nationalHotlineName) nationalHotlineName.value = data.nationalHotlineName
+			if (data.nationalHotline) nationalHotline.value = data.nationalHotline
+		}
+	} catch (e) {
+		// 静默失败，保留兜底值
+	}
+}
 
 function callPhone(phone) {
 	if (!phone) return

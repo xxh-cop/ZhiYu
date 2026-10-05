@@ -95,6 +95,13 @@
 
 		<!-- 悬浮聊天面板 -->
 		<ChatPanel v-if="showChatPanel" @close="onPanelClose" />
+
+		<!-- 首次同意弹窗 -->
+		<PrivacyConsent
+			:visible="showConsent"
+			@agree="onConsentAgree"
+			@decline="onConsentDecline"
+		/>
 	</view>
 </template>
 
@@ -106,6 +113,7 @@ import { useUserStore } from '../../stores/user'
 import { useAiCompanionStore } from '../../stores/aiCompanion'
 import AiCompanion from '../../components/AiCompanion.vue'
 import ChatPanel from '../../components/ChatPanel.vue'
+import PrivacyConsent from '../../components/PrivacyConsent.vue'
 
 const userStore = useUserStore()
 const aiStore = useAiCompanionStore()
@@ -113,6 +121,7 @@ const loadingMe = ref(false)
 const quoteIndex = ref(0)
 const moodIndex = ref(null)
 const showChatPanel = ref(false)
+const showConsent = ref(false)
 
 function onPanelClose() {
 	showChatPanel.value = false
@@ -189,7 +198,29 @@ onShow(() => {
 		return
 	}
 	loadCurrentUser()
+	checkPrivacyConsent()
 })
+
+async function checkPrivacyConsent() {
+	// 未查询过隐私状态时拉取一次
+	if (userStore.privacyAgreed === null) {
+		await userStore.fetchPrivacyStatus()
+	}
+	// 未同意且本次会话未「仅浏览」→ 弹窗
+	if (userStore.privacyAgreed === 0 && !userStore.consentDismissed) {
+		showConsent.value = true
+	}
+}
+
+function onConsentAgree() {
+	userStore.setPrivacyAgreed(1)
+	showConsent.value = false
+}
+
+function onConsentDecline() {
+	userStore.setConsentDismissed(true)
+	showConsent.value = false
+}
 
 // 页面级生命周期：tab 切换时暂停/重置主动气泡计时（M2-b3B）
 onShow(() => {

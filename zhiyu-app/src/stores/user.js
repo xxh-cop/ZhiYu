@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { http } from '../utils/request'
 
 const TOKEN_KEY = 'token'
 
@@ -93,6 +94,12 @@ export const useUserStore = defineStore('user', {
 	state: () => ({
 		token: readToken(),
 		userInfo: null,
+		// 隐私政策同意状态：null 未查询 / 0 未同意 / 1 已同意
+		privacyAgreed: null,
+		// 本次会话内「不同意，仅浏览」标记，不持久化
+		consentDismissed: false,
+		// 可联系授权：null 未查询 / 0 不允许 / 1 允许
+		canContact: null,
 	}),
 
 	getters: {
@@ -137,6 +144,9 @@ export const useUserStore = defineStore('user', {
 		clearAuth() {
 			this.token = ''
 			this.userInfo = null
+			this.privacyAgreed = null
+			this.consentDismissed = false
+			this.canContact = null
 			try {
 				uni.removeStorageSync(TOKEN_KEY)
 			} catch (e) {
@@ -147,6 +157,31 @@ export const useUserStore = defineStore('user', {
 		logout() {
 			this.clearAuth()
 			uni.reLaunch({ url: '/pages/login/index' })
+		},
+
+		/** 查询隐私授权状态（GET /api/user/privacy/status） */
+		async fetchPrivacyStatus() {
+			try {
+				const data = await http.get('/api/user/privacy/status')
+				if (data) {
+					this.privacyAgreed = data.privacyAgreed
+					this.canContact = data.canContact
+				}
+			} catch (e) {
+				/* 静默失败，不影响主流程 */
+			}
+		},
+
+		setPrivacyAgreed(val) {
+			this.privacyAgreed = val
+		},
+
+		setCanContact(val) {
+			this.canContact = val
+		},
+
+		setConsentDismissed(val) {
+			this.consentDismissed = val
 		},
 
 		decodeRole() {
