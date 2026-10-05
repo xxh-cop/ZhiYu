@@ -51,6 +51,9 @@ public class CraftProjectDetailVO {
     /** 传承人 user.id */
     private Long inheritorId;
 
+    /** 传承人 profile.id（用于跳转传承人主页） */
+    private Long inheritorProfileId;
+
     /** 传承人昵称 */
     private String inheritorNickname;
 

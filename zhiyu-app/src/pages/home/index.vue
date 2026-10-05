@@ -146,6 +146,7 @@ const entries = [
 	{ icon: 'star', title: '疗愈推荐', sub: '找到适合的手作', action: goRecommend },
 	{ icon: 'edit', title: '创作引导', sub: '一步步跟着做', action: toastComing },
 	{ icon: 'image', title: '我的作品', sub: '看看创作成果', action: goWorks },
+	{ icon: 'user', title: '非遗传承人', sub: '认识手作老师', action: goInheritors },
 ]
 
 const nickname = computed(
@@ -233,6 +234,10 @@ function goProfile() {
 
 function toastComing() {
 	uni.showToast({ title: '即将上线', icon: 'none' })
+}
+
+function goInheritors() {
+	uni.navigateTo({ url: '/pages/inheritor/list' })
 }
 </script>
 

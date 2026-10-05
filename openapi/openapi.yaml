@@ -1707,6 +1707,7 @@ paths:
                       coverUrl: { type: string, nullable: true }
                       createTime: { type: string, format: date-time }
                       inheritorId: { type: integer, format: int64 }
+                      inheritorProfileId: { type: integer, format: int64, description: 'inheritor_profile.id，用于跳转传承人主页' }
                       inheritorNickname: { type: string }
                       inheritorSkill: { type: string }
                       steps:

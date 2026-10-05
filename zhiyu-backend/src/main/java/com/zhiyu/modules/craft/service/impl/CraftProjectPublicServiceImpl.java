@@ -147,6 +147,7 @@ public class CraftProjectPublicServiceImpl implements CraftProjectPublicService 
         }
         if (profile != null) {
             vo.setInheritorSkill(profile.getSkill());
+            vo.setInheritorProfileId(profile.getId());
         }
 
         return vo;

@@ -19,6 +19,24 @@
 			}
 		},
 		{
+			"path": "pages/inheritor/list",
+			"style": {
+				"navigationBarTitleText": "非遗传承人"
+			}
+		},
+		{
+			"path": "pages/inheritor/detail",
+			"style": {
+				"navigationBarTitleText": "传承人主页"
+			}
+		},
+		{
+			"path": "pages/craft/detail",
+			"style": {
+				"navigationBarTitleText": "项目详情"
+			}
+		},
+		{
 			"path": "pages/emotion/chat",
 			"style": {
 				"navigationBarTitleText": "情绪倾听"
