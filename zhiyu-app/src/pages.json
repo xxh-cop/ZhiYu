@@ -43,6 +43,19 @@
 			}
 		},
 		{
+			"path": "pages/emotion/notes",
+			"style": {
+				"navigationBarTitleText": "心情便签",
+				"onReachBottomDistance": 50
+			}
+		},
+		{
+			"path": "pages/emotion/note-edit",
+			"style": {
+				"navigationBarTitleText": "记录心情"
+			}
+		},
+		{
 			"path": "pages/craft/recommend",
 			"style": {
 				"navigationBarTitleText": "疗愈推荐"
