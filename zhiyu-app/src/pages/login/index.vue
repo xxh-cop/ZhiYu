@@ -41,6 +41,10 @@
 
 		<!-- 底部免责 + 隐私政策 -->
 		<view class="footer zy-slide-up" style="--stagger-i: 2">
+			<view class="register-link-row">
+				<text class="footer-text">还没有账号？</text>
+				<text class="register-link" @click="goRegister">立即注册</text>
+			</view>
 			<text class="footnote">本系统不能替代专业心理咨询</text>
 			<text class="privacy-link" @click="goPrivacy">查看隐私政策</text>
 		</view>
@@ -98,6 +102,10 @@ async function handleLogin() {
 
 function goPrivacy() {
 	uni.navigateTo({ url: '/pages/privacy/index' })
+}
+
+function goRegister() {
+	uni.navigateTo({ url: '/pages/register/index' })
 }
 </script>
 
@@ -217,6 +225,24 @@ function goPrivacy() {
 	align-items: center;
 	gap: 12rpx;
 	margin-top: 56rpx;
+}
+
+.register-link-row {
+	display: flex;
+	align-items: center;
+	gap: 8rpx;
+	margin-bottom: 4rpx;
+}
+
+.footer-text {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.register-link {
+	font-size: 26rpx;
+	color: var(--zy-primary, #2D9B8F);
+	font-weight: 500;
 }
 
 .footnote {
