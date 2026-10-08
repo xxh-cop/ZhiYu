@@ -15,6 +15,8 @@ public class WorkVO {
     private Long id;
     private String title;
     private String coverUrl;
+    private String mediaType;
+    private String videoUrl;
     private String message;
     private String authorName;
     private Boolean anonymous;

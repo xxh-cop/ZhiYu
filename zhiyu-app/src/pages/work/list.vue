@@ -57,9 +57,20 @@
 				:style="{ '--stagger-i': idx }"
 				@click="goDetail(item)"
 			>
-				<!-- 封面图 -->
-				<view class="card-cover" :style="coverStyle(item.coverUrl)">
+			<!-- 封面区域：根据 mediaType 渲染 -->
+				<view v-if="!item.mediaType || item.mediaType === 'image'" class="card-cover" :style="coverStyle(item.coverUrl)">
 					<view class="cover-placeholder"></view>
+				</view>
+				<view v-else-if="item.mediaType === 'video'" class="card-cover card-cover--video">
+					<video v-if="item.videoUrl" class="card-cover-video" :src="fullUrl(item.videoUrl)" object-fit="cover" :controls="false" :autoplay="false" />
+					<view class="card-cover-play">
+						<view class="play-icon">
+							<text class="play-icon-text">▶</text>
+						</view>
+					</view>
+				</view>
+				<view v-else-if="item.mediaType === 'text'" class="card-cover card-cover--text">
+					<text class="card-cover-text-label">纯文字作品</text>
 				</view>
 
 				<view class="card-body">
@@ -104,6 +115,7 @@
 import { ref, computed } from 'vue'
 import { onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import { API_BASE_URL } from '../../utils/config.js'
 
 const tabs = [
 	{ label: '全部', value: 'all' },
@@ -185,10 +197,23 @@ async function loadMore() {
 function coverStyle(coverUrl) {
 	// #ifdef H5
 	if (coverUrl) {
-		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
+		const url = fullUrl(coverUrl)
+		return `background-image: url(${url}); background-size: cover; background-position: center;`
+	}
+	// #endif
+	// #ifndef H5
+	if (coverUrl) {
+		const url = fullUrl(coverUrl)
+		return `background-image: url(${url}); background-size: cover; background-position: center;`
 	}
 	// #endif
 	return 'background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);'
+}
+
+function fullUrl(url) {
+	if (!url) return ''
+	if (url.startsWith('http')) return url
+	return API_BASE_URL + url
 }
 
 function formatTime(time) {
@@ -385,6 +410,53 @@ loadData(1)
 .card-cover {
 	height: 280rpx;
 	position: relative;
+}
+
+.card-cover--video {
+	overflow: hidden;
+	position: relative;
+}
+
+.card-cover-video {
+	width: 100%;
+	height: 100%;
+}
+
+.card-cover-play {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, 0.2);
+}
+
+.play-icon {
+	width: 72rpx;
+	height: 72rpx;
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.85);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.play-icon-text {
+	font-size: 28rpx;
+	color: #2D9B8F;
+	margin-left: 4rpx;
+}
+
+.card-cover--text {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, rgba(45, 155, 143, 0.1) 0%, rgba(91, 196, 168, 0.05) 100%);
+}
+
+.card-cover-text-label {
+	font-size: 26rpx;
+	color: var(--zy-primary, #2D9B8F);
 }
 
 .cover-placeholder {

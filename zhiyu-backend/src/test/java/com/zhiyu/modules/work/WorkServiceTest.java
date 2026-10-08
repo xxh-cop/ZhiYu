@@ -74,6 +74,7 @@ class WorkServiceTest {
     void testPublish_MinimalFields() {
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("测试作品");
+        req.setMediaType("text");
 
         WorkVO vo = workService.publish(USER_ID, req);
 
@@ -91,6 +92,7 @@ class WorkServiceTest {
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("从会话创建");
         req.setSessionId(SESSION_ID);
+        req.setMediaType("text");
 
         WorkVO vo = workService.publish(USER_ID, req);
 
@@ -103,6 +105,7 @@ class WorkServiceTest {
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("匿名作品");
         req.setAnonymous(true);
+        req.setMediaType("text");
 
         WorkVO vo = workService.publish(USER_ID, req);
 
@@ -114,6 +117,7 @@ class WorkServiceTest {
     void testPublish_MessageGenerated() {
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("无寄语作品");
+        req.setMediaType("text");
 
         WorkVO vo = workService.publish(USER_ID, req);
 
@@ -127,6 +131,7 @@ class WorkServiceTest {
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("自定义寄语作品");
         req.setMessage("自定义寄语");
+        req.setMediaType("text");
 
         WorkVO vo = workService.publish(USER_ID, req);
 
@@ -139,6 +144,7 @@ class WorkServiceTest {
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("实名作品");
         req.setAnonymous(false);
+        req.setMediaType("text");
 
         WorkVO vo = workService.publish(USER_ID, req);
 
@@ -174,7 +180,10 @@ class WorkServiceTest {
     @Test
     @DisplayName("commentCount：作品有 2 条评论 → commentCount=2")
     void testListWorks_CommentCount() {
-        WorkVO work = workService.publish(USER_ID, new WorkPublishReq());
+        WorkPublishReq req = new WorkPublishReq();
+        req.setTitle("评论测试");
+        req.setMediaType("text");
+        WorkVO work = workService.publish(USER_ID, req);
         insertComment(work.getId(), USER_ID, "评论1");
         insertComment(work.getId(), USER_ID, "评论2");
 
@@ -304,6 +313,7 @@ class WorkServiceTest {
         w.setAnonymous(1);
         w.setLikeCount(likeCount);
         w.setStatus(status);
+        w.setMediaType("image");
         w.setCreateTime(LocalDateTime.now());
         w.setUpdateTime(LocalDateTime.now());
         w.setDeleted(0);

@@ -77,6 +77,7 @@ class WorkServiceMessageRewriteTest {
         // 不传 message → 走 AI 生成
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("重写测试作品");
+        req.setMediaType("text");
 
         WorkVO vo = workService.publish(USER_ID, req);
 

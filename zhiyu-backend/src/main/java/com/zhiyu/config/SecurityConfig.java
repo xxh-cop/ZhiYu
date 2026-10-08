@@ -81,6 +81,8 @@ public class SecurityConfig {
                         // CORS 预检请求不带 Authorization，必须放行，否则浏览器直接拿到 401
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        // 静态资源（上传的图片/视频）：公开访问，不需要鉴权
+                        .requestMatchers("/uploads/**").permitAll()
                         // 心理援助热线：公开接口，未登录也能访问（登录页/危机干预页展示）
                         .requestMatchers(HttpMethod.GET, "/api/crisis/hotlines").permitAll()
                         // 审核手作项目：仅管理员（role=3）可操作

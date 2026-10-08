@@ -134,3 +134,8 @@ replay_pid*
 .sts4-cache/
 .springBeans
 lefthook.yml
+
+
+# 用户上传文件
+uploads/
+zhiyu-backend/uploads/

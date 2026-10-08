@@ -25,23 +25,100 @@
 			</view>
 		</view>
 
-		<!-- 步骤 1：选择作品图 -->
+		<!-- 步骤 1：选择作品媒体 -->
 		<view v-if="currentStep === 1" class="step-content zy-slide-up">
 			<view class="step-card">
-				<text class="step-card-title">选择作品图</text>
-				<text class="step-card-sub">为你的作品选一张好看的封面</text>
+				<text class="step-card-title">选择作品</text>
+				<text class="step-card-sub">为你的作品选一种表达方式</text>
 
-				<view class="image-upload-area" @click="chooseImage">
-					<image v-if="form.coverUrl" class="image-preview" :src="form.coverUrl" mode="aspectFill" />
-					<view v-else class="image-placeholder">
-						<wd-icon name="add" size="48rpx" color="#9CA3AF" />
-						<text class="image-placeholder-text">点击上传作品图</text>
+				<!-- 媒体类型 Tab -->
+				<view class="media-tabs">
+					<view
+						class="media-tab"
+						:class="{ 'media-tab--active': form.mediaType === 'image' }"
+						@click="switchMediaTab('image')"
+					>
+						<wd-icon name="image" size="36rpx" :color="form.mediaType === 'image' ? '#2D9B8F' : '#9CA3AF'" />
+						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'image' }">图片</text>
+					</view>
+					<view
+						class="media-tab"
+						:class="{ 'media-tab--active': form.mediaType === 'video' }"
+						@click="switchMediaTab('video')"
+					>
+						<wd-icon name="video" size="36rpx" :color="form.mediaType === 'video' ? '#2D9B8F' : '#9CA3AF'" />
+						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'video' }">视频</text>
+					</view>
+					<view
+						class="media-tab"
+						:class="{ 'media-tab--active': form.mediaType === 'text' }"
+						@click="switchMediaTab('text')"
+					>
+						<wd-icon name="edit" size="36rpx" :color="form.mediaType === 'text' ? '#2D9B8F' : '#9CA3AF'" />
+						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'text' }">纯文字</text>
+					</view>
+				</view>
+
+				<!-- Tab 1：图片上传 -->
+				<view v-if="form.mediaType === 'image'" class="media-content">
+					<view class="image-upload-area" @click="chooseImage">
+						<image v-if="form.coverUrl && !uploading" class="image-preview" :src="fullUrl(form.coverUrl)" mode="aspectFill" />
+						<view v-else-if="uploading" class="upload-loading">
+							<view class="loading-spinner"></view>
+							<text class="upload-loading-text">上传中…</text>
+						</view>
+						<view v-else class="image-placeholder">
+							<wd-icon name="add" size="48rpx" color="#9CA3AF" />
+							<text class="image-placeholder-text">点击上传作品图</text>
+							<text class="image-placeholder-hint">支持 jpg / jpeg / png / webp，≤5MB</text>
+						</view>
+					</view>
+					<view v-if="form.coverUrl && !uploading" class="re-upload-btn" @click="chooseImage">
+						<text class="re-upload-text">重新上传</text>
+					</view>
+				</view>
+
+				<!-- Tab 2：视频上传 -->
+				<view v-if="form.mediaType === 'video'" class="media-content">
+					<view class="image-upload-area" @click="chooseVideo">
+						<video
+							v-if="form.videoUrl && !uploading"
+							class="image-preview"
+							:src="fullUrl(form.videoUrl)"
+							controls
+							object-fit="cover"
+						/>
+						<view v-else-if="uploading" class="upload-loading">
+							<view class="upload-progress-bar">
+								<view class="upload-progress-fill" :style="{ width: uploadProgress + '%' }"></view>
+							</view>
+							<text class="upload-loading-text">上传中 {{ uploadProgress }}%</text>
+						</view>
+						<view v-else class="image-placeholder">
+							<wd-icon name="video" size="48rpx" color="#9CA3AF" />
+							<text class="image-placeholder-text">点击上传作品视频</text>
+							<text class="image-placeholder-hint">支持 mp4 / mov，≤50MB</text>
+						</view>
+					</view>
+					<view v-if="form.videoUrl && !uploading" class="re-upload-btn" @click="chooseVideo">
+						<text class="re-upload-text">重新上传</text>
+					</view>
+				</view>
+
+				<!-- Tab 3：纯文字 -->
+				<view v-if="form.mediaType === 'text'" class="media-content">
+					<view class="text-only-hint">
+						<view class="text-only-icon-wrap">
+							<wd-icon name="edit" size="40rpx" color="#2D9B8F" />
+						</view>
+						<text class="text-only-title">只写文字，不配图</text>
+						<text class="text-only-sub">用文字记录你的创作故事</text>
 					</view>
 				</view>
 			</view>
 
 			<view class="btn-row">
-				<view class="btn-primary" @click="nextStep">
+				<view class="btn-primary" :class="{ 'btn-primary--disabled': !canStep1 }" @click="nextStep">
 					<text class="btn-primary-text">下一步</text>
 				</view>
 			</view>
@@ -150,19 +227,25 @@
 
 				<!-- 预览卡片 -->
 				<view class="preview-card">
-					<view v-if="form.coverUrl" class="preview-cover" :style="{ backgroundImage: 'url(' + form.coverUrl + ')' }">
-						<view v-if="!form.coverUrl" class="preview-cover-placeholder">
-							<wd-icon name="image" size="40rpx" color="#FFFFFF" />
-						</view>
+					<!-- 图片预览 -->
+					<view v-if="form.mediaType === 'image' && form.coverUrl" class="preview-cover" :style="{ backgroundImage: 'url(' + fullUrl(form.coverUrl) + ')' }">
 					</view>
+					<!-- 视频预览 -->
+					<view v-else-if="form.mediaType === 'video' && form.videoUrl" class="preview-cover preview-cover--video">
+						<video class="preview-video" :src="fullUrl(form.videoUrl)" controls object-fit="cover" />
+					</view>
+					<!-- 纯文字/无封面 -->
 					<view v-else class="preview-cover preview-cover--placeholder">
-						<wd-icon name="image" size="40rpx" color="#9CA3AF" />
-						<text class="preview-cover-text">未上传图片</text>
+						<wd-icon name="edit" size="40rpx" color="#FFFFFF" />
+						<text class="preview-cover-text">纯文字作品</text>
 					</view>
 					<view class="preview-body">
 						<text class="preview-title">{{ form.title || '未填写标题' }}</text>
 						<text v-if="form.message" class="preview-message">{{ form.message }}</text>
 						<view class="preview-tags">
+							<view class="preview-tag">
+								<text class="preview-tag-text">{{ mediaTypeLabel }}</text>
+							</view>
 							<view class="preview-tag">
 								<text class="preview-tag-text">{{ visibleLabel }}</text>
 							</view>
@@ -205,19 +288,30 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
 
 const currentStep = ref(1)
 const published = ref(false)
 const submitting = ref(false)
+const uploading = ref(false)
+const uploadProgress = ref(0)
 
 const form = ref({
 	coverUrl: '',
+	videoUrl: '',
+	mediaType: 'image',
 	title: '',
 	message: '',
 	visible: 1,
 	anonymous: true,
 	sessionId: null,
 	projectId: null,
+})
+
+const canStep1 = computed(() => {
+	if (form.value.mediaType === 'image') return !!form.value.coverUrl
+	if (form.value.mediaType === 'video') return !!form.value.videoUrl
+	return true // text 类型不需要文件
 })
 
 const canSubmit = computed(() => form.value.title.trim().length > 0)
@@ -228,6 +322,12 @@ const visibleLabel = computed(() => {
 	return '私密'
 })
 
+const mediaTypeLabel = computed(() => {
+	if (form.value.mediaType === 'image') return '图片'
+	if (form.value.mediaType === 'video') return '视频'
+	return '纯文字'
+})
+
 onLoad((query) => {
 	form.value.sessionId = query.sessionId || null
 	form.value.projectId = query.projectId || null
@@ -236,21 +336,152 @@ onLoad((query) => {
 	}
 })
 
+function switchMediaTab(type) {
+	if (form.value.mediaType === type) return
+	form.value.mediaType = type
+	// 切换 tab 时清空之前选的媒体
+	form.value.coverUrl = ''
+	form.value.videoUrl = ''
+}
+
+function fullUrl(url) {
+	if (!url) return ''
+	if (url.startsWith('http')) return url
+	return API_BASE_URL + url
+}
+
+function readToken() {
+	try {
+		return uni.getStorageSync(TOKEN_KEY) || ''
+	} catch (e) {
+		return ''
+	}
+}
+
 function chooseImage() {
+	if (uploading.value) return
 	uni.chooseImage({
 		count: 1,
 		sizeType: ['compressed'],
 		sourceType: ['album', 'camera'],
 		success: (res) => {
-			// fake 上传，显示本地预览
-			form.value.coverUrl = res.tempFilePaths[0]
+			const tempPath = res.tempFilePaths[0]
+			// 前端检查文件大小（5MB）
+			// #ifdef H5
+			const file = res.tempFiles && res.tempFiles[0]
+			if (file && file.size > 5 * 1024 * 1024) {
+				uni.showToast({ title: '图片不能超过 5MB', icon: 'none' })
+				return
+			}
+			uploadImage(tempPath)
+			// #endif
+			// #ifndef H5
+			uploadImage(tempPath)
+			// #endif
 		},
 		fail: () => {},
 	})
 }
 
+function uploadImage(filePath) {
+	uploading.value = true
+	uploadProgress.value = 0
+
+	const token = readToken()
+	const uploadTask = uni.uploadFile({
+		url: `${API_BASE_URL}/api/files/upload/image`,
+		filePath: filePath,
+		name: 'file',
+		header: {
+			Authorization: `Bearer ${token}`,
+		},
+		success: (res) => {
+			try {
+				const data = JSON.parse(res.data)
+				if (data.code === 0 && data.data && data.data.url) {
+					form.value.coverUrl = data.data.url
+				} else {
+					uni.showToast({ title: data.message || '上传失败', icon: 'none' })
+				}
+			} catch (e) {
+				uni.showToast({ title: '上传失败', icon: 'none' })
+			}
+		},
+		fail: () => {
+			uni.showToast({ title: '上传失败', icon: 'none' })
+		},
+		complete: () => {
+			uploading.value = false
+		},
+	})
+
+	uploadTask.onProgressUpdate((res) => {
+		uploadProgress.value = res.progress
+	})
+}
+
+function chooseVideo() {
+	if (uploading.value) return
+	uni.chooseVideo({
+		sourceType: ['album', 'camera'],
+		maxDuration: 60,
+		success: (res) => {
+			const tempPath = res.tempFilePath
+			// 前端检查文件大小（50MB）
+			if (res.size && res.size > 50 * 1024 * 1024) {
+				uni.showToast({ title: '视频不能超过 50MB', icon: 'none' })
+				return
+			}
+			uploadVideo(tempPath)
+		},
+		fail: () => {},
+	})
+}
+
+function uploadVideo(filePath) {
+	uploading.value = true
+	uploadProgress.value = 0
+
+	const token = readToken()
+	const uploadTask = uni.uploadFile({
+		url: `${API_BASE_URL}/api/files/upload/video`,
+		filePath: filePath,
+		name: 'file',
+		header: {
+			Authorization: `Bearer ${token}`,
+		},
+		success: (res) => {
+			try {
+				const data = JSON.parse(res.data)
+				if (data.code === 0 && data.data && data.data.url) {
+					form.value.videoUrl = data.data.url
+				} else {
+					uni.showToast({ title: data.message || '上传失败', icon: 'none' })
+				}
+			} catch (e) {
+				uni.showToast({ title: '上传失败', icon: 'none' })
+			}
+		},
+		fail: () => {
+			uni.showToast({ title: '上传失败', icon: 'none' })
+		},
+		complete: () => {
+			uploading.value = false
+		},
+	})
+
+	uploadTask.onProgressUpdate((res) => {
+		uploadProgress.value = res.progress
+	})
+}
+
 function nextStep() {
 	if (currentStep.value === 1) {
+		if (!canStep1.value) {
+			const hint = form.value.mediaType === 'image' ? '请上传图片' : form.value.mediaType === 'video' ? '请上传视频' : ''
+			if (hint) uni.showToast({ title: hint, icon: 'none' })
+			return
+		}
 		currentStep.value = 2
 	} else if (currentStep.value === 2) {
 		if (!canSubmit.value) {
@@ -281,12 +512,19 @@ async function handleSubmit() {
 			title: form.value.title.trim(),
 			visible: form.value.visible,
 			anonymous: form.value.anonymous,
+			mediaType: form.value.mediaType,
 		}
 		if (form.value.message.trim()) {
 			body.message = form.value.message.trim()
 		}
 		if (form.value.projectId) {
 			body.projectId = form.value.projectId
+		}
+		// 根据媒体类型设置 URL
+		if (form.value.mediaType === 'image') {
+			body.coverUrl = form.value.coverUrl
+		} else if (form.value.mediaType === 'video') {
+			body.videoUrl = form.value.videoUrl
 		}
 
 		await http.post('/api/works', body)
@@ -420,7 +658,42 @@ function goWorkList() {
 	margin-bottom: 32rpx;
 }
 
-/* ── 图片上传 ── */
+/* ── 媒体类型 Tab ── */
+.media-tabs {
+	display: flex;
+	gap: 12rpx;
+	margin-bottom: 32rpx;
+}
+
+.media-tab {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8rpx;
+	padding: 20rpx 0;
+	border-radius: var(--zy-radius-md, 24rpx);
+	border: 2rpx solid var(--zy-border, #E5E7EB);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	transition: all var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+}
+
+.media-tab--active {
+	border-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+}
+
+.media-tab-text {
+	font-size: 24rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.media-tab-text--active {
+	color: var(--zy-primary, #2D9B8F);
+	font-weight: 500;
+}
+
+/* ── 上传区域 ── */
 .image-upload-area {
 	width: 100%;
 	height: 360rpx;
@@ -451,6 +724,96 @@ function goWorkList() {
 }
 
 .image-placeholder-text {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.image-placeholder-hint {
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
+	opacity: 0.7;
+}
+
+/* ── 上传中状态 ── */
+.upload-loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16rpx;
+}
+
+.loading-spinner {
+	width: 48rpx;
+	height: 48rpx;
+	border-radius: 50%;
+	border: 4rpx solid var(--zy-border, #E5E7EB);
+	border-top-color: var(--zy-primary, #2D9B8F);
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+.upload-loading-text {
+	font-size: 24rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.upload-progress-bar {
+	width: 300rpx;
+	height: 8rpx;
+	border-radius: 4rpx;
+	background-color: var(--zy-border, #E5E7EB);
+	overflow: hidden;
+}
+
+.upload-progress-fill {
+	height: 100%;
+	border-radius: 4rpx;
+	background: linear-gradient(90deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	transition: width 0.2s ease;
+}
+
+/* ── 重新上传按钮 ── */
+.re-upload-btn {
+	display: flex;
+	justify-content: center;
+	margin-top: 16rpx;
+}
+
+.re-upload-text {
+	font-size: 26rpx;
+	color: var(--zy-primary, #2D9B8F);
+}
+
+/* ── 纯文字提示 ── */
+.text-only-hint {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12rpx;
+	padding: 60rpx 0;
+}
+
+.text-only-icon-wrap {
+	width: 96rpx;
+	height: 96rpx;
+	border-radius: 50%;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 8rpx;
+}
+
+.text-only-title {
+	font-size: 30rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+}
+
+.text-only-sub {
 	font-size: 26rpx;
 	color: var(--zy-aid, #9CA3AF);
 }
@@ -629,6 +992,16 @@ function goWorkList() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.preview-cover--video {
+	padding: 0;
+	overflow: hidden;
+}
+
+.preview-video {
+	width: 100%;
+	height: 100%;
 }
 
 .preview-cover--placeholder {

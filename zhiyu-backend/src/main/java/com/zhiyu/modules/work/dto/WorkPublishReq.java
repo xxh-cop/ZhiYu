@@ -19,6 +19,15 @@ public class WorkPublishReq {
     @Size(max = 100, message = "标题不能超过 100 字")
     private String title;
 
+    /** 封面图 URL（可选，media_type=image 时必填） */
+    private String coverUrl;
+
+    /** 媒体类型：image/video/text（可选，默认 image） */
+    private String mediaType;
+
+    /** 视频 URL（可选，media_type=video 时必填） */
+    private String videoUrl;
+
     /** AI 寄语（可选） */
     private String message;
 

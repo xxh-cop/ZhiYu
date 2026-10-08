@@ -20,10 +20,14 @@
 			<!-- 作品信息区 -->
 			<scroll-view class="content-area" scroll-y>
 				<view class="work-info" v-if="work">
-					<!-- 封面图 -->
-					<view class="work-cover-wrap zy-slide-up">
+				<!-- 封面/媒体区域：根据 mediaType 渲染 -->
+					<view v-if="!work.mediaType || work.mediaType === 'image'" class="work-cover-wrap zy-slide-up">
 						<view class="work-cover" :style="coverStyle(work.coverUrl)"></view>
 					</view>
+					<view v-else-if="work.mediaType === 'video'" class="work-cover-wrap zy-slide-up">
+						<video v-if="work.videoUrl" class="work-cover-video" :src="fullUrl(work.videoUrl)" controls object-fit="cover" />
+					</view>
+					<!-- text 类型无媒体区 -->
 
 					<!-- 作品标题 -->
 					<text class="work-title zy-slide-up zy-stagger" style="--stagger-i: 1">{{ work.title }}</text>
@@ -145,6 +149,7 @@
 import { ref, computed } from 'vue'
 import { onLoad, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import { API_BASE_URL } from '../../utils/config.js'
 
 const work = ref(null)
 const notFound = ref(false)
@@ -277,12 +282,17 @@ async function handleSendComment() {
 }
 
 function coverStyle(coverUrl) {
-	// #ifdef H5
 	if (coverUrl) {
-		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
+		const url = fullUrl(coverUrl)
+		return `background-image: url(${url}); background-size: cover; background-position: center;`
 	}
-	// #endif
 	return 'background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);'
+}
+
+function fullUrl(url) {
+	if (!url) return ''
+	if (url.startsWith('http')) return url
+	return API_BASE_URL + url
 }
 
 function formatTime(time) {
@@ -376,6 +386,12 @@ function goBack() {
 }
 
 .work-cover {
+	height: 400rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+}
+
+.work-cover-video {
+	width: 100%;
 	height: 400rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 }

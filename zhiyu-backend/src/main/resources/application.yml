@@ -87,6 +87,15 @@ zhiyu:
     focus-idle-seconds: 300
     stuck-repeat-times: 3
 
+  # ── 文件上传配置（批次 2） ──
+  file:
+    upload-dir: ${ZHIYU_UPLOAD_DIR:./uploads}
+    access-prefix: /uploads
+    image-extensions: jpg,jpeg,png,webp
+    video-extensions: mp4,mov
+    image-max-size: 5242880       # 5MB
+    video-max-size: 52428800      # 50MB
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

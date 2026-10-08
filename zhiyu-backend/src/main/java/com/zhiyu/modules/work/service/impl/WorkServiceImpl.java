@@ -49,6 +49,32 @@ public class WorkServiceImpl implements WorkService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WorkVO publish(Long userId, WorkPublishReq req) {
+        // ── 媒体类型校验（批次 2） ──
+        String mediaType = (req.getMediaType() == null || req.getMediaType().isBlank())
+                ? "image" : req.getMediaType().toLowerCase().trim();
+
+        switch (mediaType) {
+            case "image" -> {
+                // image 类型：coverUrl 必填，videoUrl 禁用
+                if (req.getCoverUrl() == null || req.getCoverUrl().isBlank()) {
+                    throw new BusinessException(ResultCode.PARAM_ERROR.getCode(),
+                            "图片类型作品必须上传封面图");
+                }
+            }
+            case "video" -> {
+                // video 类型：videoUrl 必填
+                if (req.getVideoUrl() == null || req.getVideoUrl().isBlank()) {
+                    throw new BusinessException(ResultCode.PARAM_ERROR.getCode(),
+                            "视频类型作品必须上传视频");
+                }
+            }
+            case "text" -> {
+                // text 类型：coverUrl 和 videoUrl 都允许空
+            }
+            default -> throw new BusinessException(ResultCode.PARAM_ERROR.getCode(),
+                    "不支持的媒体类型：" + mediaType + "，允许：image/video/text");
+        }
+
         Work work = new Work();
         work.setUserId(userId);
         work.setTitle(req.getTitle());
@@ -56,8 +82,21 @@ public class WorkServiceImpl implements WorkService {
         work.setAnonymous(Boolean.FALSE.equals(req.getAnonymous()) ? 0 : 1);
         work.setLikeCount(0);
         work.setStatus(1);
+        work.setMediaType(mediaType);
 
-        // 如果 sessionId 非空，继承 coverUrl
+        // 设置封面图和视频 URL
+        if ("image".equals(mediaType)) {
+            work.setCoverUrl(req.getCoverUrl());
+        } else if ("video".equals(mediaType)) {
+            work.setVideoUrl(req.getVideoUrl());
+            // video 类型也可以有封面图（可选）
+            if (req.getCoverUrl() != null && !req.getCoverUrl().isBlank()) {
+                work.setCoverUrl(req.getCoverUrl());
+            }
+        }
+        // text 类型：coverUrl 和 videoUrl 都为 null
+
+        // 如果 sessionId 非空，继承 coverUrl（仅当 coverUrl 还未设置时）
         if (req.getSessionId() != null) {
             CraftSession session = craftSessionMapper.selectById(req.getSessionId());
             if (session == null) {
@@ -69,10 +108,12 @@ public class WorkServiceImpl implements WorkService {
             work.setSessionId(req.getSessionId());
             work.setProjectId(session.getProjectId());
 
-            // 从 craft_project 继承 coverUrl
-            CraftProject project = craftProjectMapper.selectById(session.getProjectId());
-            if (project != null) {
-                work.setCoverUrl(project.getCoverUrl());
+            // 从 craft_project 继承 coverUrl（仅当未手动设置时）
+            if (work.getCoverUrl() == null) {
+                CraftProject project = craftProjectMapper.selectById(session.getProjectId());
+                if (project != null) {
+                    work.setCoverUrl(project.getCoverUrl());
+                }
             }
         }
 
@@ -90,7 +131,7 @@ public class WorkServiceImpl implements WorkService {
         }
 
         workMapper.insert(work);
-        log.info("发布作品: workId={}, userId={}, title={}", work.getId(), userId, req.getTitle());
+        log.info("发布作品: workId={}, userId={}, title={}, mediaType={}", work.getId(), userId, req.getTitle(), mediaType);
 
         return buildVO(work, getNickname(userId));
     }
@@ -203,6 +244,8 @@ public class WorkServiceImpl implements WorkService {
         vo.setId(work.getId());
         vo.setTitle(work.getTitle());
         vo.setCoverUrl(work.getCoverUrl());
+        vo.setMediaType(work.getMediaType());
+        vo.setVideoUrl(work.getVideoUrl());
         vo.setMessage(work.getMessage());
         vo.setAnonymous(work.getAnonymous() != null && work.getAnonymous() == 1);
         vo.setAuthorName(vo.getAnonymous() ? ANONYMOUS_NAME : (nickname != null ? nickname : ANONYMOUS_NAME));

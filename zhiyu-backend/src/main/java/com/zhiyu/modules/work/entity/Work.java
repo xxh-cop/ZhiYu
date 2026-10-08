@@ -32,6 +32,12 @@ public class Work extends BaseEntity {
     /** 封面图 URL（从 craft_project 继承） */
     private String coverUrl;
 
+    /** 媒体类型：image/video/text */
+    private String mediaType;
+
+    /** 视频 URL（media_type=video 时有值） */
+    private String videoUrl;
+
     /** AI 寄语（明文，不加密） */
     private String message;
 
