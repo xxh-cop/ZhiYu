@@ -1,5 +1,4 @@
 import {
-  appCopyrightPreferences,
   defineOverridesPreferences,
 } from '@vben/preferences';
 
@@ -19,5 +18,17 @@ export const overridesPreferences = defineOverridesPreferences({
     // 默认登录后跳转路径
     defaultHomePath: '/zhiyu/dashboard',
   },
-  copyright: appCopyrightPreferences,
+  copyright: {
+    companyName: '织愈',
+    companySiteLink: '',
+    date: '2026',
+    enable: true,
+    icp: '',
+    icpLink: '',
+    settingShow: true,
+  },
+  logo: {
+    source: '/logo.png',
+    sourceDark: '/logo.png',
+  },
 });
