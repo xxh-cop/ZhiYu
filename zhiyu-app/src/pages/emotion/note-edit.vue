@@ -1,7 +1,13 @@
 <template>
 	<view class="page zy-page-enter">
+		<!-- 日期区 -->
+		<view class="date-section zy-slide-up zy-stagger" style="--stagger-i: 0">
+			<text class="date-big">{{ todayStr }}</text>
+			<text class="date-week">{{ weekDay }}</text>
+		</view>
+
 		<!-- 心情选择 -->
-		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 0">
+		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<text class="section-title">此刻心情</text>
 			<scroll-view scroll-x class="mood-scroll" :show-scrollbar="false">
 				<view class="mood-track">
@@ -12,6 +18,7 @@
 						:class="{ 'mood-item--active': selectedMood === m.label }"
 						@click="selectMood(m)"
 					>
+						<view v-if="selectedMood === m.label" class="mood-ring"></view>
 						<text class="mood-emoji">{{ m.emoji }}</text>
 						<text class="mood-label">{{ m.label }}</text>
 					</view>
@@ -19,14 +26,15 @@
 			</scroll-view>
 		</view>
 
-		<!-- 内容输入 -->
-		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 1">
+		<!-- 内容输入卡片 -->
+		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<text class="section-title">写下此刻的心情</text>
-			<view class="textarea-wrap">
+			<view class="textarea-card">
 				<textarea
 					class="note-textarea"
 					v-model="content"
 					placeholder="写下此刻的心情..."
+					placeholder-style="color: #9CA3AF;"
 					:maxlength="500"
 					:auto-height="true"
 					:show-confirm-bar="false"
@@ -36,31 +44,14 @@
 			</view>
 		</view>
 
-		<!-- 日期（只读） -->
-		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 2">
-			<view class="date-row">
-				<wd-icon name="calendar" size="32rpx" color="#9CA3AF" />
-				<text class="date-text">{{ todayStr }}</text>
-			</view>
-		</view>
-
-		<!-- 底部按钮 -->
+		<!-- 保存按钮 -->
 		<view class="action-area zy-slide-up zy-stagger" style="--stagger-i: 3">
-			<wd-button
-				class="save-btn"
-				type="primary"
-				block
-				:loading="saving"
-				@click="handleSave"
-			>保存</wd-button>
-			<wd-button
-				v-if="isEdit"
-				class="delete-btn"
-				type="error"
-				plain
-				block
-				@click="handleDelete"
-			>移除便签</wd-button>
+			<view class="save-btn" :class="{ 'save-btn--loading': saving }" @click="handleSave">
+				<text class="save-btn-text">{{ saving ? '保存中...' : '保存' }}</text>
+			</view>
+			<view v-if="isEdit" class="delete-btn" @click="handleDelete">
+				<text class="delete-btn-text">移除便签</text>
+			</view>
 		</view>
 
 		<!-- 底部免责声明 -->
@@ -81,6 +72,8 @@ const moods = [
 	{ emoji: '😕', label: '不太好' },
 ]
 
+const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+
 const noteId = ref(null)
 const selectedMood = ref('')
 const content = ref('')
@@ -95,6 +88,11 @@ const todayStr = computed(() => {
 	const m = String(d.getMonth() + 1).padStart(2, '0')
 	const day = String(d.getDate()).padStart(2, '0')
 	return y + '-' + m + '-' + day
+})
+
+const weekDay = computed(() => {
+	const d = new Date()
+	return WEEK_DAYS[d.getDay()] || ''
 })
 
 onLoad((query) => {
@@ -190,8 +188,30 @@ async function doDelete() {
 	background-color: var(--zy-bg, #F8F9FB);
 }
 
+/* ── 日期区 ── */
+.date-section {
+	margin-bottom: 32rpx;
+}
+
+.date-big {
+	font-size: 48rpx;
+	font-weight: 700;
+	color: var(--zy-title, #1F2937);
+	font-family: var(--zy-serif);
+	display: block;
+	line-height: 1.2;
+}
+
+.date-week {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+	display: block;
+	margin-top: 4rpx;
+}
+
+/* ── 通用 section ── */
 .section {
-	margin-bottom: 36rpx;
+	margin-bottom: 32rpx;
 }
 
 .section-title {
@@ -216,26 +236,36 @@ async function doDelete() {
 }
 
 .mood-item {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 8rpx;
-	padding: 20rpx 28rpx;
-	border-radius: 20rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	padding: 24rpx 28rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 2rpx solid var(--zy-border, #E5E7EB);
 	flex-shrink: 0;
-	transition: all 0.25s ease;
+	transition: all var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
+}
+
+.mood-ring {
+	position: absolute;
+	inset: -2rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	border: 3rpx solid var(--zy-primary, #2D9B8F);
+	pointer-events: none;
 }
 
 .mood-item--active {
-	border-color: #2D9B8F;
+	border-color: transparent;
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 	transform: scale(1.05);
+	box-shadow: var(--zy-shadow-sm);
 }
 
 .mood-emoji {
-	font-size: 44rpx;
+	font-size: 48rpx;
 	line-height: 1;
 }
 
@@ -245,17 +275,17 @@ async function doDelete() {
 }
 
 .mood-item--active .mood-label {
-	color: #2D9B8F;
+	color: var(--zy-primary, #2D9B8F);
 	font-weight: 500;
 }
 
-/* ── 内容输入 ── */
-.textarea-wrap {
-	background-color: var(--zy-bg-warm, #FFFFFF);
-	border-radius: 24rpx;
+/* ── 内容输入卡片 ── */
+.textarea-card {
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 	padding: 28rpx;
-	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
+	box-shadow: var(--zy-shadow-sm);
 }
 
 .note-textarea {
@@ -265,6 +295,7 @@ async function doDelete() {
 	line-height: 1.7;
 	color: var(--zy-title, #1F2937);
 	background-color: transparent;
+	border: none;
 }
 
 .char-count {
@@ -275,28 +306,56 @@ async function doDelete() {
 	color: var(--zy-aid, #9CA3AF);
 }
 
-/* ── 日期 ── */
-.date-row {
-	display: flex;
-	align-items: center;
-	gap: 12rpx;
-	padding: 20rpx 28rpx;
-	border-radius: 20rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
-}
-
-.date-text {
-	font-size: 28rpx;
-	color: var(--zy-content, #4B5563);
-}
-
-/* ── 底部按钮 ── */
+/* ── 保存按钮 ── */
 .action-area {
 	margin-top: 16rpx;
 	display: flex;
 	flex-direction: column;
 	gap: 20rpx;
+}
+
+.save-btn {
+	height: 88rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+	box-shadow: var(--zy-shadow-md);
+}
+
+.save-btn:active {
+	transform: scale(0.97);
+}
+
+.save-btn--loading {
+	opacity: 0.6;
+}
+
+.save-btn-text {
+	font-size: 32rpx;
+	font-weight: 500;
+	color: #FFFFFF;
+}
+
+.delete-btn {
+	height: 80rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	border: 1rpx solid var(--zy-danger, #FF6B6B);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+}
+
+.delete-btn:active {
+	background-color: rgba(255, 107, 107, 0.05);
+}
+
+.delete-btn-text {
+	font-size: 30rpx;
+	color: var(--zy-danger, #FF6B6B);
 }
 
 /* ── 底部免责 ── */

@@ -312,7 +312,7 @@ function goInheritors() {
 	width: 80rpx;
 	height: 80rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #2D9B8F, #5BCFBF);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -332,7 +332,7 @@ function goInheritors() {
 	width: 18rpx;
 	height: 18rpx;
 	border-radius: 50%;
-	background-color: #FFB547;
+	background-color: var(--zy-warning, #FFB547);
 	border: 3rpx solid #FFFFFF;
 	box-sizing: border-box;
 }
@@ -363,12 +363,13 @@ function goInheritors() {
 }
 
 .mood-item {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 8rpx;
 	padding: 16rpx 8rpx;
-	border-radius: 16rpx;
+	border-radius: var(--zy-radius-md, 16rpx);
 	transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -386,6 +387,8 @@ function goInheritors() {
 .mood-item--active {
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 	transform: scale(1.08);
+	box-shadow: 0 0 0 3rpx var(--zy-primary, #2D9B8F), 0 0 0 6rpx var(--zy-bg-tint-mint, #F0F9F7);
+	border-radius: var(--zy-radius-md, 16rpx);
 }
 
 .mood-item--active .mood-emoji {
@@ -393,7 +396,7 @@ function goInheritors() {
 }
 
 .mood-item--active .mood-label {
-	color: #2D9B8F;
+	color: var(--zy-primary, #2D9B8F);
 	font-weight: 500;
 }
 
@@ -406,7 +409,7 @@ function goInheritors() {
 
 .mood-recorded-text {
 	font-size: 24rpx;
-	color: #2D9B8F;
+	color: var(--zy-primary, #2D9B8F);
 }
 
 /* ═══ 模块 3：寄语卡片 ═══ */
@@ -417,8 +420,8 @@ function goInheritors() {
 .quote-card {
 	position: relative;
 	padding: 32rpx 32rpx 32rpx 36rpx;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
-	border-radius: 16px;
+	background: linear-gradient(135deg, var(--zy-bg-tint-mint, #F0F9F7) 0%, var(--zy-card-bg, #FFFFFF) 100%);
+	border-radius: var(--zy-radius-lg, 32rpx);
 	overflow: hidden;
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -435,7 +438,7 @@ function goInheritors() {
 	transform: translateY(-50%);
 	width: 4rpx;
 	height: 60%;
-	background-color: #2D9B8F;
+	background: linear-gradient(180deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	border-radius: 2rpx;
 }
 
@@ -465,11 +468,11 @@ function goInheritors() {
 
 .entry-card {
 	width: calc(50% - 12rpx);
-	background-color: var(--zy-bg-warm, #FFFFFF);
-	border-radius: 16px;
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
 	padding: 32rpx;
 	box-sizing: border-box;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+	box-shadow: var(--zy-shadow-sm);
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
 	min-height: 200rpx;
 	display: flex;
@@ -478,14 +481,14 @@ function goInheritors() {
 
 .entry-card:active {
 	transform: translateY(-4rpx);
-	box-shadow: 0 8px 24px rgba(45, 155, 143, 0.1);
+	box-shadow: var(--zy-shadow-md);
 }
 
 .entry-icon-wrap {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: 50%;
-	background-color: rgba(45, 155, 143, 0.08);
+	background-color: var(--zy-primary-faint, rgba(45, 155, 143, 0.08));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -527,7 +530,7 @@ function goInheritors() {
 
 .recommend-refresh {
 	font-size: 26rpx;
-	color: #2D9B8F;
+	color: var(--zy-primary, #2D9B8F);
 }
 
 .recommend-scroll {
@@ -544,23 +547,23 @@ function goInheritors() {
 .recommend-card {
 	width: 240rpx;
 	flex-shrink: 0;
-	background-color: var(--zy-bg-warm, #FFFFFF);
-	border-radius: 14px;
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-radius: var(--zy-radius-md, 28rpx);
 	padding: 16rpx;
 	box-sizing: border-box;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+	box-shadow: var(--zy-shadow-sm);
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .recommend-card:active {
 	transform: translateY(-4rpx);
-	box-shadow: 0 8px 24px rgba(45, 155, 143, 0.1);
+	box-shadow: var(--zy-shadow-md);
 }
 
 .recommend-img {
 	width: 100%;
 	height: 160rpx;
-	border-radius: 10px;
+	border-radius: var(--zy-radius-sm, 20rpx);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -580,13 +583,13 @@ function goInheritors() {
 	display: inline-block;
 	margin-top: 8rpx;
 	padding: 4rpx 16rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: rgba(255, 181, 71, 0.12);
 }
 
 .recommend-tag-text {
 	font-size: 22rpx;
-	color: #FFB547;
+	color: var(--zy-warning, #FFB547);
 }
 
 /* ═══ 模块 6：底部免责 ═══ */

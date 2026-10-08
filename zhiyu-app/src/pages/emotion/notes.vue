@@ -17,10 +17,15 @@
 		</view>
 
 		<!-- 空状态 -->
-		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="status-box">
-			<text class="empty-emoji">📝</text>
-			<text class="status-text">还没有心情便签</text>
-			<text class="status-sub">点击右下角 + 记录一条</text>
+		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="empty-box zy-slide-up">
+			<view class="empty-icon-wrap">
+				<text class="empty-emoji">📝</text>
+			</view>
+			<text class="empty-title">还没有心情便签</text>
+			<text class="empty-sub">记录第一条心情</text>
+			<view class="empty-btn" @click="goCreate">
+				<text class="empty-btn-text">记录第一条</text>
+			</view>
 		</view>
 
 		<!-- 错误状态 -->
@@ -34,26 +39,41 @@
 			<view
 				v-for="(item, idx) in records"
 				:key="item.id"
-				class="note-card"
+				class="note-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx }"
 				@click="goEdit(item)"
 				@longpress="onLongPress(item)"
 			>
-				<view class="card-top">
-					<view class="mood-badge">
+				<view class="card-main">
+					<!-- 左侧心情 emoji 圆形底 -->
+					<view class="mood-circle" :style="moodGradient(item.mood)">
 						<text class="mood-emoji">{{ moodEmoji(item.mood) }}</text>
-						<text class="mood-label">{{ item.mood || '记录' }}</text>
 					</view>
-					<text class="note-date">{{ formatDate(item.noteDate) }}</text>
+					<!-- 中间内容 -->
+					<view class="card-center">
+						<text class="note-excerpt">{{ item.excerpt || '（无内容）' }}</text>
+						<text class="note-date">{{ formatDate(item.noteDate) }}</text>
+					</view>
+					<!-- 右侧箭头 -->
+					<wd-icon name="arrow-right" size="28rpx" color="#D1D5DB" />
 				</view>
-				<text class="note-excerpt">{{ item.excerpt || '（无内容）' }}</text>
+				<!-- 底部心情标签 -->
+				<view v-if="item.mood" class="mood-tag-row">
+					<view class="mood-tag">
+						<text class="mood-tag-text">{{ item.mood }}</text>
+					</view>
+				</view>
 			</view>
 
 			<!-- 底部状态 -->
 			<view v-if="records.length > 0" class="bottom-status">
 				<view v-if="loading" class="loading-dot"></view>
 				<text v-if="loading" class="bottom-text">正在加载…</text>
-				<text v-else-if="!hasMore" class="bottom-text">没有更多了</text>
+				<template v-else-if="!hasMore">
+					<view class="bottom-divider"></view>
+					<text class="bottom-text">没有更多了</text>
+					<view class="bottom-divider"></view>
+				</template>
 			</view>
 		</view>
 
@@ -78,6 +98,19 @@ const MOOD_MAP = {
 	'neutral': '😐',
 	'tired': '😮💨',
 	'down': '😕',
+}
+
+const MOOD_GRADIENTS = {
+	'开心': 'linear-gradient(135deg, #FFB547, #FFD08A)',
+	'平静': 'linear-gradient(135deg, #2D9B8F, #5BC4A8)',
+	'一般': 'linear-gradient(135deg, #6B7280, #9CA3AF)',
+	'有点累': 'linear-gradient(135deg, #5BC4A8, #8DD9C4)',
+	'不太好': 'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
+	'happy': 'linear-gradient(135deg, #FFB547, #FFD08A)',
+	'calm': 'linear-gradient(135deg, #2D9B8F, #5BC4A8)',
+	'neutral': 'linear-gradient(135deg, #6B7280, #9CA3AF)',
+	'tired': 'linear-gradient(135deg, #5BC4A8, #8DD9C4)',
+	'down': 'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
 }
 
 const loading = ref(false)
@@ -141,6 +174,10 @@ function moodEmoji(mood) {
 	return MOOD_MAP[mood] || '📝'
 }
 
+function moodGradient(mood) {
+	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, #2D9B8F, #5BC4A8)'
+}
+
 function formatDate(dateStr) {
 	if (!dateStr) return ''
 	const parts = dateStr.split('-')
@@ -187,7 +224,6 @@ async function doDelete(item) {
 	try {
 		await http.del('/api/emotion/notes/' + item.id)
 		uni.showToast({ title: '已移除', icon: 'success' })
-		// 从本地列表中移除
 		records.value = records.value.filter((r) => r.id !== item.id)
 		total.value = Math.max(0, total.value - 1)
 	} catch (e) {
@@ -211,14 +247,14 @@ async function doDelete(item) {
 	bottom: 160rpx;
 	width: 100rpx;
 	height: 100rpx;
-	border-radius: 50%;
-	background: linear-gradient(135deg, #2D9B8F, #5BC4A8);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 8rpx 28rpx rgba(45, 155, 143, 0.3);
+	box-shadow: var(--zy-shadow-lg);
 	z-index: 100;
-	transition: transform 0.2s ease;
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 }
 
 .fab:active {
@@ -228,8 +264,8 @@ async function doDelete(item) {
 /* ── 骨架屏 ── */
 .skeleton-card {
 	overflow: hidden;
-	border-radius: 24rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-md, 24rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 	margin-bottom: 24rpx;
 }
@@ -241,7 +277,57 @@ async function doDelete(item) {
 .skeleton-line {
 	height: 28rpx;
 	margin-bottom: 16rpx;
-	border-radius: 8rpx;
+	border-radius: var(--zy-radius-xs, 6rpx);
+}
+
+/* ── 空状态 ── */
+.empty-box {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 100rpx 0;
+	gap: 16rpx;
+}
+
+.empty-icon-wrap {
+	width: 120rpx;
+	height: 120rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 16rpx;
+}
+
+.empty-emoji {
+	font-size: 60rpx;
+}
+
+.empty-title {
+	font-size: 30rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+}
+
+.empty-sub {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.empty-btn {
+	margin-top: 16rpx;
+	padding: 16rpx 48rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	box-shadow: var(--zy-shadow-md);
+}
+
+.empty-btn-text {
+	font-size: 28rpx;
+	color: #FFFFFF;
+	font-weight: 500;
 }
 
 /* ── 状态 ── */
@@ -254,20 +340,6 @@ async function doDelete(item) {
 	gap: 16rpx;
 }
 
-.empty-emoji {
-	font-size: 80rpx;
-}
-
-.status-text {
-	font-size: 30rpx;
-	color: var(--zy-aid, #9CA3AF);
-}
-
-.status-sub {
-	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
-}
-
 .error-text {
 	font-size: 28rpx;
 	color: var(--zy-danger, #FF6B6B);
@@ -277,60 +349,52 @@ async function doDelete(item) {
 .card-list {
 	display: flex;
 	flex-direction: column;
-	gap: 24rpx;
+	gap: 20rpx;
 }
 
 .note-card {
-	padding: 28rpx 32rpx;
-	border-radius: 24rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	padding: 24rpx 28rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
-	transition: transform 0.15s ease, box-shadow 0.15s ease;
-	animation: cardEnter 0.35s ease both;
-	animation-delay: calc(var(--stagger-i, 0) * 60ms);
+	box-shadow: var(--zy-shadow-sm);
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .note-card:active {
-	transform: scale(0.98);
-	box-shadow: 0 2rpx 8rpx rgba(31, 41, 55, 0.08);
+	transform: translateY(-2rpx);
+	box-shadow: var(--zy-shadow-md);
 }
 
-@keyframes cardEnter {
-	from { opacity: 0; transform: translateY(20rpx); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-.card-top {
+.card-main {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 16rpx;
+	gap: 20rpx;
 }
 
-.mood-badge {
+/* ── 心情圆形底 ── */
+.mood-circle {
+	width: 72rpx;
+	height: 72rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	display: flex;
 	align-items: center;
-	gap: 10rpx;
-	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	justify-content: center;
+	flex-shrink: 0;
 }
 
 .mood-emoji {
-	font-size: 32rpx;
+	font-size: 36rpx;
 	line-height: 1;
 }
 
-.mood-label {
-	font-size: 24rpx;
-	color: #2D9B8F;
-	font-weight: 500;
-}
-
-.note-date {
-	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+/* ── 中间内容 ── */
+.card-center {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6rpx;
 }
 
 .note-excerpt {
@@ -344,13 +408,44 @@ async function doDelete(item) {
 	-webkit-box-orient: vertical;
 }
 
+.note-date {
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+/* ── 底部心情标签 ── */
+.mood-tag-row {
+	margin-top: 16rpx;
+	padding-top: 16rpx;
+	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+}
+
+.mood-tag {
+	display: inline-flex;
+	padding: 4rpx 16rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+}
+
+.mood-tag-text {
+	font-size: 22rpx;
+	color: var(--zy-primary, #2D9B8F);
+	font-weight: 500;
+}
+
 /* ── 底部 ── */
 .bottom-status {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 12rpx;
+	gap: 16rpx;
 	padding: 32rpx 0;
+}
+
+.bottom-divider {
+	width: 64rpx;
+	height: 1rpx;
+	background-color: var(--zy-border, #E5E7EB);
 }
 
 .loading-dot {
@@ -358,7 +453,7 @@ async function doDelete(item) {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--wot-color-theme, #2D9B8F);
+	border-top-color: var(--zy-primary, #2D9B8F);
 	animation: spin 0.8s linear infinite;
 }
 

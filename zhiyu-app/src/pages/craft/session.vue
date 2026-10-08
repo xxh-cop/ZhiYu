@@ -387,7 +387,7 @@ function handleBackHome() {
 .progress-fill {
 	height: 100%;
 	border-radius: 4rpx;
-	background-color: var(--wot-color-theme, #2D9B8F);
+	background: linear-gradient(90deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -405,11 +405,12 @@ function handleBackHome() {
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 	text-align: center;
 	animation: flowFadeIn 0.3s ease;
+	box-shadow: 0 0 24rpx rgba(45, 155, 143, 0.15);
 }
 
 .flow-text {
 	font-size: 26rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 	letter-spacing: 4rpx;
 }
 
@@ -426,13 +427,19 @@ function handleBackHome() {
 
 .step-content {
 	padding: 40rpx 32rpx;
+	animation: stepFadeIn 0.35s ease both;
+}
+
+@keyframes stepFadeIn {
+	from { opacity: 0; transform: translateY(12rpx); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .step-card {
-	background-color: var(--zy-bg-warm, #FFFFFF);
-	border-radius: 32rpx;
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
 	padding: 40rpx 32rpx;
-	box-shadow: 0 2rpx 12rpx rgba(31, 41, 55, 0.04);
+	box-shadow: var(--zy-shadow-sm);
 }
 
 .step-title {
@@ -459,10 +466,10 @@ function handleBackHome() {
 	gap: 12rpx;
 	margin-top: 32rpx;
 	padding: 16rpx 32rpx;
-	border: 2rpx solid var(--wot-color-theme, #2D9B8F);
+	border: 2rpx solid var(--zy-primary, #2D9B8F);
 	border-radius: 40rpx;
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
-	transition: transform 0.15s ease;
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .audio-btn:active {
@@ -475,7 +482,7 @@ function handleBackHome() {
 
 .audio-text {
 	font-size: 28rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
 /* ── 操作按钮区 ── */
@@ -560,7 +567,7 @@ function handleBackHome() {
 	font-family: var(--zy-serif);
 	font-size: 36rpx;
 	font-weight: 500;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
 .success-hint {
@@ -599,7 +606,7 @@ function handleBackHome() {
 	height: 48rpx;
 	border-radius: 50%;
 	border: 4rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--wot-color-theme, #2D9B8F);
+	border-top-color: var(--zy-primary, #2D9B8F);
 	animation: spin 0.8s linear infinite;
 }
 

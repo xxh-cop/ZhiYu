@@ -33,7 +33,7 @@
 						<view class="msg-main">
 							<view class="bubble bubble-ai">
 								<text class="bubble-text text-ai">{{ msg.text }}</text>
-								<text v-if="!msg.done" class="typing">▋</text>
+								<text v-if="!msg.done" class="typing"></text>
 							</view>
 							<text v-if="msg.done" class="msg-time">{{ formatTime(msg) }}</text>
 						</view>
@@ -269,11 +269,12 @@ watch(crisisTriggered, (val) => {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #2D9B8F, #5BCFBF);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	margin-bottom: 32rpx;
+	box-shadow: var(--zy-shadow-sm);
 }
 
 .welcome-avatar-text {
@@ -293,7 +294,7 @@ watch(crisisTriggered, (val) => {
 .welcome-sub {
 	margin-top: 16rpx;
 	font-size: 28rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
 .welcome-hint {
@@ -344,7 +345,7 @@ watch(crisisTriggered, (val) => {
 	width: 64rpx;
 	height: 64rpx;
 	border-radius: 50%;
-	background-color: #F3F4F6;
+	background-color: var(--zy-border, #F3F4F6);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -354,7 +355,7 @@ watch(crisisTriggered, (val) => {
 .user-avatar-text {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: #6B7280;
+	color: var(--zy-sub, #6B7280);
 }
 
 /* ── AI 头像 ── */
@@ -373,7 +374,7 @@ watch(crisisTriggered, (val) => {
 .ai-avatar-text {
 	font-size: 28rpx;
 	font-weight: 600;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 	font-family: var(--zy-serif);
 }
 
@@ -384,7 +385,7 @@ watch(crisisTriggered, (val) => {
 	width: 16rpx;
 	height: 16rpx;
 	border-radius: 50%;
-	background-color: #2D9B8F;
+	background-color: var(--zy-primary, #2D9B8F);
 	border: 3rpx solid #FFFFFF;
 	box-sizing: border-box;
 }
@@ -399,7 +400,7 @@ watch(crisisTriggered, (val) => {
 }
 
 .bubble-user {
-	background-color: var(--wot-color-theme, #2D9B8F);
+	background-color: var(--zy-primary, #2D9B8F);
 }
 
 .bubble-ai {
@@ -423,9 +424,13 @@ watch(crisisTriggered, (val) => {
 
 /* ── 打字机光标 ── */
 .typing {
-	font-size: 15px;
-	color: var(--wot-color-theme, #2D9B8F);
-	margin-left: 2px;
+	display: inline-block;
+	width: 6px;
+	height: 18px;
+	margin-left: 3px;
+	vertical-align: text-bottom;
+	border-radius: 2px;
+	background: linear-gradient(180deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	animation: blink 0.8s steps(2) infinite;
 }
 
@@ -548,7 +553,7 @@ watch(crisisTriggered, (val) => {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #2D9B8F, #5BCFBF);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -565,7 +570,7 @@ watch(crisisTriggered, (val) => {
 .crisis-card-title {
 	font-size: 30rpx;
 	font-weight: 600;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 	font-family: var(--zy-serif);
 }
 
@@ -598,7 +603,7 @@ watch(crisisTriggered, (val) => {
 }
 
 .crisis-btn-primary {
-	background: linear-gradient(135deg, #2D9B8F, #5BC4A8);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 }
 
 .crisis-btn-secondary {

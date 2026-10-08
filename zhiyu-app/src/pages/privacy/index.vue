@@ -2,14 +2,17 @@
 	<view class="page">
 		<scroll-view scroll-y class="scroll-area">
 			<view class="policy-container">
-				<!-- 标题区 -->
-				<view class="policy-header">
-					<text class="policy-title">织愈隐私政策与用户协议</text>
-					<text class="policy-hint">本页面需在首次使用时阅读并同意</text>
+				<!-- 顶部封面 -->
+				<view class="cover zy-slide-up zy-stagger" style="--stagger-i: 0">
+					<view class="cover-icon-wrap">
+						<wd-icon name="setting" size="48rpx" color="#2D9B8F" />
+					</view>
+					<text class="cover-title">隐私政策</text>
+					<text class="cover-sub">我们如何保护你的数据</text>
 				</view>
 
 				<!-- 免责声明 -->
-				<view class="disclaimer-box">
+				<view class="disclaimer-box zy-slide-up zy-stagger" style="--stagger-i: 1">
 					<text class="disclaimer-text">本产品不提供心理疾病诊断、治疗或医疗建议，不能替代专业心理咨询或医疗服务。</text>
 				</view>
 
@@ -17,8 +20,8 @@
 				<view
 					v-for="(section, idx) in sections"
 					:key="idx"
-					class="section-card"
-					:style="{ '--stagger-i': idx }"
+					class="section-card zy-slide-up zy-stagger"
+					:style="{ '--stagger-i': idx + 2 }"
 				>
 					<text class="section-heading">{{ section.title }}</text>
 					<view v-for="(para, pi) in section.paragraphs" :key="pi" class="para-wrap">
@@ -29,6 +32,15 @@
 							</view>
 						</view>
 					</view>
+				</view>
+
+				<!-- 最后更新日期 + 联系方式 -->
+				<view class="contact-card zy-slide-up zy-stagger" style="--stagger-i: 11">
+					<text class="contact-label">最后更新</text>
+					<text class="contact-value">{{ lastUpdated }}</text>
+					<view class="contact-divider"></view>
+					<text class="contact-label">联系方式</text>
+					<text class="contact-value">学校心理中心 / 产品运营邮箱（上线时补充）</text>
 				</view>
 
 				<view class="bottom-spacer"></view>
@@ -45,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
@@ -53,9 +65,9 @@ import { useUserStore } from '../../stores/user'
 const userStore = useUserStore()
 const loading = ref(false)
 const showAgreeButton = ref(false)
+const lastUpdated = ref('2024 年 12 月')
 
 onLoad((options) => {
-	// 从首次同意弹窗跳来时带 from=consent 参数，显示底部按钮
 	if (options && options.from === 'consent') {
 		showAgreeButton.value = true
 	}
@@ -174,7 +186,7 @@ async function handleAgree() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: #F8F9FB;
+	background-color: var(--zy-bg, #F8F9FB);
 }
 
 .scroll-area {
@@ -185,60 +197,67 @@ async function handleAgree() {
 	padding: 32rpx 32rpx 48rpx;
 }
 
-/* ── 标题区 ── */
-.policy-header {
-	text-align: center;
-	margin-bottom: 32rpx;
+/* ── 顶部封面 ── */
+.cover {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 32rpx 0 24rpx;
+	margin-bottom: 24rpx;
 }
 
-.policy-title {
-	font-size: 38rpx;
+.cover-icon-wrap {
+	width: 96rpx;
+	height: 96rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 20rpx;
+}
+
+.cover-title {
+	font-size: 40rpx;
 	font-weight: 600;
-	color: #1F2937;
+	color: var(--zy-title, #1F2937);
+	font-family: var(--zy-serif);
 }
 
-.policy-hint {
-	display: block;
+.cover-sub {
 	margin-top: 8rpx;
-	font-size: 24rpx;
-	color: #9CA3AF;
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 /* ── 免责声明 ── */
 .disclaimer-box {
-	background-color: #FFF8EE;
-	border-radius: 16rpx;
+	background-color: var(--zy-bg-tint-warm, #FFF8EE);
+	border-radius: var(--zy-radius-md, 24rpx);
 	padding: 24rpx 28rpx;
-	margin-bottom: 32rpx;
+	margin-bottom: 24rpx;
 	border: 1rpx solid rgba(255, 181, 71, 0.2);
 }
 
 .disclaimer-text {
 	font-size: 26rpx;
 	line-height: 1.7;
-	color: #92400E;
+	color: var(--zy-warning, #92400E);
 }
 
 /* ── 章节卡片 ── */
 .section-card {
-	background-color: #FFFFFF;
-	border-radius: 16px;
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
 	padding: 32rpx 28rpx;
-	margin-bottom: 24rpx;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
-	animation: staggerIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 60ms);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(16rpx); }
-	to { opacity: 1; transform: translateY(0); }
+	margin-bottom: 20rpx;
+	box-shadow: var(--zy-shadow-sm);
 }
 
 .section-heading {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: #1F2937;
+	color: var(--zy-primary, #2D9B8F);
 	display: block;
 	margin-bottom: 16rpx;
 }
@@ -250,13 +269,13 @@ async function handleAgree() {
 .para-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: #4B5563;
+	color: var(--zy-content, #4B5563);
 }
 
 .table-row {
 	display: flex;
 	padding: 8rpx 0;
-	border-bottom: 1rpx solid #F3F4F6;
+	border-bottom: 1rpx solid var(--zy-border, #F3F4F6);
 }
 
 .table-row:last-child {
@@ -266,7 +285,34 @@ async function handleAgree() {
 .table-cell {
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: #6B7280;
+	color: var(--zy-sub, #6B7280);
+}
+
+/* ── 联系卡片 ── */
+.contact-card {
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	padding: 28rpx;
+	box-shadow: var(--zy-shadow-sm);
+}
+
+.contact-label {
+	font-size: 24rpx;
+	color: var(--zy-aid, #9CA3AF);
+	display: block;
+}
+
+.contact-value {
+	font-size: 26rpx;
+	color: var(--zy-content, #4B5563);
+	display: block;
+	margin-top: 6rpx;
+}
+
+.contact-divider {
+	height: 1rpx;
+	background-color: var(--zy-border, #E5E7EB);
+	margin: 20rpx 0;
 }
 
 .bottom-spacer {
@@ -277,19 +323,19 @@ async function handleAgree() {
 .bottom-bar {
 	padding: 20rpx 32rpx;
 	padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-	background-color: #FFFFFF;
-	border-top: 1rpx solid #E5E7EB;
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-top: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
 .btn-agree {
 	height: 88rpx;
-	border-radius: 999rpx;
-	background: linear-gradient(135deg, #2D9B8F, #5BC4A8);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: transform 0.15s ease;
-	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.25);
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+	box-shadow: var(--zy-shadow-md);
 }
 
 .btn-agree:active {

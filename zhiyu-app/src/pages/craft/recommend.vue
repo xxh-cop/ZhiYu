@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view class="page zy-page-enter">
 		<!-- 顶部标题区 -->
 		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="page-title">为你推荐</text>
@@ -8,25 +8,37 @@
 			</view>
 		</view>
 
-		<!-- 整体推荐理由 -->
+		<!-- 推荐理由卡片 -->
 		<view v-if="reason" class="reason-card zy-slide-up zy-stagger" style="--stagger-i: 1">
+			<view class="reason-quote">"</view>
+			<view class="reason-header">
+				<view class="reason-icon-wrap">
+					<wd-icon name="chat" size="28rpx" color="#2D9B8F" />
+				</view>
+				<text class="reason-label">小织推荐</text>
+			</view>
 			<text class="reason-text">{{ reason }}</text>
 		</view>
 
 		<!-- 刷新按钮 -->
-		<view class="refresh-btn" @click="loadData">
+		<view class="refresh-btn zy-slide-up zy-stagger" style="--stagger-i: 2" @click="loadData">
 			<text class="refresh-icon">↻</text>
 			<text class="refresh-text">换一批</text>
 		</view>
 
-		<!-- 加载中 -->
-		<view v-if="loading" class="status-box">
-			<wd-loading color="#2D9B8F" />
-			<text class="status-text">正在为你挑选…</text>
+		<!-- 骨架屏 -->
+		<view v-if="loading" class="card-list">
+			<view v-for="i in 3" :key="'sk-'+i" class="skeleton-card">
+				<view class="skeleton-cover zy-skeleton"></view>
+				<view class="skeleton-body">
+					<view class="skeleton-title zy-skeleton"></view>
+					<view class="skeleton-text zy-skeleton"></view>
+				</view>
+			</view>
 		</view>
 
 		<!-- 空状态 -->
-		<view v-else-if="!loading && items.length === 0 && !errorMsg" class="status-box">
+		<view v-else-if="items.length === 0 && !errorMsg" class="status-box">
 			<text class="status-text">暂时没有匹配的手作，换个时间再试试</text>
 		</view>
 
@@ -42,7 +54,7 @@
 				v-for="(item, idx) in items"
 				:key="item.projectId"
 				class="craft-card zy-slide-up zy-stagger"
-				:style="{ '--stagger-i': idx + 2 }"
+				:style="{ '--stagger-i': idx + 3 }"
 				@click="goSession(item)"
 			>
 				<!-- 封面图 -->
@@ -54,13 +66,16 @@
 
 				<view class="card-body">
 					<text class="card-title">{{ item.title }}</text>
-					<text class="card-intro">{{ item.intro }}</text>
-					<text class="card-culture">{{ item.cultureBg }}</text>
-
-					<view class="card-tags">
-						<view class="time-badge">
-							<text class="time-text">约 {{ item.estMinutes }} 分钟</text>
+					<view class="card-meta">
+						<view v-if="item.category" class="meta-pill">
+							<text class="meta-pill-text">{{ item.category }}</text>
 						</view>
+						<view class="meta-pill">
+							<text class="meta-pill-text">约 {{ item.estMinutes }} 分钟</text>
+						</view>
+					</view>
+
+					<view v-if="splitTags(item.therapyTags).length" class="card-tags">
 						<view
 							v-for="tag in splitTags(item.therapyTags)"
 							:key="tag"
@@ -70,7 +85,7 @@
 						</view>
 					</view>
 
-					<text class="card-reason">{{ item.reason }}</text>
+					<text v-if="item.reason" class="card-reason">{{ item.reason }}</text>
 				</view>
 			</view>
 		</view>
@@ -81,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 
@@ -141,14 +156,13 @@ function levelLabel(level) {
 	return ''
 }
 
-// 封面图样式：小程序 background-image 不支持本地路径，用渐变占位
 function coverStyle(coverUrl) {
 	// #ifdef H5
 	if (coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BCFBF);'
+	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
 }
 
 function goSession(item) {
@@ -183,23 +197,59 @@ function goSession(item) {
 
 .mood-badge {
 	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
 .mood-text {
 	font-size: 24rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
-/* ── 整体推荐理由 ── */
+/* ── 推荐理由卡片 ── */
 .reason-card {
+	position: relative;
 	padding: 28rpx;
-	border-radius: 16px;
-	background-color: #FFFFFF;
-	border: 1px solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+	box-shadow: var(--zy-shadow-sm);
 	margin-bottom: 24rpx;
+	overflow: hidden;
+}
+
+.reason-quote {
+	position: absolute;
+	top: 4rpx;
+	left: 16rpx;
+	font-size: 56rpx;
+	font-family: var(--zy-serif);
+	color: var(--zy-primary, #2D9B8F);
+	opacity: 0.15;
+	line-height: 1;
+}
+
+.reason-header {
+	display: flex;
+	align-items: center;
+	gap: 10rpx;
+	margin-bottom: 12rpx;
+}
+
+.reason-icon-wrap {
+	width: 48rpx;
+	height: 48rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.reason-label {
+	font-size: 26rpx;
+	font-weight: 500;
+	color: var(--zy-primary, #2D9B8F);
 }
 
 .reason-text {
@@ -219,7 +269,7 @@ function goSession(item) {
 
 .refresh-icon {
 	font-size: 28rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 	transition: transform 0.5s ease;
 }
 
@@ -229,7 +279,34 @@ function goSession(item) {
 
 .refresh-text {
 	font-size: 26rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
+}
+
+/* ── 骨架屏 ── */
+.skeleton-card {
+	overflow: hidden;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+}
+
+.skeleton-cover {
+	height: 240rpx;
+}
+
+.skeleton-body {
+	padding: 28rpx;
+}
+
+.skeleton-title {
+	height: 36rpx;
+	width: 60%;
+	margin-bottom: 16rpx;
+}
+
+.skeleton-text {
+	height: 28rpx;
+	width: 90%;
 }
 
 /* ── 状态区 ── */
@@ -260,17 +337,17 @@ function goSession(item) {
 }
 
 .craft-card {
-	border-radius: 16px;
-	background-color: #FFFFFF;
-	border: 1px solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+	box-shadow: var(--zy-shadow-sm);
 	overflow: hidden;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 }
 
 .craft-card:active {
-	transform: scale(0.98);
-	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.1);
+	transform: translateY(-2rpx);
+	box-shadow: var(--zy-shadow-md);
 }
 
 /* ── 封面图 ── */
@@ -284,7 +361,7 @@ function goSession(item) {
 
 .level-badge {
 	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: rgba(255, 181, 71, 0.9);
 }
 
@@ -305,56 +382,49 @@ function goSession(item) {
 	color: var(--zy-title, #1F2937);
 }
 
-.card-intro {
-	display: block;
-	margin-top: 12rpx;
-	font-size: 26rpx;
-	line-height: 1.6;
-	color: var(--zy-content, #4B5563);
-}
-
-.card-culture {
-	display: block;
-	margin-top: 8rpx;
-	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
-	font-style: italic;
-}
-
-/* ── 标签 ── */
-.card-tags {
+.card-meta {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 12rpx;
-	margin-top: 20rpx;
+	margin-top: 16rpx;
 }
 
-.time-badge {
+.meta-pill {
 	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
-	background-color: #F3F4F6;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg, #F3F4F6);
 }
 
-.time-text {
+.meta-pill-text {
 	font-size: 22rpx;
 	color: var(--zy-aid, #9CA3AF);
 }
 
+/* ── 疗愈标签 ── */
+.card-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12rpx;
+	margin-top: 12rpx;
+}
+
 .tag-badge {
 	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
 .tag-text {
 	font-size: 22rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
 /* ── 单项推荐理由 ── */
 .card-reason {
 	display: block;
 	margin-top: 20rpx;
+	padding-top: 20rpx;
+	border-top: 1rpx solid var(--zy-border, #E5E7EB);
 	font-size: 24rpx;
 	font-style: italic;
 	color: var(--zy-aid, #9CA3AF);

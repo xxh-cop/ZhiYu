@@ -11,6 +11,7 @@
 
 		<!-- 卡片 1：学校心理中心 -->
 		<view class="card zy-slide-up zy-stagger" style="--stagger-i: 1">
+			<view class="card-stripe stripe-warm"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-warm">
 					<wd-icon name="phone" size="40rpx" color="#FFB547" />
@@ -29,6 +30,7 @@
 
 		<!-- 卡片 2：全国心理援助热线 -->
 		<view class="card zy-slide-up zy-stagger" style="--stagger-i: 2">
+			<view class="card-stripe stripe-mint"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-mint">
 					<wd-icon name="phone" size="40rpx" color="#2D9B8F" />
@@ -140,12 +142,12 @@ function goChat() {
 	width: 112rpx;
 	height: 112rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #2D9B8F, #5BCFBF);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	margin-bottom: 28rpx;
-	box-shadow: 0 8rpx 24rpx rgba(45, 155, 143, 0.2);
+	box-shadow: var(--zy-shadow-md);
 }
 
 .hero-icon-text {
@@ -170,12 +172,30 @@ function goChat() {
 
 /* ── 热线卡片 ── */
 .card {
+	position: relative;
 	margin-bottom: 24rpx;
 	padding: 36rpx 32rpx;
-	border-radius: 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
+	box-shadow: var(--zy-shadow-sm);
+	overflow: hidden;
+}
+
+.card-stripe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 6rpx;
+}
+
+.stripe-warm {
+	background: linear-gradient(90deg, #FFB547, #FF6B6B);
+}
+
+.stripe-mint {
+	background: linear-gradient(90deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 }
 
 .card-header {
@@ -224,7 +244,7 @@ function goChat() {
 	display: block;
 	font-size: 48rpx;
 	font-weight: 700;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 	font-family: var(--zy-serif);
 	letter-spacing: 4rpx;
 	margin-bottom: 28rpx;
@@ -232,13 +252,14 @@ function goChat() {
 
 .card-btn {
 	height: 80rpx;
-	border-radius: 999rpx;
-	background: linear-gradient(135deg, #FFB547, #FFCB6E);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, #FFB547, #FF8C6B);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 12rpx;
-	transition: transform 0.2s ease;
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+	box-shadow: 0 4rpx 16rpx rgba(255, 181, 71, 0.25);
 }
 
 .card-btn:active {
@@ -246,7 +267,8 @@ function goChat() {
 }
 
 .card-btn-mint {
-	background: linear-gradient(135deg, #2D9B8F, #5BC4A8);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.25);
 }
 
 .card-btn-text {
@@ -261,11 +283,11 @@ function goChat() {
 	align-items: center;
 	gap: 24rpx;
 	padding: 36rpx 32rpx;
-	border-radius: 32rpx;
-	background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);
-	box-shadow: 0 8rpx 28rpx rgba(45, 155, 143, 0.25);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F) 0%, var(--zy-primary-light, #5BC4A8) 100%);
+	box-shadow: var(--zy-shadow-md);
 	margin-bottom: 32rpx;
-	transition: transform 0.2s ease;
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .chat-card:active {

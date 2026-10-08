@@ -1,9 +1,9 @@
 <template>
 	<view class="page zy-page-enter">
-		<!-- 顶部标题 + 创建入口 -->
-		<view class="header">
-			<text class="page-title">互助小组</text>
-			<wd-button size="small" plain @click="goCreate">+ 创建小组</wd-button>
+		<!-- 顶部品牌区 -->
+		<view class="brand-header zy-slide-up zy-stagger" style="--stagger-i: 0">
+			<text class="brand-title">互助小组</text>
+			<text class="brand-subtitle">找到同行的伙伴</text>
 		</view>
 
 		<!-- 骨架屏 -->
@@ -17,9 +17,15 @@
 		</view>
 
 		<!-- 空状态 -->
-		<view v-else-if="groups.length === 0 && !errorMsg" class="status-box">
-			<text class="empty-emoji">🌿</text>
-			<text class="status-text">还没有小组，来创建第一个吧</text>
+		<view v-else-if="groups.length === 0 && !errorMsg" class="empty-box zy-slide-up">
+			<view class="empty-icon-wrap">
+				<text class="empty-emoji">🌿</text>
+			</view>
+			<text class="empty-title">还没有小组</text>
+			<text class="empty-sub">来创建第一个吧</text>
+			<view class="empty-btn" @click="goCreate">
+				<text class="empty-btn-text">创建小组</text>
+			</view>
 		</view>
 
 		<!-- 错误状态 -->
@@ -33,42 +39,50 @@
 			<view
 				v-for="(group, idx) in groups"
 				:key="group.id"
-				class="group-card"
-				:style="{ '--stagger-i': idx }"
+				class="group-card zy-slide-up zy-stagger"
+				:style="{ '--stagger-i': idx + 1 }"
 			>
-				<view class="card-header">
-					<text class="group-name">{{ group.name }}</text>
-					<view v-if="group.myRole === '组长'" class="role-badge">
-						<text class="role-text">组长</text>
+				<view class="card-main">
+					<!-- 左侧圆形图标 -->
+					<view class="group-icon" :style="iconGradient(group.name)">
+						<text class="group-icon-text">{{ group.name ? group.name.charAt(0) : '小' }}</text>
 					</view>
-				</view>
-
-				<text v-if="group.description" class="group-desc">{{ group.description }}</text>
-
-				<view class="card-footer">
-					<view class="member-info">
-						<wd-icon name="user" size="28rpx" color="#9CA3AF" />
-						<text class="member-text">{{ group.memberCount }} / {{ group.maxCount }}</text>
+					<!-- 中间信息 -->
+					<view class="card-center">
+						<view class="name-row">
+							<text class="group-name">{{ group.name }}</text>
+							<view v-if="group.myRole === '组长'" class="role-badge">
+								<text class="role-text">组长</text>
+							</view>
+						</view>
+						<text v-if="group.description" class="group-desc">{{ group.description }}</text>
+						<view class="member-row">
+							<wd-icon name="user" size="24rpx" color="#9CA3AF" />
+							<text class="member-text">{{ group.memberCount }} / {{ group.maxCount }} 人</text>
+						</view>
 					</view>
-
-					<!-- 已加入 -->
+					<!-- 右侧加入按钮 -->
 					<view v-if="group.joined" class="joined-tag">
 						<text class="joined-text">已加入</text>
 					</view>
-					<!-- 已满 -->
 					<view v-else-if="group.memberCount >= group.maxCount" class="full-tag">
 						<text class="full-text">已满</text>
 					</view>
-					<!-- 加入 -->
-					<wd-button
+					<view
 						v-else
-						type="primary"
-						size="small"
-						:loading="joiningId === group.id"
+						class="join-btn"
+						:class="{ 'join-btn--loading': joiningId === group.id }"
 						@click="handleJoin(group)"
-					>加入</wd-button>
+					>
+						<text class="join-btn-text">{{ joiningId === group.id ? '...' : '加入' }}</text>
+					</view>
 				</view>
 			</view>
+		</view>
+
+		<!-- 悬浮创建按钮 -->
+		<view class="fab" @click="goCreate">
+			<wd-icon name="add" size="44rpx" color="#FFFFFF" />
 		</view>
 
 		<!-- 底部免责声明 -->
@@ -85,6 +99,20 @@ const loading = ref(false)
 const errorMsg = ref('')
 const groups = ref([])
 const joiningId = ref(null)
+
+const GRADIENTS = [
+	'linear-gradient(135deg, #2D9B8F, #5BC4A8)',
+	'linear-gradient(135deg, #FFB547, #FFD08A)',
+	'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
+	'linear-gradient(135deg, #5BC4A8, #8DD9C4)',
+	'linear-gradient(135deg, #FF9B6B, #FFC499)',
+]
+
+function iconGradient(name) {
+	if (!name) return GRADIENTS[0]
+	const hash = name.charCodeAt(0) % GRADIENTS.length
+	return GRADIENTS[hash]
+}
 
 onShow(() => {
 	loadData()
@@ -108,7 +136,6 @@ async function handleJoin(group) {
 	joiningId.value = group.id
 	try {
 		const updated = await http.post(`/api/groups/${group.id}/join`)
-		// 用返回的 GroupVO 替换列表中对应项
 		const idx = groups.value.findIndex((g) => g.id === group.id)
 		if (idx >= 0) {
 			groups.value[idx] = updated
@@ -129,30 +156,36 @@ function goCreate() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 120rpx;
+	padding: 32rpx 24rpx 140rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
 }
 
-.header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
+/* ── 品牌区 ── */
+.brand-header {
 	margin-bottom: 32rpx;
 }
 
-.page-title {
+.brand-title {
 	font-family: var(--zy-serif);
 	font-size: 44rpx;
 	font-weight: 500;
 	color: var(--zy-title, #1F2937);
+	display: block;
+}
+
+.brand-subtitle {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+	display: block;
+	margin-top: 8rpx;
 }
 
 /* ── 骨架屏 ── */
 .skeleton-card {
 	padding: 28rpx;
-	border-radius: 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 .skeleton-body {
@@ -169,6 +202,56 @@ function goCreate() {
 	width: 80%;
 }
 
+/* ── 空状态 ── */
+.empty-box {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 100rpx 0;
+	gap: 16rpx;
+}
+
+.empty-icon-wrap {
+	width: 120rpx;
+	height: 120rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 16rpx;
+}
+
+.empty-emoji {
+	font-size: 60rpx;
+}
+
+.empty-title {
+	font-size: 30rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+}
+
+.empty-sub {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.empty-btn {
+	margin-top: 16rpx;
+	padding: 16rpx 48rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	box-shadow: var(--zy-shadow-md);
+}
+
+.empty-btn-text {
+	font-size: 28rpx;
+	color: #FFFFFF;
+	font-weight: 500;
+}
+
 /* ── 状态 ── */
 .status-box {
 	display: flex;
@@ -177,15 +260,6 @@ function goCreate() {
 	justify-content: center;
 	padding: 120rpx 0;
 	gap: 24rpx;
-}
-
-.empty-emoji {
-	font-size: 80rpx;
-}
-
-.status-text {
-	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
 }
 
 .error-text {
@@ -197,30 +271,53 @@ function goCreate() {
 .card-list {
 	display: flex;
 	flex-direction: column;
-	gap: 24rpx;
+	gap: 20rpx;
 }
 
 .group-card {
-	padding: 28rpx;
-	border-radius: 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	padding: 24rpx 28rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
-	transition: transform 0.15s ease;
-	animation: cardEnter 0.35s ease both;
-	animation-delay: calc(var(--stagger-i, 0) * 80ms);
+	box-shadow: var(--zy-shadow-sm);
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .group-card:active {
-	transform: scale(0.98);
+	transform: translateY(-2rpx);
+	box-shadow: var(--zy-shadow-md);
 }
 
-@keyframes cardEnter {
-	from { opacity: 0; transform: translateY(20rpx); }
-	to { opacity: 1; transform: translateY(0); }
+.card-main {
+	display: flex;
+	align-items: center;
+	gap: 20rpx;
 }
 
-.card-header {
+/* ── 左侧圆形图标 ── */
+.group-icon {
+	width: 72rpx;
+	height: 72rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.group-icon-text {
+	font-size: 32rpx;
+	font-weight: 600;
+	color: #FFFFFF;
+}
+
+/* ── 中间信息 ── */
+.card-center {
+	flex: 1;
+	min-width: 0;
+}
+
+.name-row {
 	display: flex;
 	align-items: center;
 	gap: 12rpx;
@@ -235,45 +332,66 @@ function goCreate() {
 
 .role-badge {
 	padding: 4rpx 16rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg-tint-warm, #FFF8EE);
 }
 
 .role-text {
 	font-size: 22rpx;
-	color: #FFB547;
+	color: var(--zy-warning, #FFB547);
 }
 
 .group-desc {
 	display: block;
-	margin-top: 12rpx;
+	margin-top: 8rpx;
 	font-size: 26rpx;
-	line-height: 1.6;
+	line-height: 1.5;
 	color: var(--zy-content, #4B5563);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.card-footer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-top: 24rpx;
-}
-
-.member-info {
+.member-row {
 	display: flex;
 	align-items: center;
 	gap: 8rpx;
+	margin-top: 8rpx;
 }
 
 .member-text {
-	font-size: 26rpx;
+	font-size: 24rpx;
 	color: var(--zy-aid, #9CA3AF);
 }
 
+/* ── 右侧按钮 ── */
+.join-btn {
+	padding: 12rpx 32rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	flex-shrink: 0;
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+}
+
+.join-btn:active {
+	transform: scale(0.96);
+}
+
+.join-btn--loading {
+	opacity: 0.6;
+}
+
+.join-btn-text {
+	font-size: 26rpx;
+	color: #FFFFFF;
+	font-weight: 500;
+}
+
 .joined-tag {
-	padding: 8rpx 24rpx;
-	border-radius: 32rpx;
+	padding: 12rpx 24rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg, #F8F9FB);
+	flex-shrink: 0;
 }
 
 .joined-text {
@@ -282,15 +400,37 @@ function goCreate() {
 }
 
 .full-tag {
-	padding: 8rpx 24rpx;
-	border-radius: 32rpx;
+	padding: 12rpx 24rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg, #F8F9FB);
 	opacity: 0.6;
+	flex-shrink: 0;
 }
 
 .full-text {
 	font-size: 26rpx;
 	color: var(--zy-aid, #9CA3AF);
+}
+
+/* ── 悬浮创建按钮 ── */
+.fab {
+	position: fixed;
+	right: 40rpx;
+	bottom: 160rpx;
+	width: 100rpx;
+	height: 100rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: var(--zy-shadow-lg);
+	z-index: 100;
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
+}
+
+.fab:active {
+	transform: scale(0.92);
 }
 
 .footnote {
