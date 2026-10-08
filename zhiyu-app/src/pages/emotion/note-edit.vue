@@ -1,7 +1,7 @@
 <template>
 	<view class="page zy-page-enter">
 		<!-- 心情选择 -->
-		<view class="section" style="--stagger-i: 0">
+		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="section-title">此刻心情</text>
 			<scroll-view scroll-x class="mood-scroll" :show-scrollbar="false">
 				<view class="mood-track">
@@ -20,7 +20,7 @@
 		</view>
 
 		<!-- 内容输入 -->
-		<view class="section" style="--stagger-i: 1">
+		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<text class="section-title">写下此刻的心情</text>
 			<view class="textarea-wrap">
 				<textarea
@@ -37,7 +37,7 @@
 		</view>
 
 		<!-- 日期（只读） -->
-		<view class="section" style="--stagger-i: 2">
+		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="date-row">
 				<wd-icon name="calendar" size="32rpx" color="#9CA3AF" />
 				<text class="date-text">{{ todayStr }}</text>
@@ -45,7 +45,7 @@
 		</view>
 
 		<!-- 底部按钮 -->
-		<view class="action-area" style="--stagger-i: 3">
+		<view class="action-area zy-slide-up zy-stagger" style="--stagger-i: 3">
 			<wd-button
 				class="save-btn"
 				type="primary"
@@ -188,18 +188,6 @@ async function doDelete() {
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
-}
-
-/* ── 错峰入场 ── */
-.section,
-.action-area {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 .section {

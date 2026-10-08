@@ -15,7 +15,7 @@
 
 		<!-- 步骤内容区 -->
 		<scroll-view class="step-area" scroll-y>
-			<view class="step-content" :key="currentStep">
+			<view class="step-content zy-slide-up" :key="currentStep">
 				<view class="step-card">
 					<text class="step-title">{{ currentStepData.title }}</text>
 					<text class="step-guide">{{ currentStepData.guide }}</text>
@@ -426,12 +426,6 @@ function handleBackHome() {
 
 .step-content {
 	padding: 40rpx 32rpx;
-	animation: fadeInUp 0.3s ease;
-}
-
-@keyframes fadeInUp {
-	from { opacity: 0; transform: translateY(16rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 .step-card {

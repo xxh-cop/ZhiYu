@@ -1,13 +1,16 @@
 <template>
 	<view class="page">
 		<!-- 顶部品牌区 -->
-		<view class="hero">
+		<view class="hero zy-slide-up">
+			<view class="hero-logo-wrap">
+				<image class="hero-logo" src="/static/logo.png" mode="aspectFit" />
+			</view>
 			<text class="brand">织愈</text>
 			<text class="slogan">用一针一线，缝补青春的焦虑</text>
 		</view>
 
 		<!-- 登录表单卡 -->
-		<view class="form-card">
+		<view class="form-card zy-slide-up" style="--stagger-i: 1">
 			<view class="form">
 				<view class="input-wrap">
 					<wd-input
@@ -29,20 +32,18 @@
 						@confirm="handleLogin"
 					/>
 				</view>
-				<wd-button
-					type="primary"
-					block
-					size="large"
-					:loading="loading"
-					:disabled="loading"
-					@click="handleLogin"
-				>登 录</wd-button>
+				<view class="login-btn" :class="{ 'login-btn--loading': loading }" @click="handleLogin">
+					<text class="login-btn-text">{{ loading ? '登录中…' : '登 录' }}</text>
+				</view>
 				<text v-if="errMsg" class="error">{{ errMsg }}</text>
 			</view>
 		</view>
 
-		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
+		<!-- 底部免责 + 隐私政策 -->
+		<view class="footer zy-slide-up" style="--stagger-i: 2">
+			<text class="footnote">本系统不能替代专业心理咨询</text>
+			<text class="privacy-link" @click="goPrivacy">查看隐私政策</text>
+		</view>
 	</view>
 </template>
 
@@ -94,6 +95,10 @@ async function handleLogin() {
 		loading.value = false
 	}
 }
+
+function goPrivacy() {
+	uni.navigateTo({ url: '/pages/privacy/index' })
+}
 </script>
 
 <style scoped>
@@ -105,7 +110,7 @@ async function handleLogin() {
 	align-items: center;
 	padding: 0 64rpx;
 	box-sizing: border-box;
-	background: linear-gradient(180deg, #F0F9F7 0%, #F8F9FB 50%);
+	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #F0F9F7) 0%, var(--zy-bg, #F8F9FB) 50%);
 }
 
 /* ── 品牌区 ── */
@@ -113,44 +118,50 @@ async function handleLogin() {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-bottom: 64rpx;
-	animation: heroFadeIn 0.5s ease;
+	margin-bottom: 56rpx;
 }
 
-@keyframes heroFadeIn {
-	from { opacity: 0; transform: translateY(-12rpx); }
-	to { opacity: 1; transform: translateY(0); }
+.hero-logo-wrap {
+	width: 160rpx;
+	height: 160rpx;
+	border-radius: var(--zy-radius-full);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 28rpx;
+	box-shadow: var(--zy-shadow-md);
+}
+
+.hero-logo {
+	width: 100rpx;
+	height: 100rpx;
 }
 
 .brand {
 	font-family: var(--zy-serif);
-	font-size: 64rpx;
+	font-size: 56rpx;
 	font-weight: 600;
 	letter-spacing: 12rpx;
 	color: var(--zy-title, #1F2937);
 }
 
 .slogan {
-	margin-top: 20rpx;
+	margin-top: 16rpx;
 	font-size: 26rpx;
 	color: var(--zy-content, #4B5563);
+	letter-spacing: 2rpx;
 }
 
 /* ── 表单卡 ── */
 .form-card {
 	width: 100%;
-	border-radius: 48rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 8rpx 40rpx rgba(31, 41, 55, 0.06);
+	box-shadow: var(--zy-shadow-md);
 	padding: 48rpx 40rpx;
 	box-sizing: border-box;
-	animation: cardSlideUp 0.4s ease 0.1s both;
-}
-
-@keyframes cardSlideUp {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 .form {
@@ -161,9 +172,35 @@ async function handleLogin() {
 
 .input-wrap {
 	background-color: var(--zy-bg, #F8F9FB);
-	border-radius: 24rpx;
+	border-radius: var(--zy-radius-md, 24rpx);
 	padding: 0 8rpx;
 	overflow: hidden;
+}
+
+.login-btn {
+	height: 88rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+	margin-top: 8rpx;
+}
+
+.login-btn:active {
+	transform: scale(0.97);
+}
+
+.login-btn--loading {
+	opacity: 0.7;
+}
+
+.login-btn-text {
+	font-size: 32rpx;
+	font-weight: 500;
+	color: #FFFFFF;
+	letter-spacing: 4rpx;
 }
 
 .error {
@@ -174,9 +211,22 @@ async function handleLogin() {
 }
 
 /* ── 底部 ── */
+.footer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12rpx;
+	margin-top: 56rpx;
+}
+
 .footnote {
-	margin-top: 64rpx;
 	font-size: 22rpx;
 	color: var(--zy-aid, #9CA3AF);
+}
+
+.privacy-link {
+	font-size: 22rpx;
+	color: var(--zy-primary, #2D9B8F);
+	text-decoration: underline;
 }
 </style>

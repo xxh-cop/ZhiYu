@@ -1,7 +1,7 @@
 <template>
 	<view class="page zy-page-enter">
 		<!-- 温暖头部 -->
-		<view class="hero" style="--stagger-i: 0">
+		<view class="hero zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<view class="hero-circle">
 				<text class="hero-icon-text">织</text>
 			</view>
@@ -10,7 +10,7 @@
 		</view>
 
 		<!-- 卡片 1：学校心理中心 -->
-		<view class="card" style="--stagger-i: 1">
+		<view class="card zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-warm">
 					<wd-icon name="phone" size="40rpx" color="#FFB547" />
@@ -28,7 +28,7 @@
 		</view>
 
 		<!-- 卡片 2：全国心理援助热线 -->
-		<view class="card" style="--stagger-i: 2">
+		<view class="card zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-mint">
 					<wd-icon name="phone" size="40rpx" color="#2D9B8F" />
@@ -46,7 +46,7 @@
 		</view>
 
 		<!-- 卡片 3：立刻找人聊聊 -->
-		<view class="chat-card" style="--stagger-i: 3" @click="goChat">
+		<view class="chat-card zy-slide-up zy-stagger" style="--stagger-i: 3" @click="goChat">
 			<view class="chat-card-icon">
 				<wd-icon name="chat" size="44rpx" color="#FFFFFF" />
 			</view>
@@ -58,7 +58,7 @@
 		</view>
 
 		<!-- 温暖文案 -->
-		<view class="warm-text" style="--stagger-i: 4">
+		<view class="warm-text zy-slide-up zy-stagger" style="--stagger-i: 4">
 			<text class="warm-line">如果你正在经历困难，请记得寻求帮助是勇敢的表现。</text>
 			<text class="warm-line">你的感受很重要，有人愿意倾听。</text>
 		</view>
@@ -126,20 +126,6 @@ function goChat() {
 	padding: 0 32rpx 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
-}
-
-/* ── 错峰入场 ── */
-.hero,
-.card,
-.chat-card,
-.warm-text {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── 温暖头部 ── */

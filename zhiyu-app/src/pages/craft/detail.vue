@@ -15,7 +15,7 @@
 		<!-- 项目详情 -->
 		<view v-else-if="project" class="detail-content">
 			<!-- ═══ 顶部封面区 ═══ -->
-			<view class="cover-section" :style="coverStyle(project.coverUrl)" style="--stagger-i: 0">
+			<view class="cover-section zy-slide-up zy-stagger" :style="coverStyle(project.coverUrl)" style="--stagger-i: 0">
 				<view class="cover-overlay"></view>
 				<view class="cover-info">
 					<text class="cover-title">{{ project.title }}</text>
@@ -45,7 +45,7 @@
 			<!-- ═══ 传承人信息条 ═══ -->
 			<view
 				v-if="project.inheritorId"
-				class="inheritor-bar"
+				class="inheritor-bar zy-slide-up zy-stagger"
 				style="--stagger-i: 1"
 				@click="goInheritorDetail"
 			>
@@ -60,13 +60,13 @@
 			</view>
 
 			<!-- ═══ 文化背景 ═══ -->
-			<view v-if="project.cultureBg" class="section-card" style="--stagger-i: 2">
+			<view v-if="project.cultureBg" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 2">
 				<text class="section-title">文化背景</text>
 				<text class="section-text">{{ project.cultureBg }}</text>
 			</view>
 
 			<!-- ═══ 所需材料 ═══ -->
-			<view v-if="materials.length" class="section-card" style="--stagger-i: 3">
+			<view v-if="materials.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 3">
 				<text class="section-title">所需材料</text>
 				<view class="material-list">
 					<view
@@ -82,7 +82,7 @@
 			</view>
 
 			<!-- ═══ 创作步骤 ═══ -->
-			<view v-if="steps.length" class="section-card" style="--stagger-i: 4">
+			<view v-if="steps.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 4">
 				<text class="section-title">创作步骤</text>
 				<view class="step-list">
 					<view
@@ -216,19 +216,6 @@ function goSession() {
 	padding: 0 0 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
-}
-
-/* ── 错峰入场 ── */
-.cover-section,
-.inheritor-bar,
-.section-card {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── 状态区 ── */

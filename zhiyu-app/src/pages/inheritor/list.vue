@@ -1,12 +1,12 @@
 <template>
 	<view class="page zy-page-enter">
 		<!-- 顶部标题 -->
-		<view class="header" style="--stagger-i: 0">
+		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="page-title">非遗传承人</text>
 		</view>
 
 		<!-- 搜索框 -->
-		<view class="search-bar" style="--stagger-i: 1">
+		<view class="search-bar zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<view class="search-input-wrap">
 				<wd-icon name="search" size="32rpx" color="#9CA3AF" />
 				<input
@@ -51,7 +51,7 @@
 			<view
 				v-for="(item, idx) in records"
 				:key="item.id"
-				class="inheritor-card"
+				class="inheritor-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx + 2 }"
 				@click="goDetail(item)"
 			>
@@ -191,19 +191,6 @@ loadData(1)
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
-}
-
-/* ── 错峰入场 ── */
-.header,
-.search-bar,
-.inheritor-card {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── 顶部标题 ── */

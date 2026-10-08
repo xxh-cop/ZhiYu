@@ -17,7 +17,7 @@
 		<!-- 传承人资料 + 项目列表 -->
 		<view v-else-if="inheritor">
 			<!-- ═══ 传承人资料区 ═══ -->
-			<view class="profile-section" style="--stagger-i: 0">
+			<view class="profile-section zy-slide-up zy-stagger" style="--stagger-i: 0">
 				<view class="avatar-large" :style="avatarStyle(inheritor)">
 					<text v-if="!inheritor.avatarUrl" class="avatar-letter">{{ firstLetter(inheritor.nickname) }}</text>
 				</view>
@@ -33,7 +33,7 @@
 			</view>
 
 			<!-- ═══ TA 的手作 ═══ -->
-			<view class="projects-section" style="--stagger-i: 1">
+			<view class="projects-section zy-slide-up zy-stagger" style="--stagger-i: 1">
 				<text class="section-title">TA 的手作</text>
 
 				<!-- 项目加载中 -->
@@ -57,7 +57,7 @@
 					<view
 						v-for="(item, idx) in projects"
 						:key="item.id"
-						class="project-card"
+						class="project-card zy-slide-up zy-stagger"
 						:style="{ '--stagger-i': idx + 2 }"
 						@click="goProjectDetail(item)"
 					>
@@ -235,19 +235,6 @@ function goProjectDetail(item) {
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
-}
-
-/* ── 错峰入场 ── */
-.profile-section,
-.projects-section,
-.project-card {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── 骨架屏 ── */

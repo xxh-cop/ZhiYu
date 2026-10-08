@@ -1,7 +1,7 @@
 <template>
 	<view class="page">
 		<!-- 顶部标题区 -->
-		<view class="header" style="--stagger-i: 0">
+		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="page-title">为你推荐</text>
 			<view v-if="moodTag" class="mood-badge">
 				<text class="mood-text">{{ moodTag }}</text>
@@ -9,7 +9,7 @@
 		</view>
 
 		<!-- 整体推荐理由 -->
-		<view v-if="reason" class="reason-card" style="--stagger-i: 1">
+		<view v-if="reason" class="reason-card zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<text class="reason-text">{{ reason }}</text>
 		</view>
 
@@ -41,7 +41,7 @@
 			<view
 				v-for="(item, idx) in items"
 				:key="item.projectId"
-				class="craft-card"
+				class="craft-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx + 2 }"
 				@click="goSession(item)"
 			>
@@ -164,19 +164,6 @@ function goSession(item) {
 	padding: 32rpx 24rpx 80rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
-}
-
-/* ── 错峰入场 ── */
-.header,
-.reason-card,
-.craft-card {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── 顶部标题区 ── */

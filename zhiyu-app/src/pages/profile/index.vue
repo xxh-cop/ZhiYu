@@ -1,7 +1,7 @@
 <template>
 	<view class="page">
 		<!-- 用户信息卡片 -->
-		<view class="profile-card">
+		<view class="profile-card zy-slide-up">
 			<view class="card-accent"></view>
 			<view class="profile-body">
 				<view class="avatar">
@@ -158,12 +158,6 @@ function handleLogout() {
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
 	margin-bottom: 32rpx;
-	animation: fadeInUp 0.35s ease;
-}
-
-@keyframes fadeInUp {
-	from { opacity: 0; transform: translateY(16rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 .card-accent {

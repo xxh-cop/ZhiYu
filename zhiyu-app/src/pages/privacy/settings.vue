@@ -1,7 +1,7 @@
 <template>
 	<view class="page zy-page-enter">
 		<!-- 区块 1：隐私授权状态 -->
-		<view class="section-card" style="--stagger-i: 0">
+		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="section-heading">隐私授权状态</text>
 			<view class="status-row">
 				<view class="status-badge" :class="agreedClass">
@@ -18,7 +18,7 @@
 		</view>
 
 		<!-- 区块 2：可联系授权 -->
-		<view class="section-card" style="--stagger-i: 1">
+		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<text class="section-heading">可联系授权</text>
 			<view class="contact-row">
 				<view class="contact-info">
@@ -36,7 +36,7 @@
 		</view>
 
 		<!-- 区块 3：危险操作 -->
-		<view class="section-card section-card--danger" style="--stagger-i: 2">
+		<view class="section-card section-card--danger zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<text class="section-heading section-heading--danger">注销账号</text>
 			<text class="danger-desc">注销后账号将被禁用，作品与对话会保留但不可识别你本人。此操作不可逆。</text>
 			<view class="btn-delete" @click="showDeleteModal = true">
@@ -198,21 +198,13 @@ async function handleDelete() {
 	background-color: var(--zy-bg, #F8F9FB);
 }
 
-/* ── 错峰入场 ── */
 .section-card {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
 	background-color: var(--zy-bg-warm, #FFFFFF);
 	border-radius: 32rpx;
 	padding: 36rpx 32rpx;
 	margin-bottom: 24rpx;
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
-}
-
-@keyframes staggerIn {
-	from { opacity: 0; transform: translateY(24rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 .section-heading {

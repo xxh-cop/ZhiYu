@@ -1,7 +1,7 @@
 <template>
 	<view class="home-page">
 		<!-- ═══ 模块 1：顶部问候区 ═══ -->
-		<view class="section section--greeting" style="--stagger-i: 0">
+		<view class="section section--greeting zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<view class="greeting-left">
 				<text class="greeting-hello">你好，{{ nickname }}</text>
 				<text class="greeting-welcome">{{ welcome }}</text>
@@ -13,7 +13,7 @@
 		</view>
 
 		<!-- ═══ 模块 2：今日心情打卡 ═══ -->
-		<view class="section section--mood" style="--stagger-i: 1">
+		<view class="section section--mood zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<text class="section-title">今天心情怎么样？</text>
 			<text class="section-subtitle">轻点记录一下</text>
 			<view class="mood-row">
@@ -35,7 +35,7 @@
 		</view>
 
 		<!-- ═══ 模块 3：每日寄语卡片 ═══ -->
-		<view class="section section--quote" style="--stagger-i: 2" @click="nextQuote">
+		<view class="section section--quote zy-slide-up zy-stagger" style="--stagger-i: 2" @click="nextQuote">
 			<view class="quote-card">
 				<view class="quote-bar"></view>
 				<text class="quote-text">{{ currentQuote }}</text>
@@ -44,7 +44,7 @@
 		</view>
 
 		<!-- ═══ 模块 4：功能入口 2×2 网格 ═══ -->
-		<view class="section section--entries" style="--stagger-i: 3">
+		<view class="section section--entries zy-slide-up zy-stagger" style="--stagger-i: 3">
 			<view class="entries-grid">
 				<view
 					v-for="(entry, i) in entries"
@@ -62,7 +62,7 @@
 		</view>
 
 		<!-- ═══ 模块 5：今日推荐手作 ═══ -->
-		<view class="section section--recommend" style="--stagger-i: 4">
+		<view class="section section--recommend zy-slide-up zy-stagger" style="--stagger-i: 4">
 			<view class="recommend-header">
 				<text class="section-title">今日推荐手作</text>
 				<text class="recommend-refresh" @click="refreshRecommend">换一批</text>
@@ -278,23 +278,6 @@ function goInheritors() {
 	padding: 48rpx 32rpx 140rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
-}
-
-/* ═══ 错峰入场动效 ═══ */
-.section {
-	animation: staggerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-	animation-delay: calc(var(--stagger-i, 0) * 100ms);
-}
-
-@keyframes staggerIn {
-	from {
-		opacity: 0;
-		transform: translateY(24rpx);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
 }
 
 /* ═══ 模块 1：问候区 ═══ */

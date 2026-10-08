@@ -19,7 +19,7 @@
 
 			<!-- 作品信息区 -->
 			<scroll-view class="content-area" scroll-y>
-				<view class="work-info" v-if="work">
+				<view class="work-info zy-slide-up" v-if="work">
 					<view class="work-cover" :style="coverStyle(work.coverUrl)"></view>
 					<text class="work-title">{{ work.title }}</text>
 					<view class="work-meta">
@@ -342,12 +342,6 @@ function goBack() {
 
 .work-info {
 	padding: 32rpx 32rpx 0;
-	animation: fadeInUp 0.3s ease;
-}
-
-@keyframes fadeInUp {
-	from { opacity: 0; transform: translateY(16rpx); }
-	to { opacity: 1; transform: translateY(0); }
 }
 
 .work-cover {
