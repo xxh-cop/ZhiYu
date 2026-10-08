@@ -276,7 +276,7 @@ watch(
 	position: fixed;
 	z-index: 9999;
 	pointer-events: none;
-	transition: opacity 0.3s, transform 0.3s;
+	transition: opacity var(--zy-duration-base), transform var(--zy-duration-base);
 }
 
 .ai-companion.hidden {
@@ -316,23 +316,23 @@ watch(
 	max-width: 400rpx;
 	width: max-content;
 	padding: 14rpx 24rpx;
-	background: #ffffff;
-	border-radius: 16rpx;
-	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.12);
+	background: var(--zy-card-bg, #ffffff);
+	border-radius: var(--zy-radius-md, 24rpx);
+	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(45, 155, 143, 0.08));
 	font-size: 26rpx;
 	line-height: 1.5;
-	color: #1f2937;
+	color: var(--zy-title, #1F2937);
 	white-space: normal;
 	word-break: keep-all;
 	letter-spacing: 0;
 	writing-mode: horizontal-tb;
 	pointer-events: none;
-	animation: bubbleIn 200ms ease-out;
+	animation: bubbleIn var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
 }
 
 .bubble-text {
 	font-size: 26rpx;
-	color: #1f2937;
+	color: var(--zy-title, #1F2937);
 	line-height: 1.5;
 }
 
@@ -368,20 +368,20 @@ watch(
 	padding: 16rpx 40rpx;
 	background: rgba(45, 155, 143, 0.15);
 	border: 2rpx dashed rgba(45, 155, 143, 0.4);
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	pointer-events: none;
 	z-index: 9998;
-	animation: hideZoneIn 200ms ease-out;
+	animation: hideZoneIn var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
 }
 
 .hide-zone-text {
 	font-size: 26rpx;
-	color: #2d9b8f;
+	color: var(--zy-primary, #2D9B8F);
 	white-space: nowrap;
 }
 
 .hide-zone-hint.active {
-	background: rgba(45, 155, 143, 0.9);
+	background: var(--zy-primary, #2D9B8F);
 	border-color: transparent;
 	transform: translateX(-50%) scale(1.05);
 }
@@ -414,8 +414,8 @@ watch(
 	align-items: center;
 	justify-content: center;
 	z-index: 9999;
-	box-shadow: 0 4rpx 12rpx rgba(45, 155, 143, 0.2);
-	transition: transform 0.2s;
+	box-shadow: var(--zy-shadow-sm, 0 2rpx 8rpx rgba(45, 155, 143, 0.06));
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 	pointer-events: auto;
 }
 
@@ -429,7 +429,7 @@ watch(
 
 /* ── 呼吸动画 ── */
 .xiaozhi-wrapper.thinking-fallback {
-	animation: thinkingFloat 1.5s ease-in-out infinite;
+	animation: thinkingFloat 1.5s var(--zy-ease-in-out, ease-in-out) infinite;
 }
 
 @keyframes thinkingFloat {
@@ -438,7 +438,7 @@ watch(
 }
 
 .xiaozhi-wrapper.breathing {
-	animation: breathe 10s ease-in-out infinite;
+	animation: breathe 10s var(--zy-ease-in-out, ease-in-out) infinite;
 }
 
 @keyframes breathe {
