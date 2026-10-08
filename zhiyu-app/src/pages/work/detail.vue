@@ -19,33 +19,30 @@
 
 			<!-- 作品信息区 -->
 			<scroll-view class="content-area" scroll-y>
-				<view class="work-info zy-slide-up" v-if="work">
-					<view class="work-cover" :style="coverStyle(work.coverUrl)"></view>
-					<text class="work-title">{{ work.title }}</text>
-					<view class="work-meta">
-						<text class="work-author">{{ work.authorName }}</text>
-						<text class="work-time">{{ formatTime(work.createTime) }}</text>
+				<view class="work-info" v-if="work">
+					<!-- 封面图 -->
+					<view class="work-cover-wrap zy-slide-up">
+						<view class="work-cover" :style="coverStyle(work.coverUrl)"></view>
 					</view>
-					<text v-if="work.message" class="work-message">{{ work.message }}</text>
 
-					<!-- 点赞 + 收藏按钮 -->
-					<view class="action-area">
-						<view class="action-btn" @click="handleLike">
-							<wd-icon
-								:name="liked ? 'heart' : 'heart'"
-								size="44rpx"
-								:color="liked ? '#FF6B6B' : '#9CA3AF'"
-							/>
-							<text class="action-count" :class="{ 'count-liked': liked }">{{ likeCount }}</text>
+					<!-- 作品标题 -->
+					<text class="work-title zy-slide-up zy-stagger" style="--stagger-i: 1">{{ work.title }}</text>
+
+					<!-- 作者信息卡片 -->
+					<view class="author-card zy-slide-up zy-stagger" style="--stagger-i: 2">
+						<view class="author-avatar">
+							<text class="author-avatar-text">{{ (work.authorName || '匿')[0] }}</text>
 						</view>
-						<view class="action-btn" @click="handleFavorite">
-							<wd-icon
-								:name="favorited ? 'star' : 'star'"
-								size="44rpx"
-								:color="favorited ? '#FFB547' : '#9CA3AF'"
-							/>
-							<text class="action-label" :class="{ 'label-favorited': favorited }">收藏</text>
+						<view class="author-info">
+							<text class="author-name">{{ work.authorName }}</text>
+							<text class="author-time">{{ formatTime(work.createTime) }}</text>
 						</view>
+					</view>
+
+					<!-- 作品故事/寄语 -->
+					<view v-if="work.message" class="story-card zy-slide-up zy-stagger" style="--stagger-i: 3">
+						<text class="story-label">作品故事</text>
+						<text class="story-text">{{ work.message }}</text>
 					</view>
 				</view>
 
@@ -58,20 +55,23 @@
 						<text class="empty-text">还没有人留言，说句温暖的话吧</text>
 					</view>
 
-					<view
-						v-for="comment in comments"
-						:key="comment.id"
-						class="comment-item"
-					>
-						<view class="comment-avatar">
-							<text class="avatar-text">{{ (comment.authorName || '匿')[0] }}</text>
-						</view>
-						<view class="comment-main">
-							<view class="comment-header">
-								<text class="comment-author">{{ comment.authorName }}</text>
-								<text class="comment-time">{{ formatTime(comment.createTime) }}</text>
+					<view class="comment-list">
+						<view
+							v-for="(comment, idx) in comments"
+							:key="comment.id"
+							class="comment-card zy-slide-up zy-stagger"
+							:style="{ '--stagger-i': idx }"
+						>
+							<view class="comment-avatar">
+								<text class="avatar-text">{{ (comment.authorName || '匿')[0] }}</text>
 							</view>
-							<text class="comment-content">{{ comment.content }}</text>
+							<view class="comment-main">
+								<view class="comment-header">
+									<text class="comment-author">{{ comment.authorName }}</text>
+									<text class="comment-time">{{ formatTime(comment.createTime) }}</text>
+								</view>
+								<text class="comment-content">{{ comment.content }}</text>
+							</view>
 						</view>
 					</view>
 
@@ -80,13 +80,40 @@
 						<text class="more-text">正在加载评论…</text>
 					</view>
 					<view v-else-if="!hasMoreComments && comments.length > 0" class="comment-more">
+						<view class="bottom-divider"></view>
 						<text class="more-text">没有更多评论了</text>
+						<view class="bottom-divider"></view>
 					</view>
 				</view>
 			</scroll-view>
 
-			<!-- 底部输入区 -->
-			<view class="input-area">
+			<!-- 互动栏（底部固定） -->
+			<view v-if="work" class="action-bar">
+				<view class="action-input-wrap" @click="focusInput">
+					<text class="action-input-placeholder">留下一句温暖...</text>
+				</view>
+				<view class="action-btns">
+					<view class="action-btn zy-elastic" @click="handleLike">
+						<wd-icon
+							name="heart"
+							size="40rpx"
+							:color="liked ? '#FF6B6B' : '#9CA3AF'"
+						/>
+						<text class="action-label" :class="{ 'label-liked': liked }">{{ likeCount }}</text>
+					</view>
+					<view class="action-btn" @click="focusInput">
+						<wd-icon name="chat" size="40rpx" color="#9CA3AF" />
+						<text class="action-label">{{ commentCount }}</text>
+					</view>
+					<view class="action-btn" @click="handleShare">
+						<wd-icon name="share" size="40rpx" color="#9CA3AF" />
+						<text class="action-label">分享</text>
+					</view>
+				</view>
+			</view>
+
+			<!-- 评论输入弹层 -->
+			<view v-if="showInput" class="input-area">
 				<view class="input-wrap">
 					<wd-input
 						v-model="commentText"
@@ -94,6 +121,7 @@
 						:disabled="sending"
 						no-border
 						custom-class="comment-input-el"
+						:focus="showInput"
 					/>
 				</view>
 				<wd-button
@@ -102,6 +130,9 @@
 					:disabled="!commentText.trim() || sending"
 					@click="handleSendComment"
 				>{{ sending ? '发送中' : '发送' }}</wd-button>
+				<view class="input-close" @click="showInput = false">
+					<wd-icon name="close" size="32rpx" color="#9CA3AF" />
+				</view>
 			</view>
 
 			<!-- 底部免责声明 -->
@@ -129,6 +160,7 @@ const sending = ref(false)
 const commentPage = ref(1)
 const commentTotal = ref(0)
 const commentSize = 10
+const showInput = ref(false)
 
 let workId = null
 
@@ -178,7 +210,6 @@ async function loadComments(pageNum) {
 			comments.value = data.records || []
 		}
 	} catch (e) {
-		// 评论加载失败静默
 	} finally {
 		commentLoading.value = false
 	}
@@ -195,7 +226,6 @@ async function loadCommentsMore() {
 			comments.value = comments.value.concat(data.records || [])
 		}
 	} catch (e) {
-		// 静默
 	} finally {
 		commentLoading.value = false
 	}
@@ -215,17 +245,12 @@ async function handleLike() {
 	}
 }
 
-async function handleFavorite() {
-	try {
-		const res = await http.post(`/api/works/${workId}/like`, { type: 0 })
-		favorited.value = res.active
-		uni.showToast({
-			title: res.active ? '已收藏' : '已取消收藏',
-			icon: 'none',
-		})
-	} catch (e) {
-		uni.showToast({ title: (e && e.message) || '操作失败', icon: 'none' })
-	}
+function focusInput() {
+	showInput.value = true
+}
+
+function handleShare() {
+	uni.showToast({ title: '分享功能即将上线', icon: 'none' })
 }
 
 async function handleSendComment() {
@@ -238,9 +263,9 @@ async function handleSendComment() {
 		comments.value.push(data)
 		commentCount.value++
 		commentText.value = ''
+		showInput.value = false
 		uni.showToast({ title: '评论成功', icon: 'success' })
 	} catch (e) {
-		// 内容安全过滤返回 1001 + careMessage
 		uni.showToast({
 			title: (e && e.message) || '评论失败',
 			icon: 'none',
@@ -251,7 +276,6 @@ async function handleSendComment() {
 	}
 }
 
-// 封面图样式：小程序 background-image 不支持本地路径，用渐变占位
 function coverStyle(coverUrl) {
 	// #ifdef H5
 	if (coverUrl) {
@@ -308,7 +332,7 @@ function goBack() {
 	align-items: center;
 	gap: 16rpx;
 	padding: 20rpx 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
 	flex-shrink: 0;
 }
@@ -319,8 +343,8 @@ function goBack() {
 	justify-content: center;
 	width: 64rpx;
 	height: 64rpx;
-	border-radius: 50%;
-	transition: background-color 0.15s ease;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .nav-back:active {
@@ -344,86 +368,98 @@ function goBack() {
 	padding: 32rpx 32rpx 0;
 }
 
-.work-cover {
-	height: 360rpx;
-	border-radius: 24rpx;
+/* ── 封面图 ── */
+.work-cover-wrap {
+	border-radius: var(--zy-radius-lg, 32rpx);
+	overflow: hidden;
+	box-shadow: var(--zy-shadow-md);
 }
 
+.work-cover {
+	height: 400rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+}
+
+/* ── 标题 ── */
 .work-title {
 	display: block;
-	margin-top: 24rpx;
+	margin-top: 32rpx;
 	font-family: var(--zy-serif);
-	font-size: 38rpx;
+	font-size: 40rpx;
 	font-weight: 500;
 	color: var(--zy-title, #1F2937);
 	line-height: 1.4;
 }
 
-.work-meta {
+/* ── 作者信息卡片 ── */
+.author-card {
 	display: flex;
 	align-items: center;
 	gap: 20rpx;
-	margin-top: 12rpx;
+	margin-top: 24rpx;
+	padding: 24rpx 28rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	box-shadow: var(--zy-shadow-sm);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
-.work-author {
-	font-size: 26rpx;
-	color: var(--zy-content, #4B5563);
+.author-avatar {
+	width: 72rpx;
+	height: 72rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
 }
 
-.work-time {
+.author-avatar-text {
+	font-size: 32rpx;
+	font-weight: 600;
+	color: #FFFFFF;
+}
+
+.author-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 4rpx;
+}
+
+.author-name {
+	font-size: 28rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+}
+
+.author-time {
 	font-size: 24rpx;
 	color: var(--zy-aid, #9CA3AF);
 }
 
-.work-message {
+/* ── 作品故事卡片 ── */
+.story-card {
+	margin-top: 24rpx;
+	padding: 28rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	box-shadow: var(--zy-shadow-sm);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+}
+
+.story-label {
+	font-size: 24rpx;
+	color: var(--zy-aid, #9CA3AF);
 	display: block;
-	margin-top: 20rpx;
+	margin-bottom: 12rpx;
+}
+
+.story-text {
 	font-size: 28rpx;
-	line-height: 1.7;
+	line-height: 1.8;
 	color: var(--zy-content, #4B5563);
-}
-
-/* ── 点赞 + 收藏 ── */
-.action-area {
-	display: flex;
-	align-items: center;
-	gap: 56rpx;
-	margin-top: 32rpx;
-	padding-bottom: 28rpx;
-	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
-}
-
-.action-btn {
-	display: flex;
-	align-items: center;
-	gap: 10rpx;
-	padding: 8rpx 20rpx;
-	transition: transform 0.15s ease;
-}
-
-.action-btn:active {
-	transform: scale(0.92);
-}
-
-.action-count {
-	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
-}
-
-.count-liked {
-	color: #FF6B6B;
-	font-weight: 500;
-}
-
-.action-label {
-	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
-}
-
-.label-favorited {
-	color: #FFB547;
-	font-weight: 500;
 }
 
 /* ── 评论 ── */
@@ -435,6 +471,8 @@ function goBack() {
 	font-size: 30rpx;
 	font-weight: 500;
 	color: var(--zy-title, #1F2937);
+	display: block;
+	margin-bottom: 24rpx;
 }
 
 .comment-empty {
@@ -454,17 +492,26 @@ function goBack() {
 	color: var(--zy-aid, #9CA3AF);
 }
 
-.comment-item {
+.comment-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16rpx;
+}
+
+.comment-card {
 	display: flex;
 	gap: 20rpx;
-	padding: 24rpx 0;
-	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+	padding: 24rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	box-shadow: var(--zy-shadow-sm);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
 .comment-avatar {
 	width: 56rpx;
 	height: 56rpx;
-	border-radius: 50%;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 	display: flex;
 	align-items: center;
@@ -475,7 +522,7 @@ function goBack() {
 .avatar-text {
 	font-size: 26rpx;
 	font-weight: 500;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
 .comment-main {
@@ -512,8 +559,14 @@ function goBack() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 12rpx;
+	gap: 16rpx;
 	padding: 24rpx 0;
+}
+
+.bottom-divider {
+	width: 64rpx;
+	height: 1rpx;
+	background-color: var(--zy-border, #E5E7EB);
 }
 
 .loading-dot {
@@ -521,7 +574,7 @@ function goBack() {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--wot-color-theme, #2D9B8F);
+	border-top-color: var(--zy-primary, #2D9B8F);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -534,13 +587,64 @@ function goBack() {
 	color: var(--zy-aid, #9CA3AF);
 }
 
-/* ── 输入区 ── */
+/* ── 互动栏（底部固定） ── */
+.action-bar {
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+	padding: 16rpx 24rpx;
+	padding-bottom: calc(16rpx + env(safe-area-inset-bottom, 0));
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	flex-shrink: 0;
+}
+
+.action-input-wrap {
+	flex: 1;
+	height: 64rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg, #F8F9FB);
+	display: flex;
+	align-items: center;
+	padding: 0 24rpx;
+}
+
+.action-input-placeholder {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.action-btns {
+	display: flex;
+	align-items: center;
+	gap: 20rpx;
+}
+
+.action-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2rpx;
+	padding: 4rpx 8rpx;
+}
+
+.action-label {
+	font-size: 20rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.label-liked {
+	color: #FF6B6B;
+	font-weight: 500;
+}
+
+/* ── 输入弹层 ── */
 .input-area {
 	display: flex;
 	align-items: center;
 	padding: 16rpx 24rpx;
 	gap: 16rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border-top: 1rpx solid var(--zy-border, #E5E7EB);
 	flex-shrink: 0;
 }
@@ -548,9 +652,18 @@ function goBack() {
 .input-wrap {
 	flex: 1;
 	background-color: var(--zy-bg, #F8F9FB);
-	border-radius: 32rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 0 8rpx;
 	overflow: hidden;
+}
+
+.input-close {
+	width: 56rpx;
+	height: 56rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
 }
 
 .footnote {
@@ -559,7 +672,7 @@ function goBack() {
 	font-size: 22rpx;
 	color: var(--zy-aid, #9CA3AF);
 	text-align: center;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	flex-shrink: 0;
 }
 </style>

@@ -19,26 +19,33 @@
 				<view class="cover-overlay"></view>
 				<view class="cover-info">
 					<text class="cover-title">{{ project.title }}</text>
-					<view class="cover-tags">
-						<view v-if="project.category" class="cover-tag">
-							<text class="cover-tag-text">{{ project.category }}</text>
-						</view>
-						<view class="cover-tag">
-							<text class="cover-tag-text">{{ levelLabel(project.level) }}</text>
-						</view>
-						<view class="cover-tag">
-							<text class="cover-tag-text">约 {{ project.estMinutes }} 分钟</text>
-						</view>
-					</view>
-					<view v-if="therapyTags.length" class="cover-tags">
-						<view
-							v-for="tag in therapyTags"
-							:key="tag"
-							class="therapy-tag"
-						>
-							<text class="therapy-tag-text">{{ tag }}</text>
-						</view>
-					</view>
+				</view>
+			</view>
+
+			<!-- ═══ 信息条（pill 标签） ═══ -->
+			<view class="info-pills zy-slide-up zy-stagger" style="--stagger-i: 1">
+				<view v-if="project.category" class="pill">
+					<wd-icon name="grid" size="24rpx" color="#2D9B8F" />
+					<text class="pill-text">{{ project.category }}</text>
+				</view>
+				<view class="pill">
+					<wd-icon name="chart-bar" size="24rpx" color="#FFB547" />
+					<text class="pill-text">{{ levelLabel(project.level) }}</text>
+				</view>
+				<view class="pill">
+					<wd-icon name="time" size="24rpx" color="#5BC4A8" />
+					<text class="pill-text">约 {{ project.estMinutes }} 分钟</text>
+				</view>
+			</view>
+
+			<!-- ═══ 疗愈标签 ═══ -->
+			<view v-if="therapyTags.length" class="therapy-tags zy-slide-up zy-stagger" style="--stagger-i: 2">
+				<view
+					v-for="tag in therapyTags"
+					:key="tag"
+					class="therapy-tag"
+				>
+					<text class="therapy-tag-text">{{ tag }}</text>
 				</view>
 			</view>
 
@@ -46,7 +53,7 @@
 			<view
 				v-if="project.inheritorId"
 				class="inheritor-bar zy-slide-up zy-stagger"
-				style="--stagger-i: 1"
+				style="--stagger-i: 3"
 				@click="goInheritorDetail"
 			>
 				<view class="inheritor-avatar" :style="inheritorAvatarStyle">
@@ -60,41 +67,48 @@
 			</view>
 
 			<!-- ═══ 文化背景 ═══ -->
-			<view v-if="project.cultureBg" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 2">
+			<view v-if="project.cultureBg" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 4">
+				<view class="section-quote">"</view>
 				<text class="section-title">文化背景</text>
 				<text class="section-text">{{ project.cultureBg }}</text>
 			</view>
 
 			<!-- ═══ 所需材料 ═══ -->
-			<view v-if="materials.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 3">
+			<view v-if="materials.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 5">
 				<text class="section-title">所需材料</text>
-				<view class="material-list">
+				<view class="material-grid">
 					<view
 						v-for="(mat, idx) in materials"
 						:key="mat.id || idx"
 						class="material-item"
 					>
-						<view class="material-dot"></view>
+						<view class="material-icon">
+							<wd-icon name="gift" size="28rpx" color="#2D9B8F" />
+						</view>
 						<text class="material-name">{{ mat.name }}</text>
 						<text v-if="mat.qty" class="material-qty">{{ mat.qty }}</text>
 					</view>
 				</view>
 			</view>
 
-			<!-- ═══ 创作步骤 ═══ -->
-			<view v-if="steps.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 4">
+			<!-- ═══ 创作步骤（时间线） ═══ -->
+			<view v-if="steps.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 6">
 				<text class="section-title">创作步骤</text>
-				<view class="step-list">
+				<view class="step-timeline">
 					<view
 						v-for="(step, idx) in steps"
 						:key="step.id || idx"
-						class="step-item"
+						class="step-row"
 					>
-						<view class="step-num">
-							<text class="step-num-text">{{ step.stepNo || idx + 1 }}</text>
+						<view class="step-left">
+							<view class="step-dot">
+								<text class="step-dot-num">{{ step.stepNo || idx + 1 }}</text>
+							</view>
+							<view v-if="idx < steps.length - 1" class="step-line"></view>
 						</view>
 						<view class="step-content">
 							<text class="step-title">{{ step.title }}</text>
+							<text v-if="step.guide" class="step-guide">{{ step.guide }}</text>
 						</view>
 					</view>
 				</view>
@@ -142,14 +156,11 @@ const steps = computed(() => {
 })
 
 const hasInheritorAvatar = computed(() => {
-	// #ifdef H5
-	return !!(project.value && project.value.inheritorId && false) // 后端暂不返回 inheritorAvatarUrl
-	// #endif
 	return false
 })
 
 const inheritorAvatarStyle = computed(() => {
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BCFBF);'
+	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
 })
 
 onLoad((query) => {
@@ -241,7 +252,7 @@ function goSession() {
 /* ── 封面区 ── */
 .cover-section {
 	position: relative;
-	height: 400rpx;
+	height: 420rpx;
 	display: flex;
 	align-items: flex-end;
 	padding: 32rpx 24rpx;
@@ -253,8 +264,8 @@ function goSession() {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	height: 60%;
-	background: linear-gradient(to top, rgba(31, 41, 55, 0.7) 0%, transparent 100%);
+	height: 70%;
+	background: linear-gradient(to top, rgba(31, 41, 55, 0.75) 0%, transparent 100%);
 }
 
 .cover-info {
@@ -267,37 +278,51 @@ function goSession() {
 	font-weight: 600;
 	color: #FFFFFF;
 	line-height: 1.3;
-	text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+	text-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.35);
+	font-family: var(--zy-serif);
 }
 
-.cover-tags {
+/* ── 信息条 pill 标签 ── */
+.info-pills {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 12rpx;
-	margin-top: 16rpx;
+	padding: 24rpx 24rpx 0;
 }
 
-.cover-tag {
-	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
-	background-color: rgba(255, 255, 255, 0.2);
-	backdrop-filter: blur(8px);
+.pill {
+	display: flex;
+	align-items: center;
+	gap: 8rpx;
+	padding: 10rpx 20rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	box-shadow: var(--zy-shadow-sm);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
-.cover-tag-text {
-	font-size: 22rpx;
-	color: #FFFFFF;
+.pill-text {
+	font-size: 24rpx;
+	color: var(--zy-content, #4B5563);
+}
+
+/* ── 疗愈标签 ── */
+.therapy-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12rpx;
+	padding: 16rpx 24rpx 0;
 }
 
 .therapy-tag {
 	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
-	background-color: rgba(45, 155, 143, 0.3);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
 .therapy-tag-text {
 	font-size: 22rpx;
-	color: #FFFFFF;
+	color: var(--zy-primary, #2D9B8F);
 }
 
 /* ── 传承人信息条 ── */
@@ -307,11 +332,11 @@ function goSession() {
 	gap: 16rpx;
 	margin: 24rpx;
 	padding: 24rpx;
-	border-radius: 16px;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1px solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-	transition: transform 0.2s ease;
+	box-shadow: var(--zy-shadow-sm);
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 }
 
 .inheritor-bar:active {
@@ -321,7 +346,7 @@ function goSession() {
 .inheritor-avatar {
 	width: 72rpx;
 	height: 72rpx;
-	border-radius: 50%;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
@@ -354,12 +379,25 @@ function goSession() {
 
 /* ── 区块卡片 ── */
 .section-card {
+	position: relative;
 	margin: 0 24rpx 24rpx;
 	padding: 28rpx;
-	border-radius: 16px;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1px solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+	box-shadow: var(--zy-shadow-sm);
+	overflow: hidden;
+}
+
+.section-quote {
+	position: absolute;
+	top: 4rpx;
+	left: 16rpx;
+	font-size: 56rpx;
+	font-family: var(--zy-serif);
+	color: var(--zy-primary, #2D9B8F);
+	opacity: 0.15;
+	line-height: 1;
 }
 
 .section-title {
@@ -369,84 +407,125 @@ function goSession() {
 	font-family: var(--zy-serif);
 	display: block;
 	margin-bottom: 16rpx;
+	position: relative;
 }
 
 .section-text {
 	font-size: 28rpx;
-	line-height: 1.8;
+	line-height: 1.9;
 	color: var(--zy-content, #4B5563);
+	position: relative;
 }
 
-/* ── 材料列表 ── */
-.material-list {
+/* ── 材料网格（2 列） ── */
+.material-grid {
 	display: flex;
-	flex-direction: column;
-	gap: 20rpx;
-}
-
-.material-item {
-	display: flex;
-	align-items: center;
+	flex-wrap: wrap;
 	gap: 16rpx;
 }
 
-.material-dot {
-	width: 12rpx;
-	height: 12rpx;
-	border-radius: 50%;
-	background-color: var(--wot-color-theme, #2D9B8F);
-	flex-shrink: 0;
-}
-
-.material-name {
-	font-size: 28rpx;
-	color: var(--zy-title, #1F2937);
-}
-
-.material-qty {
-	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
-	margin-left: auto;
-}
-
-/* ── 步骤列表 ── */
-.step-list {
-	display: flex;
-	flex-direction: column;
-	gap: 24rpx;
-}
-
-.step-item {
+.material-item {
+	width: calc((100% - 16rpx) / 2);
 	display: flex;
 	align-items: center;
-	gap: 20rpx;
+	gap: 12rpx;
+	padding: 16rpx 20rpx;
+	border-radius: var(--zy-radius-md, 20rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
-.step-num {
-	width: 56rpx;
-	height: 56rpx;
-	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+.material-icon {
+	width: 48rpx;
+	height: 48rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
 }
 
-.step-num-text {
-	font-size: 28rpx;
+.material-name {
+	flex: 1;
+	font-size: 26rpx;
+	color: var(--zy-title, #1F2937);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.material-qty {
+	font-size: 24rpx;
+	color: var(--zy-aid, #9CA3AF);
+	flex-shrink: 0;
+}
+
+/* ── 步骤时间线 ── */
+.step-timeline {
+	display: flex;
+	flex-direction: column;
+}
+
+.step-row {
+	display: flex;
+	gap: 20rpx;
+}
+
+.step-left {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.step-dot {
+	width: 52rpx;
+	height: 52rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2rpx 8rpx rgba(45, 155, 143, 0.25);
+}
+
+.step-dot-num {
+	font-size: 26rpx;
 	font-weight: 600;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: #FFFFFF;
+}
+
+.step-line {
+	width: 2rpx;
+	flex: 1;
+	min-height: 40rpx;
+	background-color: var(--zy-border, #E5E7EB);
+	margin: 4rpx 0;
 }
 
 .step-content {
 	flex: 1;
+	padding-bottom: 28rpx;
 }
 
 .step-title {
 	font-size: 28rpx;
+	font-weight: 500;
 	color: var(--zy-title, #1F2937);
 	line-height: 1.5;
+	display: block;
+}
+
+.step-guide {
+	display: -webkit-box;
+	margin-top: 6rpx;
+	font-size: 24rpx;
+	line-height: 1.6;
+	color: var(--zy-aid, #9CA3AF);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
 }
 
 /* ── 底部占位 ── */
@@ -462,19 +541,20 @@ function goSession() {
 	bottom: 0;
 	padding: 20rpx 24rpx;
 	padding-bottom: calc(20rpx + env(safe-area-inset-bottom, 0));
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border-top: 1px solid var(--zy-border, #E5E7EB);
 	z-index: 100;
 }
 
 .start-btn {
 	height: 88rpx;
-	border-radius: 999rpx;
-	background: linear-gradient(135deg, #2D9B8F, #5BC4A8);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: transform 0.2s ease;
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
+	box-shadow: var(--zy-shadow-lg);
 }
 
 .start-btn:active {

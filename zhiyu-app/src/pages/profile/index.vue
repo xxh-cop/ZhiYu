@@ -4,11 +4,14 @@
 		<view class="profile-card zy-slide-up">
 			<view class="card-accent"></view>
 			<view class="profile-body">
-				<view class="avatar">
-					<text class="avatar-text">{{ avatarChar }}</text>
+				<view class="avatar-ring">
+					<view class="avatar">
+						<text class="avatar-text">{{ avatarChar }}</text>
+					</view>
 				</view>
 				<view class="profile-info">
 					<text class="profile-name">{{ nickname }}</text>
+					<text class="profile-signature">{{ signature }}</text>
 					<view class="profile-meta">
 						<view v-if="roleLabel" class="role-badge">
 							<text class="role-text">{{ roleLabel }}</text>
@@ -19,17 +22,42 @@
 			</view>
 		</view>
 
+		<!-- 数据可视化行 -->
+		<view class="stats-row">
+			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 0">
+				<view class="stat-icon-wrap">
+					<wd-icon name="edit" size="32rpx" color="#2D9B8F" />
+				</view>
+				<text class="stat-num">{{ stats.days }}</text>
+				<text class="stat-label">创作天数</text>
+			</view>
+			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 1">
+				<view class="stat-icon-wrap">
+					<wd-icon name="picture" size="32rpx" color="#FFB547" />
+				</view>
+				<text class="stat-num">{{ stats.works }}</text>
+				<text class="stat-label">作品数</text>
+			</view>
+			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 2">
+				<view class="stat-icon-wrap">
+					<wd-icon name="chat" size="32rpx" color="#5BC4A8" />
+				</view>
+				<text class="stat-num">{{ stats.notes }}</text>
+				<text class="stat-label">便签数</text>
+			</view>
+		</view>
+
 		<!-- 快捷入口列表 -->
 		<view class="menu-list">
 			<view
 				v-for="(item, idx) in menuItems"
 				:key="idx"
-				class="menu-item"
+				class="menu-item zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx }"
 				@click="handleMenu(item)"
 			>
-				<view class="menu-icon-wrap">
-					<wd-icon :name="item.icon" size="36rpx" color="#2D9B8F" />
+				<view class="menu-icon-wrap" :style="{ background: item.iconBg }">
+					<wd-icon :name="item.icon" size="36rpx" color="#FFFFFF" />
 				</view>
 				<text class="menu-label">{{ item.label }}</text>
 				<wd-icon name="arrow-right" size="32rpx" color="#D1D5DB" />
@@ -37,13 +65,9 @@
 		</view>
 
 		<!-- 退出登录按钮 -->
-		<wd-button
-			class="logout-btn"
-			type="error"
-			plain
-			block
-			@click="handleLogout"
-		>退出登录</wd-button>
+		<view class="logout-btn zy-slide-up" @click="handleLogout">
+			<text class="logout-btn-text">退出登录</text>
+		</view>
 
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
@@ -64,12 +88,12 @@ const ROLE_LABEL = {
 }
 
 const menuItems = [
-	{ icon: 'picture', label: '我的作品', action: 'coming' },
-	{ icon: 'chat', label: '我的对话历史', action: 'coming' },
-	{ icon: 'edit', label: '我的便签', action: 'notes' },
-	{ icon: 'group', label: '我的小组', action: 'coming' },
-	{ icon: 'setting1', label: '隐私设置', action: 'privacy' },
-	{ icon: 'phone', label: '心理援助', action: 'crisis' },
+	{ icon: 'picture', label: '我的作品', action: 'coming', iconBg: 'linear-gradient(135deg, #2D9B8F, #5BC4A8)' },
+	{ icon: 'chat', label: '我的对话历史', action: 'coming', iconBg: 'linear-gradient(135deg, #5BC4A8, #8DD9C4)' },
+	{ icon: 'edit', label: '我的便签', action: 'notes', iconBg: 'linear-gradient(135deg, #FFB547, #FFCB6E)' },
+	{ icon: 'group', label: '我的小组', action: 'coming', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF9B9B)' },
+	{ icon: 'setting1', label: '隐私设置', action: 'privacy', iconBg: 'linear-gradient(135deg, #6B7280, #9CA3AF)' },
+	{ icon: 'phone', label: '心理援助', action: 'crisis', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF8B8B)' },
 ]
 
 const userStore = useUserStore()
@@ -94,12 +118,29 @@ const avatarChar = computed(() => {
 	return name ? name.charAt(0) : '织'
 })
 
+// 动态签名（根据时段变化）
+const signature = computed(() => {
+	const hour = new Date().getHours()
+	if (hour < 6) return '夜深了，先把自己安顿好'
+	if (hour < 12) return '今天也要好好爱自己'
+	if (hour < 18) return '给自己留一点安静的时间'
+	return '把今天的疲惫放一放'
+})
+
+// TODO: 后端暂无统计接口，使用 Mock 数据
+const stats = ref({
+	days: 0,
+	works: 0,
+	notes: 0,
+})
+
 onShow(() => {
 	if (!userStore.isLogin) {
 		uni.reLaunch({ url: '/pages/login/index' })
 		return
 	}
 	loadCurrentUser()
+	loadStats()
 })
 
 async function loadCurrentUser() {
@@ -108,11 +149,22 @@ async function loadCurrentUser() {
 	try {
 		const data = await request({ url: '/api/auth/me', method: 'GET' })
 		userStore.setUserInfo(data)
+		// 从注册时间计算创作天数
+		if (data && data.createTime) {
+			const created = new Date(data.createTime)
+			const now = new Date()
+			stats.value.days = Math.max(1, Math.floor((now - created) / (1000 * 60 * 60 * 24)))
+		}
 	} catch (e) {
-		// code=1002 已由 utils/request.js 处理
 	} finally {
 		loadingMe.value = false
 	}
+}
+
+async function loadStats() {
+	// TODO: 后端暂无 /api/user/stats 接口，使用 Mock
+	stats.value.works = 0
+	stats.value.notes = 0
 }
 
 function handleMenu(item) {
@@ -153,38 +205,48 @@ function handleLogout() {
 /* ── 用户信息卡片 ── */
 .profile-card {
 	overflow: hidden;
-	border-radius: 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
-	margin-bottom: 32rpx;
+	box-shadow: var(--zy-shadow-sm);
+	margin-bottom: 24rpx;
 }
 
 .card-accent {
 	height: 8rpx;
-	background: linear-gradient(90deg, #2D9B8F 0%, #5BC4A8 100%);
+	background: linear-gradient(90deg, var(--zy-primary, #2D9B8F) 0%, var(--zy-primary-light, #5BC4A8) 100%);
 }
 
 .profile-body {
 	display: flex;
 	align-items: center;
-	gap: 24rpx;
+	gap: 28rpx;
 	padding: 36rpx 32rpx;
 }
 
-.avatar {
-	width: 120rpx;
-	height: 120rpx;
-	border-radius: 50%;
-	background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);
-	display: flex;
-	align-items: center;
-	justify-content: center;
+.avatar-ring {
+	width: 172rpx;
+	height: 172rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	padding: 6rpx;
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	flex-shrink: 0;
 }
 
+.avatar {
+	width: 100%;
+	height: 100%;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F) 0%, var(--zy-primary-light, #5BC4A8) 100%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 4rpx solid var(--zy-card-bg, #FFFFFF);
+	box-sizing: border-box;
+}
+
 .avatar-text {
-	font-size: 48rpx;
+	font-size: 56rpx;
 	font-weight: 600;
 	color: #FFFFFF;
 }
@@ -193,30 +255,36 @@ function handleLogout() {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	gap: 12rpx;
+	gap: 8rpx;
 }
 
 .profile-name {
-	font-size: 34rpx;
+	font-size: 36rpx;
 	font-weight: 600;
 	color: var(--zy-title, #1F2937);
+}
+
+.profile-signature {
+	font-size: 24rpx;
+	color: var(--zy-aid, #9CA3AF);
 }
 
 .profile-meta {
 	display: flex;
 	align-items: center;
 	gap: 16rpx;
+	margin-top: 4rpx;
 }
 
 .role-badge {
 	padding: 4rpx 16rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg-tint-warm, #FFF8EE);
 }
 
 .role-text {
 	font-size: 22rpx;
-	color: #FFB547;
+	color: var(--zy-accent, #FFB547);
 }
 
 .school-text {
@@ -224,14 +292,57 @@ function handleLogout() {
 	color: var(--zy-aid, #9CA3AF);
 }
 
+/* ── 数据可视化行 ── */
+.stats-row {
+	display: flex;
+	gap: 16rpx;
+	margin-bottom: 24rpx;
+}
+
+.stat-card {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8rpx;
+	padding: 28rpx 12rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	box-shadow: var(--zy-shadow-sm);
+}
+
+.stat-icon-wrap {
+	width: 56rpx;
+	height: 56rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	margin-bottom: 4rpx;
+}
+
+.stat-num {
+	font-size: 44rpx;
+	font-weight: 700;
+	color: var(--zy-title, #1F2937);
+	font-family: var(--zy-serif);
+	line-height: 1;
+}
+
+.stat-label {
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
 /* ── 快捷入口列表 ── */
 .menu-list {
 	overflow: hidden;
-	border-radius: 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
-	margin-bottom: 40rpx;
+	box-shadow: var(--zy-shadow-sm);
+	margin-bottom: 32rpx;
 }
 
 .menu-item {
@@ -239,9 +350,7 @@ function handleLogout() {
 	align-items: center;
 	gap: 20rpx;
 	padding: 28rpx 32rpx;
-	transition: background-color 0.15s ease;
-	animation: menuEnter 0.35s ease both;
-	animation-delay: calc(var(--stagger-i, 0) * 80ms);
+	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .menu-item:not(:last-child) {
@@ -249,19 +358,13 @@ function handleLogout() {
 }
 
 .menu-item:active {
-	background-color: var(--zy-bg, #F8F9FB);
-}
-
-@keyframes menuEnter {
-	from { opacity: 0; transform: translateY(12rpx); }
-	to { opacity: 1; transform: translateY(0); }
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
 .menu-icon-wrap {
 	width: 64rpx;
 	height: 64rpx;
-	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	border-radius: var(--zy-radius-full, 9999rpx);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -276,7 +379,22 @@ function handleLogout() {
 
 /* ── 退出登录 ── */
 .logout-btn {
-	margin-top: 8rpx;
+	height: 88rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	border: 1rpx solid rgba(255, 107, 107, 0.3);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+}
+
+.logout-btn:active {
+	background-color: rgba(255, 107, 107, 0.05);
+}
+
+.logout-btn-text {
+	font-size: 30rpx;
+	color: var(--zy-danger, #FF6B6B);
 }
 
 .footnote {

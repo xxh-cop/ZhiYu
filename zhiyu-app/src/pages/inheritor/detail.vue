@@ -16,28 +16,59 @@
 
 		<!-- 传承人资料 + 项目列表 -->
 		<view v-else-if="inheritor">
-			<!-- ═══ 传承人资料区 ═══ -->
-			<view class="profile-section zy-slide-up zy-stagger" style="--stagger-i: 0">
-				<view class="avatar-large" :style="avatarStyle(inheritor)">
-					<text v-if="!inheritor.avatarUrl" class="avatar-letter">{{ firstLetter(inheritor.nickname) }}</text>
-				</view>
-				<text class="profile-name">{{ inheritor.nickname || '未知' }}</text>
-				<view class="profile-tags">
-					<view v-if="inheritor.skill" class="skill-badge">
-						<text class="skill-text">{{ inheritor.skill }}</text>
+			<!-- ═══ 渐变头部区 ═══ -->
+			<view class="hero-section zy-slide-up">
+				<view class="hero-bg"></view>
+				<view class="hero-content">
+					<view class="hero-avatar-wrap">
+						<view class="hero-avatar" :style="avatarStyle(inheritor)">
+							<text v-if="!inheritor.avatarUrl" class="hero-avatar-letter">{{ firstLetter(inheritor.nickname) }}</text>
+						</view>
 					</view>
+					<text class="hero-name">{{ inheritor.nickname || '未知' }}</text>
+					<view class="hero-tags">
+						<view v-if="inheritor.skill" class="skill-badge">
+							<text class="skill-text">{{ inheritor.skill }}</text>
+						</view>
+						<view v-if="inheritor.honor" class="honor-badge">
+							<wd-icon name="medal" size="24rpx" color="#FFB547" />
+							<text class="honor-text">{{ inheritor.honor }}</text>
+						</view>
+					</view>
+					<text v-if="inheritor.school" class="hero-school">{{ inheritor.school }}</text>
 				</view>
-				<text v-if="inheritor.honor" class="profile-honor">{{ inheritor.honor }}</text>
-				<text v-if="inheritor.school" class="profile-school">{{ inheritor.school }}</text>
-				<text v-if="inheritor.intro" class="profile-intro">{{ inheritor.intro }}</text>
+			</view>
+
+			<!-- ═══ 数据行 ═══ -->
+			<view class="stats-row zy-slide-up zy-stagger" style="--stagger-i: 1">
+				<view class="stat-item">
+					<text class="stat-num">{{ stats.works }}</text>
+					<text class="stat-label">作品</text>
+				</view>
+				<view class="stat-divider"></view>
+				<view class="stat-item">
+					<text class="stat-num">{{ stats.fans }}</text>
+					<text class="stat-label">粉丝</text>
+				</view>
+				<view class="stat-divider"></view>
+				<view class="stat-item">
+					<text class="stat-num">{{ stats.likes }}</text>
+					<text class="stat-label">获赞</text>
+				</view>
+			</view>
+
+			<!-- ═══ 简介区 ═══ -->
+			<view v-if="inheritor.intro" class="intro-card zy-slide-up zy-stagger" style="--stagger-i: 2">
+				<view class="intro-quote">"</view>
+				<text class="intro-text">{{ inheritor.intro }}</text>
 			</view>
 
 			<!-- ═══ TA 的手作 ═══ -->
-			<view class="projects-section zy-slide-up zy-stagger" style="--stagger-i: 1">
+			<view class="projects-section zy-slide-up zy-stagger" style="--stagger-i: 3">
 				<text class="section-title">TA 的手作</text>
 
 				<!-- 项目加载中 -->
-				<view v-if="projectLoading && projects.length === 0" class="card-list">
+				<view v-if="projectLoading && projects.length === 0" class="project-grid">
 					<view v-for="i in 2" :key="'psk-'+i" class="skeleton-project-card">
 						<view class="skeleton-cover zy-skeleton"></view>
 						<view class="skeleton-project-body">
@@ -52,13 +83,13 @@
 					<text class="empty-text">暂无已上架作品</text>
 				</view>
 
-				<!-- 项目卡片列表 -->
-				<view v-else class="card-list">
+				<!-- 项目卡片网格 -->
+				<view v-else class="project-grid">
 					<view
 						v-for="(item, idx) in projects"
 						:key="item.id"
 						class="project-card zy-slide-up zy-stagger"
-						:style="{ '--stagger-i': idx + 2 }"
+						:style="{ '--stagger-i': idx + 4 }"
 						@click="goProjectDetail(item)"
 					>
 						<!-- 封面图 -->
@@ -79,13 +110,6 @@
 								<view class="time-badge">
 									<text class="time-text">约 {{ item.estMinutes }} 分钟</text>
 								</view>
-								<view
-									v-for="tag in splitTags(item.therapyTags)"
-									:key="tag"
-									class="tag-badge"
-								>
-									<text class="tag-text">{{ tag }}</text>
-								</view>
 							</view>
 						</view>
 					</view>
@@ -94,7 +118,11 @@
 					<view v-if="projects.length > 0" class="bottom-status">
 						<view v-if="projectLoading" class="loading-dot"></view>
 						<text v-if="projectLoading" class="bottom-text">正在加载…</text>
-						<text v-else-if="!hasMore" class="bottom-text">没有更多了</text>
+						<template v-else-if="!hasMore">
+							<view class="bottom-divider"></view>
+							<text class="bottom-text">没有更多了</text>
+							<view class="bottom-divider"></view>
+						</template>
 					</view>
 				</view>
 			</view>
@@ -121,6 +149,13 @@ const page = ref(1)
 const total = ref(0)
 const size = 10
 
+// TODO: 后端暂无统计数据接口，使用 Mock
+const stats = ref({
+	works: 0,
+	fans: 0,
+	likes: 0,
+})
+
 const hasMore = computed(() => page.value * size < total.value)
 
 onLoad((query) => {
@@ -142,6 +177,12 @@ async function loadInheritor() {
 	try {
 		const data = await http.get(`/api/inheritors/${inheritorId.value}`)
 		inheritor.value = data
+		// TODO: 后端暂无 stats 字段，用 Mock
+		if (data) {
+			stats.value.works = data.projectCount || 0
+			stats.value.fans = data.fanCount || 0
+			stats.value.likes = data.likeCount || 0
+		}
 	} catch (e) {
 		errorMsg.value = (e && e.message) || '加载失败，请稍后重试'
 	} finally {
@@ -165,7 +206,6 @@ async function loadProjects(pageNum) {
 			projects.value = data.records || []
 		}
 	} catch (e) {
-		// 项目列表加载失败不阻塞页面
 	} finally {
 		projectLoading.value = false
 	}
@@ -198,7 +238,7 @@ function avatarStyle(item) {
 		return `background-image: url(${item.avatarUrl}); background-size: cover; background-position: center;`
 		// #endif
 	}
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BCFBF);'
+	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
 }
 
 function coverStyle(coverUrl) {
@@ -207,12 +247,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BCFBF);'
-}
-
-function splitTags(tags) {
-	if (!tags) return []
-	return tags.split(',').map((t) => t.trim()).filter(Boolean)
+	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
 }
 
 function levelLabel(level) {
@@ -232,7 +267,7 @@ function goProjectDetail(item) {
 <style lang="scss" scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 120rpx;
+	padding: 0 0 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #F8F9FB);
 }
@@ -247,8 +282,8 @@ function goProjectDetail(item) {
 }
 
 .skeleton-avatar {
-	width: 144rpx;
-	height: 144rpx;
+	width: 160rpx;
+	height: 160rpx;
 	border-radius: 50%;
 }
 
@@ -282,84 +317,176 @@ function goProjectDetail(item) {
 	color: var(--zy-danger, #FF6B6B);
 }
 
-/* ── 传承人资料区 ── */
-.profile-section {
+/* ── 渐变头部区 ── */
+.hero-section {
+	position: relative;
+	padding: 60rpx 32rpx 40rpx;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding: 40rpx 32rpx;
-	margin-bottom: 32rpx;
-	border-radius: 16px;
-	background-color: var(--zy-bg-warm, #FFFFFF);
-	border: 1px solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+	overflow: hidden;
 }
 
-.avatar-large {
-	width: 144rpx;
-	height: 144rpx;
+.hero-bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #F0F9F7) 0%, var(--zy-bg, #F8F9FB) 100%);
+}
+
+.hero-content {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16rpx;
+}
+
+.hero-avatar-wrap {
+	width: 212rpx;
+	height: 212rpx;
+	border-radius: 50%;
+	padding: 6rpx;
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	margin-bottom: 8rpx;
+}
+
+.hero-avatar {
+	width: 100%;
+	height: 100%;
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-bottom: 24rpx;
+	border: 6rpx solid var(--zy-card-bg, #FFFFFF);
+	box-sizing: border-box;
+	box-shadow: var(--zy-shadow-md);
 }
 
-.avatar-letter {
-	font-size: 56rpx;
+.hero-avatar-letter {
+	font-size: 72rpx;
 	font-weight: 600;
 	color: #FFFFFF;
 }
 
-.profile-name {
+.hero-name {
 	font-size: 40rpx;
-	font-weight: 500;
+	font-weight: 600;
 	color: var(--zy-title, #1F2937);
 	font-family: var(--zy-serif);
 }
 
-.profile-tags {
+.hero-tags {
 	display: flex;
 	gap: 12rpx;
-	margin-top: 16rpx;
 	flex-wrap: wrap;
 	justify-content: center;
 }
 
 .skill-badge {
 	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
 .skill-text {
 	font-size: 24rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
-.profile-honor {
-	margin-top: 16rpx;
-	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+.honor-badge {
+	display: flex;
+	align-items: center;
+	gap: 6rpx;
+	padding: 6rpx 20rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-warm, #FFF8EE);
 }
 
-.profile-school {
-	margin-top: 8rpx;
+.honor-text {
+	font-size: 24rpx;
+	color: var(--zy-accent, #FFB547);
+}
+
+.hero-school {
 	font-size: 24rpx;
 	color: var(--zy-aid, #9CA3AF);
 }
 
-.profile-intro {
-	margin-top: 20rpx;
+/* ── 数据行 ── */
+.stats-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0;
+	margin: 0 24rpx 24rpx;
+	padding: 28rpx 0;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	box-shadow: var(--zy-shadow-sm);
+}
+
+.stat-item {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4rpx;
+}
+
+.stat-num {
+	font-size: 40rpx;
+	font-weight: 700;
+	color: var(--zy-title, #1F2937);
+	font-family: var(--zy-serif);
+	line-height: 1;
+}
+
+.stat-label {
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.stat-divider {
+	width: 1rpx;
+	height: 48rpx;
+	background-color: var(--zy-border, #E5E7EB);
+}
+
+/* ── 简介区 ── */
+.intro-card {
+	position: relative;
+	margin: 0 24rpx 24rpx;
+	padding: 32rpx 28rpx 28rpx;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	box-shadow: var(--zy-shadow-sm);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+}
+
+.intro-quote {
+	position: absolute;
+	top: 8rpx;
+	left: 20rpx;
+	font-size: 56rpx;
+	font-family: var(--zy-serif);
+	color: var(--zy-primary, #2D9B8F);
+	opacity: 0.2;
+	line-height: 1;
+}
+
+.intro-text {
 	font-size: 28rpx;
 	line-height: 1.8;
 	color: var(--zy-content, #4B5563);
-	text-align: center;
 }
 
 /* ── TA 的手作 ── */
 .projects-section {
-	margin-bottom: 32rpx;
+	margin: 0 24rpx;
 }
 
 .section-title {
@@ -386,17 +513,17 @@ function goProjectDetail(item) {
 /* ── 骨架项目卡片 ── */
 .skeleton-project-card {
 	overflow: hidden;
-	border-radius: 16px;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
 .skeleton-cover {
-	height: 280rpx;
+	height: 200rpx;
 }
 
 .skeleton-project-body {
-	padding: 28rpx;
+	padding: 24rpx;
 }
 
 .skeleton-title {
@@ -410,30 +537,31 @@ function goProjectDetail(item) {
 	width: 90%;
 }
 
-/* ── 项目卡片列表 ── */
-.card-list {
+/* ── 项目卡片网格（2 列） ── */
+.project-grid {
 	display: flex;
-	flex-direction: column;
-	gap: 24rpx;
+	flex-wrap: wrap;
+	gap: 20rpx;
 }
 
 .project-card {
+	width: calc((100% - 20rpx) / 2);
 	overflow: hidden;
-	border-radius: 16px;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1px solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	box-shadow: var(--zy-shadow-sm);
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 }
 
 .project-card:active {
 	transform: scale(0.98);
-	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.1);
+	box-shadow: var(--zy-shadow-md);
 }
 
 /* ── 封面图 ── */
 .card-cover {
-	height: 280rpx;
+	height: 200rpx;
 	display: flex;
 	align-items: flex-start;
 	justify-content: flex-end;
@@ -442,7 +570,7 @@ function goProjectDetail(item) {
 
 .level-badge {
 	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: rgba(255, 181, 71, 0.9);
 }
 
@@ -454,20 +582,25 @@ function goProjectDetail(item) {
 
 /* ── 卡片内容 ── */
 .card-body {
-	padding: 28rpx;
+	padding: 24rpx;
 }
 
 .card-title {
-	font-size: 32rpx;
+	font-size: 28rpx;
 	font-weight: 500;
 	color: var(--zy-title, #1F2937);
+	display: -webkit-box;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-webkit-line-clamp: 1;
+	-webkit-box-orient: vertical;
 }
 
 .card-intro {
 	display: -webkit-box;
-	margin-top: 12rpx;
-	font-size: 26rpx;
-	line-height: 1.6;
+	margin-top: 8rpx;
+	font-size: 24rpx;
+	line-height: 1.5;
 	color: var(--zy-content, #4B5563);
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -478,41 +611,30 @@ function goProjectDetail(item) {
 .card-tags {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 12rpx;
-	margin-top: 20rpx;
+	gap: 8rpx;
+	margin-top: 16rpx;
 }
 
 .category-badge {
-	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
-	background-color: #F3F4F6;
+	padding: 4rpx 14rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg, #F3F4F6);
 }
 
 .category-text {
-	font-size: 22rpx;
+	font-size: 20rpx;
 	color: var(--zy-aid, #9CA3AF);
 }
 
 .time-badge {
-	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
-	background-color: #F3F4F6;
+	padding: 4rpx 14rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg, #F3F4F6);
 }
 
 .time-text {
-	font-size: 22rpx;
+	font-size: 20rpx;
 	color: var(--zy-aid, #9CA3AF);
-}
-
-.tag-badge {
-	padding: 6rpx 20rpx;
-	border-radius: 999rpx;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
-}
-
-.tag-text {
-	font-size: 22rpx;
-	color: var(--wot-color-theme, #2D9B8F);
 }
 
 /* ── 底部 ── */
@@ -520,8 +642,15 @@ function goProjectDetail(item) {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 12rpx;
+	gap: 16rpx;
 	padding: 32rpx 0;
+	width: 100%;
+}
+
+.bottom-divider {
+	width: 64rpx;
+	height: 1rpx;
+	background-color: var(--zy-border, #E5E7EB);
 }
 
 .loading-dot {
@@ -529,7 +658,7 @@ function goProjectDetail(item) {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--wot-color-theme, #2D9B8F);
+	border-top-color: var(--zy-primary, #2D9B8F);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -544,7 +673,7 @@ function goProjectDetail(item) {
 
 .footnote {
 	display: block;
-	margin-top: 48rpx;
+	margin: 24rpx;
 	font-size: 22rpx;
 	color: var(--zy-aid, #9CA3AF);
 	text-align: center;

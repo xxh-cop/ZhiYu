@@ -37,6 +37,9 @@
 
 		<!-- 空状态 -->
 		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="status-box">
+			<view class="empty-icon-wrap">
+				<text class="empty-emoji">🔍</text>
+			</view>
 			<text class="empty-text">暂无传承人</text>
 		</view>
 
@@ -55,22 +58,40 @@
 				:style="{ '--stagger-i': idx + 2 }"
 				@click="goDetail(item)"
 			>
-				<!-- 头像 -->
-				<view class="card-avatar" :style="avatarStyle(item)">
-					<text v-if="!item.avatarUrl" class="avatar-letter">{{ firstLetter(item.nickname) }}</text>
-				</view>
+				<!-- 左侧渐变竖线 -->
+				<view class="card-accent-line"></view>
 
-				<view class="card-body">
-					<view class="card-header-row">
-						<text class="card-name">{{ item.nickname || '未知' }}</text>
-						<view v-if="item.skill" class="skill-badge">
-							<text class="skill-text">{{ item.skill }}</text>
+				<view class="card-inner">
+					<!-- 头像 -->
+					<view class="avatar-ring">
+						<view class="card-avatar" :style="avatarStyle(item)">
+							<text v-if="!item.avatarUrl" class="avatar-letter">{{ firstLetter(item.nickname) }}</text>
 						</view>
 					</view>
 
-					<text v-if="item.honor" class="card-honor">{{ item.honor }}</text>
+					<view class="card-body">
+						<view class="card-header-row">
+							<text class="card-name">{{ item.nickname || '未知' }}</text>
+							<view v-if="item.skill" class="skill-badge">
+								<text class="skill-text">{{ item.skill }}</text>
+							</view>
+						</view>
 
-					<text v-if="item.intro" class="card-intro">{{ item.intro }}</text>
+						<text v-if="item.honor" class="card-honor">{{ item.honor }}</text>
+
+						<text v-if="item.intro" class="card-intro">{{ item.intro }}</text>
+
+						<!-- 底部：认证徽章 + 项目数 -->
+						<view class="card-footer">
+							<view v-if="item.verified" class="verified-badge">
+								<wd-icon name="check-circle-filled" size="24rpx" color="#2D9B8F" />
+								<text class="verified-text">已认证</text>
+							</view>
+							<view class="project-count">
+								<text class="project-count-text">{{ item.projectCount || 0 }} 个手作项目</text>
+							</view>
+						</view>
+					</view>
 				</view>
 			</view>
 
@@ -78,7 +99,11 @@
 			<view v-if="records.length > 0" class="bottom-status">
 				<view v-if="loading" class="loading-dot"></view>
 				<text v-if="loading" class="bottom-text">正在加载…</text>
-				<text v-else-if="!hasMore" class="bottom-text">没有更多了</text>
+				<template v-else-if="!hasMore">
+					<view class="bottom-divider"></view>
+					<text class="bottom-text">没有更多了</text>
+					<view class="bottom-divider"></view>
+				</template>
 			</view>
 		</view>
 
@@ -172,7 +197,7 @@ function avatarStyle(item) {
 		return `background-image: url(${item.avatarUrl}); background-size: cover; background-position: center;`
 		// #endif
 	}
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BCFBF);'
+	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
 }
 
 function goDetail(item) {
@@ -219,9 +244,14 @@ loadData(1)
 	align-items: center;
 	gap: 12rpx;
 	padding: 16rpx 24rpx;
-	border-radius: 999rpx;
-	background-color: #FFFFFF;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1px solid var(--zy-border, #E5E7EB);
+	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+}
+
+.search-input-wrap:focus-within {
+	border-color: var(--zy-primary, #2D9B8F);
 }
 
 .search-input {
@@ -236,7 +266,7 @@ loadData(1)
 
 .search-btn {
 	font-size: 28rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 	white-space: nowrap;
 }
 
@@ -245,8 +275,8 @@ loadData(1)
 	display: flex;
 	gap: 24rpx;
 	padding: 28rpx;
-	border-radius: 16px;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 
@@ -290,6 +320,20 @@ loadData(1)
 	gap: 24rpx;
 }
 
+.empty-icon-wrap {
+	width: 120rpx;
+	height: 120rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.empty-emoji {
+	font-size: 56rpx;
+}
+
 .empty-text {
 	font-size: 28rpx;
 	color: var(--zy-aid, #9CA3AF);
@@ -308,34 +352,57 @@ loadData(1)
 }
 
 .inheritor-card {
-	display: flex;
-	gap: 24rpx;
-	padding: 28rpx;
-	border-radius: 16px;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	overflow: hidden;
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1px solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	box-shadow: var(--zy-shadow-sm);
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
+	display: flex;
 }
 
 .inheritor-card:active {
 	transform: scale(0.98);
-	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.1);
+	box-shadow: var(--zy-shadow-md);
+}
+
+/* ── 左侧渐变竖线 ── */
+.card-accent-line {
+	width: 6rpx;
+	flex-shrink: 0;
+	background: linear-gradient(180deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+}
+
+.card-inner {
+	flex: 1;
+	display: flex;
+	gap: 24rpx;
+	padding: 28rpx;
 }
 
 /* ── 头像 ── */
-.card-avatar {
-	width: 96rpx;
-	height: 96rpx;
+.avatar-ring {
+	width: 132rpx;
+	height: 132rpx;
 	border-radius: 50%;
+	padding: 4rpx;
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
 	flex-shrink: 0;
+}
+
+.card-avatar {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	border: 3rpx solid var(--zy-card-bg, #FFFFFF);
+	box-sizing: border-box;
 }
 
 .avatar-letter {
-	font-size: 40rpx;
+	font-size: 44rpx;
 	font-weight: 600;
 	color: #FFFFFF;
 }
@@ -363,13 +430,13 @@ loadData(1)
 
 .skill-badge {
 	padding: 4rpx 16rpx;
-	border-radius: 999rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-bg-tint-mint, #F0F9F7);
 }
 
 .skill-text {
 	font-size: 22rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--zy-primary, #2D9B8F);
 }
 
 .card-honor {
@@ -390,13 +457,43 @@ loadData(1)
 	-webkit-box-orient: vertical;
 }
 
+/* ── 卡片底部 ── */
+.card-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 16rpx;
+}
+
+.verified-badge {
+	display: flex;
+	align-items: center;
+	gap: 6rpx;
+}
+
+.verified-text {
+	font-size: 22rpx;
+	color: var(--zy-primary, #2D9B8F);
+}
+
+.project-count-text {
+	font-size: 22rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
 /* ── 底部 ── */
 .bottom-status {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 12rpx;
+	gap: 16rpx;
 	padding: 32rpx 0;
+}
+
+.bottom-divider {
+	width: 64rpx;
+	height: 1rpx;
+	background-color: var(--zy-border, #E5E7EB);
 }
 
 .loading-dot {
@@ -404,7 +501,7 @@ loadData(1)
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--wot-color-theme, #2D9B8F);
+	border-top-color: var(--zy-primary, #2D9B8F);
 	animation: spin 0.8s linear infinite;
 }
 

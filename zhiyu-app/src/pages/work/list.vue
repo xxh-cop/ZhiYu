@@ -1,8 +1,22 @@
 <template>
 	<view class="page zy-page-enter">
-		<!-- 顶部标题 -->
-		<view class="header">
-			<text class="page-title">作品社区</text>
+		<!-- 顶部品牌区 -->
+		<view class="brand-header zy-slide-up zy-stagger" style="--stagger-i: 0">
+			<text class="brand-title">作品社区</text>
+			<text class="brand-subtitle">每个人都是创作者</text>
+		</view>
+
+		<!-- 筛选 tab -->
+		<view class="filter-tabs zy-slide-up zy-stagger" style="--stagger-i: 1">
+			<view
+				v-for="tab in tabs"
+				:key="tab.value"
+				class="filter-tab"
+				:class="{ 'tab-active': activeTab === tab.value }"
+				@click="switchTab(tab.value)"
+			>
+				<text class="tab-text" :class="{ 'tab-text-active': activeTab === tab.value }">{{ tab.label }}</text>
+			</view>
 		</view>
 
 		<!-- 骨架屏 -->
@@ -17,9 +31,15 @@
 		</view>
 
 		<!-- 空状态 -->
-		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="status-box">
-			<text class="empty-emoji">🌱</text>
-			<text class="status-text">还没有人分享作品，来成为第一个吧</text>
+		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="empty-box zy-slide-up">
+			<view class="empty-icon-wrap">
+				<text class="empty-emoji">🌱</text>
+			</view>
+			<text class="empty-title">还没有作品</text>
+			<text class="empty-subtitle">发布你的第一件吧</text>
+			<view class="empty-btn" @click="goPublish">
+				<text class="empty-btn-text">去发布</text>
+			</view>
 		</view>
 
 		<!-- 错误状态 -->
@@ -33,12 +53,14 @@
 			<view
 				v-for="(item, idx) in records"
 				:key="item.id"
-				class="work-card"
+				class="work-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx }"
 				@click="goDetail(item)"
 			>
 				<!-- 封面图 -->
-				<view class="card-cover" :style="coverStyle(item.coverUrl)"></view>
+				<view class="card-cover" :style="coverStyle(item.coverUrl)">
+					<view class="cover-placeholder"></view>
+				</view>
 
 				<view class="card-body">
 					<text class="card-title">{{ item.title }}</text>
@@ -65,7 +87,11 @@
 			<view v-if="records.length > 0" class="bottom-status">
 				<view v-if="loading" class="loading-dot"></view>
 				<text v-if="loading" class="bottom-text">正在加载…</text>
-				<text v-else-if="!hasMore" class="bottom-text">没有更多了</text>
+				<template v-else-if="!hasMore">
+					<view class="bottom-divider"></view>
+					<text class="bottom-text">没有更多了</text>
+					<view class="bottom-divider"></view>
+				</template>
 			</view>
 		</view>
 
@@ -79,6 +105,13 @@ import { ref, computed } from 'vue'
 import { onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 
+const tabs = [
+	{ label: '全部', value: 'all' },
+	{ label: '最新', value: 'latest' },
+	{ label: '热门', value: 'hot' },
+]
+const activeTab = ref('all')
+
 const loading = ref(false)
 const errorMsg = ref('')
 const records = ref([])
@@ -87,6 +120,12 @@ const total = ref(0)
 const size = 10
 
 const hasMore = computed(() => page.value * size < total.value)
+
+function switchTab(val) {
+	if (activeTab.value === val) return
+	activeTab.value = val
+	loadData(1)
+}
 
 onPullDownRefresh(() => {
 	loadData(1).finally(() => {
@@ -110,7 +149,10 @@ async function loadData(pageNum) {
 	page.value = pageNum
 
 	try {
-		const data = await http.get('/api/works', { data: { page: pageNum, size } })
+		const params = { page: pageNum, size }
+		if (activeTab.value === 'latest') params.sort = 'latest'
+		if (activeTab.value === 'hot') params.sort = 'hot'
+		const data = await http.get('/api/works', { data: params })
 		if (data) {
 			total.value = Number(data.total) || 0
 			records.value = data.records || []
@@ -125,7 +167,10 @@ async function loadData(pageNum) {
 async function loadMore() {
 	loading.value = true
 	try {
-		const data = await http.get('/api/works', { data: { page: page.value, size } })
+		const params = { page: page.value, size }
+		if (activeTab.value === 'latest') params.sort = 'latest'
+		if (activeTab.value === 'hot') params.sort = 'hot'
+		const data = await http.get('/api/works', { data: params })
 		if (data) {
 			total.value = Number(data.total) || 0
 			records.value = records.value.concat(data.records || [])
@@ -137,7 +182,6 @@ async function loadMore() {
 	}
 }
 
-// 封面图样式：小程序 background-image 不支持本地路径，用渐变占位
 function coverStyle(coverUrl) {
 	// #ifdef H5
 	if (coverUrl) {
@@ -162,6 +206,10 @@ function goDetail(item) {
 	})
 }
 
+function goPublish() {
+	uni.navigateTo({ url: '/pages/work/publish' })
+}
+
 // 初始加载
 loadData(1)
 </script>
@@ -174,22 +222,61 @@ loadData(1)
 	background-color: var(--zy-bg, #F8F9FB);
 }
 
-.header {
-	margin-bottom: 32rpx;
+/* ── 顶部品牌区 ── */
+.brand-header {
+	margin-bottom: 24rpx;
 }
 
-.page-title {
+.brand-title {
 	font-family: var(--zy-serif);
 	font-size: 44rpx;
 	font-weight: 500;
 	color: var(--zy-title, #1F2937);
+	display: block;
+}
+
+.brand-subtitle {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+	margin-top: 4rpx;
+	display: block;
+}
+
+/* ── 筛选 tab ── */
+.filter-tabs {
+	display: flex;
+	gap: 12rpx;
+	margin-bottom: 24rpx;
+}
+
+.filter-tab {
+	padding: 10rpx 28rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
+	border: 1rpx solid var(--zy-border, #E5E7EB);
+	transition: all var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+}
+
+.tab-active {
+	background-color: var(--zy-primary, #2D9B8F);
+	border-color: var(--zy-primary, #2D9B8F);
+}
+
+.tab-text {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.tab-text-active {
+	color: #FFFFFF;
+	font-weight: 500;
 }
 
 /* ── 骨架屏 ── */
 .skeleton-card {
 	overflow: hidden;
-	border-radius: 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
 }
 .skeleton-cover {
@@ -209,6 +296,56 @@ loadData(1)
 	width: 90%;
 }
 
+/* ── 空状态 ── */
+.empty-box {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 100rpx 0;
+	gap: 16rpx;
+}
+
+.empty-icon-wrap {
+	width: 120rpx;
+	height: 120rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 16rpx;
+}
+
+.empty-emoji {
+	font-size: 60rpx;
+}
+
+.empty-title {
+	font-size: 30rpx;
+	font-weight: 500;
+	color: var(--zy-title, #1F2937);
+}
+
+.empty-subtitle {
+	font-size: 26rpx;
+	color: var(--zy-aid, #9CA3AF);
+}
+
+.empty-btn {
+	margin-top: 16rpx;
+	padding: 16rpx 48rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	box-shadow: var(--zy-shadow-md);
+}
+
+.empty-btn-text {
+	font-size: 28rpx;
+	color: #FFFFFF;
+	font-weight: 500;
+}
+
 /* ── 状态 ── */
 .status-box {
 	display: flex;
@@ -217,15 +354,6 @@ loadData(1)
 	justify-content: center;
 	padding: 120rpx 0;
 	gap: 24rpx;
-}
-
-.empty-emoji {
-	font-size: 80rpx;
-}
-
-.status-text {
-	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
 }
 
 .error-text {
@@ -237,32 +365,32 @@ loadData(1)
 .card-list {
 	display: flex;
 	flex-direction: column;
-	gap: 28rpx;
+	gap: 24rpx;
 }
 
 .work-card {
 	overflow: hidden;
-	border-radius: 32rpx;
-	background-color: var(--zy-bg-warm, #FFFFFF);
+	border-radius: var(--zy-radius-lg, 32rpx);
+	background-color: var(--zy-card-bg, #FFFFFF);
 	border: 1rpx solid var(--zy-border, #E5E7EB);
-	box-shadow: 0 4rpx 20rpx rgba(31, 41, 55, 0.05);
-	transition: transform 0.15s ease, box-shadow 0.15s ease;
-	animation: cardEnter 0.35s ease both;
-	animation-delay: calc(var(--stagger-i, 0) * 60ms);
+	box-shadow: var(--zy-shadow-sm);
+	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .work-card:active {
-	transform: scale(0.98);
-	box-shadow: 0 2rpx 8rpx rgba(31, 41, 55, 0.08);
-}
-
-@keyframes cardEnter {
-	from { opacity: 0; transform: translateY(20rpx); }
-	to { opacity: 1; transform: translateY(0); }
+	transform: translateY(-2rpx);
+	box-shadow: var(--zy-shadow-md);
 }
 
 .card-cover {
-	height: 240rpx;
+	height: 280rpx;
+	position: relative;
+}
+
+.cover-placeholder {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(135deg, rgba(45, 155, 143, 0.1) 0%, rgba(91, 196, 168, 0.05) 100%);
 }
 
 .card-body {
@@ -333,8 +461,14 @@ loadData(1)
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 12rpx;
+	gap: 16rpx;
 	padding: 32rpx 0;
+}
+
+.bottom-divider {
+	width: 64rpx;
+	height: 1rpx;
+	background-color: var(--zy-border, #E5E7EB);
 }
 
 .loading-dot {
@@ -342,7 +476,7 @@ loadData(1)
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--wot-color-theme, #2D9B8F);
+	border-top-color: var(--zy-primary, #2D9B8F);
 	animation: spin 0.8s linear infinite;
 }
 
