@@ -23,6 +23,12 @@ public class UserVO {
     /** 学校名称 */
     private String school;
 
+    /** 个人简介 */
+    private String intro;
+
+    /** 头像 URL */
+    private String avatarUrl;
+
     /** 隐私政策是否同意：0 未同意 1 已同意 */
     private Integer privacyAgreed;
 

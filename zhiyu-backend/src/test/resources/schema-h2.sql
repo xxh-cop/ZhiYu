@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS user (
   nickname          VARCHAR(50)  NOT NULL,
   avatar_url        VARCHAR(255) DEFAULT NULL,
   school            VARCHAR(100) DEFAULT NULL,
+  intro             CLOB         DEFAULT NULL,
   craft_preferences VARCHAR(255) DEFAULT NULL,
   can_contact       TINYINT      NOT NULL DEFAULT 0,
   privacy_agreed    TINYINT      NOT NULL DEFAULT 0,

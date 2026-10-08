@@ -29,3 +29,27 @@ export async function getUserInfoApi(): Promise<UserInfo> {
     ...result,
   } as UserInfo;
 }
+
+/**
+ * 更新个人资料（批次 4.5）
+ * PUT /api/user/profile
+ */
+export async function updateUserProfile(data: {
+  nickname?: string;
+  avatarUrl?: string;
+  school?: string;
+  intro?: string;
+}) {
+  return requestClient.put<UserInfo>('/user/profile', data);
+}
+
+/**
+ * 修改密码（批次 4.5）
+ * PUT /api/user/password
+ */
+export async function changePassword(data: {
+  oldPassword: string;
+  newPassword: string;
+}) {
+  return requestClient.put('/user/password', data);
+}

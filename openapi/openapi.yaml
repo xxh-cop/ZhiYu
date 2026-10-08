@@ -76,8 +76,27 @@ components:
         id: { type: integer, format: int64 }
         username: { type: string, description: 登录名（学号或昵称） }
         nickname: { type: string }
+        avatarUrl: { type: string, nullable: true, description: 头像 URL }
         school: { type: string, nullable: true }
+        intro: { type: string, nullable: true, description: 个人简介 }
+        privacyAgreed: { type: integer, description: '0 未同意 1 已同意' }
         role: { type: integer, description: 角色码，取值见 AGENTS.md §3.1（0学生 1传承人 2咨询师 3管理员） }
+
+    UserProfileUpdateReq:
+      type: object
+      description: '更新个人资料请求，所有字段可选，null 表示不更新'
+      properties:
+        nickname: { type: string, maxLength: 50, nullable: true }
+        avatarUrl: { type: string, maxLength: 255, nullable: true }
+        school: { type: string, maxLength: 100, nullable: true }
+        intro: { type: string, maxLength: 500, nullable: true }
+
+    PasswordChangeReq:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword: { type: string, format: password }
+        newPassword: { type: string, format: password, minLength: 6, maxLength: 32 }
 
     ChatReq:
       type: object
@@ -1948,6 +1967,50 @@ paths:
       responses:
         '200': { description: 注销成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
         '400': { description: 参数校验失败（code=1001，confirm 非 true）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/user/profile:
+    put:
+      summary: 更新个人资料（昵称、头像、学校、简介）
+      description: '只更新非 null 字段。需认证。'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserProfileUpdateReq' }
+      responses:
+        '200':
+          description: 更新成功，返回最新用户信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/user/password:
+    put:
+      summary: 修改密码
+      description: '校验旧密码后更新为新密码。JWT 无状态，修改后当前 token 仍有效。旧密码不匹配返回 2001。'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordChangeReq' }
+      responses:
+        '200':
+          description: '成功（code=0）；旧密码错误时 code=2001'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 参数校验失败（code=1001，新密码长度不合规）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- 心理援助热线（M3-B1，公开接口） ----------

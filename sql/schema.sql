@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS user (
   nickname    VARCHAR(50)  NOT NULL COMMENT '昵称',
   avatar_url  VARCHAR(255) DEFAULT NULL COMMENT '头像',
   school      VARCHAR(100) DEFAULT NULL COMMENT '所在学校',
+  intro       TEXT         DEFAULT NULL COMMENT '个人简介',
   craft_preferences VARCHAR(255) DEFAULT NULL COMMENT '手作偏好标签,逗号分隔',
   can_contact TINYINT      NOT NULL DEFAULT 0 COMMENT '0不允许 1允许心理咨询师联系；默认 0，需用户单独授权',
   privacy_agreed TINYINT   NOT NULL DEFAULT 0 COMMENT '隐私政策是否同意：0未同意 1已同意',

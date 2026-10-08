@@ -35,6 +35,9 @@ public class User extends BaseEntity {
     /** 所在学校 */
     private String school;
 
+    /** 个人简介 */
+    private String intro;
+
     /** 手作偏好标签，逗号分隔 */
     private String craftPreferences;
 
