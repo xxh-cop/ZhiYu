@@ -6,17 +6,18 @@
 // ============================================================
 
 :root {
-  /* ── 管理端专属色板（更沉稳，适合数据密集场景） ── */
-  --zy-admin-primary: #2D9B8F;          /* 品牌主色，与学生端一致 */
-  --zy-admin-primary-light: #5BC4A8;
+  /* ── 管理端专属色板（深靛蓝系，独立视觉语言） ── */
+  --zy-admin-primary: #4F46E5;          /* 深靛蓝 — 管理端品牌主色 */
+  --zy-admin-primary-light: #6366F1;    /* 浅靛蓝 */
+  --zy-admin-primary-bg: #EEF2FF;       /* 浅靛蓝底（卡片/标签背景） */
   --zy-admin-bg: #F8F9FB;
   --zy-admin-card-bg: #FFFFFF;
   --zy-admin-title: #1F2937;
   --zy-admin-text: #4B5563;
   --zy-admin-muted: #9CA3AF;
   --zy-admin-border: #E5E7EB;
-  --zy-admin-accent: #FFB547;
-  --zy-admin-danger: #FF6B6B;
+  --zy-admin-accent: #F59E0B;
+  --zy-admin-danger: #EF4444;
   --zy-admin-success: #10B981;
   --zy-admin-warning: #F59E0B;
   --zy-admin-info: #6B7280;
@@ -29,12 +30,12 @@
   --zy-radius-xl: 16px;
   --zy-radius-full: 9999px;
 
-  /* ── 阴影 ── */
-  --zy-shadow-xs: 0 1px 2px rgba(45, 155, 143, 0.04);
-  --zy-shadow-sm: 0 2px 8px rgba(45, 155, 143, 0.06);
-  --zy-shadow-md: 0 4px 16px rgba(45, 155, 143, 0.08);
-  --zy-shadow-lg: 0 8px 24px rgba(45, 155, 143, 0.10);
-  --zy-shadow-xl: 0 12px 32px rgba(45, 155, 143, 0.12);
+  /* ── 阴影（中性灰，不绑定主色） ── */
+  --zy-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --zy-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --zy-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --zy-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10);
+  --zy-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.12);
 
   /* ── 间距 ── */
   --zy-space-2xs: 2px;
@@ -62,16 +63,47 @@
   --zy-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
   --zy-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* ── Element Plus 主题覆盖 ── */
-  --el-color-primary: #2D9B8F;
-  --el-color-primary-light-3: #5BC4A8;
-  --el-color-primary-light-5: #96D8C7;
-  --el-color-primary-light-7: #BFE7DA;
-  --el-color-primary-light-8: #D2EEE5;
-  --el-color-primary-light-9: #E8F6F2;
-  --el-color-primary-dark-2: #1F7A70;
-  --el-color-danger: #FF6B6B;
+  /* ── Element Plus 主题覆盖（深靛蓝系） ── */
+  --el-color-primary: #4F46E5;
+  --el-color-primary-light-3: #6366F1;
+  --el-color-primary-light-5: #818CF8;
+  --el-color-primary-light-7: #A5B4FC;
+  --el-color-primary-light-8: #C7D2FE;
+  --el-color-primary-light-9: #EEF2FF;
+  --el-color-primary-dark-2: #4338CA;
+  --el-color-danger: #EF4444;
   --el-color-success: #10B981;
   --el-color-warning: #F59E0B;
   --el-border-radius-base: 8px;
+
+  /* ── ECharts 专用色（供 JS 读取，浅色默认） ── */
+  --zy-chart-text: #1F2937;
+  --zy-chart-muted: #9CA3AF;
+  --zy-chart-border: #E5E7EB;
+  --zy-chart-grid: #E5E7EB;
+  --zy-chart-card-bg: #FFFFFF;
+}
+
+/* ── 深色模式覆盖（Vben 在 html 上 toggle .dark 类） ── */
+.dark {
+  --zy-admin-bg: #141414;
+  --zy-admin-card-bg: #1F1F1F;
+  --zy-admin-primary-bg: #1E1B4B;
+  --zy-admin-title: #E5E7EB;
+  --zy-admin-text: #B0B0B0;
+  --zy-admin-muted: #6B7280;
+  --zy-admin-border: #2A2A2A;
+
+  --zy-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --zy-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --zy-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --zy-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --zy-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.7);
+
+  /* ECharts 深色色 */
+  --zy-chart-text: #E5E7EB;
+  --zy-chart-muted: #6B7280;
+  --zy-chart-border: #2A2A2A;
+  --zy-chart-grid: #2A2A2A;
+  --zy-chart-card-bg: #1F1F1F;
 }
