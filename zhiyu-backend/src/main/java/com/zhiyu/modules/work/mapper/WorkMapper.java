@@ -15,10 +15,13 @@ public interface WorkMapper extends BaseMapper<Work> {
     /**
      * 原子更新点赞数（T1.8a）。
      *
+     * <p>使用 GREATEST 防止并发场景下 like_count 出现负数：
+     * 即使 delta=-1 且 like_count 已为 0，结果也会被钳位到 0。
+     *
      * @param id    作品 ID
      * @param delta 增量（+1 或 -1）
      * @return 影响行数
      */
-    @Update("UPDATE work SET like_count = like_count + #{delta} WHERE id = #{id} AND deleted = 0")
+    @Update("UPDATE work SET like_count = GREATEST(like_count + #{delta}, 0) WHERE id = #{id} AND deleted = 0")
     int addLikeCount(@Param("id") Long id, @Param("delta") Integer delta);
 }

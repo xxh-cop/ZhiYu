@@ -1,9 +1,6 @@
 package com.zhiyu.modules.craft;
 
 import com.zhiyu.ai.AiClient;
-import com.zhiyu.ai.safety.ContentSafetyFilter;
-import com.zhiyu.ai.safety.SafetyAction;
-import com.zhiyu.ai.safety.SafetyResult;
 import com.zhiyu.modules.craft.entity.CraftProject;
 import com.zhiyu.modules.craft.entity.CraftRecommendation;
 import com.zhiyu.modules.craft.entity.CraftRecommendationItem;
@@ -35,7 +32,7 @@ import static org.mockito.Mockito.*;
 /**
  * {@link CraftRecommendService} 集成测试（T1.5）。
  *
- * <p>@SpringBootTest + H2，mock {@link AiClient} 和 {@link ContentSafetyFilter}
+ * <p>@SpringBootTest + H2，mock {@link AiClient} 以隔离 LLM 调用
  * 以隔离 LLM 调用，不依赖 init-data.sql。
  *
  * <p>用 @DirtiesContext(AFTER_CLASS) 避免 H2 数据污染后续测试类
@@ -65,9 +62,6 @@ class CraftRecommendServiceTest {
     @MockBean
     private AiClient aiClient;
 
-    @MockBean
-    private ContentSafetyFilter contentSafetyFilter;
-
     /** 测试用户 ID */
     private static final Long USER_ID = 8001L;
 
@@ -76,11 +70,9 @@ class CraftRecommendServiceTest {
 
     @BeforeEach
     void setUp() {
-        // 默认 mock：AiClient 返回正常理由，ContentSafetyFilter 返回 PASS
+        // 默认 mock：AiClient 返回正常理由（输出安全过滤已在 AiClient 内部完成）
         when(aiClient.recommendReason(anyString(), anyList()))
                 .thenReturn("推荐理由：这些手作很适合你现在的状态");
-        when(contentSafetyFilter.checkOutput(anyLong(), anyString(), anyString()))
-                .thenReturn(SafetyResult.pass("输出检查通过"));
 
         // 插入 5 条测试项目
         insertProject(PROJECT_BASE + 1, "编织入门", 1, 30, "专注,静心");
@@ -171,17 +163,18 @@ class CraftRecommendServiceTest {
     }
 
     @Test
-    @DisplayName("ContentSafetyFilter 返回 REWRITE → 最终 reason 是改写后的")
+    @DisplayName("AiClient 返回的 REWRITE 文本作为最终 reason（安全过滤在 AiClient 内部完成）")
     void testOutputFilterInvoked() {
         EmotionSession session = insertSession("anxious");
+        // AiClient 内部已做安全过滤，返回的即改写后的文本
         String rewritten = "我在这里陪你。如果愿意，可以跟我聊聊你现在的感受。";
-        when(contentSafetyFilter.checkOutput(anyLong(), anyString(), anyString()))
-                .thenReturn(SafetyResult.rewrite("输出越界", rewritten));
+        when(aiClient.recommendReason(anyString(), anyList()))
+                .thenReturn(rewritten);
 
         RecommendVO vo = craftRecommendService.recommend(USER_ID, session.getId(), 1, 60);
 
-        assertEquals(rewritten, vo.getReason(), "REWRITE 时应使用改写后的文本");
-        verify(contentSafetyFilter).checkOutput(eq(USER_ID), eq("recommend"), anyString());
+        assertEquals(rewritten, vo.getReason(), "AiClient 返回的文本应作为最终 reason");
+        verify(aiClient).recommendReason(anyString(), anyList());
     }
 
     @Test

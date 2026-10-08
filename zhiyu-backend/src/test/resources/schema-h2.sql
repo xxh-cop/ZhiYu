@@ -209,10 +209,11 @@ CREATE TABLE IF NOT EXISTS craft_recommendation_item (
 
 -- ---------- 创作会话 ----------
 CREATE TABLE IF NOT EXISTS craft_session (
-  id           BIGINT      NOT NULL,
-  user_id      BIGINT      NOT NULL,
-  project_id   BIGINT      NOT NULL,
-  status       TINYINT     NOT NULL DEFAULT 0,
+id           BIGINT      NOT NULL,
+user_id      BIGINT      NOT NULL,
+project_id   BIGINT      NOT NULL,
+emotion_session_id BIGINT DEFAULT NULL,
+status       TINYINT     NOT NULL DEFAULT 0,
   current_step INT         NOT NULL DEFAULT 1,
   start_time   TIMESTAMP   DEFAULT NULL,
   end_time     TIMESTAMP   DEFAULT NULL,

@@ -15,11 +15,12 @@ public interface CraftSessionService {
     /**
      * 创建会话，状态直接为进行中（DOING=1）。
      *
-     * @param userId    当前用户 ID
-     * @param projectId 手作项目 ID
+     * @param userId            当前用户 ID
+     * @param projectId         手作项目 ID
+     * @param emotionSessionId  关联的情绪会话 ID（可空）
      * @return 会话信息
      */
-    CraftSessionVO create(Long userId, Long projectId);
+    CraftSessionVO create(Long userId, Long projectId, Long emotionSessionId);
 
     /**
      * 推进会话状态机。

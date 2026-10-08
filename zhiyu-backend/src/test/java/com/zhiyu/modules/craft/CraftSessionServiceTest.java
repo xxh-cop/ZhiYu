@@ -66,7 +66,7 @@ class CraftSessionServiceTest {
     @Test
     @DisplayName("创建成功：status=1，currentStep=1，startTime 非空")
     void testCreate_Success() {
-        CraftSessionVO vo = craftSessionService.create(USER_ID, PROJECT_ID);
+        CraftSessionVO vo = craftSessionService.create(USER_ID, PROJECT_ID, null);
 
         assertNotNull(vo.getSessionId());
         assertEquals(PROJECT_ID, vo.getProjectId());
@@ -83,7 +83,7 @@ class CraftSessionServiceTest {
     @DisplayName("创建失败：项目不存在 → 1004")
     void testCreate_ProjectNotFound() {
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> craftSessionService.create(USER_ID, 9999L));
+                () -> craftSessionService.create(USER_ID, 9999L, null));
         assertEquals(1004, ex.getCode());
     }
 
@@ -91,24 +91,24 @@ class CraftSessionServiceTest {
     @DisplayName("创建失败：项目未上架 → 1001")
     void testCreate_ProjectNotPublished() {
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> craftSessionService.create(USER_ID, UNPUBLISHED_PROJECT_ID));
+                () -> craftSessionService.create(USER_ID, UNPUBLISHED_PROJECT_ID, null));
         assertEquals(1001, ex.getCode());
     }
 
     @Test
     @DisplayName("创建失败：已有进行中会话 → 3001")
     void testCreate_DuplicateActiveSession() {
-        craftSessionService.create(USER_ID, PROJECT_ID);
+        craftSessionService.create(USER_ID, PROJECT_ID, null);
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> craftSessionService.create(USER_ID, PROJECT_ID));
+                () -> craftSessionService.create(USER_ID, PROJECT_ID, null));
         assertEquals(3001, ex.getCode());
     }
 
     @Test
     @DisplayName("暂停：DOING → PAUSED 成功")
     void testChangeStatus_Pause() {
-        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID);
+        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID, null);
 
         CraftSessionVO vo = craftSessionService.changeStatus(USER_ID, created.getSessionId(), "pause");
 
@@ -120,7 +120,7 @@ class CraftSessionServiceTest {
     @Test
     @DisplayName("恢复：PAUSED → DOING 成功")
     void testChangeStatus_Resume() {
-        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID);
+        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID, null);
         craftSessionService.changeStatus(USER_ID, created.getSessionId(), "pause");
 
         CraftSessionVO vo = craftSessionService.changeStatus(USER_ID, created.getSessionId(), "resume");
@@ -132,7 +132,7 @@ class CraftSessionServiceTest {
     @Test
     @DisplayName("完成：DOING → FINISHED 成功，endTime 非空")
     void testChangeStatus_Finish() {
-        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID);
+        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID, null);
 
         CraftSessionVO vo = craftSessionService.changeStatus(USER_ID, created.getSessionId(), "finish");
 
@@ -144,7 +144,7 @@ class CraftSessionServiceTest {
     @Test
     @DisplayName("非法流转：FINISHED → pause → 3001")
     void testChangeStatus_IllegalTransition() {
-        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID);
+        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID, null);
         craftSessionService.changeStatus(USER_ID, created.getSessionId(), "finish");
 
         BusinessException ex = assertThrows(BusinessException.class,
@@ -155,7 +155,7 @@ class CraftSessionServiceTest {
     @Test
     @DisplayName("所有权校验：其他用户操作 → 1003")
     void testChangeStatus_NotOwner() {
-        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID);
+        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID, null);
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> craftSessionService.changeStatus(OTHER_USER_ID, created.getSessionId(), "pause"));
@@ -165,7 +165,7 @@ class CraftSessionServiceTest {
     @Test
     @DisplayName("查询进度：所有权校验 → 1003")
     void testGetProgress_NotOwner() {
-        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID);
+        CraftSessionVO created = craftSessionService.create(USER_ID, PROJECT_ID, null);
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> craftSessionService.getProgress(OTHER_USER_ID, created.getSessionId()));

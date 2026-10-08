@@ -133,7 +133,7 @@ class CraftSessionServiceHeartbeatTest {
     // ──────────────────────────────────────────────────────
 
     private Long createSession() {
-        return craftSessionService.create(USER_ID, PROJECT_ID).getSessionId();
+        return craftSessionService.create(USER_ID, PROJECT_ID, null).getSessionId();
     }
 
     private HeartbeatResult heartbeat(Long userId, Long sessionId,

@@ -1,8 +1,6 @@
 package com.zhiyu.modules.work;
 
-import com.zhiyu.ai.safety.ContentSafetyFilter;
-import com.zhiyu.ai.safety.SafetyAction;
-import com.zhiyu.ai.safety.SafetyResult;
+import com.zhiyu.ai.AiClient;
 import com.zhiyu.modules.auth.entity.User;
 import com.zhiyu.modules.auth.mapper.UserMapper;
 import com.zhiyu.modules.work.dto.WorkPublishReq;
@@ -27,10 +25,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 /**
- * {@link WorkService#publish} 的 AI 生成寄语 + checkOutput REWRITE 测试。
+ * {@link WorkService#publish} 的 AI 生成寄语测试。
  *
- * <p>用 {@code @MockBean} 替换 {@link ContentSafetyFilter}，
- * 验证 REWRITE 时落库的是 rewrittenText。
+ * <p>用 {@code @MockBean} 替换 {@link AiClient}，
+ * 验证 AiClient 返回的文本（已含安全过滤）直接落库。
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -48,7 +46,7 @@ class WorkServiceMessageRewriteTest {
     private UserMapper userMapper;
 
     @MockBean
-    private ContentSafetyFilter contentSafetyFilter;
+    private AiClient aiClient;
 
     private static final Long USER_ID = 8301L;
 
@@ -70,31 +68,23 @@ class WorkServiceMessageRewriteTest {
     }
 
     @Test
-    @DisplayName("AI 生成寄语被 checkOutput REWRITE → 落库的是 rewrittenText")
+    @DisplayName("AiClient 返回的寄语（已含安全过滤）直接落库")
     void testPublish_MessageRewritten() {
-        // Mock：checkOutput 返回 REWRITE
-        String originalMessage = "你用一针一线缝出了此刻的心意";
-        String rewrittenMessage = "你的专注与创作本身就是一种疗愈";
-        SafetyResult mockResult = SafetyResult.builder()
-                .highRisk(false)
-                .action(SafetyAction.REWRITE)
-                .reason("敏感词替换")
-                .rewrittenText(rewrittenMessage)
-                .build();
-        when(contentSafetyFilter.checkOutput(anyLong(), eq("message"), anyString()))
-                .thenReturn(mockResult);
+        // AiClient 内部已包含安全过滤，返回的即最终文本
+        String aiMessage = "你的专注与创作本身就是一种疗愈";
+        when(aiClient.workMessage(anyString(), anyString())).thenReturn(aiMessage);
 
-        // 不传 message → 走 AI 生成 + checkOutput
+        // 不传 message → 走 AI 生成
         WorkPublishReq req = new WorkPublishReq();
         req.setTitle("重写测试作品");
 
         WorkVO vo = workService.publish(USER_ID, req);
 
-        // 验证落库的是 rewrittenText 而非原始生成文本
-        assertEquals(rewrittenMessage, vo.getMessage());
+        // 验证落库的是 AiClient 返回的文本
+        assertEquals(aiMessage, vo.getMessage());
 
-        // 确认数据库里也是 rewrittenText
+        // 确认数据库里也是 AiClient 返回的文本
         Work work = workMapper.selectById(vo.getId());
-        assertEquals(rewrittenMessage, work.getMessage());
+        assertEquals(aiMessage, work.getMessage());
     }
 }

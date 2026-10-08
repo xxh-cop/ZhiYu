@@ -3,6 +3,8 @@ package com.zhiyu.ai;
 import com.zhiyu.ai.client.ChatMessage;
 import com.zhiyu.ai.client.LlmClient;
 import com.zhiyu.ai.resilience.CircuitBreakerStore;
+import com.zhiyu.ai.safety.ContentSafetyFilter;
+import com.zhiyu.ai.safety.SafetyResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -31,6 +34,9 @@ class AiClientTest {
     @Mock
     CircuitBreakerStore breaker;
 
+    @Mock
+    ContentSafetyFilter contentSafetyFilter;
+
     @InjectMocks
     AiClient aiClient;
 
@@ -39,6 +45,8 @@ class AiClientTest {
     void testRecommend_Success() {
         when(breaker.allowRequest("llm-recommend")).thenReturn(true);
         when(llmClient.recommendReason("焦虑", List.of("扎染"))).thenReturn("扎染很适合焦虑时做");
+        when(contentSafetyFilter.checkOutput(any(), anyString(), anyString()))
+                .thenReturn(SafetyResult.pass("通过"));
 
         String result = aiClient.recommendReason("焦虑", List.of("扎染"));
 

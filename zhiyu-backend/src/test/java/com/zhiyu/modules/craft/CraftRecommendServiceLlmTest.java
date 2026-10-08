@@ -1,8 +1,6 @@
 package com.zhiyu.modules.craft;
 
 import com.zhiyu.ai.AiClient;
-import com.zhiyu.ai.safety.ContentSafetyFilter;
-import com.zhiyu.ai.safety.SafetyResult;
 import com.zhiyu.modules.craft.entity.CraftProject;
 import com.zhiyu.modules.craft.mapper.CraftProjectMapper;
 import com.zhiyu.modules.craft.mapper.CraftRecommendationItemMapper;
@@ -41,8 +39,6 @@ class CraftRecommendServiceLlmTest {
     EmotionSessionMapper emotionSessionMapper;
     @Mock
     AiClient aiClient;
-    @Mock
-    ContentSafetyFilter contentSafetyFilter;
 
     @InjectMocks
     CraftRecommendServiceImpl service;
@@ -73,10 +69,8 @@ class CraftRecommendServiceLlmTest {
         p2.setStatus(1);
         when(craftProjectMapper.selectList(any())).thenReturn(List.of(p1, p2));
 
-        // 准备：AiClient 返回正常理由
+        // 准备：AiClient 返回正常理由（输出安全过滤已在 AiClient 内部完成）
         when(aiClient.recommendReason(anyString(), anyList())).thenReturn("推荐理由");
-        when(contentSafetyFilter.checkOutput(anyLong(), anyString(), anyString()))
-                .thenReturn(SafetyResult.pass("通过"));
 
         // 执行
         RecommendVO vo = service.recommend(1L, 999L, 1, 60);
@@ -87,7 +81,7 @@ class CraftRecommendServiceLlmTest {
     }
 
     @Test
-    @DisplayName("ContentSafetyFilter.checkOutput 在 AI 返回后被调用")
+    @DisplayName("AiClient.recommendReason 返回后的理由直接作为最终结果（安全过滤在 AiClient 内部完成）")
     void testCheckOutputCalledAfterAi() {
         // 准备
         com.zhiyu.modules.emotion.entity.EmotionSession session = new com.zhiyu.modules.emotion.entity.EmotionSession();
@@ -104,15 +98,14 @@ class CraftRecommendServiceLlmTest {
         p1.setStatus(1);
         when(craftProjectMapper.selectList(any())).thenReturn(List.of(p1));
 
-        when(aiClient.recommendReason(anyString(), anyList())).thenReturn("AI 生成的理由");
-        when(contentSafetyFilter.checkOutput(anyLong(), anyString(), anyString()))
-                .thenReturn(SafetyResult.pass("通过"));
+        // AiClient 内部已包含安全过滤，返回的即最终文本
+        when(aiClient.recommendReason(anyString(), anyList())).thenReturn("AI 生成的理由（已过安全过滤）");
 
         // 执行
-        service.recommend(1L, 999L, 1, 60);
+        RecommendVO vo = service.recommend(1L, 999L, 1, 60);
 
-        // 验证 checkOutput 在 AiClient 之后被调用
+        // 验证 AiClient 被调用，返回的 reason 就是 AiClient 的返回值
         verify(aiClient).recommendReason(anyString(), anyList());
-        verify(contentSafetyFilter).checkOutput(eq(1L), eq("recommend"), eq("AI 生成的理由"));
+        assertEquals("AI 生成的理由（已过安全过滤）", vo.getReason());
     }
 }

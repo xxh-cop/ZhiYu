@@ -44,7 +44,7 @@ public class CraftSessionServiceImpl implements CraftSessionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public CraftSessionVO create(Long userId, Long projectId) {
+    public CraftSessionVO create(Long userId, Long projectId, Long emotionSessionId) {
         // 1. 校验项目存在且已上架
         CraftProject project = craftProjectMapper.selectById(projectId);
         if (project == null) {
@@ -68,12 +68,14 @@ public class CraftSessionServiceImpl implements CraftSessionService {
         CraftSession session = new CraftSession();
         session.setUserId(userId);
         session.setProjectId(projectId);
+        session.setEmotionSessionId(emotionSessionId);
         session.setStatus(SessionStatus.DOING.getCode());
         session.setCurrentStep(1);
         session.setStartTime(LocalDateTime.now());
         session.setFlowSeconds(0);
         craftSessionMapper.insert(session);
-        log.info("创建会话: sessionId={}, userId={}, projectId={}", session.getId(), userId, projectId);
+        log.info("创建会话: sessionId={}, userId={}, projectId={}, emotionSessionId={}",
+                session.getId(), userId, projectId, emotionSessionId);
 
         return buildVO(session, project);
     }

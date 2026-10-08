@@ -215,10 +215,11 @@ CREATE TABLE IF NOT EXISTS craft_recommendation_item (
 
 -- ---------- 创作会话 ----------
 CREATE TABLE IF NOT EXISTS craft_session (
-  id          BIGINT      NOT NULL,
-  user_id     BIGINT      NOT NULL,
-  project_id  BIGINT      NOT NULL,
-  status      TINYINT     NOT NULL DEFAULT 0 COMMENT '0待开始 1进行中 2暂停 3完成 4放弃；创建即 1，状态机仅 pause/resume/finish/abandon',
+id          BIGINT      NOT NULL,
+user_id     BIGINT      NOT NULL,
+project_id  BIGINT      NOT NULL,
+emotion_session_id BIGINT DEFAULT NULL COMMENT '关联的情绪会话 emotion_session.id，可空',
+status      TINYINT     NOT NULL DEFAULT 0 COMMENT '0待开始 1进行中 2暂停 3完成 4放弃；创建即 1，状态机仅 pause/resume/finish/abandon',
   current_step INT        NOT NULL DEFAULT 1 COMMENT '当前步骤序号',
   start_time  DATETIME    DEFAULT NULL,
   end_time    DATETIME    DEFAULT NULL,

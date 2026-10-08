@@ -3,6 +3,10 @@ package com.zhiyu.ai;
 import com.zhiyu.ai.client.ChatMessage;
 import com.zhiyu.ai.client.LlmClient;
 import com.zhiyu.ai.resilience.CircuitBreakerStore;
+import com.zhiyu.ai.safety.ContentSafetyFilter;
+import com.zhiyu.ai.safety.SafetyAction;
+import com.zhiyu.ai.safety.SafetyResult;
+import com.zhiyu.security.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +28,13 @@ import java.util.function.Consumer;
  * <p>超时降级：LLM 调用失败或熔断中 → 返回缓存图文推荐理由 + 图文引导，
  * 不让用户白屏。
  *
- * <p>T1.1b 尚未加：内容安全过滤、审计日志（T1.3/T1.4 做）。
+ * <p>内容安全过滤（AGENTS.md §4）：
+ * <ul>
+ *   <li>{@code recommendReason} / {@code workMessage} —— 输出过滤在本类内部完成，
+ *       调用方无需再显式调 {@code ContentSafetyFilter.checkOutput}</li>
+ *   <li>{@code streamChat} —— 流式接口的输入/输出过滤由 Controller 层处理
+ *       （输入 BLOCK 时不调 LLM、需控制 SSE emitter）</li>
+ * </ul>
  */
 @Slf4j
 @Component
@@ -32,10 +42,13 @@ public class AiClient {
 
     private final LlmClient llmClient;
     private final CircuitBreakerStore breaker;
+    private final ContentSafetyFilter contentSafetyFilter;
 
-    public AiClient(LlmClient llmClient, CircuitBreakerStore breaker) {
+    public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
+                    ContentSafetyFilter contentSafetyFilter) {
         this.llmClient = llmClient;
         this.breaker = breaker;
+        this.contentSafetyFilter = contentSafetyFilter;
         log.info("AiClient 初始化完成，breaker store={}", breaker.implementationName());
     }
 
@@ -51,11 +64,11 @@ public class AiClient {
     private static final String FALLBACK_RECOMMEND = "（暂时无法生成个性化理由，先看看这些手作吧）";
 
     /**
-     * 生成推荐理由。
+     * 生成推荐理由（含输出安全过滤）。
      *
-     * <p>调用方（Service 层）负责在拿到返回值后调用
-     * {@code ContentSafetyFilter.checkOutput(userId, reason)} 做输出过滤，
-     * 并写 ai_audit_log。AiClient 无用户上下文，无法内部完成。
+     * <p>LLM 返回后自动调 {@link ContentSafetyFilter#checkOutput} 做输出过滤，
+     * 命中 {@link SafetyAction#REWRITE} 时用安全文本替换。
+     * 审计日志由 checkOutput 内部写入，调用方无需再显式过滤。
      *
      * @param mood       用户当前情绪
      * @param craftNames 候选手作名称列表
@@ -66,15 +79,16 @@ public class AiClient {
             log.warn("熔断中，走降级: key={}", KEY_RECOMMEND);
             return FALLBACK_RECOMMEND;
         }
+        String result;
         try {
-            String result = llmClient.recommendReason(mood, craftNames);
+            result = llmClient.recommendReason(mood, craftNames);
             breaker.recordSuccess(KEY_RECOMMEND);
-            return result;
         } catch (Exception e) {
             breaker.recordFailure(KEY_RECOMMEND);
             log.warn("LLM 调用失败，已记录熔断计数: key={}, err={}", KEY_RECOMMEND, e.getMessage());
             return FALLBACK_RECOMMEND;
         }
+        return applyOutputSafety("recommend", result);
     }
 
     // ── 作品寄语：走熔断 ──
@@ -83,11 +97,11 @@ public class AiClient {
     private static final String FALLBACK_MESSAGE = "（暂时无法生成寄语，你的专注本身就很美好）";
 
     /**
-     * 生成作品寄语。
+     * 生成作品寄语（含输出安全过滤）。
      *
-     * <p>调用方（Service 层）负责在拿到返回值后调用
-     * {@code ContentSafetyFilter.checkOutput(userId, message)} 做输出过滤，
-     * 并写 ai_audit_log。AiClient 无用户上下文，无法内部完成。
+     * <p>LLM 返回后自动调 {@link ContentSafetyFilter#checkOutput} 做输出过滤，
+     * 命中 {@link SafetyAction#REWRITE} 时用安全文本替换。
+     * 审计日志由 checkOutput 内部写入，调用方无需再显式过滤。
      *
      * @param workTitle 作品标题
      * @param mood      创作时的心情
@@ -98,15 +112,35 @@ public class AiClient {
             log.warn("熔断中，走降级: key={}", KEY_MESSAGE);
             return FALLBACK_MESSAGE;
         }
+        String result;
         try {
-            String result = llmClient.workMessage(workTitle, mood);
+            result = llmClient.workMessage(workTitle, mood);
             breaker.recordSuccess(KEY_MESSAGE);
-            return result;
         } catch (Exception e) {
             breaker.recordFailure(KEY_MESSAGE);
             log.warn("LLM 调用失败，已记录熔断计数: key={}, err={}", KEY_MESSAGE, e.getMessage());
             return FALLBACK_MESSAGE;
         }
+        return applyOutputSafety("message", result);
+    }
+
+    // ── 内部：输出安全过滤 ──
+
+    /**
+     * 对 LLM 输出文本做安全过滤。
+     *
+     * <p>从 {@link UserContext} 取当前 userId（同步接口均在请求线程内调用，
+     * ThreadLocal 可用）。命中 REWRITE 时替换为安全文本，审计日志由
+     * {@link ContentSafetyFilter#checkOutput} 内部写入。
+     */
+    private String applyOutputSafety(String scene, String text) {
+        Long userId = UserContext.getUserId();
+        SafetyResult sr = contentSafetyFilter.checkOutput(userId, scene, text);
+        if (sr.getAction() == SafetyAction.REWRITE && sr.getRewrittenText() != null) {
+            log.warn("AI 输出越界已改写: scene={}, userId={}, reason={}", scene, userId, sr.getReason());
+            return sr.getRewrittenText();
+        }
+        return text;
     }
 
     /** 暴露底层 store 名（可观测） */

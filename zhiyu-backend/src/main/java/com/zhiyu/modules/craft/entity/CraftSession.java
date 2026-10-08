@@ -23,6 +23,9 @@ public class CraftSession extends BaseEntity {
     /** 项目 ID craft_project.id */
     private Long projectId;
 
+    /** 关联的情绪会话 emotion_session.id，可空 */
+    private Long emotionSessionId;
+
     /** 0待开始 1进行中 2已暂停 3已完成 4已放弃；创建即 1 */
     private Integer status;
 

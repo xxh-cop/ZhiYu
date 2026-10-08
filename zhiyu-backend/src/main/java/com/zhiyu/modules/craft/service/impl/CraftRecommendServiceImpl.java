@@ -2,9 +2,6 @@ package com.zhiyu.modules.craft.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhiyu.ai.AiClient;
-import com.zhiyu.ai.safety.ContentSafetyFilter;
-import com.zhiyu.ai.safety.SafetyAction;
-import com.zhiyu.ai.safety.SafetyResult;
 import com.zhiyu.modules.craft.entity.CraftProject;
 import com.zhiyu.modules.craft.entity.CraftRecommendation;
 import com.zhiyu.modules.craft.entity.CraftRecommendationItem;
@@ -30,9 +27,8 @@ import java.util.stream.Collectors;
  *
  * <p>规则层 + LLM 层混合推荐，流程见 {@link CraftRecommendService}。
  *
- * <p>安全过滤：LLM 返回的整体理由经 {@link ContentSafetyFilter#checkOutput} 检查，
- * 命中 {@link SafetyAction#REWRITE} 时用 {@link SafetyResult#getRewrittenText()} 替换。
- * 审计日志由 {@code checkOutput} 内部写入，Service 层不重复写。
+ * <p>安全过滤：LLM 返回的整体理由由 {@link AiClient#recommendReason} 内部
+ * 自动做输出安全过滤（AGENTS.md §4），本类不再显式调用 ContentSafetyFilter。
  */
 @Slf4j
 @Service
@@ -44,7 +40,6 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
     private final CraftRecommendationItemMapper craftRecommendationItemMapper;
     private final EmotionSessionMapper emotionSessionMapper;
     private final AiClient aiClient;
-    private final ContentSafetyFilter contentSafetyFilter;
 
     /** 兜底文案：项目表为空时 */
     private static final String EMPTY_REASON = "暂无可推荐项目";
@@ -205,27 +200,17 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
     }
 
     /**
-     * LLM 生成整体理由 + 安全过滤。
+     * LLM 生成整体理由。
      *
-     * <p>AiClient 内部走熔断（key=llm-recommend），失败返回降级文案。
-     * 拿到返回值后调 {@link ContentSafetyFilter#checkOutput} 做输出过滤。
-     * 命中 REWRITE → 用 rewrittenText 替换。
-     * 审计日志由 checkOutput 内部写入。
+     * <p>AiClient 内部走熔断（key=llm-recommend）+ 输出安全过滤，
+     * 失败返回降级文案，越界自动改写。本方法不再显式调 checkOutput。
      */
     private String generateReasonWithSafety(Long userId, String mood, List<CraftProject> candidates) {
         List<String> craftNames = candidates.stream()
                 .map(CraftProject::getTitle)
                 .collect(Collectors.toList());
 
-        String llmReason = aiClient.recommendReason(mood, craftNames);
-
-        // 输出安全过滤
-        SafetyResult safetyResult = contentSafetyFilter.checkOutput(userId, "recommend", llmReason);
-        if (safetyResult.getAction() == SafetyAction.REWRITE) {
-            log.warn("推荐理由输出越界已改写: userId={}, reason={}", userId, safetyResult.getReason());
-            return safetyResult.getRewrittenText();
-        }
-        return llmReason;
+        return aiClient.recommendReason(mood, craftNames);
     }
 
     /**

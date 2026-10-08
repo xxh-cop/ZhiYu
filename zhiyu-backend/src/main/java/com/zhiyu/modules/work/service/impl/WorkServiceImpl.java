@@ -12,9 +12,6 @@ import com.zhiyu.modules.craft.entity.CraftSession;
 import com.zhiyu.modules.craft.mapper.CraftProjectMapper;
 import com.zhiyu.modules.craft.mapper.CraftSessionMapper;
 import com.zhiyu.ai.AiClient;
-import com.zhiyu.ai.safety.ContentSafetyFilter;
-import com.zhiyu.ai.safety.SafetyAction;
-import com.zhiyu.ai.safety.SafetyResult;
 import com.zhiyu.modules.work.dto.WorkPublishReq;
 import com.zhiyu.modules.work.entity.Work;
 import com.zhiyu.modules.work.entity.WorkComment;
@@ -46,7 +43,6 @@ public class WorkServiceImpl implements WorkService {
     private final CraftSessionMapper craftSessionMapper;
     private final CraftProjectMapper craftProjectMapper;
     private final AiClient aiClient;
-    private final ContentSafetyFilter contentSafetyFilter;
 
     private static final String ANONYMOUS_NAME = "匿名同学";
 
@@ -80,20 +76,15 @@ public class WorkServiceImpl implements WorkService {
             }
         }
 
-        // message：前端传了就用前端的；否则调 AiClient 生成 + checkOutput
+        // message：前端传了就用前端的；否则调 AiClient 生成（内部含输出安全过滤）
         if (req.getMessage() != null && !req.getMessage().isBlank()) {
             work.setMessage(req.getMessage());
         } else {
-            // TODO(M2): craft_session 缺 emotion_session_id 外键，
-            // 无法关联用户当前情绪。schema 补充后再查 emotion_session.mood。
+            // craft_session.emotion_session_id 已补（P0 修复），
+            // 但通过 session → emotion_session 查 mood 的链路逻辑待 M2 实现，
             // 当前传空字符串，Prompt 模板对空 mood 有兜底。
             String mood = "";
             String generated = aiClient.workMessage(req.getTitle(), mood);
-            // 输出安全过滤（与 T1.5 recommendReason 一致）
-            SafetyResult sr = contentSafetyFilter.checkOutput(userId, "message", generated);
-            if (sr.getAction() == SafetyAction.REWRITE && sr.getRewrittenText() != null) {
-                generated = sr.getRewrittenText();
-            }
             work.setMessage(generated);
             log.info("AI 生成寄语: workId(预)={}, title={}, message={}", work.getId(), req.getTitle(), generated);
         }

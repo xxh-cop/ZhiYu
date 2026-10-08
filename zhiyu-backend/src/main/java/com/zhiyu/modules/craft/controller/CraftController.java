@@ -77,7 +77,7 @@ public class CraftController {
     @PostMapping("/session")
     public Result<CraftSessionVO> createSession(@Valid @RequestBody CreateSessionDTO dto) {
         Long userId = UserContext.getUserId();
-        return Result.success(craftSessionService.create(userId, dto.getProjectId()));
+        return Result.success(craftSessionService.create(userId, dto.getProjectId(), dto.getEmotionSessionId()));
     }
 
     @PutMapping("/session/{id}/status")
