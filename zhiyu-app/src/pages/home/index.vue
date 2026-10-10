@@ -167,7 +167,7 @@ const avatarLetter = computed(() => {
 	return n ? n.charAt(0) : '同'
 })
 
-const hasNotice = ref(true) // 临时：有未读消息
+const hasNotice = ref(false) // TODO: 后端有未读消息接口后改为动态获取
 
 const welcome = computed(() => {
 	const hour = new Date().getHours()

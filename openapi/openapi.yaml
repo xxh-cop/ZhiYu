@@ -389,6 +389,7 @@ paths:
   # ---------- 认证 ----------
   /api/auth/register:
     post:
+      operationId: authRegister
       summary: 注册
       security: []
       requestBody:
@@ -405,6 +406,7 @@ paths:
 
   /api/auth/login:
     post:
+      operationId: authLogin
       summary: 登录
       security: []
       requestBody:
@@ -430,6 +432,7 @@ paths:
 
   /api/auth/me:
     get:
+      operationId: authMe
       summary: 当前用户信息
       security:
         - bearerAuth: []
@@ -452,6 +455,7 @@ paths:
   # ---------- 情绪 ----------
   /api/emotion/sessions:
     get:
+      operationId: emotionSessionList
       summary: 当前用户会话历史列表
       responses:
         '200':
@@ -466,6 +470,7 @@ paths:
 
   /api/emotion/chat:
     post:
+      operationId: emotionChat
       summary: AI 情绪对话（SSE 流式）
       description: |
         返回 Content-Type: text/event-stream，HTTP 状态码恒为 200。
@@ -490,6 +495,7 @@ paths:
 
   /api/emotion/notes:
     post:
+      operationId: emotionNoteCreate
       summary: 创建心情便签（加密存储）
       requestBody:
         required: true
@@ -515,6 +521,7 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     get:
+      operationId: emotionNoteList
       summary: 分页查询本人心情便签
       parameters:
         - { name: page, in: query, schema: { type: integer, default: 1 }, description: 页码 }
@@ -538,6 +545,7 @@ paths:
 
   /api/emotion/notes/{id}:
     get:
+      operationId: emotionNoteGet
       summary: 查询便签详情（返回解密后明文）
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -558,6 +566,7 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     put:
+      operationId: emotionNoteUpdate
       summary: 编辑便签（仅更新非 null 字段）
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -578,6 +587,7 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     delete:
+      operationId: emotionNoteDelete
       summary: 删除便签（逻辑删除）
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -596,6 +606,7 @@ paths:
   # ---------- 手作 ----------
   /api/craft/projects:
     get:
+      operationId: craftProjectList
       summary: 手作项目列表（已上架）
       parameters:
         - { name: tag, in: query, schema: { type: string } }
@@ -621,6 +632,7 @@ paths:
 
   /api/craft/projects/{id}/steps:
     get:
+      operationId: craftProjectSteps
       summary: 项目步骤详情
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -646,6 +658,7 @@ paths:
 
   /api/craft/recommend:
     get:
+      operationId: craftRecommend
       summary: 根据当前心情推荐手作
       parameters:
         - { name: sessionId, in: query, schema: { type: integer } }
@@ -669,6 +682,7 @@ paths:
 
   /api/craft/session:
     post:
+      operationId: craftSessionCreate
       summary: 创建会话，状态直接为进行中
       description: |
         创建后 craft_session.status 直接为 1（进行中），不存在「待开始」中间态。
@@ -698,6 +712,7 @@ paths:
 
   /api/craft/session/{id}:
     get:
+      operationId: craftSessionGet
       summary: 查询创作会话进度
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
@@ -720,6 +735,7 @@ paths:
 
   /api/craft/session/{id}/status:
     put:
+      operationId: craftSessionStatus
       summary: 推进创作会话状态机
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
@@ -748,6 +764,7 @@ paths:
 
   /api/craft/session/{id}/heartbeat:
     post:
+      operationId: craftSessionHeartbeat
       summary: 上报步骤心跳，驱动心流/焦躁判定
       description: 只上报步骤推进与心流信号，不改动会话主状态机。
       parameters:
@@ -773,6 +790,7 @@ paths:
   # ---------- 作品社区 ----------
   /api/works:
     get:
+      operationId: workList
       summary: 作品社区流
       parameters:
         - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
@@ -795,6 +813,7 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     post:
+      operationId: workCreate
       summary: 发布作品
       requestBody:
         required: true
@@ -821,6 +840,7 @@ paths:
 
   /api/works/{id}:
     get:
+      operationId: workGet
       summary: 作品详情
       description: |
         返回单条作品详情。权限规则：
@@ -849,6 +869,7 @@ paths:
 
   /api/works/{id}/like:
     post:
+      operationId: workLike
       summary: 点赞/收藏作品（toggle）
       description: |
         toggle 语义：同一 user + work + type 重复请求即取消。
@@ -882,6 +903,7 @@ paths:
 
   /api/works/{id}/comments:
     post:
+      operationId: workCommentCreate
       summary: 发表留暖评论
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
@@ -908,6 +930,7 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     get:
+      operationId: workCommentList
       summary: 作品评论列表
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
@@ -934,6 +957,7 @@ paths:
   # ---------- 互助小组 ----------
   /api/groups:
     get:
+      operationId: groupList
       summary: 小组列表
       responses:
         '200':
@@ -955,6 +979,7 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     post:
+      operationId: groupCreate
       summary: 创建小组（学生/组长）
       requestBody:
         required: true
@@ -981,6 +1006,7 @@ paths:
 
   /api/groups/{id}/join:
     post:
+      operationId: groupJoin
       summary: 加入小组
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
@@ -1006,6 +1032,7 @@ paths:
 
   /api/inheritor/profile:
     get:
+      operationId: inheritorProfileGet
       summary: 传承人查看自己的资料
       description: '仅 ROLE_1 可访问。返回当前登录传承人的 profile 信息（含 avatarUrl）。'
       security: [{ BearerAuth: [] }]
@@ -1024,6 +1051,7 @@ paths:
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 传承人资料不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     put:
+      operationId: inheritorProfileUpdate
       summary: 传承人更新自己的资料
       description: '仅 ROLE_1 可访问。更新 skill/intro/honor（非 null 才更新）；avatarUrl 非空时同步更新 user.avatar_url。'
       security: [{ BearerAuth: [] }]
@@ -1049,6 +1077,7 @@ paths:
 
   /api/inheritor/projects:
     post:
+      operationId: inheritorProjectCreate
       summary: 传承人创建手作项目（进入待审）
       description: '仅 ROLE_1 可访问。inheritorId 取自 UserContext，status 固定为 0（待审）。'
       security: [{ BearerAuth: [] }]
@@ -1083,6 +1112,7 @@ paths:
         '403': { description: 无权限（code=1003，非传承人角色）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     get:
+      operationId: inheritorProjectList
       summary: 传承人查看自己提交的项目列表
       description: '仅 ROLE_1 可访问。分页查询当前传承人的项目，可按 status 过滤。'
       security: [{ BearerAuth: [] }]
@@ -1108,6 +1138,7 @@ paths:
 
   /api/inheritor/projects/{id}:
     get:
+      operationId: inheritorProjectGet
       summary: 传承人查看项目详情（含步骤+材料）
       description: '仅 ROLE_1 可访问。校验项目属于当前用户，否则 1003。'
       security: [{ BearerAuth: [] }]
@@ -1127,6 +1158,7 @@ paths:
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     put:
+      operationId: inheritorProjectUpdate
       summary: 传承人编辑项目
       description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0（待审），否则 3001。'
       security: [{ BearerAuth: [] }]
@@ -1156,6 +1188,7 @@ paths:
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     delete:
+      operationId: inheritorProjectDelete
       summary: 传承人删除项目（逻辑删除，级联删除步骤和材料）
       description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0（待审），否则 3001。'
       security: [{ BearerAuth: [] }]
@@ -1172,6 +1205,7 @@ paths:
 
   /api/inheritor/projects/{id}/steps:
     post:
+      operationId: inheritorProjectStepCreate
       summary: 传承人添加步骤
       description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0。'
       security: [{ BearerAuth: [] }]
@@ -1209,6 +1243,7 @@ paths:
 
   /api/inheritor/projects/{id}/steps/{stepId}:
     put:
+      operationId: inheritorProjectStepUpdate
       summary: 传承人编辑步骤
       description: '仅 ROLE_1 可访问。校验项目+步骤归属且 status=0。'
       security: [{ BearerAuth: [] }]
@@ -1240,6 +1275,7 @@ paths:
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     delete:
+      operationId: inheritorProjectStepDelete
       summary: 传承人删除步骤（逻辑删除）
       description: '仅 ROLE_1 可访问。校验项目+步骤归属且 status=0。'
       security: [{ BearerAuth: [] }]
@@ -1260,6 +1296,7 @@ paths:
 
   /api/inheritor/projects/{id}/materials:
     post:
+      operationId: inheritorProjectMaterialCreate
       summary: 传承人添加材料
       description: '仅 ROLE_1 可访问。校验项目属于当前用户且 status=0。'
       security: [{ BearerAuth: [] }]
@@ -1295,6 +1332,7 @@ paths:
 
   /api/inheritor/projects/{id}/materials/{materialId}:
     delete:
+      operationId: inheritorProjectMaterialDelete
       summary: 传承人删除材料（逻辑删除）
       description: '仅 ROLE_1 可访问。校验项目+材料归属且 status=0。'
       security: [{ BearerAuth: [] }]
@@ -1316,6 +1354,7 @@ paths:
   # ---------- 管理端 ----------
   /api/admin/audit-queue:
     get:
+      operationId: adminAuditQueue
       summary: 管理员：待审核内容队列（项目/作品/评论）
       x-required-role: admin
       parameters:
@@ -1335,6 +1374,7 @@ paths:
 
   /api/admin/projects/{id}/audit:
     put:
+      operationId: adminProjectAudit
       summary: 管理员：审核手作项目（通过/驳回）
       x-required-role: admin
       parameters:
@@ -1363,6 +1403,7 @@ paths:
 
   /api/admin/care-reminders:
     get:
+      operationId: adminCareReminderList
       summary: 咨询师/管理员：脱敏关怀提醒汇总
       x-required-role: admin
       parameters:
@@ -1382,6 +1423,7 @@ paths:
 
   /api/admin/dashboard/stats:
     get:
+      operationId: adminDashboardStats
       summary: 数据看板指标（闭环完成率、心流时长、作品数等）
       x-required-role: admin
       responses:
@@ -1400,6 +1442,7 @@ paths:
 
   /api/admin/users:
     post:
+      operationId: adminUserCreate
       summary: '管理员：创建用户'
       description: '仅 role=3 可调。支持创建学生/传承人/咨询师/管理员。role=1 时自动创建 inheritor_profile（verified=0）。'
       x-required-role: admin
@@ -1423,6 +1466,7 @@ paths:
         '401': { description: '未登录或登录已过期（code=1002）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: '无权限（code=1003，非管理员）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     get:
+      operationId: adminUserList
       summary: '管理员/咨询师：用户分页列表'
       x-required-role: admin
       parameters:
@@ -1442,6 +1486,7 @@ paths:
 
   /api/admin/users/{id}:
     get:
+      operationId: adminUserGet
       summary: '管理员/咨询师：用户详情'
       x-required-role: admin
       parameters:
@@ -1456,6 +1501,7 @@ paths:
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     put:
+      operationId: adminUserUpdate
       summary: '管理员：编辑用户信息（nickname/school/avatarUrl）'
       x-required-role: admin-only
       parameters:
@@ -1480,6 +1526,7 @@ paths:
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     delete:
+      operationId: adminUserDelete
       summary: '管理员：逻辑删除用户'
       x-required-role: admin-only
       parameters:
@@ -1496,6 +1543,7 @@ paths:
 
   /api/admin/users/{id}/status:
     put:
+      operationId: adminUserStatus
       summary: '管理员：切换用户状态（启用/禁用）'
       x-required-role: admin-only
       parameters:
@@ -1521,6 +1569,7 @@ paths:
 
   /api/admin/users/{id}/role:
     put:
+      operationId: adminUserRole
       summary: '管理员：变更用户角色'
       x-required-role: admin-only
       parameters:
@@ -1548,6 +1597,7 @@ paths:
 
   /api/admin/audit-logs:
     get:
+      operationId: adminAuditLogList
       summary: '管理员/咨询师：AI 审计日志分页查询'
       x-required-role: admin
       parameters:
@@ -1568,6 +1618,7 @@ paths:
 
   /api/admin/audit-logs/{id}:
     get:
+      operationId: adminAuditLogGet
       summary: '管理员：审计日志详情（含解密后的 rawInput/aiOutput）'
       x-required-role: admin-only
       parameters:
@@ -1580,6 +1631,7 @@ paths:
 
   /api/admin/inheritors:
     get:
+      operationId: adminInheritorList
       summary: '管理员/咨询师：传承人分页列表'
       x-required-role: admin
       parameters:
@@ -1598,6 +1650,7 @@ paths:
 
   /api/admin/inheritors/{id}:
     get:
+      operationId: adminInheritorGet
       summary: '管理员/咨询师：传承人详情'
       x-required-role: admin
       parameters:
@@ -1612,6 +1665,7 @@ paths:
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     put:
+      operationId: adminInheritorUpdate
       summary: '管理员：编辑传承人资料（skill/intro/honor）'
       x-required-role: admin-only
       parameters:
@@ -1638,6 +1692,7 @@ paths:
 
   /api/admin/inheritors/{id}/verify:
     put:
+      operationId: adminInheritorVerify
       summary: '管理员：认证/取消认证传承人'
       x-required-role: admin-only
       parameters:
@@ -1665,6 +1720,7 @@ paths:
 
   /api/admin/works:
     get:
+      operationId: adminWorkList
       summary: '管理员/咨询师：作品分页列表'
       x-required-role: admin
       parameters:
@@ -1684,6 +1740,7 @@ paths:
 
   /api/admin/works/{id}:
     get:
+      operationId: adminWorkGet
       summary: '管理员/咨询师：作品详情'
       x-required-role: admin
       parameters:
@@ -1698,6 +1755,7 @@ paths:
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     delete:
+      operationId: adminWorkDelete
       summary: '管理员：逻辑删除作品'
       x-required-role: admin-only
       parameters:
@@ -1714,6 +1772,7 @@ paths:
 
   /api/admin/works/{id}/status:
     put:
+      operationId: adminWorkStatus
       summary: '管理员：变更作品状态（发布/下架）'
       x-required-role: admin-only
       parameters:
@@ -1741,6 +1800,7 @@ paths:
 
   /api/admin/groups:
     get:
+      operationId: adminGroupList
       summary: '管理员/咨询师：小组分页列表'
       x-required-role: admin
       parameters:
@@ -1759,6 +1819,7 @@ paths:
 
   /api/admin/groups/{id}:
     get:
+      operationId: adminGroupGet
       summary: '管理员/咨询师：小组详情'
       x-required-role: admin
       parameters:
@@ -1773,6 +1834,7 @@ paths:
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     delete:
+      operationId: adminGroupDelete
       summary: '管理员：逻辑删除小组'
       x-required-role: admin-only
       parameters:
@@ -1789,6 +1851,7 @@ paths:
 
   /api/admin/groups/{id}/status:
     put:
+      operationId: adminGroupStatus
       summary: '管理员：变更小组状态（开放/关闭）'
       x-required-role: admin-only
       parameters:
@@ -1816,6 +1879,7 @@ paths:
 
   /api/inheritors:
     get:
+      operationId: inheritorList
       summary: 分页查询已认证传承人列表
       description: '登录用户均可访问。只返回 verified=1 的传承人，关联 user 表取 nickname 和 avatarUrl。'
       security: [{ bearerAuth: [] }]
@@ -1856,6 +1920,7 @@ paths:
 
   /api/inheritors/{id}:
     get:
+      operationId: inheritorGet
       summary: 查询传承人详情
       description: '登录用户均可访问。id 为 inheritor_profile.id。未认证传承人返回 1004。'
       security: [{ bearerAuth: [] }]
@@ -1888,6 +1953,7 @@ paths:
 
   /api/inheritors/{id}/projects:
     get:
+      operationId: inheritorProjectPublicList
       summary: 查询传承人的已上架项目列表
       description: '登录用户均可访问。id 为 inheritor_profile.id。先查 user_id 再查 craft_project WHERE inheritor_id=user_id AND status=1。'
       security: [{ bearerAuth: [] }]
@@ -1931,6 +1997,7 @@ paths:
 
   /api/craft/projects/{id}:
     get:
+      operationId: craftProjectGet
       summary: 查询已上架项目详情（含步骤+材料+传承人信息）
       description: '登录用户均可访问。id 为 craft_project.id。未上架项目返回 1004。'
       security: [{ bearerAuth: [] }]
@@ -1988,6 +2055,7 @@ paths:
   # ---------- 用户隐私合规（M3-B1） ----------
   /api/user/privacy/status:
     get:
+      operationId: userPrivacyStatus
       summary: 查询当前用户的隐私政策状态
       description: '返回 privacyAgreed 与 canContact 两个字段'
       security: [{ bearerAuth: [] }]
@@ -2006,6 +2074,7 @@ paths:
 
   /api/user/privacy/agree:
     post:
+      operationId: userPrivacyAgree
       summary: 同意隐私政策
       security: [{ bearerAuth: [] }]
       responses:
@@ -2014,6 +2083,7 @@ paths:
 
   /api/user/privacy/withdraw:
     post:
+      operationId: userPrivacyWithdraw
       summary: 撤回隐私政策同意（同时取消可联系）
       security: [{ bearerAuth: [] }]
       responses:
@@ -2022,6 +2092,7 @@ paths:
 
   /api/user/can-contact:
     put:
+      operationId: userCanContactUpdate
       summary: 更新可联系状态（仅本人可调）
       description: '设为 1 时需已同意隐私政策，否则返回 1001'
       security: [{ bearerAuth: [] }]
@@ -2037,6 +2108,7 @@ paths:
 
   /api/user/delete:
     post:
+      operationId: userDelete
       summary: 注销账号（匿名化 + 逻辑删除）
       description: '需 confirm=true 二次确认；匿名化敏感字段后逻辑删除，不物理删除'
       security: [{ bearerAuth: [] }]
@@ -2052,6 +2124,7 @@ paths:
 
   /api/user/profile:
     put:
+      operationId: userProfileUpdate
       summary: 更新个人资料（昵称、头像、学校、简介）
       description: '只更新非 null 字段。需认证。'
       security: [{ bearerAuth: [] }]
@@ -2077,6 +2150,7 @@ paths:
 
   /api/user/password:
     put:
+      operationId: userPasswordUpdate
       summary: 修改密码
       description: '校验旧密码后更新为新密码。JWT 无状态，修改后当前 token 仍有效。旧密码不匹配返回 2001。'
       security: [{ bearerAuth: [] }]
@@ -2097,6 +2171,7 @@ paths:
   # ---------- 心理援助热线（M3-B1，公开接口） ----------
   /api/crisis/hotlines:
     get:
+      operationId: crisisHotlines
       summary: 获取心理援助热线信息
       description: '公开接口，未登录也能访问，用于登录页与危机干预页展示'
       security: []
