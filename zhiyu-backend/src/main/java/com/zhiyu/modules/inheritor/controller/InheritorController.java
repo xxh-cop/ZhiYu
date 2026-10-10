@@ -1,18 +1,28 @@
 package com.zhiyu.modules.inheritor.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhiyu.common.dto.PageVO;
+import com.zhiyu.common.exception.BusinessException;
 import com.zhiyu.common.result.Result;
+import com.zhiyu.common.result.ResultCode;
+import com.zhiyu.modules.auth.entity.User;
+import com.zhiyu.modules.auth.mapper.UserMapper;
+import com.zhiyu.modules.inheritor.dto.InheritorProfileSelfUpdateDTO;
 import com.zhiyu.modules.inheritor.dto.MaterialCreateDTO;
 import com.zhiyu.modules.inheritor.dto.ProjectCreateDTO;
 import com.zhiyu.modules.inheritor.dto.ProjectUpdateDTO;
 import com.zhiyu.modules.inheritor.dto.StepCreateDTO;
+import com.zhiyu.modules.inheritor.entity.InheritorProfile;
+import com.zhiyu.modules.inheritor.mapper.InheritorProfileMapper;
 import com.zhiyu.modules.inheritor.service.InheritorProjectService;
+import com.zhiyu.modules.inheritor.vo.InheritorProfileSelfVO;
 import com.zhiyu.modules.inheritor.vo.InheritorProjectDetailVO;
 import com.zhiyu.modules.inheritor.vo.InheritorProjectListItemVO;
 import com.zhiyu.security.UserContext;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -20,8 +30,10 @@ import java.util.Map;
 /**
  * 传承人端控制器（M2 批 5A）。
  *
- * <p>提供 10 个接口（全部仅 ROLE_1 可访问，由 SecurityConfig 限定）：
+ * <p>提供 12 个接口（全部仅 ROLE_1 可访问，由 SecurityConfig 限定）：
  * <ul>
+ *   <li>GET    /api/inheritor/profile                           — 查看自己的传承人资料</li>
+ *   <li>PUT    /api/inheritor/profile                           — 更新自己的传承人资料</li>
  *   <li>POST   /api/inheritor/projects                          — 创建项目</li>
  *   <li>GET    /api/inheritor/projects                          — 我的项目列表</li>
  *   <li>GET    /api/inheritor/projects/{id}                     — 项目详情（含步骤+材料）</li>
@@ -41,6 +53,56 @@ import java.util.Map;
 public class InheritorController {
 
     private final InheritorProjectService inheritorProjectService;
+    private final InheritorProfileMapper inheritorProfileMapper;
+    private final UserMapper userMapper;
+
+    // ── 传承人资料 ──
+
+    /**
+     * 查看自己的传承人资料。
+     */
+    @GetMapping("/profile")
+    public Result<InheritorProfileSelfVO> getMyProfile() {
+        Long userId = UserContext.getUserId();
+        InheritorProfile profile = findMyProfile(userId);
+        return Result.success(toSelfVO(profile));
+    }
+
+    /**
+     * 更新自己的传承人资料（skill / intro / honor / avatarUrl）。
+     *
+     * <p>avatarUrl 非空时同步更新 user.avatar_url。
+     */
+    @PutMapping("/profile")
+    @Transactional
+    public Result<InheritorProfileSelfVO> updateMyProfile(
+            @Valid @RequestBody InheritorProfileSelfUpdateDTO dto) {
+        Long userId = UserContext.getUserId();
+        InheritorProfile profile = findMyProfile(userId);
+
+        if (dto.getSkill() != null) {
+            profile.setSkill(dto.getSkill());
+        }
+        if (dto.getIntro() != null) {
+            profile.setIntro(dto.getIntro());
+        }
+        if (dto.getHonor() != null) {
+            profile.setHonor(dto.getHonor());
+        }
+        inheritorProfileMapper.updateById(profile);
+
+        // avatarUrl 非空时同步更新 user.avatar_url
+        if (dto.getAvatarUrl() != null && !dto.getAvatarUrl().isBlank()) {
+            User user = userMapper.selectById(userId);
+            if (user != null) {
+                user.setAvatarUrl(dto.getAvatarUrl());
+                userMapper.updateById(user);
+            }
+        }
+
+        log.info("传承人自更新资料: userId={}, profileId={}", userId, profile.getId());
+        return Result.success(toSelfVO(profile));
+    }
 
     // ── 项目 CRUD ──
 
@@ -118,5 +180,34 @@ public class InheritorController {
             @PathVariable Long materialId) {
         inheritorProjectService.deleteMaterial(UserContext.getUserId(), id, materialId);
         return Result.success();
+    }
+
+    // ── 内部方法 ──
+
+    /** 按 userId 查传承人 profile，不存在抛 1004。 */
+    private InheritorProfile findMyProfile(Long userId) {
+        LambdaQueryWrapper<InheritorProfile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InheritorProfile::getUserId, userId);
+        InheritorProfile profile = inheritorProfileMapper.selectOne(wrapper);
+        if (profile == null) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+        return profile;
+    }
+
+    /** InheritorProfile → InheritorProfileSelfVO，附带 user.avatarUrl。 */
+    private InheritorProfileSelfVO toSelfVO(InheritorProfile profile) {
+        InheritorProfileSelfVO vo = new InheritorProfileSelfVO();
+        vo.setId(profile.getId());
+        vo.setUserId(profile.getUserId());
+        vo.setSkill(profile.getSkill());
+        vo.setIntro(profile.getIntro());
+        vo.setHonor(profile.getHonor());
+        vo.setVerified(profile.getVerified());
+        User user = userMapper.selectById(profile.getUserId());
+        if (user != null) {
+            vo.setAvatarUrl(user.getAvatarUrl());
+        }
+        return vo;
     }
 }

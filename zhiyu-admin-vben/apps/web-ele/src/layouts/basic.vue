@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { NotificationItem } from '@vben/layouts';
 
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
@@ -20,6 +20,8 @@ import { openWindow } from '@vben/utils';
 
 import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
+import InheritorOnboarding from '#/components/InheritorOnboarding.vue';
+import { getMyInheritorProfile } from '#/api/zhiyu/inheritor';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
 const notifications = ref<NotificationItem[]>([
@@ -151,6 +153,26 @@ function handleMakeAll() {
 
 const viewAll = () => {};
 
+// ── 传承人首次登录引导 ──
+const showOnboarding = ref(false);
+
+onMounted(async () => {
+  // 仅传承人角色（ROLE_1）且未跳过过引导时检查
+  const roles = userStore.userInfo?.roles ?? [];
+  if (!roles.includes('ROLE_1')) return;
+  if (localStorage.getItem('profileGuideDismissed') === 'true') return;
+
+  try {
+    const profile = await getMyInheritorProfile();
+    // skill 为空视为需要完善资料
+    if (!profile.skill || !profile.skill.trim()) {
+      showOnboarding.value = true;
+    }
+  } catch {
+    // 静默失败，不影响主流程
+  }
+});
+
 const handleClick = (item: NotificationItem) => {
   // 如果通知项有链接，点击时跳转
   if (item.link) {
@@ -253,6 +275,7 @@ watch(
       >
         <LoginForm />
       </AuthenticationLoginExpiredModal>
+      <InheritorOnboarding v-model:visible="showOnboarding" />
     </template>
     <template #lock-screen>
       <LockScreen :avatar @to-login="handleLogout" />

@@ -1003,6 +1003,50 @@ paths:
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- 传承人 ----------
+
+  /api/inheritor/profile:
+    get:
+      summary: 传承人查看自己的资料
+      description: '仅 ROLE_1 可访问。返回当前登录传承人的 profile 信息（含 avatarUrl）。'
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string, example: 操作成功 }
+                  data: { $ref: '#/components/schemas/InheritorProfileSelfVO' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 传承人资料不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    put:
+      summary: 传承人更新自己的资料
+      description: '仅 ROLE_1 可访问。更新 skill/intro/honor（非 null 才更新）；avatarUrl 非空时同步更新 user.avatar_url。'
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InheritorProfileSelfUpdateReq' }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string, example: 操作成功 }
+                  data: { $ref: '#/components/schemas/InheritorProfileSelfVO' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 传承人资料不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   /api/inheritor/projects:
     post:
       summary: 传承人创建手作项目（进入待审）
@@ -2067,3 +2111,24 @@ paths:
                   - type: object
                     properties:
                       data: { $ref: '#/components/schemas/HotlinesVO' }
+
+    InheritorProfileSelfVO:
+      type: object
+      description: 传承人自己的资料返回体
+      properties:
+        id: { type: integer, format: int64, description: inheritor_profile 主键 }
+        userId: { type: integer, format: int64, description: 关联用户 ID }
+        skill: { type: string, description: 擅长技艺 }
+        intro: { type: string, description: 个人简介 }
+        honor: { type: string, description: 荣誉头衔 }
+        verified: { type: integer, description: '0 未认证 / 1 已认证' }
+        avatarUrl: { type: string, description: '头像 URL（来自 user 表）' }
+
+    InheritorProfileSelfUpdateReq:
+      type: object
+      description: 传承人自更新资料请求体（所有字段可选，null 表示不更新）
+      properties:
+        skill: { type: string, maxLength: 100, description: 擅长技艺 }
+        intro: { type: string, maxLength: 500, description: 个人简介 }
+        honor: { type: string, maxLength: 255, description: 荣誉头衔 }
+        avatarUrl: { type: string, maxLength: 255, description: '头像 URL，非空时同步更新 user.avatar_url' }

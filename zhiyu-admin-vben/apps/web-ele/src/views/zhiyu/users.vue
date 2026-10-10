@@ -81,16 +81,16 @@ const createForm = ref<UserCreateBody>({
 
 const createRules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 50, message: '用户名长度 3-50', trigger: 'blur' },
+    { required: true, message: '请输入登录名', trigger: 'blur' },
+    { min: 3, max: 50, message: '登录名长度 3-50', trigger: 'blur' },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 32, message: '密码长度 6-32', trigger: 'blur' },
   ],
   nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' },
-    { max: 50, message: '昵称不超过 50 字', trigger: 'blur' },
+    { required: true, message: '请输入显示昵称', trigger: 'blur' },
+    { max: 50, message: '显示昵称不超过 50 字', trigger: 'blur' },
   ],
   role: [
     { required: true, message: '请选择角色', trigger: 'change' },
@@ -315,7 +315,7 @@ async function submitCreate() {
     const code = err?.response?.data?.code;
     const msg = err?.response?.data?.message || '创建失败';
     if (code === 2002) {
-      ElMessage.error('用户名已存在');
+      ElMessage.error('登录名已存在');
     } else {
       ElMessage.error(msg);
     }
@@ -366,7 +366,7 @@ onMounted(() => {
         </el-select>
         <el-input
           v-model="keyword"
-          placeholder="搜索用户名或昵称"
+          placeholder="搜索登录名或显示昵称"
           clearable
           style="width: 220px"
           @keyup.enter="handleSearch"
@@ -385,9 +385,13 @@ onMounted(() => {
         style="width: 100%"
         :empty-text="errorMsg || '暂无用户'"
       >
-        <el-table-column prop="id" label="ID" width="180" />
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="nickname" label="昵称" width="120" />
+        <el-table-column label="序号" width="80">
+          <template #default="{ $index }">
+            {{ (currentPage - 1) * pageSize + $index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="username" label="登录名" width="120" />
+        <el-table-column prop="nickname" label="显示昵称" width="120" />
         <el-table-column prop="school" label="学校" min-width="120" />
         <el-table-column label="角色" width="100">
           <template #default="{ row }">
@@ -443,7 +447,7 @@ onMounted(() => {
     <!-- 编辑弹窗 -->
     <el-dialog v-model="editDialogVisible" title="编辑用户" width="440px">
       <el-form label-width="80px">
-        <el-form-item label="昵称">
+        <el-form-item label="显示昵称">
           <el-input v-model="editForm.nickname" />
         </el-form-item>
         <el-form-item label="学校">
@@ -509,10 +513,10 @@ onMounted(() => {
           />
         </el-form-item>
 
-        <el-form-item label="用户名" prop="username">
+        <el-form-item label="登录名" prop="username">
           <el-input
             v-model="createForm.username"
-            placeholder="3-50 位"
+            placeholder="3-50 位（用于登录）"
             style="max-width: 300px"
           />
         </el-form-item>
@@ -527,10 +531,10 @@ onMounted(() => {
           />
         </el-form-item>
 
-        <el-form-item label="昵称" prop="nickname">
+        <el-form-item label="显示昵称" prop="nickname">
           <el-input
             v-model="createForm.nickname"
-            placeholder="不超过 50 字"
+            placeholder="不超过 50 字（用于展示）"
             style="max-width: 300px"
           />
         </el-form-item>

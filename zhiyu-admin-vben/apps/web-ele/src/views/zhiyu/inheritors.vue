@@ -68,20 +68,18 @@ const createForm = ref({
 
 const createRules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 50, message: '用户名长度 3-50', trigger: 'blur' },
+    { required: true, message: '请输入登录名', trigger: 'blur' },
+    { min: 3, max: 50, message: '登录名长度 3-50', trigger: 'blur' },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 32, message: '密码长度 6-32', trigger: 'blur' },
   ],
   nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' },
-    { max: 50, message: '昵称不超过 50 字', trigger: 'blur' },
+    { required: true, message: '请输入显示昵称', trigger: 'blur' },
+    { max: 50, message: '显示昵称不超过 50 字', trigger: 'blur' },
   ],
-  skill: [
-    { required: true, message: '请输入擅长技艺', trigger: 'blur' },
-  ],
+  // skill 改为可选，不设 required 规则
 };
 
 /** 格式化时间 */
@@ -249,8 +247,8 @@ async function submitCreate() {
       password: createForm.value.password,
       nickname: createForm.value.nickname,
       role: 1, // 固定传承人
-      skill: createForm.value.skill,
     };
+    if (createForm.value.skill) body.skill = createForm.value.skill;
     if (createForm.value.school) body.school = createForm.value.school;
     if (createForm.value.intro) body.intro = createForm.value.intro;
     if (createForm.value.avatarUrl) body.avatarUrl = createForm.value.avatarUrl;
@@ -264,7 +262,7 @@ async function submitCreate() {
     const code = err?.response?.data?.code;
     const msg = err?.response?.data?.message || '创建失败';
     if (code === 2002) {
-      ElMessage.error('用户名已存在');
+      ElMessage.error('登录名已存在');
     } else {
       ElMessage.error(msg);
     }
@@ -301,7 +299,7 @@ onMounted(() => {
         </el-select>
         <el-input
           v-model="keyword"
-          placeholder="搜索技艺或昵称"
+          placeholder="搜索技艺或显示昵称"
           clearable
           style="width: 220px"
           @keyup.enter="handleSearch"
@@ -322,8 +320,12 @@ onMounted(() => {
         style="width: 100%"
         :empty-text="errorMsg || '暂无传承人'"
       >
-        <el-table-column prop="id" label="ID" width="180" />
-        <el-table-column prop="nickname" label="昵称" width="120" />
+        <el-table-column label="序号" width="80">
+          <template #default="{ $index }">
+            {{ (currentPage - 1) * pageSize + $index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="nickname" label="显示昵称" width="120" />
         <el-table-column prop="skill" label="擅长技艺" width="120" />
         <el-table-column prop="honor" label="荣誉" min-width="160" show-overflow-tooltip>
           <template #default="{ row }">
@@ -444,10 +446,10 @@ onMounted(() => {
           />
         </el-form-item>
 
-        <el-form-item label="用户名" prop="username">
+        <el-form-item label="登录名" prop="username">
           <el-input
             v-model="createForm.username"
-            placeholder="3-50 位"
+            placeholder="3-50 位（用于登录）"
             style="max-width: 300px"
           />
         </el-form-item>
@@ -462,10 +464,10 @@ onMounted(() => {
           />
         </el-form-item>
 
-        <el-form-item label="昵称" prop="nickname">
+        <el-form-item label="显示昵称" prop="nickname">
           <el-input
             v-model="createForm.nickname"
-            placeholder="不超过 50 字"
+            placeholder="不超过 50 字（用于展示）"
             style="max-width: 300px"
           />
         </el-form-item>
@@ -478,10 +480,10 @@ onMounted(() => {
           />
         </el-form-item>
 
-        <el-form-item label="擅长技艺" prop="skill">
+        <el-form-item label="擅长技艺">
           <el-input
             v-model="createForm.skill"
-            placeholder="如：赣绣、陶瓷等"
+            placeholder="如：赣绣、陶瓷等（可选）"
             style="max-width: 300px"
           />
         </el-form-item>

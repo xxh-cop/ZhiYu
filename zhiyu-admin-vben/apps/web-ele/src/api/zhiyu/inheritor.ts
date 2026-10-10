@@ -136,3 +136,28 @@ export async function deleteMaterial(
     `/inheritor/projects/${projectId}/materials/${materialId}`,
   );
 }
+
+// ── 传承人资料（批次 6-A） ──
+
+export interface InheritorProfileSelf {
+  id: number | string;
+  userId: number | string;
+  skill: string;
+  intro: string;
+  honor: string;
+  verified: number;
+  avatarUrl: string;
+}
+
+export async function getMyInheritorProfile() {
+  return requestClient.get<InheritorProfileSelf>('/inheritor/profile');
+}
+
+export async function updateMyInheritorProfile(data: {
+  skill?: string;
+  intro?: string;
+  honor?: string;
+  avatarUrl?: string;
+}) {
+  return requestClient.put<InheritorProfileSelf>('/inheritor/profile', data);
+}
