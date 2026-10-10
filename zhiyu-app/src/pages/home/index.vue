@@ -62,7 +62,7 @@
 		</view>
 
 		<!-- ═══ 模块 5：今日推荐手作 ═══ -->
-		<view class="section section--recommend zy-slide-up zy-stagger" style="--stagger-i: 4">
+		<view v-if="recommends.length > 0" class="section section--recommend zy-slide-up zy-stagger" style="--stagger-i: 4">
 			<view class="recommend-header">
 				<text class="section-title">今日推荐手作</text>
 				<text class="recommend-refresh" @click="refreshRecommend">换一批</text>
@@ -71,17 +71,34 @@
 				<view class="recommend-track">
 					<view
 						v-for="(item, i) in recommends"
-						:key="i"
+						:key="item.projectId || i"
 						class="recommend-card"
-						@click="goRecommend"
+						@click="goCraftDetail(item)"
 					>
-						<view class="recommend-img" :style="{ background: item.gradient }">
-							<wd-icon name="image" size="40rpx" color="#FFFFFF" />
+						<view class="recommend-img" :style="recommendImgStyle(item)">
+							<image v-if="item.coverUrl" class="recommend-cover" :src="item.coverUrl" mode="aspectFill" />
+							<wd-icon v-else name="image" size="40rpx" color="#FFFFFF" />
 						</view>
-						<text class="recommend-name">{{ item.name }}</text>
+						<text class="recommend-name">{{ item.title }}</text>
 						<view class="recommend-tag">
-							<text class="recommend-tag-text">{{ item.duration }}</text>
+							<text class="recommend-tag-text">约 {{ item.estMinutes }} 分钟</text>
 						</view>
+					</view>
+				</view>
+			</scroll-view>
+		</view>
+
+		<!-- 骨架屏（加载中） -->
+		<view v-if="recommendLoading && recommends.length === 0" class="section section--recommend zy-slide-up zy-stagger" style="--stagger-i: 4">
+			<view class="recommend-header">
+				<text class="section-title">今日推荐手作</text>
+			</view>
+			<scroll-view scroll-x class="recommend-scroll" :show-scrollbar="false">
+				<view class="recommend-track">
+					<view v-for="i in 3" :key="'rsk-'+i" class="recommend-card">
+						<view class="recommend-img zy-skeleton"></view>
+						<view class="recommend-skeleton-name zy-skeleton"></view>
+						<view class="recommend-skeleton-tag zy-skeleton"></view>
 					</view>
 				</view>
 			</scroll-view>
@@ -144,11 +161,8 @@ const moods = [
 	{ emoji: '😕', label: '不太好' },
 ]
 
-const recommends = ref([
-	{ name: '解压扎染方巾', duration: '约 45 分钟', gradient: 'linear-gradient(135deg, #2D9B8F, #5BCFBF)' },
-	{ name: '刺绣书签', duration: '约 30 分钟', gradient: 'linear-gradient(135deg, #FFB547, #FFD08A)' },
-	{ name: '编织杯垫', duration: '约 25 分钟', gradient: 'linear-gradient(135deg, #FF6B6B, #FF9B9B)' },
-])
+const recommends = ref([])
+const recommendLoading = ref(false)
 
 const entries = [
 	{ icon: 'chat', title: '情绪倾听', sub: '和 AI 说说话', action: goEmotion },
@@ -188,8 +202,7 @@ function nextQuote() {
 }
 
 function refreshRecommend() {
-	// 随机打乱顺序
-	recommends.value.sort(() => Math.random() - 0.5)
+	loadRecommends()
 }
 
 onShow(() => {
@@ -199,6 +212,9 @@ onShow(() => {
 	}
 	loadCurrentUser()
 	checkPrivacyConsent()
+	if (recommends.value.length === 0) {
+		loadRecommends()
+	}
 })
 
 async function checkPrivacyConsent() {
@@ -253,6 +269,42 @@ function goEmotion() {
 
 function goRecommend() {
 	uni.navigateTo({ url: '/pages/craft/recommend' })
+}
+
+function goCraftDetail(item) {
+	if (item && item.projectId) {
+		uni.navigateTo({ url: `/pages/craft/detail?id=${item.projectId}` })
+	} else {
+		goRecommend()
+	}
+}
+
+function recommendImgStyle(item) {
+	if (item && item.coverUrl) return ''
+	// 渐变 fallback
+	const gradients = [
+		'linear-gradient(135deg, #2D9B8F, #5BCFBF)',
+		'linear-gradient(135deg, #FFB547, #FFD08A)',
+		'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
+	]
+	const idx = (item && item.projectId ? item.projectId : 0) % gradients.length
+	return `background: ${gradients[idx]};`
+}
+
+async function loadRecommends() {
+	if (recommendLoading.value) return
+	recommendLoading.value = true
+	try {
+		const data = await request({ url: '/api/craft/recommend', method: 'GET' })
+		if (data && data.items) {
+			recommends.value = data.items
+		}
+	} catch (e) {
+		// 降级为空数组，不显示推荐区
+		recommends.value = []
+	} finally {
+		recommendLoading.value = false
+	}
 }
 
 function goWorks() {
@@ -590,6 +642,25 @@ function goInheritors() {
 .recommend-tag-text {
 	font-size: 22rpx;
 	color: var(--zy-warning, #FFB547);
+}
+
+.recommend-cover {
+	width: 100%;
+	height: 100%;
+	border-radius: var(--zy-radius-sm, 20rpx);
+}
+
+.recommend-skeleton-name {
+	width: 160rpx;
+	height: 28rpx;
+	border-radius: var(--zy-radius-xs, 8rpx);
+	margin-bottom: 12rpx;
+}
+
+.recommend-skeleton-tag {
+	width: 100rpx;
+	height: 24rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
 }
 
 /* ═══ 模块 6：底部免责 ═══ */

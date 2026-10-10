@@ -145,7 +145,7 @@ const signature = computed(() => {
 	return '把今天的疲惫放一放'
 })
 
-// TODO: 后端暂无统计接口，使用 Mock 数据
+// 统计数据
 const stats = ref({
 	days: 0,
 	works: 0,
@@ -167,12 +167,6 @@ async function loadCurrentUser() {
 	try {
 		const data = await request({ url: '/api/auth/me', method: 'GET' })
 		userStore.setUserInfo(data)
-		// 从注册时间计算创作天数
-		if (data && data.createTime) {
-			const created = new Date(data.createTime)
-			const now = new Date()
-			stats.value.days = Math.max(1, Math.floor((now - created) / (1000 * 60 * 60 * 24)))
-		}
 	} catch (e) {
 	} finally {
 		loadingMe.value = false
@@ -180,9 +174,19 @@ async function loadCurrentUser() {
 }
 
 async function loadStats() {
-	// TODO: 后端暂无 /api/user/stats 接口，使用 Mock
-	stats.value.works = 0
-	stats.value.notes = 0
+	try {
+		const data = await request({ url: '/api/user/stats', method: 'GET' })
+		if (data) {
+			stats.value.days = data.daysSinceRegister || 0
+			stats.value.works = data.workCount || 0
+			stats.value.notes = data.noteCount || 0
+		}
+	} catch (e) {
+		// 降级为 0
+		stats.value.days = stats.value.days || 0
+		stats.value.works = 0
+		stats.value.notes = 0
+	}
 }
 
 function handleMenu(item) {

@@ -13,7 +13,10 @@ import com.zhiyu.modules.inheritor.mapper.InheritorProfileMapper;
 import com.zhiyu.modules.inheritor.service.InheritorPublicService;
 import com.zhiyu.modules.inheritor.vo.InheritorPublicDetailVO;
 import com.zhiyu.modules.inheritor.vo.InheritorPublicItemVO;
+import com.zhiyu.modules.work.entity.Work;
+import com.zhiyu.modules.work.mapper.WorkMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -29,10 +32,12 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InheritorPublicServiceImpl implements InheritorPublicService {
 
     private final InheritorProfileMapper inheritorProfileMapper;
     private final UserMapper userMapper;
+    private final WorkMapper workMapper;
 
     @Override
     public PageVO<InheritorPublicItemVO> listInheritors(int page, int pageSize, String keyword) {
@@ -121,6 +126,27 @@ public class InheritorPublicServiceImpl implements InheritorPublicService {
             vo.setAvatarUrl(user.getAvatarUrl());
             vo.setSchool(user.getSchool());
         }
+
+        // 统计数据（批次 6-E）
+        Long workCount = workMapper.selectCount(
+                new LambdaQueryWrapper<Work>()
+                        .eq(Work::getUserId, profile.getUserId())
+                        .eq(Work::getStatus, 1));
+        vo.setWorkCount(workCount);
+
+        // 粉丝数：当前无粉丝表，固定 0
+        vo.setFanCount(0L);
+
+        // 获赞数：SUM(like_count) WHERE user_id = 该传承人
+        List<Work> works = workMapper.selectList(
+                new LambdaQueryWrapper<Work>()
+                        .eq(Work::getUserId, profile.getUserId())
+                        .select(Work::getLikeCount));
+        long totalLikes = works.stream()
+                .filter(w -> w.getLikeCount() != null)
+                .mapToLong(Work::getLikeCount)
+                .sum();
+        vo.setLikeCount(totalLikes);
 
         return vo;
     }

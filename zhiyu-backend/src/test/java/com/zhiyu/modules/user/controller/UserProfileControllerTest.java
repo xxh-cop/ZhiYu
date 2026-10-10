@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -185,5 +186,26 @@ class UserProfileControllerTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(1001));
+    }
+
+    // ── GET /api/user/stats（批次 6-E） ──
+
+    @Test
+    @DisplayName("统计：0 作品 0 便签 → 返回正确")
+    void testStats_EmptyUser() throws Exception {
+        mockMvc.perform(get("/api/user/stats")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.workCount").value(0))
+                .andExpect(jsonPath("$.data.noteCount").value(0))
+                .andExpect(jsonPath("$.data.daysSinceRegister").value(1));
+    }
+
+    @Test
+    @DisplayName("统计：未登录 → 401")
+    void testStats_Unauthorized() throws Exception {
+        mockMvc.perform(get("/api/user/stats"))
+                .andExpect(status().isUnauthorized());
     }
 }

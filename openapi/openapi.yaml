@@ -1947,6 +1947,9 @@ paths:
                       intro: { type: string }
                       avatarUrl: { type: string, nullable: true }
                       school: { type: string, nullable: true }
+                      workCount: { type: integer, format: int64, description: '作品数（status=1）' }
+                      fanCount: { type: integer, format: int64, description: '粉丝数（当前无粉丝表，固定 0）' }
+                      likeCount: { type: integer, format: int64, description: '获赞数（SUM(like_count))' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004，传承人不存在或未认证）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -2168,6 +2171,25 @@ paths:
         '400': { description: 参数校验失败（code=1001，新密码长度不合规）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/user/stats:
+    get:
+      operationId: userStats
+      summary: 学生端「我的」统计数据
+      description: '返回注册天数、作品数、便签数'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 统计数据
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserStatsVO' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   # ---------- 心理援助热线（M3-B1，公开接口） ----------
   /api/crisis/hotlines:
     get:
@@ -2207,3 +2229,11 @@ paths:
         intro: { type: string, maxLength: 500, description: 个人简介 }
         honor: { type: string, maxLength: 255, description: 荣誉头衔 }
         avatarUrl: { type: string, maxLength: 255, description: '头像 URL，非空时同步更新 user.avatar_url' }
+
+    UserStatsVO:
+      type: object
+      description: 学生端「我的」统计数据
+      properties:
+        daysSinceRegister: { type: integer, format: int64, description: '注册天数（今天注册返回 1）' }
+        workCount: { type: integer, format: int64, description: '作品数' }
+        noteCount: { type: integer, format: int64, description: '便签数' }

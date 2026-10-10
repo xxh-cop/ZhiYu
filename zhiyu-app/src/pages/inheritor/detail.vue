@@ -149,7 +149,7 @@ const page = ref(1)
 const total = ref(0)
 const size = 10
 
-// TODO: 后端暂无统计数据接口，使用 Mock
+// 统计数据（来自后端 InheritorPublicDetailVO）
 const stats = ref({
 	works: 0,
 	fans: 0,
@@ -177,9 +177,9 @@ async function loadInheritor() {
 	try {
 		const data = await http.get(`/api/inheritors/${inheritorId.value}`)
 		inheritor.value = data
-		// TODO: 后端暂无 stats 字段，用 Mock
+		// 从后端返回的统计字段填充
 		if (data) {
-			stats.value.works = data.projectCount || 0
+			stats.value.works = data.workCount || 0
 			stats.value.fans = data.fanCount || 0
 			stats.value.likes = data.likeCount || 0
 		}
