@@ -125,4 +125,57 @@ class EmotionServiceTest {
         assertEquals(1, historyB.size());
         assertEquals("用户B的消息", historyB.get(0).content());
     }
+
+    @Test
+    @DisplayName("updateSummary：summary 加密落库，原始列不是明文")
+    void testUpdateSummary_Encrypted() {
+        Long sessionId = emotionService.createSession(1001L, "焦虑");
+        String summary = "本次对话围绕考试压力展开，建议深呼吸放松";
+        emotionService.updateSummary(sessionId, summary);
+
+        // 用 JdbcTemplate 读原始列，验证不是明文
+        String rawSummary = jdbcTemplate.queryForObject(
+                "SELECT summary FROM emotion_session WHERE id = ?",
+                String.class, sessionId);
+        assertNotNull(rawSummary);
+        assertNotEquals(summary, rawSummary, "存储的应该是密文");
+        assertEquals(summary, encryptor.decrypt(rawSummary));
+    }
+
+    @Test
+    @DisplayName("updateSummary：不改变 status（保持 0 进行中）")
+    void testUpdateSummary_DoesNotChangeStatus() {
+        Long sessionId = emotionService.createSession(1001L, "疲惫");
+        emotionService.updateSummary(sessionId, "会话总结内容");
+
+        EmotionSession session = sessionMapper.selectById(sessionId);
+        assertEquals(0, session.getStatus(), "status 应仍为 0（进行中）");
+        assertNotNull(session.getSummary());
+    }
+
+    @Test
+    @DisplayName("updateSummary + getSession：写入后 getSession 能解密返回")
+    void testUpdateSummary_GetSession_Decrypt() {
+        Long sessionId = emotionService.createSession(1001L, "焦虑");
+        String summary = "对话总结：建议尝试正念呼吸";
+        emotionService.updateSummary(sessionId, summary);
+
+        SessionVO vo = emotionService.getSession(sessionId);
+        assertNotNull(vo);
+        assertEquals(summary, vo.getSummary());
+        assertEquals(0, vo.getStatus(), "status 应仍为 0（进行中）");
+    }
+
+    @Test
+    @DisplayName("endSession：改变 status=1 + summary 加密")
+    void testEndSession_ChangesStatus() {
+        Long sessionId = emotionService.createSession(1001L, "低落");
+        String summary = "对话结束总结";
+        emotionService.endSession(sessionId, summary);
+
+        EmotionSession session = sessionMapper.selectById(sessionId);
+        assertEquals(1, session.getStatus(), "status 应为 1（已结束）");
+        assertNotNull(session.getSummary());
+        assertEquals(summary, encryptor.decrypt(session.getSummary()));
+    }
 }

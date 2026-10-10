@@ -22,6 +22,9 @@ public class EmotionSession extends BaseEntity {
     /** 触发情绪 code，取值见 dict_mood.code */
     private String mood;
 
+    /** 会话总结（加密存储，密文 Base64） */
+    private String summary;
+
     /** 0 进行中 / 1 已结束 */
     private Integer status;
 }

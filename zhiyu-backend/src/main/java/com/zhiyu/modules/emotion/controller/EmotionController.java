@@ -58,6 +58,9 @@ public class EmotionController {
 
     private static final long SSE_TIMEOUT = 120_000L;
 
+    /** 会话总结最大长度（取 AI 最后回复的前 N 字） */
+    private static final int SUMMARY_MAX_LENGTH = 100;
+
     private final AiClient aiClient;
     private final EmotionService emotionService;
     private final ContentSafetyFilter safetyFilter;
@@ -94,6 +97,8 @@ public class EmotionController {
                     if (careMessage != null) {
                         emitter.send(SseEmitter.event().data(careMessage));
                     }
+                    // 更新会话总结（危机路径：用关怀话术作为 summary，不改 status）
+                    emotionService.updateSummary(sessionId, truncate(careMessage));
                     // 推送 done（携带 crisis 标志）
                     emitter.send(SseEmitter.event()
                             .name("done")
@@ -130,6 +135,9 @@ public class EmotionController {
 
                 // 7. 保存 AI 回复（加密）
                 emotionService.appendMessage(sessionId, "assistant", fullReply.toString());
+
+                // 7a. 更新会话总结（正常路径：取 AI 回复前 100 字作为 summary，不改 status）
+                emotionService.updateSummary(sessionId, truncate(fullReply.toString()));
 
                 // 8. 发送 done 事件（携带 crisis 标志）
                 emitter.send(SseEmitter.event()
@@ -168,5 +176,20 @@ public class EmotionController {
             // 兜底：保证 done 事件一定能发出
             return "{\"sessionId\":\"" + sessionId + "\",\"crisis\":" + crisis + "}";
         }
+    }
+
+    /**
+     * 截取字符串前 {@value #SUMMARY_MAX_LENGTH} 个字符作为会话 summary。
+     *
+     * @param text 原始文本（可为 null）
+     * @return 截断后的文本，null 输入返回 null
+     */
+    private String truncate(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        return text.length() <= SUMMARY_MAX_LENGTH
+                ? text
+                : text.substring(0, SUMMARY_MAX_LENGTH);
     }
 }

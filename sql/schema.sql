@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS emotion_session (
   id          BIGINT      NOT NULL,
   user_id     BIGINT      NOT NULL COMMENT '所属学生',
   mood        VARCHAR(32) DEFAULT NULL COMMENT '触发情绪 code，取值见 dict_mood.code',
+  summary     VARCHAR(255) DEFAULT NULL COMMENT '会话总结(加密)',
   status      TINYINT     NOT NULL DEFAULT 0 COMMENT '0进行中 1已结束',
   create_time DATETIME    DEFAULT NULL,
   update_time DATETIME    DEFAULT NULL,

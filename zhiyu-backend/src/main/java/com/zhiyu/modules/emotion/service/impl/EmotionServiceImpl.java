@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
  * <ul>
  *   <li>{@code appendMessage} 时对 content 加密（{@link AesEncryptor#encrypt}）</li>
  *   <li>{@code loadRecentHistory} 时解密（{@link AesEncryptor#decrypt}）</li>
+ *   <li>{@code endSession} 时对 summary 加密后落库</li>
+ *   <li>{@code getSession} 时解密 summary 返回明文</li>
  *   <li>历史按 create_time 升序、截断到 maxTurns 条</li>
  * </ul>
  */
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EmotionServiceImpl implements EmotionService {
+
+    private static final String DECRYPT_FAILED = "[解密失败]";
 
     private final EmotionSessionMapper sessionMapper;
     private final EmotionMessageMapper messageMapper;
@@ -78,11 +82,62 @@ public class EmotionServiceImpl implements EmotionService {
     }
 
     @Override
+    public void endSession(Long sessionId, String summary) {
+        EmotionSession session = sessionMapper.selectById(sessionId);
+        if (session == null) {
+            log.warn("结束会话失败：会话不存在, sessionId={}", sessionId);
+            return;
+        }
+        session.setStatus(1);
+        if (summary != null && !summary.isBlank()) {
+            session.setSummary(encryptor.encrypt(summary));
+        }
+        sessionMapper.updateById(session);
+        log.info("结束情绪会话: sessionId={}, hasSummary={}", sessionId, summary != null);
+    }
+
+    @Override
+    public void updateSummary(Long sessionId, String summary) {
+        if (summary == null || summary.isBlank()) {
+            return;
+        }
+        EmotionSession session = sessionMapper.selectById(sessionId);
+        if (session == null) {
+            log.warn("更新会话总结失败：会话不存在, sessionId={}", sessionId);
+            return;
+        }
+        session.setSummary(encryptor.encrypt(summary));
+        sessionMapper.updateById(session);
+        log.debug("更新会话总结: sessionId={}, summaryLength={}", sessionId, summary.length());
+    }
+
+    @Override
     public SessionVO getSession(Long sessionId) {
         EmotionSession session = sessionMapper.selectById(sessionId);
         if (session == null) {
             return null;
         }
-        return new SessionVO(session.getId(), session.getMood(), session.getCreateTime());
+        return new SessionVO(
+                session.getId(),
+                session.getMood(),
+                session.getCreateTime(),
+                decryptSafely(session.getSummary()),
+                session.getStatus()
+        );
+    }
+
+    /**
+     * 解密 summary，失败时返回 {@value #DECRYPT_FAILED} 而非抛异常。
+     */
+    private String decryptSafely(String ciphertext) {
+        if (ciphertext == null || ciphertext.isEmpty()) {
+            return null;
+        }
+        try {
+            return encryptor.decrypt(ciphertext);
+        } catch (Exception e) {
+            log.warn("会话总结解密失败: {}", e.getMessage());
+            return DECRYPT_FAILED;
+        }
     }
 }

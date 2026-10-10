@@ -41,7 +41,26 @@ public interface EmotionService {
     List<ChatMessage> loadRecentHistory(Long sessionId, int maxTurns);
 
     /**
-     * 获取会话信息。
+     * 结束会话，写入会话总结（加密后落库）。
+     *
+     * @param sessionId 会话 ID
+     * @param summary   会话总结明文（可为 null）
+     */
+    void endSession(Long sessionId, String summary);
+
+    /**
+     * 更新会话总结（加密后落库），不改变会话状态。
+     *
+     * <p>用于 SSE 每轮对话结束时写入 summary，但保持 status=0（进行中），
+     * 以支持多轮对话复用同一会话。
+     *
+     * @param sessionId 会话 ID
+     * @param summary   会话总结明文（可为 null，null 时不写入）
+     */
+    void updateSummary(Long sessionId, String summary);
+
+    /**
+     * 获取会话信息（summary 解密后返回）。
      *
      * @param sessionId 会话 ID
      * @return 会话 VO，不存在返回 null

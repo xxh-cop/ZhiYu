@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS emotion_session (
   id          BIGINT      NOT NULL,
   user_id     BIGINT      NOT NULL,
   mood        VARCHAR(32) DEFAULT NULL,
+  summary     VARCHAR(255) DEFAULT NULL,
   status      TINYINT     NOT NULL DEFAULT 0,
   create_time TIMESTAMP   DEFAULT NULL,
   update_time TIMESTAMP   DEFAULT NULL,
