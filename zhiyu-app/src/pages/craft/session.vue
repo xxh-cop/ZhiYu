@@ -229,8 +229,14 @@ function getDwellSeconds() {
 	return Math.floor((Date.now() - stepStartTime) / 1000)
 }
 
+let pendingHeartbeat = null
+
 async function sendHeartbeat(payload) {
-	if (heartbeatInFlight) return
+	if (heartbeatInFlight) {
+		// 步骤切换 / 呼吸响应等关键心跳不能丢弃，暂存待发
+		pendingHeartbeat = payload
+		return
+	}
 	heartbeatInFlight = true
 	try {
 		const res = await http.post(`/api/craft/session/${sessionId}/heartbeat`, payload)
@@ -242,6 +248,12 @@ async function sendHeartbeat(payload) {
 		console.warn('心跳失败', e)
 	} finally {
 		heartbeatInFlight = false
+		// 如果有待发心跳（步骤切换等），立即补发
+		if (pendingHeartbeat) {
+			const pending = pendingHeartbeat
+			pendingHeartbeat = null
+			sendHeartbeat(pending)
+		}
 	}
 }
 
