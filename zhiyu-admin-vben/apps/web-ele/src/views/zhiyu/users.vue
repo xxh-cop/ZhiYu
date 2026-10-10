@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
+import { useAccessStore } from '@vben/stores';
+
 import { ElMessage, ElMessageBox } from 'element-plus';
+import type { FormInstance, FormRules } from 'element-plus';
 
 import {
+  createUser,
   deleteUser,
   getUserList,
   updateUser,
   updateUserRole,
   updateUserStatus,
 } from '#/api/zhiyu/admin-user';
+import type { UserCreateBody } from '#/api/zhiyu/admin-user';
 
 /** 角色中文映射 */
 const ROLE_LABELS: Record<number, string> = {
@@ -53,6 +58,44 @@ const editForm = ref({ id: 0, nickname: '', school: '' });
 /** 角色弹窗 */
 const roleDialogVisible = ref(false);
 const roleForm = ref({ id: 0, role: 0 });
+
+/** 新建用户弹窗 */
+const createDialogVisible = ref(false);
+const createFormRef = ref<FormInstance>();
+const creating = ref(false);
+const avatarUploading = ref(false);
+const avatarInput = ref<HTMLInputElement | null>(null);
+const accessStore = useAccessStore();
+
+const createForm = ref<UserCreateBody>({
+  username: '',
+  password: '',
+  nickname: '',
+  role: 0,
+  school: '',
+  intro: '',
+  avatarUrl: '',
+  skill: '',
+  honor: '',
+});
+
+const createRules: FormRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 50, message: '用户名长度 3-50', trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 32, message: '密码长度 6-32', trigger: 'blur' },
+  ],
+  nickname: [
+    { required: true, message: '请输入昵称', trigger: 'blur' },
+    { max: 50, message: '昵称不超过 50 字', trigger: 'blur' },
+  ],
+  role: [
+    { required: true, message: '请选择角色', trigger: 'change' },
+  ],
+};
 
 /** 格式化时间 */
 function formatTime(dt?: string) {
@@ -165,6 +208,122 @@ async function handleDelete(row: any) {
   }
 }
 
+// ── 新建用户 ──
+
+function openCreateDialog() {
+  createForm.value = {
+    username: '',
+    password: '',
+    nickname: '',
+    role: 0,
+    school: '',
+    intro: '',
+    avatarUrl: '',
+    skill: '',
+    honor: '',
+  };
+  createDialogVisible.value = true;
+}
+
+function handleRoleChange() {
+  // 切换角色时清空传承人专用字段
+  if (createForm.value.role !== 1) {
+    createForm.value.skill = '';
+    createForm.value.honor = '';
+  }
+}
+
+function triggerAvatarUpload() {
+  avatarInput.value?.click();
+}
+
+async function handleAvatarChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    ElMessage.error('仅支持 JPG / PNG / GIF / WebP 格式');
+    input.value = '';
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.error('图片大小不能超过 5MB');
+    input.value = '';
+    return;
+  }
+
+  avatarUploading.value = true;
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = accessStore.accessToken;
+    const response = await fetch('/api/files/upload/image', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const result = await response.json();
+    if (result.code === 0 && result.data?.url) {
+      createForm.value.avatarUrl = result.data.url;
+      ElMessage.success('头像上传成功');
+    } else {
+      ElMessage.error(result.message || '头像上传失败');
+    }
+  } catch {
+    ElMessage.error('头像上传失败');
+  } finally {
+    avatarUploading.value = false;
+    input.value = '';
+  }
+}
+
+function getAvatarUrl(url: string): string {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `/api${url}`;
+}
+
+async function submitCreate() {
+  if (!createFormRef.value) return;
+  const valid = await createFormRef.value.validate().catch(() => false);
+  if (!valid) return;
+
+  creating.value = true;
+  try {
+    const body: UserCreateBody = {
+      username: createForm.value.username,
+      password: createForm.value.password,
+      nickname: createForm.value.nickname,
+      role: createForm.value.role,
+    };
+    if (createForm.value.school) body.school = createForm.value.school;
+    if (createForm.value.intro) body.intro = createForm.value.intro;
+    if (createForm.value.avatarUrl) body.avatarUrl = createForm.value.avatarUrl;
+    if (createForm.value.role === 1) {
+      if (createForm.value.skill) body.skill = createForm.value.skill;
+      if (createForm.value.honor) body.honor = createForm.value.honor;
+    }
+
+    await createUser(body);
+    ElMessage.success('用户创建成功');
+    createDialogVisible.value = false;
+    fetchList();
+  } catch (err: any) {
+    const code = err?.response?.data?.code;
+    const msg = err?.response?.data?.message || '创建失败';
+    if (code === 2002) {
+      ElMessage.error('用户名已存在');
+    } else {
+      ElMessage.error(msg);
+    }
+  } finally {
+    creating.value = false;
+  }
+}
+
 onMounted(() => {
   fetchList();
 });
@@ -214,6 +373,7 @@ onMounted(() => {
           @clear="handleSearch"
         />
         <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button type="success" @click="openCreateDialog">新建用户</el-button>
       </div>
     </el-card>
 
@@ -313,5 +473,153 @@ onMounted(() => {
         <el-button type="primary" @click="submitRole">确认</el-button>
       </template>
     </el-dialog>
+
+    <!-- 新建用户弹窗 -->
+    <el-dialog v-model="createDialogVisible" title="新建用户" width="600px">
+      <el-form
+        ref="createFormRef"
+        :model="createForm"
+        :rules="createRules"
+        label-width="100px"
+      >
+        <!-- 头像上传 -->
+        <el-form-item label="头像">
+          <div class="flex items-center gap-3">
+            <div class="create-avatar-wrapper">
+              <img
+                v-if="createForm.avatarUrl"
+                :src="getAvatarUrl(createForm.avatarUrl)"
+                alt="头像"
+                class="create-avatar-img"
+              />
+              <div v-else class="create-avatar-placeholder">
+                {{ createForm.nickname.charAt(0) || '?' }}
+              </div>
+            </div>
+            <el-button :loading="avatarUploading" @click="triggerAvatarUpload">
+              上传头像
+            </el-button>
+          </div>
+          <input
+            ref="avatarInput"
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            style="display: none"
+            @change="handleAvatarChange"
+          />
+        </el-form-item>
+
+        <el-form-item label="用户名" prop="username">
+          <el-input
+            v-model="createForm.username"
+            placeholder="3-50 位"
+            style="max-width: 300px"
+          />
+        </el-form-item>
+
+        <el-form-item label="密码" prop="password">
+          <el-input
+            v-model="createForm.password"
+            type="password"
+            placeholder="6-32 位"
+            show-password
+            style="max-width: 300px"
+          />
+        </el-form-item>
+
+        <el-form-item label="昵称" prop="nickname">
+          <el-input
+            v-model="createForm.nickname"
+            placeholder="不超过 50 字"
+            style="max-width: 300px"
+          />
+        </el-form-item>
+
+        <el-form-item label="角色" prop="role">
+          <el-select
+            v-model="createForm.role"
+            placeholder="请选择角色"
+            style="width: 200px"
+            @change="handleRoleChange"
+          >
+            <el-option label="学生" :value="0" />
+            <el-option label="传承人" :value="1" />
+            <el-option label="咨询师" :value="2" />
+            <el-option label="管理员" :value="3" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="学校">
+          <el-input
+            v-model="createForm.school"
+            placeholder="可选"
+            style="max-width: 300px"
+          />
+        </el-form-item>
+
+        <el-form-item label="个人简介">
+          <el-input
+            v-model="createForm.intro"
+            type="textarea"
+            :rows="3"
+            placeholder="可选"
+          />
+        </el-form-item>
+
+        <!-- 传承人专用字段 -->
+        <template v-if="createForm.role === 1">
+          <el-divider content-position="left">传承人资料</el-divider>
+          <el-form-item label="擅长技艺">
+            <el-input
+              v-model="createForm.skill"
+              placeholder="如：赣绣、陶瓷等"
+              style="max-width: 300px"
+            />
+          </el-form-item>
+          <el-form-item label="荣誉">
+            <el-input
+              v-model="createForm.honor"
+              placeholder="如：非遗传承人等"
+              style="max-width: 300px"
+            />
+          </el-form-item>
+        </template>
+      </el-form>
+      <template #footer>
+        <el-button @click="createDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="creating" @click="submitCreate">
+          创建
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
+
+<style scoped>
+.create-avatar-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid #e4e7ed;
+}
+
+.create-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.create-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+</style>

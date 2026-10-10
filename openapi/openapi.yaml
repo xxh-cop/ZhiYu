@@ -98,6 +98,20 @@ components:
         oldPassword: { type: string, format: password }
         newPassword: { type: string, format: password, minLength: 6, maxLength: 32 }
 
+    UserCreateReq:
+      type: object
+      required: [username, password, nickname, role]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 50 }
+        password: { type: string, format: password, minLength: 6, maxLength: 32 }
+        nickname: { type: string, maxLength: 50 }
+        role: { type: integer, minimum: 0, maximum: 3, description: '0学生 1传承人 2咨询师 3管理员' }
+        school: { type: string, maxLength: 100, nullable: true }
+        intro: { type: string, maxLength: 500, nullable: true }
+        avatarUrl: { type: string, maxLength: 255, nullable: true }
+        skill: { type: string, maxLength: 100, nullable: true, description: '传承人专用（role=1 时可选）' }
+        honor: { type: string, maxLength: 255, nullable: true, description: '传承人专用（role=1 时可选）' }
+
     ChatReq:
       type: object
       required: [content]
@@ -1341,6 +1355,29 @@ paths:
   # ── P1-A1：用户管理（6 个接口） ──
 
   /api/admin/users:
+    post:
+      summary: '管理员：创建用户'
+      description: '仅 role=3 可调。支持创建学生/传承人/咨询师/管理员。role=1 时自动创建 inheritor_profile（verified=0）。'
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserCreateReq' }
+      responses:
+        '200':
+          description: '创建成功，data 为新用户 ID（雪花 ID，序列化为字符串）'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { type: string, description: '新用户 ID（字符串）' }
+        '400': { description: '参数校验失败（code=1001）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: '未登录或登录已过期（code=1002）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: '无权限（code=1003，非管理员）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     get:
       summary: '管理员/咨询师：用户分页列表'
       x-required-role: admin

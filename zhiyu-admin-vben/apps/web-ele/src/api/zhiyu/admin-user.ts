@@ -57,3 +57,21 @@ export async function updateUserRole(id: number, role: number) {
 export async function deleteUser(id: number) {
   return requestClient.delete(`/admin/users/${id}`);
 }
+
+/** 新建用户请求体 */
+export interface UserCreateBody {
+  username: string;
+  password: string;
+  nickname: string;
+  role: number;
+  school?: string;
+  intro?: string;
+  avatarUrl?: string;
+  skill?: string;
+  honor?: string;
+}
+
+/** 管理员创建用户 */
+export async function createUser(data: UserCreateBody) {
+  return requestClient.post<string>('/admin/users', data);
+}

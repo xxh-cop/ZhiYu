@@ -2,6 +2,7 @@ package com.zhiyu.modules.admin.controller;
 
 import com.zhiyu.common.dto.PageVO;
 import com.zhiyu.common.result.Result;
+import com.zhiyu.modules.admin.dto.UserCreateDTO;
 import com.zhiyu.modules.admin.dto.UserRoleDTO;
 import com.zhiyu.modules.admin.dto.UserStatusDTO;
 import com.zhiyu.modules.admin.dto.UserUpdateDTO;
@@ -16,8 +17,9 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 管理端用户管理控制器（P1-A1）。
  *
- * <p>提供 6 个接口：
+ * <p>提供 7 个接口：
  * <ul>
+ *   <li>POST   /api/admin/users            — 创建用户（仅 role=3）</li>
  *   <li>GET    /api/admin/users            — 用户分页列表（role ∈ {2,3}）</li>
  *   <li>GET    /api/admin/users/{id}       — 用户详情（role ∈ {2,3}）</li>
  *   <li>PUT    /api/admin/users/{id}       — 编辑用户（仅 role=3）</li>
@@ -36,6 +38,19 @@ import org.springframework.web.bind.annotation.*;
 public class AdminUserController {
 
     private final AdminUserService adminUserService;
+
+    /**
+     * 创建用户（管理员操作）。对应 {@code POST /api/admin/users}。
+     *
+     * <p>支持创建学生/传承人/咨询师/管理员。role=1 时自动创建 inheritor_profile。
+     *
+     * @param dto 创建请求体
+     * @return 新用户 ID
+     */
+    @PostMapping
+    public Result<Long> createUser(@Valid @RequestBody UserCreateDTO dto) {
+        return Result.success(adminUserService.createUser(dto));
+    }
 
     /**
      * 用户分页列表。

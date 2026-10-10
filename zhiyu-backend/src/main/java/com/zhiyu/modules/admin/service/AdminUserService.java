@@ -1,6 +1,7 @@
 package com.zhiyu.modules.admin.service;
 
 import com.zhiyu.common.dto.PageVO;
+import com.zhiyu.modules.admin.dto.UserCreateDTO;
 import com.zhiyu.modules.admin.dto.UserUpdateDTO;
 import com.zhiyu.modules.admin.vo.UserDetailVO;
 import com.zhiyu.modules.admin.vo.UserListItemVO;
@@ -64,4 +65,14 @@ public interface AdminUserService {
      * @param id 用户 ID
      */
     void deleteUser(Long id);
+
+    /**
+     * 创建用户（管理员操作）。
+     *
+     * <p>支持创建学生/传承人/咨询师/管理员。role=1 时自动创建 inheritor_profile。
+     *
+     * @param dto 创建请求
+     * @return 新用户 ID
+     */
+    Long createUser(UserCreateDTO dto);
 }

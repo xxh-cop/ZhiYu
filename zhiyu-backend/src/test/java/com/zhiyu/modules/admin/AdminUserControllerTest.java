@@ -3,6 +3,8 @@ package com.zhiyu.modules.admin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhiyu.modules.auth.entity.User;
 import com.zhiyu.modules.auth.mapper.UserMapper;
+import com.zhiyu.modules.inheritor.entity.InheritorProfile;
+import com.zhiyu.modules.inheritor.mapper.InheritorProfileMapper;
 import com.zhiyu.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -45,6 +48,9 @@ class AdminUserControllerTest {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private InheritorProfileMapper inheritorProfileMapper;
 
     private Long adminUserId;
     private Long studentUserId;
@@ -223,6 +229,200 @@ class AdminUserControllerTest {
     void testAdmin_DeleteUser_Self_Returns1001() throws Exception {
         mockMvc.perform(delete("/api/admin/users/{id}", adminUserId)
                         .header("Authorization", "Bearer " + token(adminUserId, 3)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+    }
+
+    // ── 接口 7：POST /api/admin/users（批次 4）──
+
+    @Test
+    @DisplayName("管理员创建学生 → 200 + 用户可登录 + role=0")
+    void testAdmin_CreateStudent_Success() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "new_student_01",
+                "password", "pass123456",
+                "nickname", "新学生",
+                "role", 0
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(adminUserId, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data").isString());
+
+        // 验证用户已入库
+        User created = userMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, "new_student_01"));
+        assertNotNull(created);
+        assertEquals(0, created.getRole());
+        assertEquals(1, created.getStatus());
+    }
+
+    @Test
+    @DisplayName("管理员创建传承人 → 200 + inheritor_profile 创建成功")
+    void testAdmin_CreateInheritor_Success() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "new_inheritor_01",
+                "password", "pass123456",
+                "nickname", "新传承人",
+                "role", 1,
+                "skill", "赣绣",
+                "honor", "非遗传承人"
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(adminUserId, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data").isString());
+
+        // 验证 inheritor_profile 已创建
+        User created = userMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, "new_inheritor_01"));
+        assertNotNull(created);
+        assertEquals(1, created.getRole());
+
+        InheritorProfile profile = inheritorProfileMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InheritorProfile>()
+                        .eq(InheritorProfile::getUserId, created.getId()));
+        assertNotNull(profile);
+        assertEquals("赣绣", profile.getSkill());
+        assertEquals("非遗传承人", profile.getHonor());
+        assertEquals(0, profile.getVerified());
+    }
+
+    @Test
+    @DisplayName("管理员创建咨询师 → 200 + role=2")
+    void testAdmin_CreateCounselor_Success() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "new_counselor_01",
+                "password", "pass123456",
+                "nickname", "新咨询师",
+                "role", 2
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(adminUserId, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
+
+        User created = userMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, "new_counselor_01"));
+        assertNotNull(created);
+        assertEquals(2, created.getRole());
+    }
+
+    @Test
+    @DisplayName("管理员创建管理员 → 200 + role=3")
+    void testAdmin_CreateAdmin_Success() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "new_admin_01",
+                "password", "pass123456",
+                "nickname", "新管理员",
+                "role", 3
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(adminUserId, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
+
+        User created = userMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, "new_admin_01"));
+        assertNotNull(created);
+        assertEquals(3, created.getRole());
+    }
+
+    @Test
+    @DisplayName("咨询师创建用户 → 403")
+    void testCounselor_CreateUser_Returns403() throws Exception {
+        // 先建一个咨询师账号
+        User counselor = new User();
+        counselor.setUsername("counselor_create_test");
+        counselor.setPassword("$2a$10$dummyhash");
+        counselor.setNickname("咨询师");
+        counselor.setRole(2);
+        counselor.setStatus(1);
+        counselor.setCanContact(0);
+        userMapper.insert(counselor);
+
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "should_not_exist",
+                "password", "pass123456",
+                "nickname", "不该被创建",
+                "role", 0
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(counselor.getId(), 2))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("用户名重复 → 2002")
+    void testAdmin_CreateUser_DuplicateUsername_Returns2002() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "admin_test",
+                "password", "pass123456",
+                "nickname", "重复",
+                "role", 0
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(adminUserId, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(2002));
+    }
+
+    @Test
+    @DisplayName("密码过短 → 1001")
+    void testAdmin_CreateUser_ShortPassword_Returns1001() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "short_pwd_user",
+                "password", "12345",
+                "nickname", "短密码",
+                "role", 0
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(adminUserId, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+    }
+
+    @Test
+    @DisplayName("role 越界（4）→ 1001")
+    void testAdmin_CreateUser_InvalidRole_Returns1001() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "username", "invalid_role_user",
+                "password", "pass123456",
+                "nickname", "越界角色",
+                "role", 4
+        ));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", "Bearer " + token(adminUserId, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(1001));
     }
