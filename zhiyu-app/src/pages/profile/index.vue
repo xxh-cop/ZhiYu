@@ -4,8 +4,14 @@
 		<view class="profile-card zy-slide-up">
 			<view class="card-accent"></view>
 			<view class="profile-body">
-				<view class="avatar-ring">
-					<view class="avatar">
+				<view class="avatar-ring" @click.stop="goSettings">
+					<image
+						v-if="avatarFullUrl"
+						class="avatar-img"
+						:src="avatarFullUrl"
+						mode="aspectFill"
+					/>
+					<view v-else class="avatar">
 						<text class="avatar-text">{{ avatarChar }}</text>
 					</view>
 				</view>
@@ -79,6 +85,7 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
+import { API_BASE_URL } from '../../utils/config.js'
 
 const ROLE_LABEL = {
 	0: '学生',
@@ -92,6 +99,7 @@ const menuItems = [
 	{ icon: 'chat', label: '我的对话历史', action: 'coming', iconBg: 'linear-gradient(135deg, #5BC4A8, #8DD9C4)' },
 	{ icon: 'edit', label: '我的便签', action: 'notes', iconBg: 'linear-gradient(135deg, #FFB547, #FFCB6E)' },
 	{ icon: 'group', label: '我的小组', action: 'coming', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF9B9B)' },
+	{ icon: 'setting', label: '个人设置', action: 'settings', iconBg: 'linear-gradient(135deg, #2D9B8F, #5BC4A8)' },
 	{ icon: 'setting1', label: '隐私设置', action: 'privacy', iconBg: 'linear-gradient(135deg, #6B7280, #9CA3AF)' },
 	{ icon: 'phone', label: '心理援助', action: 'crisis', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF8B8B)' },
 ]
@@ -117,6 +125,16 @@ const avatarChar = computed(() => {
 	const name = nickname.value
 	return name ? name.charAt(0) : '织'
 })
+
+const avatarFullUrl = computed(() => {
+	const url = userStore.userInfo ? userStore.userInfo.avatarUrl : ''
+	if (!url) return ''
+	return url.startsWith('http') ? url : `${API_BASE_URL}${url}`
+})
+
+function goSettings() {
+	uni.navigateTo({ url: '/pages/settings/index' })
+}
 
 // 动态签名（根据时段变化）
 const signature = computed(() => {
@@ -172,6 +190,8 @@ function handleMenu(item) {
 		uni.navigateTo({ url: '/pages/crisis/index' })
 	} else if (item.action === 'privacy') {
 		uni.navigateTo({ url: '/pages/privacy/settings' })
+	} else if (item.action === 'settings') {
+		uni.navigateTo({ url: '/pages/settings/index' })
 	} else if (item.action === 'notes') {
 		uni.navigateTo({ url: '/pages/emotion/notes' })
 	} else {
@@ -241,6 +261,14 @@ function handleLogout() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	border: 4rpx solid var(--zy-card-bg, #FFFFFF);
+	box-sizing: border-box;
+}
+
+.avatar-img {
+	width: 100%;
+	height: 100%;
+	border-radius: var(--zy-radius-full, 9999rpx);
 	border: 4rpx solid var(--zy-card-bg, #FFFFFF);
 	box-sizing: border-box;
 }

@@ -136,6 +136,8 @@ export const useUserStore = defineStore('user', {
 				username: info.username || '',
 				nickname: info.nickname || '',
 				school: info.school || '',
+				intro: info.intro || '',
+				avatarUrl: info.avatarUrl || '',
 				role: info.role != null ? Number(info.role) : null,
 			}
 		},

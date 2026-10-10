@@ -114,6 +114,13 @@
 			}
 		},
 		{
+			"path": "pages/settings/index",
+			"style": {
+				"navigationBarTitleText": "个人设置",
+				"navigationBarBackgroundColor": "#F8F9FB"
+			}
+		},
+		{
 			"path": "pages/crisis/index",
 			"style": {
 				"navigationBarTitleText": "心理援助",

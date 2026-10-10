@@ -139,3 +139,6 @@ lefthook.yml
 # 用户上传文件
 uploads/
 zhiyu-backend/uploads/
+
+skills/
+.catpaw/
