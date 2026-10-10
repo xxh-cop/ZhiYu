@@ -18,6 +18,11 @@ export default defineConfig(async () => {
             target: 'http://localhost:8080',
             ws: true,
           },
+          // 上传文件的静态访问（后端 /uploads/** → file:./uploads/）
+          '/uploads': {
+            changeOrigin: true,
+            target: 'http://localhost:8080',
+          },
         },
       },
     },

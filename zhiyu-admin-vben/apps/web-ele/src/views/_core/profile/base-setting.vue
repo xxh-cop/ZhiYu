@@ -114,10 +114,14 @@ async function handleAvatarChange(e: Event) {
 }
 
 // ── 头像 URL 拼接（处理相对路径）──
+// 后端返回的相对 URL 形如 /uploads/images/yyyy/MM/dd/xxx.jpg，
+// 后端已配置 /uploads/** → file:./uploads/ 静态映射（免鉴权），
+// 因此直接以相对路径请求即可（dev 下经 Vite /uploads proxy 转发），
+// 切勿再拼 /api 前缀（后端无 /api/uploads/** 映射，会 404）。
 function getAvatarUrl(url: string): string {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  return `/api${url}`;
+  return url;
 }
 
 // ── 保存 ──
