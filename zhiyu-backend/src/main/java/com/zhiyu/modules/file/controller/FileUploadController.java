@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -98,17 +99,18 @@ public class FileUploadController {
             return Result.error(ResultCode.PARAM_ERROR.getCode(), "不支持的文件类型，允许：" + String.join("/", allowedExts));
         }
 
-        // 构建存储路径：./uploads/{subDir}/yyyy/MM/dd/{uuid}.{ext}
+        // 构建存储路径：{uploadDir}/{subDir}/yyyy/MM/dd/{uuid}.{ext}
+        // 必须转为绝对路径，否则 MultipartFile.transferTo() 会相对于 Tomcat work 目录解析
         String datePath = LocalDate.now().format(DATE_FMT);
         String fileName = UUID.randomUUID().toString().replace("-", "") + "." + ext.toLowerCase();
         String relativePath = subDir + "/" + datePath + "/" + fileName;
 
-        Path targetDir = Paths.get(uploadDir, subDir, datePath);
-        Path targetFile = targetDir.resolve(fileName);
+        Path targetFile = Paths.get(uploadDir, subDir, datePath, fileName)
+                .toAbsolutePath().normalize();
 
         try {
-            Files.createDirectories(targetDir);
-            file.transferTo(targetFile.toFile());
+            Files.createDirectories(targetFile.getParent());
+            Files.copy(file.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             log.error("文件上传失败: {}", e.getMessage(), e);
             return Result.error(ResultCode.SYSTEM_ERROR.getCode(), "文件保存失败");
@@ -116,7 +118,7 @@ public class FileUploadController {
 
         // 返回访问 URL：{accessPrefix}/{subDir}/yyyy/MM/dd/{fileName}
         String url = accessPrefix + "/" + relativePath;
-        log.info("文件上传成功: type={}, size={}, url={}", subDir, file.getSize(), url);
+        log.info("文件上传成功: type={}, size={}, url={}, absPath={}", subDir, file.getSize(), url, targetFile);
 
         return Result.success(java.util.Map.of("url", url));
     }
