@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
  *   <li>{@code companion.st} —— 陪伴者人设（系统提示词第一条）</li>
  *   <li>{@code safety.st} —— 安全边界约束（系统提示词第二条，T1.3b 引入）</li>
  *   <li>{@code recommend.st} —— 推荐理由 Prompt 模板（T1.5 引入）</li>
+ *   <li>{@code rag.st} —— RAG 问答 Prompt 模板（M3-3 引入）</li>
  * </ul>
  */
 @Slf4j
@@ -35,6 +36,9 @@ public class PromptTemplateConfig {
 
     @Value("classpath:prompts/recommend.st")
     private Resource recommendPromptResource;
+
+    @Value("classpath:prompts/rag.st")
+    private Resource ragPromptResource;
 
     /**
      * 陪伴者系统提示词（companion.st 内容原文）。
@@ -61,6 +65,15 @@ public class PromptTemplateConfig {
     @Bean("recommendPrompt")
     public String recommendPrompt() {
         return loadPrompt(recommendPromptResource, "prompts/recommend.st");
+    }
+
+    /**
+     * RAG 问答 Prompt 模板（rag.st 内容原文，M3-3 引入）。
+     * 由 RagService 使用，占位符 {context} / {question} 渲染后发给 LLM。
+     */
+    @Bean("ragPrompt")
+    public String ragPrompt() {
+        return loadPrompt(ragPromptResource, "prompts/rag.st");
     }
 
     private String loadPrompt(Resource resource, String desc) {

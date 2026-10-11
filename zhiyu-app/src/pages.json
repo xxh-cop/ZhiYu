@@ -138,6 +138,12 @@
 			"style": {
 				"navigationBarTitleText": "隐私设置"
 			}
+		},
+		{
+			"path": "pages/ai/rag-ask",
+			"style": {
+				"navigationBarTitleText": "非遗问答"
+			}
 		}
 	],
 	"globalStyle": {

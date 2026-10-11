@@ -48,4 +48,9 @@ public class MockLlmClient implements LlmClient {
     public String workMessage(String workTitle, String mood) {
         return "你用一针一线缝出了此刻的心意，这份专注本身就是疗愈。愿这份温度留伴你很久。";
     }
+
+    @Override
+    public String chat(String prompt) {
+        return "（降级模式）非遗知识库暂不可用，请稍后再试。";
+    }
 }

@@ -34,16 +34,19 @@ public class SpringAiLlmClient implements LlmClient {
     private final String companionPrompt;
     private final String safetyPrompt;
     private final String recommendPrompt;
+    private final String ragPrompt;
 
     public SpringAiLlmClient(ChatClient.Builder builder,
                              @Qualifier("companionPrompt") String companionPrompt,
                              @Qualifier("safetyPrompt") String safetyPrompt,
-                             @Qualifier("recommendPrompt") String recommendPrompt) {
+                             @Qualifier("recommendPrompt") String recommendPrompt,
+                             @Qualifier("ragPrompt") String ragPrompt) {
         this.chatClient = builder.build();
         this.companionPrompt = companionPrompt;
         this.safetyPrompt = safetyPrompt;
         this.recommendPrompt = recommendPrompt;
-        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st + safety.st + recommend.st 已注入）");
+        this.ragPrompt = ragPrompt;
+        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st + safety.st + recommend.st + rag.st 已注入）");
     }
 
     @Override
@@ -75,6 +78,11 @@ public class SpringAiLlmClient implements LlmClient {
                 "肯定ta的专注与表达，语气温暖但不夸张。",
                 workTitle, mood);
         return chatClient.prompt().user(promptText).call().content();
+    }
+
+    @Override
+    public String chat(String prompt) {
+        return chatClient.prompt().user(prompt).call().content();
     }
 
     /**

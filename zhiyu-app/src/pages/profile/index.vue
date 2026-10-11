@@ -99,6 +99,7 @@ const menuItems = [
 	{ icon: 'chat', label: '我的对话历史', action: 'coming', iconBg: 'linear-gradient(135deg, #5BC4A8, #8DD9C4)' },
 	{ icon: 'edit', label: '我的便签', action: 'notes', iconBg: 'linear-gradient(135deg, #FFB547, #FFCB6E)' },
 	{ icon: 'group', label: '我的小组', action: 'coming', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF9B9B)' },
+	{ icon: 'chat1', label: '非遗问答', action: 'rag', iconBg: 'linear-gradient(135deg, #2D9B8F, #5BC4A8)' },
 	{ icon: 'setting', label: '个人设置', action: 'settings', iconBg: 'linear-gradient(135deg, #2D9B8F, #5BC4A8)' },
 	{ icon: 'setting1', label: '隐私设置', action: 'privacy', iconBg: 'linear-gradient(135deg, #6B7280, #9CA3AF)' },
 	{ icon: 'phone', label: '心理援助', action: 'crisis', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF8B8B)' },
@@ -198,6 +199,8 @@ function handleMenu(item) {
 		uni.navigateTo({ url: '/pages/settings/index' })
 	} else if (item.action === 'notes') {
 		uni.navigateTo({ url: '/pages/emotion/notes' })
+	} else if (item.action === 'rag') {
+		uni.navigateTo({ url: '/pages/ai/rag-ask' })
 	} else {
 		uni.showToast({ title: '即将上线', icon: 'none' })
 	}

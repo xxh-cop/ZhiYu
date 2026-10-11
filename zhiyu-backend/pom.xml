@@ -126,6 +126,12 @@
             <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
+        <!-- Spring AI Vector Store（M3-3：RAG 非遗知识库，SimpleVectorStore 内存+JSON 持久化） -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-vector-store</artifactId>
+        </dependency>
+
         <!-- Redis（T1.1b 用：熔断状态存储。本批次只引入 starter + 配置） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

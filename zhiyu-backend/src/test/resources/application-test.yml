@@ -27,6 +27,9 @@ spring:
   # ── Spring AI：单测完全禁用，不连真 API ──
   # 用 sk-placeholder 触发 MockLlmClient 接管（@ConditionalOnExpression 排除 sk-placeholder）
   ai:
+    # 禁用 OpenAI Embedding 自动配置（与自定义 DoubaoEmbeddingModel 冲突）
+    model:
+      embedding: none
     openai:
       api-key: sk-placeholder
       chat:
@@ -42,6 +45,10 @@ spring:
         enabled: false
       embedding:
         enabled: false
+
+    # 禁用 Spring AI 默认向量库自动配置（M3-3：测试不依赖向量库）
+    vector-store:
+      enabled: false
 
   # ── Redis：单测不连真 Redis，用自动装配的最小配置 ──
   # Spring Boot 在 classpath 有 redis starter 但无连接时不会启动失败，

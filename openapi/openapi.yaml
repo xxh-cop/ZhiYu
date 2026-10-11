@@ -2209,6 +2209,31 @@ paths:
                     properties:
                       data: { $ref: '#/components/schemas/HotlinesVO' }
 
+  # ---------- AI RAG 问答（M3-3） ----------
+  /api/ai/rag/ask:
+    post:
+      operationId: aiRagAsk
+      summary: 非遗知识库问答
+      description: '基于 RAG（检索增强生成）的非遗知识问答，学生输入问题，系统从非遗知识库检索相关内容后由 AI 生成回答'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RagAskReq' }
+      responses:
+        '200':
+          description: 问答结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RagAnswerVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
     InheritorProfileSelfVO:
       type: object
       description: 传承人自己的资料返回体
@@ -2237,3 +2262,26 @@ paths:
         daysSinceRegister: { type: integer, format: int64, description: '注册天数（今天注册返回 1）' }
         workCount: { type: integer, format: int64, description: '作品数' }
         noteCount: { type: integer, format: int64, description: '便签数' }
+
+    RagAskReq:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, maxLength: 500, description: '用户问题' }
+
+    RagAnswerVO:
+      type: object
+      description: RAG 问答返回体
+      properties:
+        answer: { type: string, description: 'AI 生成的回答文本' }
+        sources:
+          type: array
+          description: 引用的知识库来源列表
+          items: { $ref: '#/components/schemas/RagSourceVO' }
+
+    RagSourceVO:
+      type: object
+      description: RAG 引用来源
+      properties:
+        title: { type: string, description: '来源文件名' }
+        excerpt: { type: string, description: '内容摘要（前 80 字）' }
