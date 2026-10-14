@@ -321,7 +321,7 @@ watch(
 	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(45, 155, 143, 0.08));
 	font-size: 26rpx;
 	line-height: 1.5;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	white-space: normal;
 	word-break: keep-all;
 	letter-spacing: 0;
@@ -332,7 +332,7 @@ watch(
 
 .bubble-text {
 	font-size: 26rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	line-height: 1.5;
 }
 
@@ -376,12 +376,12 @@ watch(
 
 .hide-zone-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	white-space: nowrap;
 }
 
 .hide-zone-hint.active {
-	background: var(--zy-primary, #2D9B8F);
+	background: var(--zy-primary, #2f7566);
 	border-color: transparent;
 	transform: translateX(-50%) scale(1.05);
 }

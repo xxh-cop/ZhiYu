@@ -54,9 +54,9 @@ class CrisisControllerTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.data.psychCenterPhone").value("0791-0000000"))
+                .andExpect(jsonPath("$.data.psychCenterPhone").value("0791-88120129"))
                 .andExpect(jsonPath("$.data.nationalHotline").value("12356"))
-                .andExpect(jsonPath("$.data.psychCenterName").value("学校心理中心"))
+                .andExpect(jsonPath("$.data.psychCenterName").value("江西师范大学心理教育中心"))
                 .andExpect(jsonPath("$.data.nationalHotlineName").value("全国心理援助热线"));
     }
 

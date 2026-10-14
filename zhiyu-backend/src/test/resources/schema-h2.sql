@@ -152,6 +152,7 @@ CREATE TABLE IF NOT EXISTS craft_project (
   est_minutes  INT          DEFAULT NULL,
   category     VARCHAR(32)  NOT NULL DEFAULT '',
   therapy_tags VARCHAR(255),
+    video_url VARCHAR(255) DEFAULT NULL,
   cover_url    VARCHAR(255),
   status       TINYINT      NOT NULL DEFAULT 0,
   create_time  TIMESTAMP    DEFAULT NULL,
@@ -344,3 +345,43 @@ CREATE INDEX IF NOT EXISTS idx_work_user                     ON work (user_id);
 CREATE INDEX IF NOT EXISTS idx_work_status                   ON work (status);
 CREATE INDEX IF NOT EXISTS idx_work_comment_work             ON work_comment (work_id);
 CREATE INDEX IF NOT EXISTS idx_ai_audit_log_scene            ON ai_audit_log (scene);
+
+-- Additive migration; no existing rows are modified.
+
+
+-- Growth modules: encrypted personal records, scheduled programs and capacity-safe bookings.
+CREATE TABLE IF NOT EXISTS wellbeing_record (
+ id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, kind VARCHAR(24) NOT NULL,
+ record_key VARCHAR(100) NOT NULL, payload TEXT NOT NULL,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_wellbeing_record (user_id, kind, record_key),
+ KEY idx_wellbeing_owner (user_id, create_time)
+);
+CREATE TABLE IF NOT EXISTS learning_program (
+ id BIGINT PRIMARY KEY, owner_id BIGINT NOT NULL, kind VARCHAR(20) NOT NULL,
+ title VARCHAR(100) NOT NULL, description TEXT NOT NULL, location VARCHAR(200) NOT NULL,
+ co_leader VARCHAR(100) NOT NULL, materials VARCHAR(1000) NOT NULL,
+ start_time DATETIME NOT NULL, end_time DATETIME NOT NULL,
+ capacity INT NOT NULL, status VARCHAR(16) NOT NULL DEFAULT 'DRAFT',
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ KEY idx_program_schedule (status,start_time)
+);
+CREATE TABLE IF NOT EXISTS program_booking (
+ id BIGINT PRIMARY KEY, program_id BIGINT NOT NULL, user_id BIGINT NOT NULL,
+ status VARCHAR(16) NOT NULL DEFAULT 'BOOKED',
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_program_member (program_id,user_id), KEY idx_booking_owner (user_id)
+);
+CREATE TABLE IF NOT EXISTS craft_safety (
+ id BIGINT PRIMARY KEY, project_id BIGINT NOT NULL UNIQUE, medium VARCHAR(20) NOT NULL,
+ level VARCHAR(16) NOT NULL, hazards VARCHAR(300) NOT NULL, guidance VARCHAR(1000) NOT NULL,
+ source VARCHAR(300) NOT NULL, create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS media_asset (
+ id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, storage_key VARCHAR(180) NOT NULL, size_bytes BIGINT NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL, deleted TINYINT NOT NULL DEFAULT 0
+);

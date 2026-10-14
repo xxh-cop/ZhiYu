@@ -160,6 +160,7 @@ public class AdminServiceImpl implements AdminService {
         vo.setEstMinutes(project.getEstMinutes());
         vo.setTherapyTags(project.getTherapyTags());
         vo.setCoverUrl(project.getCoverUrl());
+        vo.setVideoUrl(project.getVideoUrl());
         vo.setInheritorId(project.getInheritorId());
         vo.setStatus(project.getStatus());
         vo.setCreateTime(project.getCreateTime());

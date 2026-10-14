@@ -45,7 +45,7 @@ public class RagController {
         if (ragService == null) {
             return Result.error(4001, "非遗问答服务暂未开启，请稍后再试");
         }
-        log.info("RAG 问答请求: question={}", dto.getQuestion());
+        log.info("RAG 问答请求");
         RagAnswerVO result = ragService.ask(dto.getQuestion());
         return Result.success(result);
     }

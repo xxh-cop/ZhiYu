@@ -34,7 +34,7 @@
 					class="note-textarea"
 					v-model="content"
 					placeholder="写下此刻的心情..."
-					placeholder-style="color: #9CA3AF;"
+					placeholder-style="color: #718478;"
 					:maxlength="500"
 					:auto-height="true"
 					:show-confirm-bar="false"
@@ -185,7 +185,7 @@ async function doDelete() {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 日期区 ── */
@@ -196,7 +196,7 @@ async function doDelete() {
 .date-big {
 	font-size: 48rpx;
 	font-weight: 700;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 	display: block;
 	line-height: 1.2;
@@ -204,7 +204,7 @@ async function doDelete() {
 
 .date-week {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 	margin-top: 4rpx;
 }
@@ -218,7 +218,7 @@ async function doDelete() {
 	display: block;
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	margin-bottom: 20rpx;
 	font-family: var(--zy-serif);
 }
@@ -244,7 +244,7 @@ async function doDelete() {
 	padding: 24rpx 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 2rpx solid var(--zy-border, #E5E7EB);
+	border: 2rpx solid var(--zy-border, #dfe7dc);
 	flex-shrink: 0;
 	transition: all var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
 }
@@ -253,13 +253,13 @@ async function doDelete() {
 	position: absolute;
 	inset: -2rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
-	border: 3rpx solid var(--zy-primary, #2D9B8F);
+	border: 3rpx solid var(--zy-primary, #2f7566);
 	pointer-events: none;
 }
 
 .mood-item--active {
 	border-color: transparent;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	transform: scale(1.05);
 	box-shadow: var(--zy-shadow-sm);
 }
@@ -271,11 +271,11 @@ async function doDelete() {
 
 .mood-label {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .mood-item--active .mood-label {
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	font-weight: 500;
 }
 
@@ -283,7 +283,7 @@ async function doDelete() {
 .textarea-card {
 	background-color: var(--zy-card-bg, #FFFFFF);
 	border-radius: var(--zy-radius-lg, 32rpx);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	padding: 28rpx;
 	box-shadow: var(--zy-shadow-sm);
 }
@@ -293,7 +293,7 @@ async function doDelete() {
 	min-height: 200rpx;
 	font-size: 28rpx;
 	line-height: 1.7;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	background-color: transparent;
 	border: none;
 }
@@ -303,7 +303,7 @@ async function doDelete() {
 	text-align: right;
 	margin-top: 12rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 保存按钮 ── */
@@ -317,7 +317,7 @@ async function doDelete() {
 .save-btn {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -363,7 +363,7 @@ async function doDelete() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

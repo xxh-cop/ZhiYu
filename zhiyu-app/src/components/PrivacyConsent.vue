@@ -16,19 +16,19 @@
 			<!-- 简述区 -->
 			<view class="panel-body">
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2D9B8F" />
+					<wd-icon name="check" size="28rpx" color="#2f7566" />
 					<text class="clause-text">我们仅在你同意后收集昵称、对话内容等必要信息</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2D9B8F" />
+					<wd-icon name="check" size="28rpx" color="#2f7566" />
 					<text class="clause-text">对话与便签加密存储，咨询师看到的是脱敏汇总</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2D9B8F" />
+					<wd-icon name="check" size="28rpx" color="#2f7566" />
 					<text class="clause-text">你可随时撤回同意、关闭联系方式授权或注销账号</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2D9B8F" />
+					<wd-icon name="check" size="28rpx" color="#2f7566" />
 					<text class="clause-text">本系统不能替代专业心理咨询</text>
 				</view>
 			</view>
@@ -113,7 +113,7 @@ function viewFullPolicy() {
 
 .panel-accent {
 	height: 8rpx;
-	background: linear-gradient(90deg, #2D9B8F 0%, #5BC4A8 100%);
+	background: linear-gradient(90deg, #2f7566 0%, #82ad9b 100%);
 }
 
 .panel-header {
@@ -127,7 +127,7 @@ function viewFullPolicy() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #2D9B8F, #5BCFBF);
+	background: linear-gradient(135deg, #2f7566, #5BCFBF);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -144,13 +144,13 @@ function viewFullPolicy() {
 .panel-title {
 	font-size: 38rpx;
 	font-weight: 600;
-	color: #1F2937;
+	color: #233d34;
 }
 
 .panel-sub {
 	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: #9CA3AF;
+	color: #718478;
 }
 
 .panel-body {
@@ -168,14 +168,14 @@ function viewFullPolicy() {
 	flex: 1;
 	font-size: 28rpx;
 	line-height: 1.6;
-	color: #4B5563;
+	color: #586e62;
 }
 
 .policy-link {
 	display: block;
 	text-align: center;
 	font-size: 26rpx;
-	color: #2D9B8F;
+	color: #2f7566;
 	padding: 16rpx 0 8rpx;
 }
 
@@ -189,7 +189,7 @@ function viewFullPolicy() {
 	flex: 1;
 	height: 88rpx;
 	border-radius: 999rpx;
-	border: 1rpx solid #E5E7EB;
+	border: 1rpx solid #dfe7dc;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -197,7 +197,7 @@ function viewFullPolicy() {
 }
 
 .btn-decline:active {
-	background-color: #F8F9FB;
+	background-color: #f5f7f2;
 }
 
 .btn-decline-text {
@@ -209,7 +209,7 @@ function viewFullPolicy() {
 	flex: 1.2;
 	height: 88rpx;
 	border-radius: 999rpx;
-	background: linear-gradient(135deg, #2D9B8F, #5BC4A8);
+	background: linear-gradient(135deg, #2f7566, #82ad9b);
 	display: flex;
 	align-items: center;
 	justify-content: center;

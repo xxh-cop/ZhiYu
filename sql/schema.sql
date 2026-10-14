@@ -152,6 +152,7 @@ CREATE TABLE IF NOT EXISTS craft_project (
   est_minutes  INT          DEFAULT NULL COMMENT '预计时长(分钟)',
   category     VARCHAR(32)  NOT NULL DEFAULT '' COMMENT '技艺品类，取值见 dict_category.label',
   therapy_tags VARCHAR(255) COMMENT '疗愈效果标签,逗号分隔,词表见 dict_therapy_tags',
+    video_url VARCHAR(255) DEFAULT NULL,
   cover_url    VARCHAR(255),
   status       TINYINT      NOT NULL DEFAULT 0 COMMENT '0待审 1上架 2下架',
   create_time  DATETIME     DEFAULT NULL,
@@ -353,3 +354,41 @@ ALTER TABLE user MODIFY COLUMN can_contact TINYINT NOT NULL DEFAULT 0
 -- T0.6a：work.anonymous 默认值 0 → 1（默认匿名发布，符合产品定位；与 openapi.yaml WorkPublishReq.anonymous default=true 对齐）
 ALTER TABLE work MODIFY COLUMN anonymous TINYINT NOT NULL DEFAULT 1
   COMMENT '0显示昵称 1匿名展示；默认匿名';
+
+
+-- Growth modules: encrypted personal records, scheduled programs and capacity-safe bookings.
+CREATE TABLE IF NOT EXISTS wellbeing_record (
+ id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, kind VARCHAR(24) NOT NULL,
+ record_key VARCHAR(100) NOT NULL, payload TEXT NOT NULL,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_wellbeing_record (user_id, kind, record_key),
+ KEY idx_wellbeing_owner (user_id, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS learning_program (
+ id BIGINT PRIMARY KEY, owner_id BIGINT NOT NULL, kind VARCHAR(20) NOT NULL,
+ title VARCHAR(100) NOT NULL, description TEXT NOT NULL, location VARCHAR(200) NOT NULL,
+ co_leader VARCHAR(100) NOT NULL, materials VARCHAR(1000) NOT NULL,
+ start_time DATETIME NOT NULL, end_time DATETIME NOT NULL,
+ capacity INT NOT NULL, status VARCHAR(16) NOT NULL DEFAULT 'DRAFT',
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ KEY idx_program_schedule (status,start_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS program_booking (
+ id BIGINT PRIMARY KEY, program_id BIGINT NOT NULL, user_id BIGINT NOT NULL,
+ status VARCHAR(16) NOT NULL DEFAULT 'BOOKED',
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_program_member (program_id,user_id), KEY idx_booking_owner (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS craft_safety (
+ id BIGINT PRIMARY KEY, project_id BIGINT NOT NULL UNIQUE, medium VARCHAR(20) NOT NULL,
+ level VARCHAR(16) NOT NULL, hazards VARCHAR(300) NOT NULL, guidance VARCHAR(1000) NOT NULL,
+ source VARCHAR(300) NOT NULL, create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS media_asset (
+ id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, storage_key VARCHAR(180) NOT NULL, size_bytes BIGINT NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL, deleted TINYINT NOT NULL DEFAULT 0
+);

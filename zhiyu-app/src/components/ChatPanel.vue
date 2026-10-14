@@ -24,7 +24,7 @@
 				</view>
 			<view class="cp-header-actions">
 				<view class="cp-fullscreen-btn" @click="onFullscreen">
-					<wd-icon name="fullscreen" size="36rpx" color="#9CA3AF" />
+					<wd-icon name="fullscreen" size="36rpx" color="#718478" />
 				</view>
 				<view class="cp-close-btn" @click="onClose">
 					<text class="cp-close-icon">×</text>
@@ -290,7 +290,7 @@ onUnmounted(() => {
 .cp-panel {
 	width: 100%;
 	height: 75vh;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	border-radius: 24rpx 24rpx 0 0;
 	display: flex;
 	flex-direction: column;
@@ -316,7 +316,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	padding: 20rpx 32rpx;
 	background-color: #FFFFFF;
-	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+	border-bottom: 1rpx solid var(--zy-border, #dfe7dc);
 	min-height: 140rpx;
 	box-sizing: border-box;
 }
@@ -347,7 +347,7 @@ onUnmounted(() => {
 .cp-avatar-text {
 	font-size: 28rpx;
 	font-weight: 600;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--wot-color-theme, #2f7566);
 }
 
 .cp-avatar-dot {
@@ -371,12 +371,12 @@ onUnmounted(() => {
 .cp-header-title {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .cp-header-sub {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .cp-header-actions {
@@ -405,7 +405,7 @@ onUnmounted(() => {
 
 .cp-close-icon {
 	font-size: 40rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	line-height: 1;
 }
 
@@ -430,13 +430,13 @@ onUnmounted(() => {
 
 .cp-welcome-text {
 	font-size: 30rpx;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--wot-color-theme, #2f7566);
 	margin-bottom: 16rpx;
 }
 
 .cp-welcome-hint {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 消息行 ── */
@@ -481,7 +481,7 @@ onUnmounted(() => {
 	width: 64rpx;
 	height: 64rpx;
 	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -491,7 +491,7 @@ onUnmounted(() => {
 .cp-ai-avatar-text {
 	font-size: 28rpx;
 	font-weight: 600;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--wot-color-theme, #2f7566);
 }
 
 /* ── 用户头像 ── */
@@ -522,12 +522,12 @@ onUnmounted(() => {
 }
 
 .cp-bubble-user {
-	background-color: var(--wot-color-theme, #2D9B8F);
+	background-color: var(--wot-color-theme, #2f7566);
 }
 
 .cp-bubble-ai {
 	background-color: #FFFFFF;
-	border: 1px solid var(--zy-border, #E5E7EB);
+	border: 1px solid var(--zy-border, #dfe7dc);
 	box-shadow: 0 2rpx 8rpx rgba(45, 155, 143, 0.06);
 }
 
@@ -541,13 +541,13 @@ onUnmounted(() => {
 }
 
 .cp-text-ai {
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── 打字机光标 ── */
 .cp-typing {
 	font-size: 15px;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--wot-color-theme, #2f7566);
 	margin-left: 2px;
 	animation: cpBlink 0.8s steps(2) infinite;
 }
@@ -561,7 +561,7 @@ onUnmounted(() => {
 .cp-msg-time {
 	margin-top: 8rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .cp-msg-time--user {
@@ -590,17 +590,17 @@ onUnmounted(() => {
 	padding: 16rpx 24rpx;
 	gap: 8px;
 	background-color: #FFFFFF;
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 :deep(.cp-chat-input) {
 	flex: 1;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	border-radius: 12px;
 	padding: 0 12px;
 	height: 40px;
 	font-size: 15px;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 /* ── 底部免责声明 ── */
@@ -608,13 +608,13 @@ onUnmounted(() => {
 	flex-shrink: 0;
 	padding: 8rpx 0;
 	text-align: center;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	padding-bottom: calc(8rpx + constant(safe-area-inset-bottom));
 	padding-bottom: calc(8rpx + env(safe-area-inset-bottom));
 }
 
 .cp-disclaimer-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 </style>

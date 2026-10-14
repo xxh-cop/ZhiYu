@@ -81,11 +81,11 @@
 					<view class="card-meta">
 						<view class="meta-left">
 							<view class="meta-item">
-								<wd-icon name="heart" size="28rpx" :color="item.liked ? '#FF6B6B' : '#9CA3AF'" />
+								<wd-icon name="heart" size="28rpx" :color="item.liked ? '#FF6B6B' : '#718478'" />
 								<text class="meta-num" :class="{ 'meta-liked': item.liked }">{{ item.likeCount }}</text>
 							</view>
 							<view class="meta-item">
-								<wd-icon name="chat" size="28rpx" color="#9CA3AF" />
+								<wd-icon name="chat" size="28rpx" color="#718478" />
 								<text class="meta-num">{{ item.commentCount }}</text>
 							</view>
 						</view>
@@ -207,7 +207,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${url}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);'
+	return 'background: linear-gradient(135deg, #2f7566 0%, #82ad9b 100%);'
 }
 
 function fullUrl(url) {
@@ -244,7 +244,7 @@ loadData(1)
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 顶部品牌区 ── */
@@ -256,13 +256,13 @@ loadData(1)
 	font-family: var(--zy-serif);
 	font-size: 44rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	display: block;
 }
 
 .brand-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	margin-top: 4rpx;
 	display: block;
 }
@@ -278,18 +278,18 @@ loadData(1)
 	padding: 10rpx 28rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	transition: all var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .tab-active {
-	background-color: var(--zy-primary, #2D9B8F);
-	border-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #2f7566);
 }
 
 .tab-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .tab-text-active {
@@ -302,7 +302,7 @@ loadData(1)
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 .skeleton-cover {
 	height: 240rpx;
@@ -335,7 +335,7 @@ loadData(1)
 	width: 120rpx;
 	height: 120rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -349,19 +349,19 @@ loadData(1)
 .empty-title {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .empty-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .empty-btn {
 	margin-top: 16rpx;
 	padding: 16rpx 48rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	box-shadow: var(--zy-shadow-md);
 }
 
@@ -397,7 +397,7 @@ loadData(1)
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -443,7 +443,7 @@ loadData(1)
 
 .play-icon-text {
 	font-size: 28rpx;
-	color: #2D9B8F;
+	color: #2f7566;
 	margin-left: 4rpx;
 }
 
@@ -456,7 +456,7 @@ loadData(1)
 
 .card-cover-text-label {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .cover-placeholder {
@@ -472,7 +472,7 @@ loadData(1)
 .card-title {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	line-height: 1.4;
 }
 
@@ -480,7 +480,7 @@ loadData(1)
 	display: block;
 	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .card-message {
@@ -488,7 +488,7 @@ loadData(1)
 	margin-top: 12rpx;
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -516,7 +516,7 @@ loadData(1)
 
 .meta-num {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .meta-liked {
@@ -525,7 +525,7 @@ loadData(1)
 
 .meta-time {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 底部 ── */
@@ -540,15 +540,15 @@ loadData(1)
 .bottom-divider {
 	width: 64rpx;
 	height: 1rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 .loading-dot {
 	width: 32rpx;
 	height: 32rpx;
 	border-radius: 50%;
-	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--zy-primary, #2D9B8F);
+	border: 3rpx solid var(--zy-border, #dfe7dc);
+	border-top-color: var(--zy-primary, #2f7566);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -558,14 +558,14 @@ loadData(1)
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

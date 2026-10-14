@@ -45,3 +45,5 @@ page {
 /* 织愈可复用动效类 */
 @import '@/styles/animations.scss';
 </style>
+
+<style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-primary);outline-offset:3px}@media(prefers-reduced-motion:reduce){.zy-page-enter,.zy-skeleton,.zy-slide-up,.zy-elastic{animation:none!important;transition:none!important}}</style>

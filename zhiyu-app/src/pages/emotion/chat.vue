@@ -1,5 +1,6 @@
 <template>
 	<view class="page">
+		<view class="chat-header"><view class="header-avatar">织</view><view><text class="header-name">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><text class="header-help" @click="goCrisisPage">寻求支持</text></view>
 		<!-- 对话区 -->
 		<scroll-view
 			class="chat-area"
@@ -14,7 +15,7 @@
 						<text class="welcome-avatar-text">织</text>
 					</view>
 					<text class="welcome-title">我在这里陪你</text>
-					<text class="welcome-sub">我是织愈，一个耐心的倾听者</text>
+					<text class="welcome-sub">我是小织，一个耐心的倾听者</text>
 					<text class="welcome-hint">说说今天发生了什么？</text>
 				</view>
 
@@ -238,16 +239,20 @@ watch(crisisTriggered, (val) => {
 </script>
 
 <style lang="scss" scoped>
+.chat-header{display:flex;align-items:center;gap:20rpx;padding:24rpx 28rpx;border-bottom:1rpx solid var(--zy-border,#e2e9e9);background:var(--zy-card-bg,#fff);flex-shrink:0}.header-avatar{padding:12rpx 20rpx;background:#2f7566;color:#fff;border-radius:18rpx}.header-name{display:block;font-size:28rpx;font-weight:600;color:var(--zy-title,#253c36)}.header-state{display:block;font-size:22rpx;color:var(--zy-sub,#708078);margin-top:6rpx}.header-help{font-size:23rpx;color:#2f7566;margin-left:auto}.input-area,.footer-disclaimer{flex-shrink:0}
+
 .page {
 	display: flex;
 	flex-direction: column;
-	height: 100vh;
+	height: calc(100vh - var(--window-top, 0px));
 	overflow: hidden;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 对话区（flex: 1 占满剩余空间） ── */
 .chat-area {
+ min-height:0;
+ height:0;
 	flex: 1;
 	overflow: hidden;
 }
@@ -269,7 +274,7 @@ watch(crisisTriggered, (val) => {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BCFBF));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -287,20 +292,20 @@ watch(crisisTriggered, (val) => {
 .welcome-title {
 	font-size: 44rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 }
 
 .welcome-sub {
 	margin-top: 16rpx;
 	font-size: 28rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .welcome-hint {
 	margin-top: 32rpx;
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 消息行 ── */
@@ -364,7 +369,7 @@ watch(crisisTriggered, (val) => {
 	width: 64rpx;
 	height: 64rpx;
 	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -374,7 +379,7 @@ watch(crisisTriggered, (val) => {
 .ai-avatar-text {
 	font-size: 28rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	font-family: var(--zy-serif);
 }
 
@@ -385,7 +390,7 @@ watch(crisisTriggered, (val) => {
 	width: 16rpx;
 	height: 16rpx;
 	border-radius: 50%;
-	background-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-primary, #2f7566);
 	border: 3rpx solid #FFFFFF;
 	box-sizing: border-box;
 }
@@ -400,12 +405,12 @@ watch(crisisTriggered, (val) => {
 }
 
 .bubble-user {
-	background-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-primary, #2f7566);
 }
 
 .bubble-ai {
 	background-color: #FFFFFF;
-	border: 1px solid var(--zy-border, #E5E7EB);
+	border: 1px solid var(--zy-border, #dfe7dc);
 	box-shadow: 0 2rpx 8rpx rgba(45, 155, 143, 0.06);
 }
 
@@ -419,7 +424,7 @@ watch(crisisTriggered, (val) => {
 }
 
 .text-ai {
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── 打字机光标 ── */
@@ -430,7 +435,7 @@ watch(crisisTriggered, (val) => {
 	margin-left: 3px;
 	vertical-align: text-bottom;
 	border-radius: 2px;
-	background: linear-gradient(180deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(180deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	animation: blink 0.8s steps(2) infinite;
 }
 
@@ -443,7 +448,7 @@ watch(crisisTriggered, (val) => {
 .msg-time {
 	margin-top: 8rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .msg-time--user {
@@ -455,12 +460,12 @@ watch(crisisTriggered, (val) => {
 	margin-top: 8px;
 	padding: 10px 16px;
 	border-radius: 12px;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .recommend-text {
 	font-size: 13px;
-	color: var(--wot-color-theme, #2D9B8F);
+	color: var(--wot-color-theme, #2f7566);
 }
 
 /* ── 错误重试 ── */
@@ -485,7 +490,7 @@ watch(crisisTriggered, (val) => {
 	padding: 16rpx 24rpx;
 	gap: 8px;
 	background-color: #FFFFFF;
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .voice-btn {
@@ -503,12 +508,12 @@ watch(crisisTriggered, (val) => {
 
 :deep(.chat-input) {
 	flex: 1;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	border-radius: 12px;
 	padding: 0 12px;
 	height: 40px;
 	font-size: 15px;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 /* ── 底部免责声明（固定在输入区下方） ── */
@@ -516,14 +521,14 @@ watch(crisisTriggered, (val) => {
 	flex-shrink: 0;
 	padding: 8rpx 0;
 	text-align: center;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	padding-bottom: calc(8rpx + constant(safe-area-inset-bottom));
 	padding-bottom: calc(8rpx + env(safe-area-inset-bottom));
 }
 
 .footer-disclaimer-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 危机关怀卡片 ── */
@@ -531,7 +536,7 @@ watch(crisisTriggered, (val) => {
 	margin: 16rpx 0 24rpx;
 	padding: 32rpx 28rpx;
 	border-radius: 32rpx;
-	background: linear-gradient(135deg, #F0F9F7 0%, #FFFFFF 100%);
+	background: linear-gradient(135deg, #e8efe4 0%, #FFFFFF 100%);
 	border: 2rpx solid rgba(45, 155, 143, 0.2);
 	box-shadow: 0 4rpx 20rpx rgba(45, 155, 143, 0.08);
 	animation: crisisIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -553,7 +558,7 @@ watch(crisisTriggered, (val) => {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BCFBF));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -570,7 +575,7 @@ watch(crisisTriggered, (val) => {
 .crisis-card-title {
 	font-size: 30rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	font-family: var(--zy-serif);
 }
 
@@ -578,7 +583,7 @@ watch(crisisTriggered, (val) => {
 	display: block;
 	font-size: 28rpx;
 	line-height: 1.7;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	margin-bottom: 28rpx;
 }
 
@@ -603,12 +608,12 @@ watch(crisisTriggered, (val) => {
 }
 
 .crisis-btn-primary {
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 }
 
 .crisis-btn-secondary {
-	background-color: var(--zy-bg, #F8F9FB);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	background-color: var(--zy-bg, #f5f7f2);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .crisis-btn-text {

@@ -42,6 +42,9 @@ public class CraftProject extends BaseEntity {
     /** 封面图 URL */
     private String coverUrl;
 
+    /** 平台上传的教学视频引用；与项目一起审核。 */
+    private String videoUrl;
+
     /** 0 待审 / 1 上架 / 2 下架 */
     private Integer status;
 }

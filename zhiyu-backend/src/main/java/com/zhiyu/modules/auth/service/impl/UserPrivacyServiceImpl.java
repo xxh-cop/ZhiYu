@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserPrivacyServiceImpl implements UserPrivacyService {
 
     private final UserMapper userMapper;
+    private final org.springframework.jdbc.core.JdbcTemplate growthDb;
 
     @Override
     public PrivacyStatusVO getPrivacyStatus() {
@@ -72,6 +73,11 @@ public class UserPrivacyServiceImpl implements UserPrivacyService {
         User user = requireCurrentUser();
         Long userId = user.getId();
 
+        // Serialize against personal-record writes before erasing encrypted growth data.
+        growthDb.queryForObject("SELECT id FROM user WHERE id=? FOR UPDATE", Long.class, userId);
+        growthDb.update("DELETE FROM wellbeing_record WHERE user_id=?", userId);
+        growthDb.update("UPDATE program_booking SET status='CANCELLED',deleted=1 WHERE user_id=?", userId);
+        growthDb.update("UPDATE learning_program SET status='CANCELLED' WHERE owner_id=?", userId);
         // 匿名化敏感字段，保持数据完整性但不可识别用户
         user.setUsername("deleted_" + userId);
         user.setPassword("");

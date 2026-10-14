@@ -2,7 +2,7 @@
 	<view class="page zy-page-enter">
 		<!-- 加载中 -->
 		<view v-if="loading" class="status-box">
-			<wd-loading color="#2D9B8F" />
+			<wd-loading color="#2f7566" />
 			<text class="status-text">正在加载…</text>
 		</view>
 
@@ -22,18 +22,18 @@
 				</view>
 			</view>
 
-			<!-- ═══ 信息条（pill 标签） ═══ -->
+			<CraftCover v-if="!project.coverUrl" :category="project.category"/><MediaVideo v-if="project.videoUrl" :src="project.videoUrl" caption="传承人教学视频"/><!-- ═══ 信息条（pill 标签） ═══ -->
 			<view class="info-pills zy-slide-up zy-stagger" style="--stagger-i: 1">
 				<view v-if="project.category" class="pill">
-					<wd-icon name="grid" size="24rpx" color="#2D9B8F" />
+					<wd-icon name="grid" size="24rpx" color="#2f7566" />
 					<text class="pill-text">{{ project.category }}</text>
 				</view>
 				<view class="pill">
-					<wd-icon name="chart-bar" size="24rpx" color="#FFB547" />
+					<wd-icon name="chart-bar" size="24rpx" color="#bb914d" />
 					<text class="pill-text">{{ levelLabel(project.level) }}</text>
 				</view>
 				<view class="pill">
-					<wd-icon name="time" size="24rpx" color="#5BC4A8" />
+					<wd-icon name="time" size="24rpx" color="#82ad9b" />
 					<text class="pill-text">约 {{ project.estMinutes }} 分钟</text>
 				</view>
 			</view>
@@ -51,7 +51,7 @@
 
 			<!-- ═══ 传承人信息条 ═══ -->
 			<view
-				v-if="project.inheritorId"
+				v-if="project.inheritorProfileId"
 				class="inheritor-bar zy-slide-up zy-stagger"
 				style="--stagger-i: 3"
 				@click="goInheritorDetail"
@@ -63,7 +63,7 @@
 					<text class="inheritor-name">{{ project.inheritorNickname || '传承人' }}</text>
 					<text v-if="project.inheritorSkill" class="inheritor-skill">{{ project.inheritorSkill }}</text>
 				</view>
-				<wd-icon name="arrow-right" size="32rpx" color="#9CA3AF" />
+				<wd-icon name="arrow-right" size="32rpx" color="#718478" />
 			</view>
 
 			<!-- ═══ 文化背景 ═══ -->
@@ -73,6 +73,7 @@
 				<text class="section-text">{{ project.cultureBg }}</text>
 			</view>
 
+			<CraftSafety :project-id="projectId" />
 			<!-- ═══ 所需材料 ═══ -->
 			<view v-if="materials.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 5">
 				<text class="section-title">所需材料</text>
@@ -83,7 +84,7 @@
 						class="material-item"
 					>
 						<view class="material-icon">
-							<wd-icon name="gift" size="28rpx" color="#2D9B8F" />
+							<wd-icon name="gift" size="28rpx" color="#2f7566" />
 						</view>
 						<text class="material-name">{{ mat.name }}</text>
 						<text v-if="mat.qty" class="material-qty">{{ mat.qty }}</text>
@@ -131,8 +132,11 @@
 </template>
 
 <script setup>
+import MediaVideo from "../../components/MediaVideo.vue"
+import CraftCover from "../../components/CraftCover.vue"
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import CraftSafety from '../../components/CraftSafety.vue'
 import { http } from '../../utils/request'
 
 const projectId = ref(null)
@@ -160,7 +164,7 @@ const hasInheritorAvatar = computed(() => {
 })
 
 const inheritorAvatarStyle = computed(() => {
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
+	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
 })
 
 onLoad((query) => {
@@ -192,7 +196,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);'
+	return 'background: linear-gradient(135deg, #2f7566 0%, #82ad9b 100%);'
 }
 
 function levelLabel(level) {
@@ -226,7 +230,7 @@ function goSession() {
 	min-height: 100vh;
 	padding: 0 0 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 状态区 ── */
@@ -241,7 +245,7 @@ function goSession() {
 
 .status-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .error-text {
@@ -298,12 +302,12 @@ function goSession() {
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	box-shadow: var(--zy-shadow-sm);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .pill-text {
 	font-size: 24rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── 疗愈标签 ── */
@@ -317,12 +321,12 @@ function goSession() {
 .therapy-tag {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .therapy-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 /* ── 传承人信息条 ── */
@@ -334,7 +338,7 @@ function goSession() {
 	padding: 24rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #E5E7EB);
+	border: 1px solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 }
@@ -368,13 +372,13 @@ function goSession() {
 .inheritor-name {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .inheritor-skill {
 	margin-top: 4rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 区块卡片 ── */
@@ -384,7 +388,7 @@ function goSession() {
 	padding: 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #E5E7EB);
+	border: 1px solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	overflow: hidden;
 }
@@ -395,7 +399,7 @@ function goSession() {
 	left: 16rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	opacity: 0.15;
 	line-height: 1;
 }
@@ -403,7 +407,7 @@ function goSession() {
 .section-title {
 	font-size: 32rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 	display: block;
 	margin-bottom: 16rpx;
@@ -413,7 +417,7 @@ function goSession() {
 .section-text {
 	font-size: 28rpx;
 	line-height: 1.9;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	position: relative;
 }
 
@@ -431,7 +435,7 @@ function goSession() {
 	gap: 12rpx;
 	padding: 16rpx 20rpx;
 	border-radius: var(--zy-radius-md, 20rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .material-icon {
@@ -448,7 +452,7 @@ function goSession() {
 .material-name {
 	flex: 1;
 	font-size: 26rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -456,7 +460,7 @@ function goSession() {
 
 .material-qty {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	flex-shrink: 0;
 }
 
@@ -482,7 +486,7 @@ function goSession() {
 	width: 52rpx;
 	height: 52rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -499,7 +503,7 @@ function goSession() {
 	width: 2rpx;
 	flex: 1;
 	min-height: 40rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 	margin: 4rpx 0;
 }
 
@@ -511,7 +515,7 @@ function goSession() {
 .step-title {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	line-height: 1.5;
 	display: block;
 }
@@ -521,7 +525,7 @@ function goSession() {
 	margin-top: 6rpx;
 	font-size: 24rpx;
 	line-height: 1.6;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -542,14 +546,14 @@ function goSession() {
 	padding: 20rpx 24rpx;
 	padding-bottom: calc(20rpx + env(safe-area-inset-bottom, 0));
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border-top: 1px solid var(--zy-border, #E5E7EB);
+	border-top: 1px solid var(--zy-border, #dfe7dc);
 	z-index: 100;
 }
 
 .start-btn {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -572,7 +576,7 @@ function goSession() {
 	display: block;
 	margin: 24rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

@@ -124,6 +124,51 @@ public class AiClient {
         return applyOutputSafety("message", result);
     }
 
+    /** Knowledge answers keep the same audit and isolated breaker boundary as other AI calls. */
+    public String knowledgeAnswer(String question, String prompt) {
+        return knowledgeAnswer(question, () -> prompt);
+    }
+
+    public String knowledgeAnswer(String question, java.util.function.Supplier<String> promptSupplier) {
+        SafetyResult input = contentSafetyFilter.checkInput(UserContext.getUserId(), null, "rag", question);
+        if (input.getAction() == SafetyAction.BLOCK) return input.getCareMessage();
+        String fallback = "非遗问答暂时不可用，请稍后再试。";
+        if (!breaker.allowRequest("llm-rag")) return fallback;
+        String answer;
+        try {
+            String prompt = promptSupplier.get();
+            if (prompt == null) return "知识库暂未找到相关资料，可以换个关键词试试。";
+            answer = llmClient.chat(prompt);
+            if (answer == null || answer.isBlank()) throw new IllegalStateException("empty answer");
+            breaker.recordSuccess("llm-rag");
+        } catch (Exception e) {
+            breaker.recordFailure("llm-rag");
+            log.warn("知识问答调用失败，已使用固定降级文本");
+            return fallback;
+        }
+        return applyOutputSafety("rag", answer);
+    }
+
+    public record CreativeResponse(String text, boolean generated) {}
+
+    public CreativeResponse lineartPlan(String theme, String prompt) {
+        SafetyResult input=contentSafetyFilter.checkInput(UserContext.getUserId(),null,"lineart",theme);
+        if(input.getAction()==SafetyAction.BLOCK)
+            throw new com.zhiyu.common.exception.BusinessException(1001,"这个主题暂不适合生成线稿。如需支持，可前往心理援助页面。");
+        if(!breaker.allowRequest("llm-lineart"))return new CreativeResponse("",false);
+        try {
+            String answer=llmClient.chat(prompt);
+            if(answer==null||answer.isBlank())throw new IllegalStateException("empty output");
+            SafetyResult output=contentSafetyFilter.checkOutput(UserContext.getUserId(),"lineart",answer);
+            breaker.recordSuccess("llm-lineart");
+            return output.getAction()==SafetyAction.PASS?new CreativeResponse(answer,true):new CreativeResponse("",false);
+        }catch(Exception e){
+            breaker.recordFailure("llm-lineart");
+            log.warn("线稿方案生成暂不可用，返回内置模板");
+            return new CreativeResponse("",false);
+        }
+    }
+
     // ── 内部：输出安全过滤 ──
 
     /**

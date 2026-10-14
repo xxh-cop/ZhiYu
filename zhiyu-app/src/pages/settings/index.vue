@@ -352,7 +352,7 @@ async function handleChangePassword() {
 	min-height: 100vh;
 	padding: 32rpx 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 页面标题 ── */
@@ -363,14 +363,14 @@ async function handleChangePassword() {
 .page-title {
 	font-size: 44rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 	display: block;
 }
 
 .page-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 	margin-top: 8rpx;
 }
@@ -389,7 +389,7 @@ async function handleChangePassword() {
 	height: 140rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	flex-shrink: 0;
 }
 
@@ -405,7 +405,7 @@ async function handleChangePassword() {
 	width: 100%;
 	height: 100%;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F) 0%, var(--zy-primary-light, #5BC4A8) 100%);
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566) 0%, var(--zy-primary-light, #82ad9b) 100%);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -421,7 +421,7 @@ async function handleChangePassword() {
 
 .avatar-hint {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 卡片 ── */
@@ -430,7 +430,7 @@ async function handleChangePassword() {
 	border-radius: var(--zy-radius-lg, 32rpx);
 	padding: 32rpx 28rpx;
 	margin-bottom: 20rpx;
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 }
 
@@ -445,7 +445,7 @@ async function handleChangePassword() {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -453,13 +453,13 @@ async function handleChangePassword() {
 }
 
 .card-icon-security {
-	background: linear-gradient(135deg, var(--zy-accent, #FFB547), #FFCB6E);
+	background: linear-gradient(135deg, var(--zy-accent, #bb914d), #FFCB6E);
 }
 
 .section-heading {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 /* ── 表单 ── */
@@ -469,7 +469,7 @@ async function handleChangePassword() {
 
 .form-label {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 	margin-bottom: 10rpx;
 }
@@ -479,16 +479,16 @@ async function handleChangePassword() {
 	height: 80rpx;
 	padding: 0 24rpx;
 	font-size: 28rpx;
-	color: var(--zy-title, #1F2937);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	color: var(--zy-title, #233d34);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 16rpx);
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	box-sizing: border-box;
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .form-input:focus {
-	border-color: var(--zy-primary, #2D9B8F);
+	border-color: var(--zy-primary, #2f7566);
 }
 
 .form-input--disabled {
@@ -499,16 +499,16 @@ async function handleChangePassword() {
 	width: 100%;
 	padding: 20rpx 24rpx;
 	font-size: 28rpx;
-	color: var(--zy-title, #1F2937);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	color: var(--zy-title, #233d34);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 16rpx);
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	box-sizing: border-box;
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .form-textarea:focus {
-	border-color: var(--zy-primary, #2D9B8F);
+	border-color: var(--zy-primary, #2f7566);
 }
 
 .form-readonly {
@@ -519,14 +519,14 @@ async function handleChangePassword() {
 
 .form-readonly-text {
 	font-size: 28rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 /* ── 按钮 ── */
 .btn-primary {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -539,7 +539,7 @@ async function handleChangePassword() {
 }
 
 .btn-primary--accent {
-	background: linear-gradient(135deg, var(--zy-accent, #FFB547), #FFCB6E);
+	background: linear-gradient(135deg, var(--zy-accent, #bb914d), #FFCB6E);
 }
 
 .btn-primary--disabled {
@@ -558,7 +558,7 @@ async function handleChangePassword() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

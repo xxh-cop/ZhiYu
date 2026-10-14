@@ -5,12 +5,15 @@ import com.zhiyu.modules.craft.entity.CraftSession;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * 创作会话 Mapper（T1.6 / T1.7）。
  */
 @Mapper
 public interface CraftSessionMapper extends BaseMapper<CraftSession> {
+    @Select("SELECT id FROM craft_project WHERE id=#{projectId} AND deleted=0 FOR UPDATE")
+    Long lockProject(@Param("projectId") Long projectId);
 
     /**
      * 原子累加心流秒数（T1.7）。

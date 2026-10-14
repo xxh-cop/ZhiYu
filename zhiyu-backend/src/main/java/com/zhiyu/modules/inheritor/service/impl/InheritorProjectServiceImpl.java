@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 public class InheritorProjectServiceImpl implements InheritorProjectService {
 
     private final CraftProjectMapper craftProjectMapper;
+    private final com.zhiyu.modules.file.MediaService media;
     private final CraftStepMapper craftStepMapper;
     private final CraftMaterialMapper craftMaterialMapper;
 
@@ -57,6 +58,7 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         project.setCategory(dto.getCategory() != null ? dto.getCategory() : "");
         project.setTherapyTags(dto.getTherapyTags());
         project.setCoverUrl(dto.getCoverUrl());
+        if(dto.getVideoUrl()!=null && !dto.getVideoUrl().isBlank())project.setVideoUrl(media.requireOwned(userId,dto.getVideoUrl()));
         project.setStatus(0); // 待审
         craftProjectMapper.insert(project);
         log.info("传承人创建项目: projectId={}, inheritorId={}", project.getId(), userId);
@@ -108,6 +110,7 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         vo.setCategory(project.getCategory());
         vo.setTherapyTags(project.getTherapyTags());
         vo.setCoverUrl(project.getCoverUrl());
+        vo.setVideoUrl(project.getVideoUrl());
         vo.setStatus(project.getStatus());
         vo.setCreateTime(project.getCreateTime());
 
@@ -154,6 +157,7 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         if (dto.getTherapyTags() != null) project.setTherapyTags(dto.getTherapyTags());
         if (dto.getCoverUrl() != null) project.setCoverUrl(dto.getCoverUrl());
 
+        if(dto.getVideoUrl()!=null)project.setVideoUrl(dto.getVideoUrl().isBlank()?"":media.requireOwned(userId,dto.getVideoUrl()));
         craftProjectMapper.updateById(project);
         log.info("传承人编辑项目: projectId={}, inheritorId={}", projectId, userId);
     }

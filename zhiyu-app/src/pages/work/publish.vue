@@ -1,13 +1,5 @@
 <template>
 	<view class="page">
-		<!-- 顶部导航 -->
-		<view class="nav-bar">
-			<view class="nav-back" @click="goBack">
-				<wd-icon name="arrow-left" size="40rpx" color="#1F2937" />
-			</view>
-			<text class="nav-title">发布作品</text>
-		</view>
-
 		<!-- 步骤指示器 -->
 		<view class="step-indicator">
 			<view
@@ -38,7 +30,7 @@
 						:class="{ 'media-tab--active': form.mediaType === 'image' }"
 						@click="switchMediaTab('image')"
 					>
-						<wd-icon name="image" size="36rpx" :color="form.mediaType === 'image' ? '#2D9B8F' : '#9CA3AF'" />
+						<wd-icon name="image" size="36rpx" :color="form.mediaType === 'image' ? '#2f7566' : '#718478'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'image' }">图片</text>
 					</view>
 					<view
@@ -46,7 +38,7 @@
 						:class="{ 'media-tab--active': form.mediaType === 'video' }"
 						@click="switchMediaTab('video')"
 					>
-						<wd-icon name="video" size="36rpx" :color="form.mediaType === 'video' ? '#2D9B8F' : '#9CA3AF'" />
+						<wd-icon name="video" size="36rpx" :color="form.mediaType === 'video' ? '#2f7566' : '#718478'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'video' }">视频</text>
 					</view>
 					<view
@@ -54,7 +46,7 @@
 						:class="{ 'media-tab--active': form.mediaType === 'text' }"
 						@click="switchMediaTab('text')"
 					>
-						<wd-icon name="edit" size="36rpx" :color="form.mediaType === 'text' ? '#2D9B8F' : '#9CA3AF'" />
+						<wd-icon name="edit" size="36rpx" :color="form.mediaType === 'text' ? '#2f7566' : '#718478'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'text' }">纯文字</text>
 					</view>
 				</view>
@@ -68,7 +60,7 @@
 							<text class="upload-loading-text">上传中…</text>
 						</view>
 						<view v-else class="image-placeholder">
-							<wd-icon name="add" size="48rpx" color="#9CA3AF" />
+							<wd-icon name="add" size="48rpx" color="#718478" />
 							<text class="image-placeholder-text">点击上传作品图</text>
 							<text class="image-placeholder-hint">支持 jpg / jpeg / png / webp，≤5MB</text>
 						</view>
@@ -80,14 +72,8 @@
 
 				<!-- Tab 2：视频上传 -->
 				<view v-if="form.mediaType === 'video'" class="media-content">
-					<view class="image-upload-area" @click="chooseVideo">
-						<video
-							v-if="form.videoUrl && !uploading"
-							class="image-preview"
-							:src="fullUrl(form.videoUrl)"
-							controls
-							object-fit="cover"
-						/>
+					<view class="image-upload-area" @click="!form.videoUrl && chooseVideo()">
+						<MediaVideo v-if="form.videoUrl && !uploading" :src="form.videoUrl" caption="发布前预览"/>
 						<view v-else-if="uploading" class="upload-loading">
 							<view class="upload-progress-bar">
 								<view class="upload-progress-fill" :style="{ width: uploadProgress + '%' }"></view>
@@ -95,9 +81,9 @@
 							<text class="upload-loading-text">上传中 {{ uploadProgress }}%</text>
 						</view>
 						<view v-else class="image-placeholder">
-							<wd-icon name="video" size="48rpx" color="#9CA3AF" />
+							<wd-icon name="video" size="48rpx" color="#718478" />
 							<text class="image-placeholder-text">点击上传作品视频</text>
-							<text class="image-placeholder-hint">支持 mp4 / mov，≤50MB</text>
+							<text class="image-placeholder-hint">MP4 · ≤50MB · 建议 H.264 + AAC</text>
 						</view>
 					</view>
 					<view v-if="form.videoUrl && !uploading" class="re-upload-btn" @click="chooseVideo">
@@ -105,11 +91,11 @@
 					</view>
 				</view>
 
-				<!-- Tab 3：纯文字 -->
+				<view v-if="uploading" class="upload-actions"><text>上传中 {{uploadProgress}}%</text><button @click.stop="cancelUpload">取消上传</button></view><view v-if="uploadError" class="upload-error"><text>{{uploadError}}</text><button @click="retryUpload">重试上传</button></view><text v-if="form.mediaType==='video'" class="video-notice">仅上传原创或已获授权的视频。公开前需审核，请勿包含未经同意的人像、声音与个人信息。</text><!-- Tab 3：纯文字 -->
 				<view v-if="form.mediaType === 'text'" class="media-content">
 					<view class="text-only-hint">
 						<view class="text-only-icon-wrap">
-							<wd-icon name="edit" size="40rpx" color="#2D9B8F" />
+							<wd-icon name="edit" size="40rpx" color="#2f7566" />
 						</view>
 						<text class="text-only-title">只写文字，不配图</text>
 						<text class="text-only-sub">用文字记录你的创作故事</text>
@@ -166,14 +152,6 @@
 						</view>
 						<view
 							class="radio-item"
-							:class="{ 'radio-active': form.visible === 2 }"
-							@click="form.visible = 2"
-						>
-							<view class="radio-dot" :class="{ 'dot-active': form.visible === 2 }"></view>
-							<text class="radio-label">仅小组</text>
-						</view>
-						<view
-							class="radio-item"
 							:class="{ 'radio-active': form.visible === 0 }"
 							@click="form.visible = 0"
 						>
@@ -200,7 +178,7 @@
 				<!-- AI 寄语提示 -->
 				<view class="ai-hint">
 					<view class="ai-hint-icon-wrap">
-						<wd-icon name="sparkles" size="36rpx" color="#2D9B8F" />
+						<wd-icon name="sparkles" size="36rpx" color="#2f7566" />
 					</view>
 					<view class="ai-hint-info">
 						<text class="ai-hint-title">AI 寄语</text>
@@ -232,7 +210,7 @@
 					</view>
 					<!-- 视频预览 -->
 					<view v-else-if="form.mediaType === 'video' && form.videoUrl" class="preview-cover preview-cover--video">
-						<video class="preview-video" :src="fullUrl(form.videoUrl)" controls object-fit="cover" />
+						<MediaVideo :src="form.videoUrl" caption="发布前预览"/>
 					</view>
 					<!-- 纯文字/无封面 -->
 					<view v-else class="preview-cover preview-cover--placeholder">
@@ -271,8 +249,8 @@
 		<view v-if="published" class="success-overlay" @click.stop>
 			<view class="success-card zy-elastic">
 				<image class="success-xiaozhi" src="/static/xiaozhi-happy.png" mode="aspectFit" />
-				<text class="success-title">发布成功！</text>
-				<text class="success-hint">小织为你感到骄傲</text>
+				<text class="success-title">{{form.mediaType==='video'?'视频已提交审核':'发布成功！'}}</text>
+				<text class="success-hint">{{form.mediaType==='video'?'审核通过后，公开作品会出现在社区。':'小织为你感到骄傲'}}</text>
 				<view class="success-btn" @click="goWorkList">
 					<text class="success-btn-text">查看作品</text>
 				</view>
@@ -285,8 +263,9 @@
 </template>
 
 <script setup>
+import MediaVideo from "../../components/MediaVideo.vue"
 import { ref, computed } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
 
@@ -309,6 +288,7 @@ const form = ref({
 })
 
 const canStep1 = computed(() => {
+ if(uploading.value)return false;
 	if (form.value.mediaType === 'image') return !!form.value.coverUrl
 	if (form.value.mediaType === 'video') return !!form.value.videoUrl
 	return true // text 类型不需要文件
@@ -337,6 +317,7 @@ onLoad((query) => {
 })
 
 function switchMediaTab(type) {
+ if(uploading.value)return;
 	if (form.value.mediaType === type) return
 	form.value.mediaType = type
 	// 切换 tab 时清空之前选的媒体
@@ -383,42 +364,7 @@ function chooseImage() {
 	})
 }
 
-function uploadImage(filePath) {
-	uploading.value = true
-	uploadProgress.value = 0
-
-	const token = readToken()
-	const uploadTask = uni.uploadFile({
-		url: `${API_BASE_URL}/api/files/upload/image`,
-		filePath: filePath,
-		name: 'file',
-		header: {
-			Authorization: `Bearer ${token}`,
-		},
-		success: (res) => {
-			try {
-				const data = JSON.parse(res.data)
-				if (data.code === 0 && data.data && data.data.url) {
-					form.value.coverUrl = data.data.url
-				} else {
-					uni.showToast({ title: data.message || '上传失败', icon: 'none' })
-				}
-			} catch (e) {
-				uni.showToast({ title: '上传失败', icon: 'none' })
-			}
-		},
-		fail: () => {
-			uni.showToast({ title: '上传失败', icon: 'none' })
-		},
-		complete: () => {
-			uploading.value = false
-		},
-	})
-
-	uploadTask.onProgressUpdate((res) => {
-		uploadProgress.value = res.progress
-	})
-}
+function uploadImage(filePath){uploadMedia(filePath,'image')}
 
 function chooseVideo() {
 	if (uploading.value) return
@@ -438,43 +384,13 @@ function chooseVideo() {
 	})
 }
 
-function uploadVideo(filePath) {
-	uploading.value = true
-	uploadProgress.value = 0
-
-	const token = readToken()
-	const uploadTask = uni.uploadFile({
-		url: `${API_BASE_URL}/api/files/upload/video`,
-		filePath: filePath,
-		name: 'file',
-		header: {
-			Authorization: `Bearer ${token}`,
-		},
-		success: (res) => {
-			try {
-				const data = JSON.parse(res.data)
-				if (data.code === 0 && data.data && data.data.url) {
-					form.value.videoUrl = data.data.url
-				} else {
-					uni.showToast({ title: data.message || '上传失败', icon: 'none' })
-				}
-			} catch (e) {
-				uni.showToast({ title: '上传失败', icon: 'none' })
-			}
-		},
-		fail: () => {
-			uni.showToast({ title: '上传失败', icon: 'none' })
-		},
-		complete: () => {
-			uploading.value = false
-		},
-	})
-
-	uploadTask.onProgressUpdate((res) => {
-		uploadProgress.value = res.progress
-	})
-}
-
+let activeTask=null,lastUpload=null,uploadTurn=0
+const uploadError=ref('')
+function cancelUpload(){uploadTurn++;activeTask?.abort();activeTask=null;uploading.value=false;uploadError.value='已取消上传，可重新选择或重试。'}
+function retryUpload(){if(lastUpload)uploadMedia(lastUpload.path,lastUpload.kind)}
+function uploadVideo(filePath){uploadMedia(filePath,'video')}
+function uploadMedia(path,kind){const turn=++uploadTurn;lastUpload={path,kind};uploading.value=true;uploadError.value='';uploadProgress.value=0;activeTask=uni.uploadFile({url:API_BASE_URL+'/api/files/upload/'+kind,filePath:path,name:'file',header:{Authorization:'Bearer '+readToken()},timeout:180000,success(res){if(turn!==uploadTurn)return;try{const d=JSON.parse(res.data);if(res.statusCode>=400||d.code!==0)throw Error(d.message||'上传失败');if(kind==='video')form.value.videoUrl=d.data.url;else form.value.coverUrl=d.data.url;}catch(e){uploadError.value=e.message||'上传失败'}},fail(){if(turn===uploadTurn)uploadError.value='上传失败，请检查网络后重试。'},complete(){if(turn===uploadTurn){activeTask=null;uploading.value=false}}});activeTask.onProgressUpdate(e=>{if(turn===uploadTurn)uploadProgress.value=e.progress})}
+onUnload(()=>{uploadTurn++;activeTask?.abort()})
 function nextStep() {
 	if (currentStep.value === 1) {
 		if (!canStep1.value) {
@@ -547,7 +463,7 @@ function goWorkList() {
 	min-height: 100vh;
 	padding: 0 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 导航栏 ── */
@@ -569,14 +485,14 @@ function goWorkList() {
 }
 
 .nav-back:active {
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 .nav-title {
 	font-family: var(--zy-serif);
 	font-size: 36rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 /* ── 步骤指示器 ── */
@@ -597,7 +513,7 @@ function goWorkList() {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -605,7 +521,7 @@ function goWorkList() {
 }
 
 .step-dot--active {
-	background-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-primary, #2f7566);
 }
 
 .step-dot--current {
@@ -621,12 +537,12 @@ function goWorkList() {
 .step-line {
 	width: 60rpx;
 	height: 4rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 	transition: background-color var(--zy-duration-base, 250ms) var(--zy-ease-smooth, ease);
 }
 
 .step-line--active {
-	background-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-primary, #2f7566);
 }
 
 /* ── 步骤内容 ── */
@@ -647,14 +563,14 @@ function goWorkList() {
 	font-family: var(--zy-serif);
 	font-size: 36rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	margin-bottom: 8rpx;
 }
 
 .step-card-sub {
 	display: block;
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	margin-bottom: 32rpx;
 }
 
@@ -673,23 +589,23 @@ function goWorkList() {
 	gap: 8rpx;
 	padding: 20rpx 0;
 	border-radius: var(--zy-radius-md, 24rpx);
-	border: 2rpx solid var(--zy-border, #E5E7EB);
+	border: 2rpx solid var(--zy-border, #dfe7dc);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	transition: all var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .media-tab--active {
-	border-color: var(--zy-primary, #2D9B8F);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	border-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .media-tab-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .media-tab-text--active {
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	font-weight: 500;
 }
 
@@ -702,13 +618,13 @@ function goWorkList() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: var(--zy-bg, #F8F9FB);
-	border: 2rpx dashed var(--zy-border, #E5E7EB);
+	background-color: var(--zy-bg, #f5f7f2);
+	border: 2rpx dashed var(--zy-border, #dfe7dc);
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .image-upload-area:active {
-	border-color: var(--zy-primary, #2D9B8F);
+	border-color: var(--zy-primary, #2f7566);
 }
 
 .image-preview {
@@ -725,12 +641,12 @@ function goWorkList() {
 
 .image-placeholder-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .image-placeholder-hint {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	opacity: 0.7;
 }
 
@@ -746,8 +662,8 @@ function goWorkList() {
 	width: 48rpx;
 	height: 48rpx;
 	border-radius: 50%;
-	border: 4rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--zy-primary, #2D9B8F);
+	border: 4rpx solid var(--zy-border, #dfe7dc);
+	border-top-color: var(--zy-primary, #2f7566);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -757,21 +673,21 @@ function goWorkList() {
 
 .upload-loading-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .upload-progress-bar {
 	width: 300rpx;
 	height: 8rpx;
 	border-radius: 4rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 	overflow: hidden;
 }
 
 .upload-progress-fill {
 	height: 100%;
 	border-radius: 4rpx;
-	background: linear-gradient(90deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(90deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	transition: width 0.2s ease;
 }
 
@@ -784,7 +700,7 @@ function goWorkList() {
 
 .re-upload-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 /* ── 纯文字提示 ── */
@@ -800,7 +716,7 @@ function goWorkList() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -810,12 +726,12 @@ function goWorkList() {
 .text-only-title {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .text-only-sub {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 表单项 ── */
@@ -833,7 +749,7 @@ function goWorkList() {
 .form-label {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .required {
@@ -842,12 +758,12 @@ function goWorkList() {
 
 .form-hint {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .char-hint {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: right;
 }
 
@@ -863,35 +779,35 @@ function goWorkList() {
 	align-items: center;
 	gap: 10rpx;
 	padding: 16rpx 28rpx;
-	border: 2rpx solid var(--zy-border, #E5E7EB);
+	border: 2rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	transition: all var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .radio-active {
-	border-color: var(--zy-primary, #2D9B8F);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	border-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .radio-dot {
 	width: 28rpx;
 	height: 28rpx;
 	border-radius: 50%;
-	border: 4rpx solid var(--zy-border, #E5E7EB);
+	border: 4rpx solid var(--zy-border, #dfe7dc);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	transition: all var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .dot-active {
-	border-color: var(--zy-primary, #2D9B8F);
-	background-color: var(--zy-primary, #2D9B8F);
+	border-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-primary, #2f7566);
 	box-shadow: inset 0 0 0 4rpx var(--zy-card-bg, #FFFFFF);
 }
 
 .radio-label {
 	font-size: 28rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── switch ── */
@@ -911,13 +827,13 @@ function goWorkList() {
 	width: 88rpx;
 	height: 48rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 	position: relative;
 	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .switch-on {
-	background-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-primary, #2f7566);
 }
 
 .switch-knob {
@@ -942,7 +858,7 @@ function goWorkList() {
 	gap: 20rpx;
 	padding: 24rpx;
 	border-radius: var(--zy-radius-md, 24rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	border: 1rpx solid rgba(45, 155, 143, 0.12);
 	margin-top: 8rpx;
 }
@@ -968,12 +884,12 @@ function goWorkList() {
 .ai-hint-title {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .ai-hint-text {
 	font-size: 24rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	line-height: 1.5;
 }
 
@@ -981,8 +897,8 @@ function goWorkList() {
 .preview-card {
 	overflow: hidden;
 	border-radius: var(--zy-radius-md, 24rpx);
-	background-color: var(--zy-bg, #F8F9FB);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	background-color: var(--zy-bg, #f5f7f2);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .preview-cover {
@@ -1005,7 +921,7 @@ function goWorkList() {
 }
 
 .preview-cover--placeholder {
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 }
 
 .preview-cover-text {
@@ -1023,7 +939,7 @@ function goWorkList() {
 	font-family: var(--zy-serif);
 	font-size: 34rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	margin-bottom: 12rpx;
 }
 
@@ -1031,7 +947,7 @@ function goWorkList() {
 	display: block;
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	margin-bottom: 16rpx;
 }
 
@@ -1043,12 +959,12 @@ function goWorkList() {
 .preview-tag {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .preview-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 /* ── 按钮行 ── */
@@ -1061,7 +977,7 @@ function goWorkList() {
 	flex: 1;
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1087,7 +1003,7 @@ function goWorkList() {
 	flex: 1;
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1095,12 +1011,12 @@ function goWorkList() {
 }
 
 .btn-secondary:active {
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 .btn-secondary-text {
 	font-size: 30rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── 发布成功 ── */
@@ -1137,19 +1053,19 @@ function goWorkList() {
 	font-family: var(--zy-serif);
 	font-size: 36rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .success-hint {
 	font-size: 28rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 .success-btn {
 	margin-top: 16rpx;
 	padding: 20rpx 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
@@ -1168,7 +1084,9 @@ function goWorkList() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>
+
+<style scoped>.upload-actions,.upload-error{padding:20rpx;font-size:25rpx;line-height:1.8}.upload-error{color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button{font-size:24rpx;color:var(--zy-primary);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice{display:block;font-size:23rpx;color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>

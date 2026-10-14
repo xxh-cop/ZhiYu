@@ -5,7 +5,7 @@
 				<!-- 顶部封面 -->
 				<view class="cover zy-slide-up zy-stagger" style="--stagger-i: 0">
 					<view class="cover-icon-wrap">
-						<wd-icon name="setting" size="48rpx" color="#2D9B8F" />
+						<wd-icon name="setting" size="48rpx" color="#2f7566" />
 					</view>
 					<text class="cover-title">隐私政策</text>
 					<text class="cover-sub">我们如何保护你的数据</text>
@@ -40,7 +40,7 @@
 					<text class="contact-value">{{ lastUpdated }}</text>
 					<view class="contact-divider"></view>
 					<text class="contact-label">联系方式</text>
-					<text class="contact-value">学校心理中心 / 产品运营邮箱（上线时补充）</text>
+					<text class="contact-value">校内咨询请查看「开始 → 校内支持」。产品隐私受理联系人尚未配置，学院公开邮箱不承担本产品隐私受理。</text>
 				</view>
 
 				<view class="bottom-spacer"></view>
@@ -65,7 +65,7 @@ import { useUserStore } from '../../stores/user'
 const userStore = useUserStore()
 const loading = ref(false)
 const showAgreeButton = ref(false)
-const lastUpdated = ref('2024 年 12 月')
+const lastUpdated = ref('2026 年 10 月 11 日')
 
 onLoad((options) => {
 	if (options && options.from === 'consent') {
@@ -74,6 +74,13 @@ onLoad((options) => {
 })
 
 const sections = [
+ {title:'新增功能的数据使用',paragraphs:[
+ '成长记录与自评：在单独同意后加密保存，仅本人可查阅和清除；自评计分不调用 AI。',
+ 'AI 辅助线稿：在单独同意后，将你输入的主题发送至当前配置的模型服务并进行安全审计；不发送绘色画面、相机画面或成长记录。生成失败时使用明确标注的内置模板。',
+ '临摹辅助：仅在点击开启后请求相机权限；不请求麦克风、不录制、不上传，离开页面关闭相机。本地选图仅用于当前临摹画面。',
+ '活动预约：保存报名、取消和签到状态，主办人可查看报名昵称；不向主办人提供心理自评答案。',
+ '减少动效偏好保存在本机，不包含心理或身份信息。'
+ ]},
 	{
 		title: '一、产品说明',
 		paragraphs: [
@@ -99,7 +106,7 @@ const sections = [
 	{
 		title: '三、敏感数据处理',
 		paragraphs: [
-			'对话内容、心情便签、关怀提醒属敏感个人信息，应用层加密存储，解密密钥仅存服务端。',
+			'对话内容、心情便签及成长记录在服务端加密存储。关怀提醒仅保存脱敏摘要；AI 审计原文加密保存。',
 			'咨询师与管理员看到的是脱敏后的汇总信息，不直接查看完整对话。',
 			'AI 调用经过内容安全过滤，输入输出全程记录审计日志用于合规追溯。',
 		],
@@ -125,7 +132,7 @@ const sections = [
 	{
 		title: '六、您的权利',
 		paragraphs: [
-			'查阅与复制：可在「我的-隐私」导出个人数据。',
+			'查阅与复制：可在成长旅程查阅新增个人记录；完整账户数据导出尚未开放。',
 			'更正与删除：可修改昵称、删除作品与便签；注销账号后我们将删除或匿名化你的数据。',
 			'撤回同意：可随时关闭情绪对话授权，不影响浏览手作内容。',
 			'注销账号：在「我的-隐私设置-注销」提交，15 个工作日内处理完成。',
@@ -186,7 +193,7 @@ async function handleAgree() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 .scroll-area {
@@ -210,7 +217,7 @@ async function handleAgree() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -220,19 +227,19 @@ async function handleAgree() {
 .cover-title {
 	font-size: 40rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 }
 
 .cover-sub {
 	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 免责声明 ── */
 .disclaimer-box {
-	background-color: var(--zy-bg-tint-warm, #FFF8EE);
+	background-color: var(--zy-bg-tint-warm, #f5edde);
 	border-radius: var(--zy-radius-md, 24rpx);
 	padding: 24rpx 28rpx;
 	margin-bottom: 24rpx;
@@ -257,7 +264,7 @@ async function handleAgree() {
 .section-heading {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	display: block;
 	margin-bottom: 16rpx;
 }
@@ -269,7 +276,7 @@ async function handleAgree() {
 .para-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 .table-row {
@@ -298,20 +305,20 @@ async function handleAgree() {
 
 .contact-label {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 }
 
 .contact-value {
 	font-size: 26rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	display: block;
 	margin-top: 6rpx;
 }
 
 .contact-divider {
 	height: 1rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 	margin: 20rpx 0;
 }
 
@@ -324,13 +331,13 @@ async function handleAgree() {
 	padding: 20rpx 32rpx;
 	padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .btn-agree {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;

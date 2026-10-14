@@ -1,6 +1,6 @@
 package com.zhiyu.ai.rag;
 
-import com.zhiyu.ai.client.LlmClient;
+import com.zhiyu.ai.AiClient;
 import com.zhiyu.ai.rag.vo.RagAnswerVO;
 import com.zhiyu.ai.rag.vo.RagSourceVO;
 import jakarta.annotation.PostConstruct;
@@ -41,7 +41,7 @@ import java.util.Map;
 public class RagService {
 
     private final VectorStore vectorStore;
-    private final LlmClient llmClient;
+    private final AiClient aiClient;
     private final String ragPromptTemplate;
 
     @Value("${zhiyu.ai.rag.vector-store-path:./rag-store.json}")
@@ -53,11 +53,26 @@ public class RagService {
     private static final double SIMILARITY_THRESHOLD = 0.3;
 
     public RagService(VectorStore vectorStore,
-                      LlmClient llmClient,
+                      AiClient aiClient,
                       @Qualifier("ragPrompt") String ragPromptTemplate) {
         this.vectorStore = vectorStore;
-        this.llmClient = llmClient;
+        this.aiClient = aiClient;
         this.ragPromptTemplate = ragPromptTemplate;
+    }
+
+    /** Local lexical rerank over the vector shortlist; no extra model or external data transfer. */
+    static List<Document> rerank(String question, List<Document> candidates) {
+        java.util.Set<String> terms = new java.util.HashSet<>();
+        String normalized = question.toLowerCase(java.util.Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
+        for (int i=0;i+1<normalized.length();i++) terms.add(normalized.substring(i,i+2));
+        var ranked = new ArrayList<>(candidates);
+        ranked.sort(java.util.Comparator.comparingDouble((Document d) -> {
+            String body = java.util.Objects.toString(d.getText(), "").toLowerCase(java.util.Locale.ROOT);
+            double lexical = terms.isEmpty()?0:(double)terms.stream().filter(body::contains).count()/terms.size();
+            double vector = 1.0/(1+candidates.indexOf(d));
+            return .65*vector+.35*lexical;
+        }).reversed());
+        return ranked.stream().filter(d->d.getText()!=null&&!d.getText().isBlank()).limit(TOP_K).toList();
     }
 
     @PostConstruct
@@ -117,41 +132,23 @@ public class RagService {
      * @return 含回答和引用来源的结果
      */
     public RagAnswerVO ask(String question) {
-        try {
-            List<Document> docs = vectorStore.similaritySearch(
-                    SearchRequest.builder()
-                            .query(question)
-                            .topK(TOP_K)
-                            .similarityThreshold(SIMILARITY_THRESHOLD)
-                            .build()
-            );
-
-            if (docs == null || docs.isEmpty()) {
-                log.info("RAG 检索无结果: question={}", question);
-                return new RagAnswerVO("抱歉，知识库中未找到与您问题相关的内容。您可以换个关键词试试。", List.of());
-            }
-
+        List<RagSourceVO> sources = new ArrayList<>();
+        String answer = aiClient.knowledgeAnswer(question, () -> {
+            // Retrieval can call an embedding provider: input audit must happen first.
+            List<Document> candidates = vectorStore.similaritySearch(SearchRequest.builder()
+                    .query(question).topK(8).similarityThreshold(SIMILARITY_THRESHOLD).build());
+            if (candidates == null || candidates.isEmpty()) return null;
+            List<Document> docs = rerank(question, candidates);
+            if (docs.isEmpty()) return null;
             StringBuilder context = new StringBuilder();
-            List<RagSourceVO> sources = new ArrayList<>();
-            for (int i = 0; i < docs.size(); i++) {
-                Document d = docs.get(i);
-                context.append("【资料").append(i + 1).append("】\n")
-                        .append(d.getText()).append("\n\n");
-                String sourceName = (String) d.getMetadata().getOrDefault("source", "非遗知识库");
-                String excerpt = d.getText().substring(0, Math.min(80, d.getText().length()));
-                sources.add(new RagSourceVO(sourceName, excerpt));
+            for (int i=0; i<docs.size(); i++) {
+                Document d=docs.get(i);
+                context.append("【资料").append(i+1).append("】\n").append(d.getText()).append("\n\n");
+                sources.add(new RagSourceVO(java.util.Objects.toString(d.getMetadata().get("source"), "非遗知识库"),
+                        d.getText().substring(0, Math.min(80,d.getText().length()))));
             }
-
-            String prompt = ragPromptTemplate
-                    .replace("{context}", context.toString())
-                    .replace("{question}", question);
-
-            String answer = llmClient.chat(prompt);
-            log.info("RAG 问答完成: question={}, answerLen={}", question, answer != null ? answer.length() : 0);
-            return new RagAnswerVO(answer, sources);
-        } catch (Exception e) {
-            log.error("RAG 问答异常: question={}, err={}", question, e.getMessage(), e);
-            return new RagAnswerVO("抱歉，非遗问答服务暂时不可用，请稍后再试。", List.of());
-        }
+            return ragPromptTemplate.replace("{context}",context.toString()).replace("{question}",question);
+        });
+        return new RagAnswerVO(answer, sources);
     }
 }

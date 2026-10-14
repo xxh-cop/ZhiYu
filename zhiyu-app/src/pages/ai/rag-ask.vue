@@ -49,7 +49,7 @@
 						<view v-if="msg.sources && msg.sources.length > 0" class="sources-area">
 							<view class="sources-header" @click="toggleSources(idx)">
 								<text class="sources-title">引用来源（{{ msg.sources.length }}）</text>
-								<wd-icon :name="msg.showSources ? 'arrow-up' : 'arrow-down'" size="24rpx" color="#9CA3AF" />
+								<wd-icon :name="msg.showSources ? 'arrow-up' : 'arrow-down'" size="24rpx" color="#718478" />
 							</view>
 							<view v-if="msg.showSources" class="sources-list">
 								<view
@@ -177,7 +177,7 @@ async function scrollToBottom() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 顶部说明 ── */
@@ -187,14 +187,14 @@ async function scrollToBottom() {
 	gap: 20rpx;
 	padding: 24rpx 32rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+	border-bottom: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .header-icon {
 	width: 72rpx;
 	height: 72rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -210,12 +210,12 @@ async function scrollToBottom() {
 .header-title {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .header-desc {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 对话区域 ── */
@@ -236,7 +236,7 @@ async function scrollToBottom() {
 
 .welcome-title {
 	font-size: 30rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 
@@ -251,18 +251,18 @@ async function scrollToBottom() {
 	padding: 16rpx 28rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	transition: all 200ms ease;
 }
 
 .suggestion-tag:active {
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
-	border-color: var(--zy-primary, #2D9B8F);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	border-color: var(--zy-primary, #2f7566);
 }
 
 .tag-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 /* ── 消息项 ── */
@@ -279,7 +279,7 @@ async function scrollToBottom() {
 	max-width: 75%;
 	padding: 20rpx 28rpx;
 	border-radius: 32rpx 32rpx 8rpx 32rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 }
 
 .msg-text-user {
@@ -298,12 +298,12 @@ async function scrollToBottom() {
 	padding: 24rpx 28rpx;
 	border-radius: 32rpx 32rpx 32rpx 8rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .msg-text-ai {
 	font-size: 28rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	line-height: 1.7;
 }
 
@@ -311,7 +311,7 @@ async function scrollToBottom() {
 .sources-area {
 	margin-top: 20rpx;
 	padding-top: 16rpx;
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .sources-header {
@@ -322,7 +322,7 @@ async function scrollToBottom() {
 
 .sources-title {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .sources-list {
@@ -335,18 +335,18 @@ async function scrollToBottom() {
 .source-item {
 	padding: 16rpx 20rpx;
 	border-radius: var(--zy-radius-md, 16rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .source-title {
 	font-size: 24rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .source-excerpt {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	margin-top: 4rpx;
 }
 
@@ -362,7 +362,7 @@ async function scrollToBottom() {
 	width: 12rpx;
 	height: 12rpx;
 	border-radius: 50%;
-	background-color: var(--zy-primary-light, #5BC4A8);
+	background-color: var(--zy-primary-light, #82ad9b);
 	animation: dotBounce 1.4s infinite ease-in-out both;
 }
 
@@ -381,15 +381,15 @@ async function scrollToBottom() {
 	gap: 16rpx;
 	padding: 16rpx 24rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .input-wrap {
 	flex: 1;
 	height: 72rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #F8F9FB);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	background-color: var(--zy-bg, #f5f7f2);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	display: flex;
 	align-items: center;
 	padding: 0 28rpx;
@@ -398,14 +398,14 @@ async function scrollToBottom() {
 .input-field {
 	flex: 1;
 	font-size: 28rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .send-btn {
 	width: 72rpx;
 	height: 72rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -421,7 +421,7 @@ async function scrollToBottom() {
 	display: block;
 	text-align: center;
 	font-size: 20rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	padding: 8rpx 0 12rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
 }

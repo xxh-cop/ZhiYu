@@ -1,187 +1,279 @@
 {
-	"easycom": {
-		"autoscan": true,
-		"custom": {
-			"^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue"
-		}
-	},
-	"pages": [
-		{
-			"path": "pages/login/index",
-			"style": {
-				"navigationBarTitleText": "织愈"
-			}
-		},
-		{
-			"path": "pages/register/index",
-			"style": {
-				"navigationBarTitleText": "注册",
-				"navigationBarBackgroundColor": "#F8F9FB"
-			}
-		},
-		{
-			"path": "pages/home/index",
-			"style": {
-				"navigationBarTitleText": "织愈"
-			}
-		},
-		{
-			"path": "pages/inheritor/list",
-			"style": {
-				"navigationBarTitleText": "非遗传承人"
-			}
-		},
-		{
-			"path": "pages/inheritor/detail",
-			"style": {
-				"navigationBarTitleText": "传承人主页"
-			}
-		},
-		{
-			"path": "pages/craft/detail",
-			"style": {
-				"navigationBarTitleText": "项目详情"
-			}
-		},
-		{
-			"path": "pages/emotion/chat",
-			"style": {
-				"navigationBarTitleText": "情绪倾听"
-			}
-		},
-		{
-			"path": "pages/emotion/notes",
-			"style": {
-				"navigationBarTitleText": "心情便签",
-				"onReachBottomDistance": 50
-			}
-		},
-		{
-			"path": "pages/emotion/note-edit",
-			"style": {
-				"navigationBarTitleText": "记录心情"
-			}
-		},
-		{
-			"path": "pages/craft/recommend",
-			"style": {
-				"navigationBarTitleText": "疗愈推荐"
-			}
-		},
-		{
-			"path": "pages/craft/session",
-			"style": {
-				"navigationBarTitleText": "创作引导"
-			}
-		},
-		{
-			"path": "pages/work/list",
-			"style": {
-				"navigationBarTitleText": "作品社区",
-				"enablePullDownRefresh": true,
-				"onReachBottomDistance": 50
-			}
-		},
-		{
-			"path": "pages/work/detail",
-			"style": {
-				"navigationBarTitleText": "作品详情",
-				"onReachBottomDistance": 50
-			}
-		},
-		{
-			"path": "pages/work/publish",
-			"style": {
-				"navigationBarTitleText": "发布作品"
-			}
-		},
-		{
-			"path": "pages/group/list",
-			"style": {
-				"navigationBarTitleText": "互助小组"
-			}
-		},
-		{
-			"path": "pages/group/create",
-			"style": {
-				"navigationBarTitleText": "创建小组"
-			}
-		},
-		{
-			"path": "pages/profile/index",
-			"style": {
-				"navigationBarTitleText": "我的"
-			}
-		},
-		{
-			"path": "pages/settings/index",
-			"style": {
-				"navigationBarTitleText": "个人设置",
-				"navigationBarBackgroundColor": "#F8F9FB"
-			}
-		},
-		{
-			"path": "pages/crisis/index",
-			"style": {
-				"navigationBarTitleText": "心理援助",
-				"navigationBarBackgroundColor": "#F8F9FB"
-			}
-		},
-		{
-			"path": "pages/privacy/index",
-			"style": {
-				"navigationBarTitleText": "隐私政策"
-			}
-		},
-		{
-			"path": "pages/privacy/settings",
-			"style": {
-				"navigationBarTitleText": "隐私设置"
-			}
-		},
-		{
-			"path": "pages/ai/rag-ask",
-			"style": {
-				"navigationBarTitleText": "非遗问答"
-			}
-		}
-	],
-	"globalStyle": {
-		"navigationBarBackgroundColor": "#F8F9FB",
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "织愈",
-		"backgroundColor": "#F8F9FB"
-	},
-	"tabBar": {
-		"color": "#8A8A8A",
-		"selectedColor": "#2D9B8F",
-		"backgroundColor": "#FFFFFF",
-		"borderStyle": "white",
-		"list": [
-			{
-				"pagePath": "pages/home/index",
-				"text": "首页",
-				"iconPath": "static/tabbar/home-normal.png",
-				"selectedIconPath": "static/tabbar/home-active.png"
-			},
-			{
-				"pagePath": "pages/work/list",
-				"text": "社区",
-				"iconPath": "static/tabbar/community-normal.png",
-				"selectedIconPath": "static/tabbar/community-active.png"
-			},
-			{
-				"pagePath": "pages/group/list",
-				"text": "小组",
-				"iconPath": "static/tabbar/group-normal.png",
-				"selectedIconPath": "static/tabbar/group-active.png"
-			},
-			{
-				"pagePath": "pages/profile/index",
-				"text": "我的",
-				"iconPath": "static/tabbar/profile-normal.png",
-				"selectedIconPath": "static/tabbar/profile-active.png"
-			}
-		]
-	}
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "织愈"
+      }
+    },
+    {
+      "path": "pages/register/index",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationBarBackgroundColor": "#F8F9FB"
+      }
+    },
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "织愈"
+      }
+    },
+    {
+      "path": "pages/inheritor/list",
+      "style": {
+        "navigationBarTitleText": "非遗传承人"
+      }
+    },
+    {
+      "path": "pages/inheritor/detail",
+      "style": {
+        "navigationBarTitleText": "传承人主页"
+      }
+    },
+    {
+      "path": "pages/craft/detail",
+      "style": {
+        "navigationBarTitleText": "项目详情"
+      }
+    },
+    {
+      "path": "pages/emotion/chat",
+      "style": {
+        "navigationBarTitleText": "情绪倾听"
+      }
+    },
+    {
+      "path": "pages/emotion/notes",
+      "style": {
+        "navigationBarTitleText": "心情便签",
+        "onReachBottomDistance": 50
+      }
+    },
+    {
+      "path": "pages/emotion/note-edit",
+      "style": {
+        "navigationBarTitleText": "记录心情"
+      }
+    },
+    {
+      "path": "pages/craft/recommend",
+      "style": {
+        "navigationBarTitleText": "疗愈推荐"
+      }
+    },
+    {
+      "path": "pages/craft/session",
+      "style": {
+        "navigationBarTitleText": "创作引导"
+      }
+    },
+    {
+      "path": "pages/work/list",
+      "style": {
+        "navigationBarTitleText": "作品社区",
+        "enablePullDownRefresh": true,
+        "onReachBottomDistance": 50
+      }
+    },
+    {
+      "path": "pages/work/detail",
+      "style": {
+        "navigationBarTitleText": "作品详情",
+        "onReachBottomDistance": 50
+      }
+    },
+    {
+      "path": "pages/work/publish",
+      "style": {
+        "navigationBarTitleText": "发布作品"
+      }
+    },
+    {
+      "path": "pages/group/list",
+      "style": {
+        "navigationBarTitleText": "互助小组"
+      }
+    },
+    {
+      "path": "pages/group/create",
+      "style": {
+        "navigationBarTitleText": "创建小组"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "个人设置",
+        "navigationBarBackgroundColor": "#F8F9FB"
+      }
+    },
+    {
+      "path": "pages/crisis/index",
+      "style": {
+        "navigationBarTitleText": "心理援助",
+        "navigationBarBackgroundColor": "#F8F9FB"
+      }
+    },
+    {
+      "path": "pages/privacy/index",
+      "style": {
+        "navigationBarTitleText": "隐私政策"
+      }
+    },
+    {
+      "path": "pages/privacy/settings",
+      "style": {
+        "navigationBarTitleText": "隐私设置"
+      }
+    },
+    {
+      "path": "pages/ai/rag-ask",
+      "style": {
+        "navigationBarTitleText": "非遗问答"
+      }
+    },
+    {
+      "path": "pages/mindfulness/index",
+      "style": {
+        "navigationBarTitleText": "正念片刻",
+        "navigationBarBackgroundColor": "#1E3A5F",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/start/index",
+      "style": {
+        "navigationBarTitleText": "开始"
+      }
+    },
+    {
+      "path": "pages/journey/index",
+      "style": {
+        "navigationBarTitleText": "成长旅程"
+      }
+    },
+    {
+      "path": "pages/assessment/index",
+      "style": {
+        "navigationBarTitleText": "自我了解"
+      }
+    },
+    {
+      "path": "pages/programs/index",
+      "style": {
+        "navigationBarTitleText": "活动与预约"
+      }
+    },
+    {
+      "path": "pages/craft/reflection",
+      "style": {
+        "navigationBarTitleText": "创作后的片刻"
+      }
+    },
+    {
+      "path": "pages/drawing/index",
+      "style": {
+        "navigationBarTitleText": "自由绘色"
+      }
+    },
+    {
+      "path": "pages/tracing/index",
+      "style": {
+        "navigationBarTitleText": "临摹辅助"
+      }
+    },
+    {
+      "path": "pages/materials/index",
+      "style": {
+        "navigationBarTitleText": "材料探索"
+      }
+    },
+    {
+      "path": "pages/starter/index",
+      "style": {
+        "navigationBarTitleText": "手作起点"
+      }
+    },
+    {
+      "path": "pages/starter/prepare",
+      "style": {
+        "navigationBarTitleText": "准备清单"
+      }
+    },
+    {
+      "path": "pages/support/index",
+      "style": {
+        "navigationBarTitleText": "校内支持"
+      }
+    },
+    {
+      "path": "pages/music/index",
+      "style": {
+        "navigationBarTitleText": "音乐放松"
+      }
+    },
+    {
+      "path": "pages/music/credits",
+      "style": {
+        "navigationBarTitleText": "素材来源"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarBackgroundColor": "#f5f7f2",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "织愈",
+    "backgroundColor": "#f5f7f2"
+  },
+  "tabBar": {
+    "color": "#6b7e82",
+    "selectedColor": "#2f7566",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home-normal.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/work/list",
+        "text": "社区",
+        "iconPath": "static/tabbar/community-normal.png",
+        "selectedIconPath": "static/tabbar/community-active.png"
+      },
+      {
+        "pagePath": "pages/start/index",
+        "text": "开始",
+        "iconPath": "static/tabbar/start-normal.png",
+        "selectedIconPath": "static/tabbar/start-active.png"
+      },
+      {
+        "pagePath": "pages/group/list",
+        "text": "小组",
+        "iconPath": "static/tabbar/group-normal.png",
+        "selectedIconPath": "static/tabbar/group-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "static/tabbar/profile-normal.png",
+        "selectedIconPath": "static/tabbar/profile-active.png"
+      }
+    ]
+  }
 }

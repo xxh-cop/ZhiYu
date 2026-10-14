@@ -12,7 +12,7 @@
 			<!-- 顶部导航 -->
 			<view class="nav-bar">
 				<view class="nav-back" @click="goBack">
-					<wd-icon name="arrow-left" size="40rpx" color="#1F2937" />
+					<wd-icon name="arrow-left" size="40rpx" color="#233d34" />
 				</view>
 				<text class="nav-title">作品详情</text>
 			</view>
@@ -25,7 +25,7 @@
 						<view class="work-cover" :style="coverStyle(work.coverUrl)"></view>
 					</view>
 					<view v-else-if="work.mediaType === 'video'" class="work-cover-wrap zy-slide-up">
-						<video v-if="work.videoUrl" class="work-cover-video" :src="fullUrl(work.videoUrl)" controls object-fit="cover" />
+						<MediaVideo v-if="work.videoUrl" :src="work.videoUrl" caption="社区创作视频"/>
 					</view>
 					<!-- text 类型无媒体区 -->
 
@@ -101,16 +101,16 @@
 						<wd-icon
 							name="heart"
 							size="40rpx"
-							:color="liked ? '#FF6B6B' : '#9CA3AF'"
+							:color="liked ? '#FF6B6B' : '#718478'"
 						/>
 						<text class="action-label" :class="{ 'label-liked': liked }">{{ likeCount }}</text>
 					</view>
 					<view class="action-btn" @click="focusInput">
-						<wd-icon name="chat" size="40rpx" color="#9CA3AF" />
+						<wd-icon name="chat" size="40rpx" color="#718478" />
 						<text class="action-label">{{ commentCount }}</text>
 					</view>
 					<view class="action-btn" @click="handleShare">
-						<wd-icon name="share" size="40rpx" color="#9CA3AF" />
+						<wd-icon name="share" size="40rpx" color="#718478" />
 						<text class="action-label">分享</text>
 					</view>
 				</view>
@@ -135,7 +135,7 @@
 					@click="handleSendComment"
 				>{{ sending ? '发送中' : '发送' }}</wd-button>
 				<view class="input-close" @click="showInput = false">
-					<wd-icon name="close" size="32rpx" color="#9CA3AF" />
+					<wd-icon name="close" size="32rpx" color="#718478" />
 				</view>
 			</view>
 
@@ -146,6 +146,7 @@
 </template>
 
 <script setup>
+import MediaVideo from "../../components/MediaVideo.vue"
 import { ref, computed } from 'vue'
 import { onLoad, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
@@ -286,7 +287,7 @@ function coverStyle(coverUrl) {
 		const url = fullUrl(coverUrl)
 		return `background-image: url(${url}); background-size: cover; background-position: center;`
 	}
-	return 'background: linear-gradient(135deg, #2D9B8F 0%, #5BC4A8 100%);'
+	return 'background: linear-gradient(135deg, #2f7566 0%, #82ad9b 100%);'
 }
 
 function fullUrl(url) {
@@ -314,7 +315,7 @@ function goBack() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 404 ── */
@@ -333,7 +334,7 @@ function goBack() {
 
 .not-found-text {
 	font-size: 32rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 导航栏 ── */
@@ -343,7 +344,7 @@ function goBack() {
 	gap: 16rpx;
 	padding: 20rpx 32rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+	border-bottom: 1rpx solid var(--zy-border, #dfe7dc);
 	flex-shrink: 0;
 }
 
@@ -358,14 +359,14 @@ function goBack() {
 }
 
 .nav-back:active {
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 .nav-title {
 	font-family: var(--zy-serif);
 	font-size: 34rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 /* ── 内容区 ── */
@@ -403,7 +404,7 @@ function goBack() {
 	font-family: var(--zy-serif);
 	font-size: 40rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	line-height: 1.4;
 }
 
@@ -417,14 +418,14 @@ function goBack() {
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	box-shadow: var(--zy-shadow-sm);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .author-avatar {
 	width: 72rpx;
 	height: 72rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -447,12 +448,12 @@ function goBack() {
 .author-name {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .author-time {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 作品故事卡片 ── */
@@ -462,12 +463,12 @@ function goBack() {
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	box-shadow: var(--zy-shadow-sm);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .story-label {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 	margin-bottom: 12rpx;
 }
@@ -475,7 +476,7 @@ function goBack() {
 .story-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── 评论 ── */
@@ -486,7 +487,7 @@ function goBack() {
 .section-title {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	display: block;
 	margin-bottom: 24rpx;
 }
@@ -505,7 +506,7 @@ function goBack() {
 
 .empty-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .comment-list {
@@ -521,14 +522,14 @@ function goBack() {
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	box-shadow: var(--zy-shadow-sm);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .comment-avatar {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -538,7 +539,7 @@ function goBack() {
 .avatar-text {
 	font-size: 26rpx;
 	font-weight: 500;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .comment-main {
@@ -557,18 +558,18 @@ function goBack() {
 .comment-author {
 	font-size: 26rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .comment-time {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .comment-content {
 	font-size: 28rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 .comment-more {
@@ -582,15 +583,15 @@ function goBack() {
 .bottom-divider {
 	width: 64rpx;
 	height: 1rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 .loading-dot {
 	width: 32rpx;
 	height: 32rpx;
 	border-radius: 50%;
-	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--zy-primary, #2D9B8F);
+	border: 3rpx solid var(--zy-border, #dfe7dc);
+	border-top-color: var(--zy-primary, #2f7566);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -600,7 +601,7 @@ function goBack() {
 
 .more-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 互动栏（底部固定） ── */
@@ -611,7 +612,7 @@ function goBack() {
 	padding: 16rpx 24rpx;
 	padding-bottom: calc(16rpx + env(safe-area-inset-bottom, 0));
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 	flex-shrink: 0;
 }
 
@@ -619,7 +620,7 @@ function goBack() {
 	flex: 1;
 	height: 64rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	display: flex;
 	align-items: center;
 	padding: 0 24rpx;
@@ -627,7 +628,7 @@ function goBack() {
 
 .action-input-placeholder {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .action-btns {
@@ -646,7 +647,7 @@ function goBack() {
 
 .action-label {
 	font-size: 20rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .label-liked {
@@ -661,13 +662,13 @@ function goBack() {
 	padding: 16rpx 24rpx;
 	gap: 16rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 	flex-shrink: 0;
 }
 
 .input-wrap {
 	flex: 1;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 0 8rpx;
 	overflow: hidden;
@@ -686,7 +687,7 @@ function goBack() {
 	display: block;
 	padding: 8rpx 0 16rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 	background-color: var(--zy-card-bg, #FFFFFF);
 	flex-shrink: 0;

@@ -118,7 +118,7 @@ function goRegister() {
 	align-items: center;
 	padding: 0 64rpx;
 	box-sizing: border-box;
-	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #F0F9F7) 0%, var(--zy-bg, #F8F9FB) 50%);
+	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #f5f7f2) 50%);
 }
 
 /* ── 品牌区 ── */
@@ -133,7 +133,7 @@ function goRegister() {
 	width: 160rpx;
 	height: 160rpx;
 	border-radius: var(--zy-radius-full);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -151,13 +151,13 @@ function goRegister() {
 	font-size: 56rpx;
 	font-weight: 600;
 	letter-spacing: 12rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .slogan {
 	margin-top: 16rpx;
 	font-size: 26rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	letter-spacing: 2rpx;
 }
 
@@ -166,7 +166,7 @@ function goRegister() {
 	width: 100%;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-md);
 	padding: 48rpx 40rpx;
 	box-sizing: border-box;
@@ -179,7 +179,7 @@ function goRegister() {
 }
 
 .input-wrap {
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	border-radius: var(--zy-radius-md, 24rpx);
 	padding: 0 8rpx;
 	overflow: hidden;
@@ -188,7 +188,7 @@ function goRegister() {
 .login-btn {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -236,23 +236,23 @@ function goRegister() {
 
 .footer-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .register-link {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	font-weight: 500;
 }
 
 .footnote {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .privacy-link {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	text-decoration: underline;
 }
 </style>

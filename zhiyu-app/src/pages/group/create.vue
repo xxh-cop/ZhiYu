@@ -149,7 +149,7 @@ function handleCancel() {
 	min-height: 100vh;
 	padding: 32rpx 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 顶部品牌区 ── */
@@ -164,7 +164,7 @@ function handleCancel() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -176,13 +176,13 @@ function handleCancel() {
 	font-family: var(--zy-serif);
 	font-size: 40rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .hero-sub {
 	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 表单卡片 ── */
@@ -209,7 +209,7 @@ function handleCancel() {
 .form-label {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .required {
@@ -218,12 +218,12 @@ function handleCancel() {
 
 .form-hint {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .char-hint {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: right;
 }
 
@@ -242,7 +242,7 @@ function handleCancel() {
 .btn-primary {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -267,7 +267,7 @@ function handleCancel() {
 .btn-secondary {
 	height: 80rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -275,12 +275,12 @@ function handleCancel() {
 }
 
 .btn-secondary:active {
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 .btn-secondary-text {
 	font-size: 30rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── 底部免责 ── */
@@ -288,7 +288,7 @@ function handleCancel() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

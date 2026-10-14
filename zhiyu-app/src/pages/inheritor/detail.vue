@@ -31,7 +31,7 @@
 							<text class="skill-text">{{ inheritor.skill }}</text>
 						</view>
 						<view v-if="inheritor.honor" class="honor-badge">
-							<wd-icon name="medal" size="24rpx" color="#FFB547" />
+							<wd-icon name="medal" size="24rpx" color="#bb914d" />
 							<text class="honor-text">{{ inheritor.honor }}</text>
 						</view>
 					</view>
@@ -238,7 +238,7 @@ function avatarStyle(item) {
 		return `background-image: url(${item.avatarUrl}); background-size: cover; background-position: center;`
 		// #endif
 	}
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
+	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
 }
 
 function coverStyle(coverUrl) {
@@ -247,7 +247,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
+	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
 }
 
 function levelLabel(level) {
@@ -269,7 +269,7 @@ function goProjectDetail(item) {
 	min-height: 100vh;
 	padding: 0 0 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 骨架屏 ── */
@@ -333,7 +333,7 @@ function goProjectDetail(item) {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #F0F9F7) 0%, var(--zy-bg, #F8F9FB) 100%);
+	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #f5f7f2) 100%);
 }
 
 .hero-content {
@@ -350,7 +350,7 @@ function goProjectDetail(item) {
 	height: 212rpx;
 	border-radius: 50%;
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	margin-bottom: 8rpx;
 }
 
@@ -375,7 +375,7 @@ function goProjectDetail(item) {
 .hero-name {
 	font-size: 40rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 }
 
@@ -389,12 +389,12 @@ function goProjectDetail(item) {
 .skill-badge {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .skill-text {
 	font-size: 24rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .honor-badge {
@@ -403,17 +403,17 @@ function goProjectDetail(item) {
 	gap: 6rpx;
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-warm, #FFF8EE);
+	background-color: var(--zy-bg-tint-warm, #f5edde);
 }
 
 .honor-text {
 	font-size: 24rpx;
-	color: var(--zy-accent, #FFB547);
+	color: var(--zy-accent, #bb914d);
 }
 
 .hero-school {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 数据行 ── */
@@ -440,20 +440,20 @@ function goProjectDetail(item) {
 .stat-num {
 	font-size: 40rpx;
 	font-weight: 700;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 	line-height: 1;
 }
 
 .stat-label {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .stat-divider {
 	width: 1rpx;
 	height: 48rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 /* ── 简介区 ── */
@@ -464,7 +464,7 @@ function goProjectDetail(item) {
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
 	box-shadow: var(--zy-shadow-sm);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .intro-quote {
@@ -473,7 +473,7 @@ function goProjectDetail(item) {
 	left: 20rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	opacity: 0.2;
 	line-height: 1;
 }
@@ -481,7 +481,7 @@ function goProjectDetail(item) {
 .intro-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── TA 的手作 ── */
@@ -492,7 +492,7 @@ function goProjectDetail(item) {
 .section-title {
 	font-size: 34rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 	margin-bottom: 24rpx;
 	display: block;
@@ -507,7 +507,7 @@ function goProjectDetail(item) {
 
 .empty-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 骨架项目卡片 ── */
@@ -515,7 +515,7 @@ function goProjectDetail(item) {
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .skeleton-cover {
@@ -549,7 +549,7 @@ function goProjectDetail(item) {
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #E5E7EB);
+	border: 1px solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 }
@@ -588,7 +588,7 @@ function goProjectDetail(item) {
 .card-title {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	display: -webkit-box;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -601,7 +601,7 @@ function goProjectDetail(item) {
 	margin-top: 8rpx;
 	font-size: 24rpx;
 	line-height: 1.5;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -623,7 +623,7 @@ function goProjectDetail(item) {
 
 .category-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .time-badge {
@@ -634,7 +634,7 @@ function goProjectDetail(item) {
 
 .time-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 底部 ── */
@@ -650,15 +650,15 @@ function goProjectDetail(item) {
 .bottom-divider {
 	width: 64rpx;
 	height: 1rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 .loading-dot {
 	width: 32rpx;
 	height: 32rpx;
 	border-radius: 50%;
-	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--zy-primary, #2D9B8F);
+	border: 3rpx solid var(--zy-border, #dfe7dc);
+	border-top-color: var(--zy-primary, #2f7566);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -668,14 +668,14 @@ function goProjectDetail(item) {
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .footnote {
 	display: block;
 	margin: 24rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

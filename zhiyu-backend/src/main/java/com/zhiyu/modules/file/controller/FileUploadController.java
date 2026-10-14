@@ -40,6 +40,8 @@ public class FileUploadController {
     @Value("${zhiyu.file.upload-dir:./uploads}")
     private String uploadDir;
 
+    private final com.zhiyu.modules.file.MediaService media;
+
     @Value("${zhiyu.file.access-prefix:/uploads}")
     private String accessPrefix;
 
@@ -71,7 +73,7 @@ public class FileUploadController {
      */
     @PostMapping("/upload/video")
     public Result<java.util.Map<String, String>> uploadVideo(@RequestParam("file") MultipartFile file) {
-        return doUpload(file, "videos", VIDEO_EXTENSIONS, VIDEO_MAX_SIZE);
+        return Result.success(java.util.Map.of("url",media.upload(com.zhiyu.security.UserContext.getUserId(),file)));
     }
 
     // ──────────────────────────────────────────────────────
@@ -110,7 +112,7 @@ public class FileUploadController {
 
         try {
             Files.createDirectories(targetFile.getParent());
-            Files.copy(file.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
+            try(var input=file.getInputStream()){Files.copy(input, targetFile, StandardCopyOption.REPLACE_EXISTING);}
         } catch (IOException e) {
             log.error("文件上传失败: {}", e.getMessage(), e);
             return Result.error(ResultCode.SYSTEM_ERROR.getCode(), "文件保存失败");

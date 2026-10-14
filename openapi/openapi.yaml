@@ -247,6 +247,7 @@ components:
         id: { type: integer, format: int64 }
         title: { type: string }
         coverUrl: { type: string, nullable: true }
+        videoUrl: { type: string, nullable: true, description: 平台上传的视频稳定引用 }
         message: { type: string, nullable: true }
         authorName: { type: string, description: 匿名时为"匿名同学" }
         anonymous: { type: boolean }
@@ -319,6 +320,7 @@ components:
         estMinutes: { type: integer }
         therapyTags: { type: string }
         coverUrl: { type: string, nullable: true }
+        videoUrl: { type: string, nullable: true, description: 平台上传的视频稳定引用 }
         score: { type: number, format: double }
         reason: { type: string }
 
@@ -386,6 +388,145 @@ components:
         psychCenterName: { type: string, description: 学校心理中心名称 }
         nationalHotlineName: { type: string, description: 全国心理援助热线名称 }
 paths:
+  /api/files/upload/video:
+    post:
+      summary: 上传 MP4 视频到私有本地存储
+      description: '已登录且启用的用户；最大 50MB；每日最多 20 次；返回稳定引用。社区视频新发布为待审，传承人视频随项目审核。'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '200': {description: 'Result 包装，data.url 为 /api/media/{id}/content 稳定引用，不是公开文件地址'}
+        '400': {description: 文件扩展名、大小、MP4 文件头或配额不符合要求}
+        '401': {description: 未登录}
+  /api/media/{id}/playback:
+    get:
+      summary: 为当前有权观看的用户生成限时视频播放地址
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: 'Result 包装，data.url 为限时地址；发布请求保存上传返回的稳定 url'}
+        '403': {description: 无权查看未审核或私密视频}
+  /api/media/{id}/content:
+    get:
+      summary: 校验限时签名和当前权限后传输 MP4，支持 Range
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {name: uid, in: query, required: true, schema: {type: string}}
+        - {name: expires, in: query, required: true, schema: {type: integer, format: int64}}
+        - {name: signature, in: query, required: true, schema: {type: string}}
+      responses:
+        '200': {description: 视频内容}
+        '206': {description: 视频分段内容}
+        '403': {description: 签名过期或权限已撤销}
+  /api/admin/dashboard/operations:
+    get:
+      tags: [Admin]
+      summary: 管理员运营图表汇总
+      description: '数据库实时聚合，Asia/Shanghai 自然日；所有查询排除逻辑删除。返回 totals、daily（date/users/works/sessions/finished）、categories、projectStates、sessionStates、programKinds、bookingStates、generatedAt。分类元素为 name/value。仅管理员可访问，不包含个人身份或心理原文。'
+      parameters:
+        - in: query
+          name: days
+          schema:
+            type: integer
+            enum: [7, 30]
+            default: 7
+          description: 日趋势窗口；其他分布为当前全部记录
+      responses:
+        '200':
+          description: Result.data 图表聚合；空日期补零，空分布不填造数据
+        '400':
+          description: 不支持的时间范围，code 1001
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/starter-quality:
+    get:
+      tags: [Admin]
+      summary: 原创入门内容的创作过程汇总
+      description: '仅管理员可读。基于入门目录对应项目全部未删除创作会话计算，data 包含 started、finished、paused、abandoned、completionRate（无会话为 null）。不包含身份、心理内容或疗效推断。'
+      responses:
+        '200':
+          description: Result.data 汇总对象
+        '403':
+          description: 无管理员权限，code 1003
+  /api/craft/starter:
+    get:
+      tags: [Craft]
+      summary: 已上架的原创入门练习与材料准备说明
+      description: '仅返回资源目录中且数据库已上架未删除的项目；id 为字符串，含 title、minutes、medium、tools、places、materials（name、qty、substitute）、steps（title、guide、rescue、diagram）、source（label、url）、authorship。时间是编辑估计，不作疗效承诺。'
+      responses:
+        '200':
+          description: Result.data 为练习数组；未导入内容时返回空数组
+        '401':
+          description: 未登录，code 1002
+        '403':
+          description: 账号不可用，code 1003
+  /api/craft/session/active:
+    get:
+      tags: [Craft]
+      summary: 本人可继续的创作会话
+      description: 仅返回本人进行中或暂停且项目仍上架的最近 20 条；不包含情绪会话或心理记录。
+      parameters:
+        - in: query
+          name: projectId
+          schema:
+            type: integer
+            format: int64
+          description: 可选，限定一个项目，避免恢复入口受全局最近 20 条限制
+      responses:
+        '200':
+          description: Result.data 数组，字段 sessionId、projectId（字符串）、projectTitle、currentStep、totalSteps、status
+        '401':
+          description: 未登录，code 1002
+        '403':
+          description: 账号不可用，code 1003
+  /api/ai/lineart:
+    post:
+      summary: 'AI 辅助生成受限几何线稿参数；失败时明确返回内置模板'
+      operationId: generateLineart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [theme, consent]
+              properties:
+                theme: {type: string, minLength: 1, maxLength: 120}
+                consent: {type: boolean, enum: [true]}
+      responses:
+        '200':
+          description: 'Result.data 包含 motif（flower/leaf/ripple）、petals（6..16）、rings（1..3）、generated（真实模型方案）及 message；不返回任意 SVG/HTML'
+        '400': {description: '1001 参数或同意校验失败；安全拦截时不调用模型'}
+        '401': {description: '1002 未登录'}
+        '403': {description: '1003 账号不可用'}
+  /api/growth/material-map:
+    get:
+      summary: '公开项目的材料与安全关系，只引用已维护的项目元数据'
+      operationId: materialMap
+      responses:
+        '200':
+          description: 'Result.data.items 最多 200 项；含 id/title/category/medium/level/hazards/guidance/source/estMinutes；未标注时 level=UNKNOWN；truncated 表示有更多项目'
+        '401': {description: '1002 未登录'}
+  "/api/growth/journey": {"get":{"operationId":"growth1","summary":"本人记录、真实创作统计与成就","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
+  "/api/growth/records": {"delete":{"operationId":"growth2","summary":"永久清除本人成长记录（不删除作品或审计日志）","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
+  "/api/growth/mood": {"put":{"operationId":"growth3","summary":"保存当天本人心情（服务端加密）","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"mood":{"type":"integer","minimum":1,"maximum":5},"note":{"type":"string","maxLength":500},"consent":{"type":"boolean"}},"required":["mood","consent"],"additionalProperties":false}}}}}}
+  "/api/growth/scales": {"get":{"operationId":"growth4","summary":"可用量表与版本及来源","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
+  "/api/growth/assessment": {"post":{"operationId":"growth5","summary":"服务端验证计分或保存加密草稿","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"scale":{"type":"string","maxLength":20},"version":{"type":"string","maxLength":40},"answers":{"type":"array","maxItems":20,"items":{"type":"integer","minimum":-1,"maximum":4}},"consent":{"type":"boolean"},"draft":{"type":"boolean"}},"required":["scale","version","answers","consent"],"additionalProperties":false}}}}}}
+  "/api/growth/reflection": {"post":{"operationId":"growth6","summary":"保存本人已完成创作的完成记录","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"sessionId":{"type":"string","pattern":"^[0-9]+$"},"title":{"type":"string","maxLength":100},"beforeMood":{"type":"integer","minimum":1,"maximum":5},"afterMood":{"type":"integer","minimum":1,"maximum":5},"emotion":{"type":"string","maxLength":30},"note":{"type":"string","maxLength":500},"consent":{"type":"boolean"}},"required":["sessionId","title","afterMood","consent"],"additionalProperties":false}}}}}}
+  "/api/growth/programs": {"get":{"operationId":"growth7","summary":"已发布课程、活动、预约时段与本人报名状态","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}},"post":{"operationId":"growth9","summary":"创建活动或预约时段（传承人、咨询师、管理员）","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"kind":{"type":"string","enum":["WORKSHOP","COURSE","GUIDANCE"]},"title":{"type":"string","maxLength":100},"description":{"type":"string","maxLength":6000},"location":{"type":"string","maxLength":200},"coLeader":{"type":"string","maxLength":100},"materials":{"type":"string","maxLength":1000},"startTime":{"type":"string","format":"date-time"},"endTime":{"type":"string","format":"date-time"},"capacity":{"type":"integer","minimum":1,"maximum":200},"status":{"type":"string","enum":["DRAFT","PUBLISHED","CANCELLED"]}},"required":["kind","title","description","location","startTime","endTime","capacity","status"],"additionalProperties":false}}}}}}
+  "/api/growth/programs/manage": {"get":{"operationId":"growth8","summary":"本人可管理活动列表","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
+  "/api/growth/programs/{id}": {"put":{"operationId":"growth10","summary":"更新本人活动，已有人报名时限制日程变更","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string","pattern":"^[0-9]+$"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"kind":{"type":"string","enum":["WORKSHOP","COURSE","GUIDANCE"]},"title":{"type":"string","maxLength":100},"description":{"type":"string","maxLength":6000},"location":{"type":"string","maxLength":200},"coLeader":{"type":"string","maxLength":100},"materials":{"type":"string","maxLength":1000},"startTime":{"type":"string","format":"date-time"},"endTime":{"type":"string","format":"date-time"},"capacity":{"type":"integer","minimum":1,"maximum":200},"status":{"type":"string","enum":["DRAFT","PUBLISHED","CANCELLED"]}},"required":["kind","title","description","location","startTime","endTime","capacity","status"],"additionalProperties":false}}}}}}
+  "/api/growth/programs/{id}/book": {"post":{"operationId":"growth11","summary":"报名（服务端行锁限制名额）","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string","pattern":"^[0-9]+$"}}]},"delete":{"operationId":"growth12","summary":"开始前取消本人报名","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string","pattern":"^[0-9]+$"}}]}}
+  "/api/growth/programs/{id}/attendees": {"get":{"operationId":"growth13","summary":"主办人查看报名名单","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string","pattern":"^[0-9]+$"}}]}}
+  "/api/growth/programs/{id}/checkin": {"post":{"operationId":"growth14","summary":"主办人确认报名者签到","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string","pattern":"^[0-9]+$"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"bookingId":{"type":"string","pattern":"^[0-9]+$"}},"required":["bookingId"],"additionalProperties":false}}}}}}
+  "/api/growth/safety/{id}": {"get":{"operationId":"growth15","summary":"读取项目材料安全信息，缺失时明确未评估","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string","pattern":"^[0-9]+$"}}]},"put":{"operationId":"growth16","summary":"项目所有者或管理员维护安全信息","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string","pattern":"^[0-9]+$"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"medium":{"type":"string","enum":["染","塑","织绣","纸","香","雕"]},"level":{"type":"string","enum":["LOW","GUIDED","HIGH"]},"hazards":{"type":"string","maxLength":300},"guidance":{"type":"string","maxLength":1000},"source":{"type":"string","maxLength":300}},"required":["medium","level","hazards","guidance","source"],"additionalProperties":false}}}}}}
   # ---------- 认证 ----------
   /api/auth/register:
     post:
@@ -1097,6 +1238,7 @@ paths:
                 category: { type: string, description: 分类 }
                 therapyTags: { type: string, description: 疗愈标签 }
                 coverUrl: { type: string, description: 封面图 URL }
+                videoUrl: { type: string, nullable: true, description: 平台上传的视频稳定引用 }
       responses:
         '200':
           description: 创建成功
@@ -1182,6 +1324,7 @@ paths:
                 category: { type: string }
                 therapyTags: { type: string }
                 coverUrl: { type: string }
+                videoUrl: { type: string, nullable: true, description: 平台上传的视频稳定引用 }
       responses:
         '200': { description: 编辑成功, content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -1989,6 +2132,7 @@ paths:
                             title: { type: string }
                             intro: { type: string }
                             coverUrl: { type: string, nullable: true }
+                            videoUrl: { type: string, nullable: true, description: 平台上传的视频稳定引用 }
                             category: { type: string }
                             level: { type: integer }
                             estMinutes: { type: integer }
@@ -2028,6 +2172,7 @@ paths:
                       category: { type: string }
                       therapyTags: { type: string }
                       coverUrl: { type: string, nullable: true }
+                      videoUrl: { type: string, nullable: true, description: 平台上传的视频稳定引用 }
                       createTime: { type: string, format: date-time }
                       inheritorId: { type: integer, format: int64 }
                       inheritorProfileId: { type: integer, format: int64, description: 'inheritor_profile.id，用于跳转传承人主页' }

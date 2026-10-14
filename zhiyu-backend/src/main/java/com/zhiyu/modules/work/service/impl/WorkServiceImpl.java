@@ -43,12 +43,14 @@ public class WorkServiceImpl implements WorkService {
     private final CraftSessionMapper craftSessionMapper;
     private final CraftProjectMapper craftProjectMapper;
     private final AiClient aiClient;
+    private final com.zhiyu.modules.file.MediaService media;
 
     private static final String ANONYMOUS_NAME = "匿名同学";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WorkVO publish(Long userId, WorkPublishReq req) {
+        if(req.getVisible()!=null && req.getVisible()!=0 && req.getVisible()!=1)throw new BusinessException(1001,"暂支持公开或仅自己可见");
         // ── 媒体类型校验（批次 2） ──
         String mediaType = (req.getMediaType() == null || req.getMediaType().isBlank())
                 ? "image" : req.getMediaType().toLowerCase().trim();
@@ -81,14 +83,14 @@ public class WorkServiceImpl implements WorkService {
         work.setVisible(req.getVisible() != null ? req.getVisible() : 1);
         work.setAnonymous(Boolean.FALSE.equals(req.getAnonymous()) ? 0 : 1);
         work.setLikeCount(0);
-        work.setStatus(1);
+        work.setStatus("video".equals(mediaType)?0:1);
         work.setMediaType(mediaType);
 
         // 设置封面图和视频 URL
         if ("image".equals(mediaType)) {
             work.setCoverUrl(req.getCoverUrl());
         } else if ("video".equals(mediaType)) {
-            work.setVideoUrl(req.getVideoUrl());
+            work.setVideoUrl(media.requireOwned(userId,req.getVideoUrl()));
             // video 类型也可以有封面图（可选）
             if (req.getCoverUrl() != null && !req.getCoverUrl().isBlank()) {
                 work.setCoverUrl(req.getCoverUrl());
@@ -186,7 +188,7 @@ public class WorkServiceImpl implements WorkService {
         }
 
         // 2. 权限校验：visible=0（私密）只有作者能看
-        if (work.getVisible() != null && work.getVisible() == 0
+        if (work.getVisible() != null && work.getVisible() != 1
                 && !userId.equals(work.getUserId())) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }

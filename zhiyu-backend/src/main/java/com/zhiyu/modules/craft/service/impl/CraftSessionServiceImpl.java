@@ -45,6 +45,7 @@ public class CraftSessionServiceImpl implements CraftSessionService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CraftSessionVO create(Long userId, Long projectId, Long emotionSessionId) {
+        craftSessionMapper.lockProject(projectId);
         // 1. 校验项目存在且已上架
         CraftProject project = craftProjectMapper.selectById(projectId);
         if (project == null) {

@@ -32,21 +32,21 @@
 		<view class="stats-row">
 			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 0">
 				<view class="stat-icon-wrap">
-					<wd-icon name="edit" size="32rpx" color="#2D9B8F" />
+					<wd-icon name="edit" size="32rpx" color="#2f7566" />
 				</view>
 				<text class="stat-num">{{ stats.days }}</text>
 				<text class="stat-label">创作天数</text>
 			</view>
 			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 1">
 				<view class="stat-icon-wrap">
-					<wd-icon name="picture" size="32rpx" color="#FFB547" />
+					<wd-icon name="picture" size="32rpx" color="#bb914d" />
 				</view>
 				<text class="stat-num">{{ stats.works }}</text>
 				<text class="stat-label">作品数</text>
 			</view>
 			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 2">
 				<view class="stat-icon-wrap">
-					<wd-icon name="chat" size="32rpx" color="#5BC4A8" />
+					<wd-icon name="chat" size="32rpx" color="#82ad9b" />
 				</view>
 				<text class="stat-num">{{ stats.notes }}</text>
 				<text class="stat-label">便签数</text>
@@ -95,13 +95,13 @@ const ROLE_LABEL = {
 }
 
 const menuItems = [
-	{ icon: 'picture', label: '我的作品', action: 'coming', iconBg: 'linear-gradient(135deg, #2D9B8F, #5BC4A8)' },
-	{ icon: 'chat', label: '我的对话历史', action: 'coming', iconBg: 'linear-gradient(135deg, #5BC4A8, #8DD9C4)' },
-	{ icon: 'edit', label: '我的便签', action: 'notes', iconBg: 'linear-gradient(135deg, #FFB547, #FFCB6E)' },
-	{ icon: 'group', label: '我的小组', action: 'coming', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF9B9B)' },
-	{ icon: 'chat1', label: '非遗问答', action: 'rag', iconBg: 'linear-gradient(135deg, #2D9B8F, #5BC4A8)' },
-	{ icon: 'setting', label: '个人设置', action: 'settings', iconBg: 'linear-gradient(135deg, #2D9B8F, #5BC4A8)' },
-	{ icon: 'setting1', label: '隐私设置', action: 'privacy', iconBg: 'linear-gradient(135deg, #6B7280, #9CA3AF)' },
+	{ icon: 'picture', label: '成长旅程', action: 'journey', iconBg: 'linear-gradient(135deg, #2f7566, #82ad9b)' },
+	{ icon: 'chat', label: '自我了解', action: 'assessment', iconBg: 'linear-gradient(135deg, #82ad9b, #8DD9C4)' },
+	{ icon: 'edit', label: '我的便签', action: 'notes', iconBg: 'linear-gradient(135deg, #bb914d, #FFCB6E)' },
+	{ icon: 'group', label: '活动与预约', action: 'programs', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF9B9B)' },
+	{ icon: 'chat1', label: '非遗问答', action: 'rag', iconBg: 'linear-gradient(135deg, #2f7566, #82ad9b)' },
+	{ icon: 'setting', label: '个人设置', action: 'settings', iconBg: 'linear-gradient(135deg, #2f7566, #82ad9b)' },
+	{ icon: 'setting1', label: '隐私设置', action: 'privacy', iconBg: 'linear-gradient(135deg, #6B7280, #718478)' },
 	{ icon: 'phone', label: '心理援助', action: 'crisis', iconBg: 'linear-gradient(135deg, #FF6B6B, #FF8B8B)' },
 ]
 
@@ -148,9 +148,9 @@ const signature = computed(() => {
 
 // 统计数据
 const stats = ref({
-	days: 0,
-	works: 0,
-	notes: 0,
+	days: '—',
+	works: '—',
+	notes: '—',
 })
 
 onShow(() => {
@@ -176,21 +176,19 @@ async function loadCurrentUser() {
 
 async function loadStats() {
 	try {
-		const data = await request({ url: '/api/user/stats', method: 'GET' })
+		const [data, journey] = await Promise.all([request({ url: '/api/user/stats', method: 'GET' }), request({ url: '/api/growth/journey' })])
 		if (data) {
-			stats.value.days = data.daysSinceRegister || 0
+			stats.value.days = journey.days
 			stats.value.works = data.workCount || 0
 			stats.value.notes = data.noteCount || 0
 		}
 	} catch (e) {
-		// 降级为 0
-		stats.value.days = stats.value.days || 0
-		stats.value.works = 0
-		stats.value.notes = 0
+		stats.value = { days: '—', works: '—', notes: '—' }
 	}
 }
 
 function handleMenu(item) {
+ if (['journey','assessment','programs'].includes(item.action)) { uni.navigateTo({ url: '/pages/'+item.action+'/index' }); return }
 	if (item.action === 'crisis') {
 		uni.navigateTo({ url: '/pages/crisis/index' })
 	} else if (item.action === 'privacy') {
@@ -226,7 +224,7 @@ function handleLogout() {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 用户信息卡片 ── */
@@ -234,14 +232,14 @@ function handleLogout() {
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	margin-bottom: 24rpx;
 }
 
 .card-accent {
 	height: 8rpx;
-	background: linear-gradient(90deg, var(--zy-primary, #2D9B8F) 0%, var(--zy-primary-light, #5BC4A8) 100%);
+	background: linear-gradient(90deg, var(--zy-primary, #2f7566) 0%, var(--zy-primary-light, #82ad9b) 100%);
 }
 
 .profile-body {
@@ -256,7 +254,7 @@ function handleLogout() {
 	height: 172rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	flex-shrink: 0;
 }
 
@@ -264,7 +262,7 @@ function handleLogout() {
 	width: 100%;
 	height: 100%;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F) 0%, var(--zy-primary-light, #5BC4A8) 100%);
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566) 0%, var(--zy-primary-light, #82ad9b) 100%);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -296,12 +294,12 @@ function handleLogout() {
 .profile-name {
 	font-size: 36rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .profile-signature {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .profile-meta {
@@ -314,17 +312,17 @@ function handleLogout() {
 .role-badge {
 	padding: 4rpx 16rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-warm, #FFF8EE);
+	background-color: var(--zy-bg-tint-warm, #f5edde);
 }
 
 .role-text {
 	font-size: 22rpx;
-	color: var(--zy-accent, #FFB547);
+	color: var(--zy-accent, #bb914d);
 }
 
 .school-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 数据可视化行 ── */
@@ -353,21 +351,21 @@ function handleLogout() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	margin-bottom: 4rpx;
 }
 
 .stat-num {
 	font-size: 44rpx;
 	font-weight: 700;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 	line-height: 1;
 }
 
 .stat-label {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 快捷入口列表 ── */
@@ -375,7 +373,7 @@ function handleLogout() {
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	margin-bottom: 32rpx;
 }
@@ -389,11 +387,11 @@ function handleLogout() {
 }
 
 .menu-item:not(:last-child) {
-	border-bottom: 1rpx solid var(--zy-border, #E5E7EB);
+	border-bottom: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .menu-item:active {
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .menu-icon-wrap {
@@ -409,7 +407,7 @@ function handleLogout() {
 .menu-label {
 	flex: 1;
 	font-size: 30rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 /* ── 退出登录 ── */
@@ -436,7 +434,7 @@ function handleLogout() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

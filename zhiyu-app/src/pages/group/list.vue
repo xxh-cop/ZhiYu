@@ -57,7 +57,7 @@
 						</view>
 						<text v-if="group.description" class="group-desc">{{ group.description }}</text>
 						<view class="member-row">
-							<wd-icon name="user" size="24rpx" color="#9CA3AF" />
+							<wd-icon name="user" size="24rpx" color="#718478" />
 							<text class="member-text">{{ group.memberCount }} / {{ group.maxCount }} 人</text>
 						</view>
 					</view>
@@ -101,10 +101,10 @@ const groups = ref([])
 const joiningId = ref(null)
 
 const GRADIENTS = [
-	'linear-gradient(135deg, #2D9B8F, #5BC4A8)',
-	'linear-gradient(135deg, #FFB547, #FFD08A)',
+	'linear-gradient(135deg, #2f7566, #82ad9b)',
+	'linear-gradient(135deg, #bb914d, #FFD08A)',
 	'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
-	'linear-gradient(135deg, #5BC4A8, #8DD9C4)',
+	'linear-gradient(135deg, #82ad9b, #8DD9C4)',
 	'linear-gradient(135deg, #FF9B6B, #FFC499)',
 ]
 
@@ -158,7 +158,7 @@ function goCreate() {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 140rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 品牌区 ── */
@@ -170,13 +170,13 @@ function goCreate() {
 	font-family: var(--zy-serif);
 	font-size: 44rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	display: block;
 }
 
 .brand-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 	margin-top: 8rpx;
 }
@@ -186,7 +186,7 @@ function goCreate() {
 	padding: 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 .skeleton-body {
 	display: flex;
@@ -216,7 +216,7 @@ function goCreate() {
 	width: 120rpx;
 	height: 120rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -230,19 +230,19 @@ function goCreate() {
 .empty-title {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .empty-sub {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .empty-btn {
 	margin-top: 16rpx;
 	padding: 16rpx 48rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	box-shadow: var(--zy-shadow-md);
 }
 
@@ -278,7 +278,7 @@ function goCreate() {
 	padding: 24rpx 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -326,19 +326,19 @@ function goCreate() {
 .group-name {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	line-height: 1.4;
 }
 
 .role-badge {
 	padding: 4rpx 16rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-warm, #FFF8EE);
+	background-color: var(--zy-bg-tint-warm, #f5edde);
 }
 
 .role-text {
 	font-size: 22rpx;
-	color: var(--zy-warning, #FFB547);
+	color: var(--zy-warning, #bb914d);
 }
 
 .group-desc {
@@ -346,7 +346,7 @@ function goCreate() {
 	margin-top: 8rpx;
 	font-size: 26rpx;
 	line-height: 1.5;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -361,14 +361,14 @@ function goCreate() {
 
 .member-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 右侧按钮 ── */
 .join-btn {
 	padding: 12rpx 32rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	flex-shrink: 0;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -390,26 +390,26 @@ function goCreate() {
 .joined-tag {
 	padding: 12rpx 24rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	flex-shrink: 0;
 }
 
 .joined-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .full-tag {
 	padding: 12rpx 24rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 	opacity: 0.6;
 	flex-shrink: 0;
 }
 
 .full-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 悬浮创建按钮 ── */
@@ -420,7 +420,7 @@ function goCreate() {
 	width: 100rpx;
 	height: 100rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -437,7 +437,7 @@ function goCreate() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

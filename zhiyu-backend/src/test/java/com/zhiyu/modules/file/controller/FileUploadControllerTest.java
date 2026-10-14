@@ -42,10 +42,14 @@ class FileUploadControllerTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate db;
+    @org.springframework.boot.test.mock.mockito.MockBean private com.zhiyu.modules.file.MediaStorage storage;
     private String token;
 
     @BeforeEach
     void setUp() {
+        db.update("MERGE INTO user(id,username,password,nickname,role,status,deleted) KEY(id) VALUES(8401,'upload_test','test','上传测试',0,1,0)");
+        db.update("DELETE FROM media_asset WHERE user_id=8401");
         token = jwtUtil.createToken(8401L, 0);
     }
 
@@ -106,7 +110,7 @@ class FileUploadControllerTest {
     @DisplayName("上传视频成功")
     void testUploadVideo_Success() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
-                "file", "test.mp4", "video/mp4", new byte[1024 * 100]);
+                "file", "test.mp4", "video/mp4", validHeader());
 
         MvcResult result = mockMvc.perform(multipart("/api/files/upload/video")
                         .file(file)
@@ -118,8 +122,8 @@ class FileUploadControllerTest {
 
         String responseBody = result.getResponse().getContentAsString();
         String url = objectMapper.readTree(responseBody).at("/data/url").asText();
-        assertTrue(url.startsWith("/uploads/videos/"));
-        assertTrue(url.endsWith(".mp4"));
+        assertTrue(url.startsWith("/api/media/"));
+        assertTrue(url.endsWith("/content"));
     }
 
     @Test
@@ -133,7 +137,7 @@ class FileUploadControllerTest {
         mockMvc.perform(multipart("/api/files/upload/video")
                         .file(file)
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(1001));
     }
 
@@ -146,9 +150,13 @@ class FileUploadControllerTest {
         mockMvc.perform(multipart("/api/files/upload/video")
                         .file(file)
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(1001));
     }
+
+    private byte[] validHeader(){byte[] value=new byte[64];value[3]=24;System.arraycopy("ftypisom".getBytes(java.nio.charset.StandardCharsets.US_ASCII),0,value,4,8);return value;}
+
+    @Test void fakeVideoHeaderRejected()throws Exception{mockMvc.perform(multipart("/api/files/upload/video").file(new MockMultipartFile("file","fake.mp4","video/mp4",new byte[64])).header("Authorization","Bearer "+token)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value(1001));}
 
     // ── 鉴权 ──
 

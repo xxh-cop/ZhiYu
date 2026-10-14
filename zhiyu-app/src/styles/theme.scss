@@ -14,41 +14,43 @@
 :root,
 page {
 	/* ── wot-design-uni 主题变量 ── */
-	--wot-color-theme: #2D9B8F;        /* 薄荷青 — 主色 */
-	--wot-color-success: #3B5F4A;       /* 松绿 */
-	--wot-color-warning: #FFB547;       /* 暖橙 */
+	--wot-color-theme: #2f7566;        /* 薄荷青 — 主色 */
+	--wot-color-success: #2f7566;       /* 松绿 */
+	--wot-color-warning: #bb914d;       /* 暖橙 */
 	--wot-color-danger: #FF6B6B;        /* 珊瑚红 */
-	--wot-color-info: #9CA3AF;          /* 浅灰 */
+	--wot-color-info: #718478;          /* 浅灰 */
 
-	--wot-color-bg: #F8F9FB;            /* 冷白背景 */
-	--wot-color-border: #E5E7EB;        /* 冷灰边框 */
+	--wot-color-bg: #f5f7f2;            /* 冷白背景 */
+	--wot-color-border: #dfe7dc;        /* 冷灰边框 */
 	--wot-color-border-light: #F3F4F6;  /* 浅冷灰 */
 
-	--wot-color-title: #1F2937;         /* 深灰蓝 — 标题 */
-	--wot-color-content: #4B5563;       /* 中灰 — 正文 */
-	--wot-color-secondary: #4B5563;     /* 中灰 — 次要 */
-	--wot-color-aid: #9CA3AF;           /* 浅灰 — 辅助 */
+	--wot-color-title: #233d34;         /* 深灰蓝 — 标题 */
+	--wot-color-content: #586e62;       /* 中灰 — 正文 */
+	--wot-color-secondary: #586e62;     /* 中灰 — 次要 */
+	--wot-color-aid: #718478;           /* 浅灰 — 辅助 */
 	--wot-color-tip: #D1D5DB;           /* 银灰 — 提示 */
 
 	/* ── 织愈色板（v3.0 薄荷青） ── */
-	--zy-primary: #2D9B8F;
-	--zy-primary-light: #5BC4A8;
-	--zy-bg: #F8F9FB;
+	--zy-primary: #2f7566;
+	--zy-primary-light: #82ad9b;
+	--zy-bg: #f5f7f2;
 	--zy-card-bg: #FFFFFF;
-	--zy-title: #1F2937;
-	--zy-text: #4B5563;
-	--zy-muted: #9CA3AF;
-	--zy-border: #E5E7EB;
-	--zy-accent: #FFB547;
+	--zy-title: #233d34;
+	--zy-text: #586e62;
+	--zy-muted: #718478;
+	--zy-border: #dfe7dc;
+	--zy-accent: #bb914d;
 	--zy-danger: #FF6B6B;
 
 	--zy-bg-warm: #FFFFFF;              /* 卡片纯白 */
-	--zy-bg-tint-mint: #F0F9F7;         /* 薄荷青 4% — 模块底色 */
-	--zy-bg-tint-warm: #FFF8EE;         /* 暖橙 4% */
-	--zy-content: #4B5563;              /* 中灰 */
-	--zy-aid: #9CA3AF;                  /* 浅灰 */
+	--zy-bg-tint-mint: #e8efe4;         /* 薄荷青 4% — 模块底色 */
+	--zy-bg-tint-warm: #f5edde;         /* 暖橙 4% */
+	--zy-content: #586e62;              /* 中灰 */
+	--zy-aid: #718478;                  /* 浅灰 */
 
-	--zy-serif: 'Songti SC', 'STSong', 'SimSun', 'Noto Serif CJK SC', serif;
+	--zy-font: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+	/* 保留旧变量供已有页面引用，统一为易读的界面字体。 */
+	--zy-serif: var(--zy-font);
 	--zy-sans: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
 
 	/* ── 圆角 ── */

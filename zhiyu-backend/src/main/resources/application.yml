@@ -92,8 +92,8 @@ zhiyu:
   # 高危命中后返回给用户的关怀话术中包含的热线号码。
   # 默认值仅本地开发用，生产/演示环境必须通过环境变量覆盖。
   crisis:
-    psych-center-phone: ${PSYCH_CENTER_PHONE:0791-0000000}
-    psych-center-name: ${PSYCH_CENTER_NAME:学校心理中心}
+    psych-center-phone: ${PSYCH_CENTER_PHONE:0791-88120129}
+    psych-center-name: ${PSYCH_CENTER_NAME:江西师范大学心理教育中心}
     national-hotline: ${NATIONAL_HOTLINE:12356}
     national-hotline-name: ${NATIONAL_HOTLINE_NAME:全国心理援助热线}
 

@@ -8,7 +8,7 @@
 		<!-- 搜索框 -->
 		<view class="search-bar zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<view class="search-input-wrap">
-				<wd-icon name="search" size="32rpx" color="#9CA3AF" />
+				<wd-icon name="search" size="32rpx" color="#718478" />
 				<input
 					class="search-input"
 					type="text"
@@ -84,7 +84,7 @@
 						<!-- 底部：认证徽章 + 项目数 -->
 						<view class="card-footer">
 							<view v-if="item.verified" class="verified-badge">
-								<wd-icon name="check-circle-filled" size="24rpx" color="#2D9B8F" />
+								<wd-icon name="check-circle-filled" size="24rpx" color="#2f7566" />
 								<text class="verified-text">已认证</text>
 							</view>
 							<view class="project-count">
@@ -197,7 +197,7 @@ function avatarStyle(item) {
 		return `background-image: url(${item.avatarUrl}); background-size: cover; background-position: center;`
 		// #endif
 	}
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
+	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
 }
 
 function goDetail(item) {
@@ -215,7 +215,7 @@ loadData(1)
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 顶部标题 ── */
@@ -226,7 +226,7 @@ loadData(1)
 .page-title {
 	font-size: 44rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 }
 
@@ -246,27 +246,27 @@ loadData(1)
 	padding: 16rpx 24rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #E5E7EB);
+	border: 1px solid var(--zy-border, #dfe7dc);
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .search-input-wrap:focus-within {
-	border-color: var(--zy-primary, #2D9B8F);
+	border-color: var(--zy-primary, #2f7566);
 }
 
 .search-input {
 	flex: 1;
 	font-size: 28rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .search-placeholder {
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .search-btn {
 	font-size: 28rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	white-space: nowrap;
 }
 
@@ -277,7 +277,7 @@ loadData(1)
 	padding: 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .skeleton-avatar {
@@ -324,7 +324,7 @@ loadData(1)
 	width: 120rpx;
 	height: 120rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -336,7 +336,7 @@ loadData(1)
 
 .empty-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .error-text {
@@ -355,7 +355,7 @@ loadData(1)
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #E5E7EB);
+	border: 1px solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 	display: flex;
@@ -370,7 +370,7 @@ loadData(1)
 .card-accent-line {
 	width: 6rpx;
 	flex-shrink: 0;
-	background: linear-gradient(180deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(180deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 }
 
 .card-inner {
@@ -386,7 +386,7 @@ loadData(1)
 	height: 132rpx;
 	border-radius: 50%;
 	padding: 4rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	flex-shrink: 0;
 }
 
@@ -425,24 +425,24 @@ loadData(1)
 .card-name {
 	font-size: 32rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .skill-badge {
 	padding: 4rpx 16rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .skill-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .card-honor {
 	margin-top: 8rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .card-intro {
@@ -450,7 +450,7 @@ loadData(1)
 	margin-top: 8rpx;
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -473,12 +473,12 @@ loadData(1)
 
 .verified-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .project-count-text {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 底部 ── */
@@ -493,15 +493,15 @@ loadData(1)
 .bottom-divider {
 	width: 64rpx;
 	height: 1rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 .loading-dot {
 	width: 32rpx;
 	height: 32rpx;
 	border-radius: 50%;
-	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--zy-primary, #2D9B8F);
+	border: 3rpx solid var(--zy-border, #dfe7dc);
+	border-top-color: var(--zy-primary, #2f7566);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -511,14 +511,14 @@ loadData(1)
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

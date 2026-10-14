@@ -137,6 +137,7 @@ public class CraftProjectPublicServiceImpl implements CraftProjectPublicService 
         vo.setCategory(project.getCategory());
         vo.setTherapyTags(project.getTherapyTags());
         vo.setCoverUrl(project.getCoverUrl());
+        vo.setVideoUrl(project.getVideoUrl());
         vo.setCreateTime(project.getCreateTime());
         vo.setSteps(stepVOs);
         vo.setMaterials(materialVOs);

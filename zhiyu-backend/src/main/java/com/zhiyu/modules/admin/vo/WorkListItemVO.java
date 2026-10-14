@@ -15,6 +15,8 @@ public class WorkListItemVO {
     private String authorName;
     private String title;
     private String coverUrl;
+    private String mediaType;
+    private String videoUrl;
     private Integer visible;
     private Integer anonymous;
     private Integer likeCount;

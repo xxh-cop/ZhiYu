@@ -73,6 +73,8 @@ public class AdminWorkServiceImpl implements AdminWorkService {
                     vo.setAuthorName(finalNicknameMap.getOrDefault(w.getUserId(), ""));
                     vo.setTitle(w.getTitle());
                     vo.setCoverUrl(w.getCoverUrl());
+                    vo.setMediaType(w.getMediaType());
+                    vo.setVideoUrl(w.getVideoUrl());
                     vo.setVisible(w.getVisible());
                     vo.setAnonymous(w.getAnonymous());
                     vo.setLikeCount(w.getLikeCount());
@@ -124,6 +126,8 @@ public class AdminWorkServiceImpl implements AdminWorkService {
         vo.setUserId(work.getUserId());
         vo.setTitle(work.getTitle());
         vo.setCoverUrl(work.getCoverUrl());
+        vo.setMediaType(work.getMediaType());
+        vo.setVideoUrl(work.getVideoUrl());
         vo.setVisible(work.getVisible());
         vo.setAnonymous(work.getAnonymous());
         vo.setLikeCount(work.getLikeCount());

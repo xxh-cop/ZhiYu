@@ -35,6 +35,7 @@ public class AuditQueueItemVO {
 
     /** 封面图 URL */
     private String coverUrl;
+    private String videoUrl;
 
     /** 上传传承人 ID */
     private Long inheritorId;

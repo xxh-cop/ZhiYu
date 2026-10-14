@@ -101,15 +101,15 @@ const MOOD_MAP = {
 }
 
 const MOOD_GRADIENTS = {
-	'开心': 'linear-gradient(135deg, #FFB547, #FFD08A)',
-	'平静': 'linear-gradient(135deg, #2D9B8F, #5BC4A8)',
-	'一般': 'linear-gradient(135deg, #6B7280, #9CA3AF)',
-	'有点累': 'linear-gradient(135deg, #5BC4A8, #8DD9C4)',
+	'开心': 'linear-gradient(135deg, #bb914d, #FFD08A)',
+	'平静': 'linear-gradient(135deg, #2f7566, #82ad9b)',
+	'一般': 'linear-gradient(135deg, #6B7280, #718478)',
+	'有点累': 'linear-gradient(135deg, #82ad9b, #8DD9C4)',
 	'不太好': 'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
-	'happy': 'linear-gradient(135deg, #FFB547, #FFD08A)',
-	'calm': 'linear-gradient(135deg, #2D9B8F, #5BC4A8)',
-	'neutral': 'linear-gradient(135deg, #6B7280, #9CA3AF)',
-	'tired': 'linear-gradient(135deg, #5BC4A8, #8DD9C4)',
+	'happy': 'linear-gradient(135deg, #bb914d, #FFD08A)',
+	'calm': 'linear-gradient(135deg, #2f7566, #82ad9b)',
+	'neutral': 'linear-gradient(135deg, #6B7280, #718478)',
+	'tired': 'linear-gradient(135deg, #82ad9b, #8DD9C4)',
 	'down': 'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
 }
 
@@ -175,7 +175,7 @@ function moodEmoji(mood) {
 }
 
 function moodGradient(mood) {
-	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, #2D9B8F, #5BC4A8)'
+	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, #2f7566, #82ad9b)'
 }
 
 function formatDate(dateStr) {
@@ -237,7 +237,7 @@ async function doDelete(item) {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 悬浮按钮 ── */
@@ -248,7 +248,7 @@ async function doDelete(item) {
 	width: 100rpx;
 	height: 100rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -266,7 +266,7 @@ async function doDelete(item) {
 	overflow: hidden;
 	border-radius: var(--zy-radius-md, 24rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	margin-bottom: 24rpx;
 }
 
@@ -294,7 +294,7 @@ async function doDelete(item) {
 	width: 120rpx;
 	height: 120rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -308,19 +308,19 @@ async function doDelete(item) {
 .empty-title {
 	font-size: 30rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .empty-sub {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .empty-btn {
 	margin-top: 16rpx;
 	padding: 16rpx 48rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	box-shadow: var(--zy-shadow-md);
 }
 
@@ -356,7 +356,7 @@ async function doDelete(item) {
 	padding: 24rpx 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -401,7 +401,7 @@ async function doDelete(item) {
 	display: -webkit-box;
 	font-size: 28rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -410,26 +410,26 @@ async function doDelete(item) {
 
 .note-date {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 底部心情标签 ── */
 .mood-tag-row {
 	margin-top: 16rpx;
 	padding-top: 16rpx;
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .mood-tag {
 	display: inline-flex;
 	padding: 4rpx 16rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .mood-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	font-weight: 500;
 }
 
@@ -445,15 +445,15 @@ async function doDelete(item) {
 .bottom-divider {
 	width: 64rpx;
 	height: 1rpx;
-	background-color: var(--zy-border, #E5E7EB);
+	background-color: var(--zy-border, #dfe7dc);
 }
 
 .loading-dot {
 	width: 32rpx;
 	height: 32rpx;
 	border-radius: 50%;
-	border: 3rpx solid var(--zy-border, #E5E7EB);
-	border-top-color: var(--zy-primary, #2D9B8F);
+	border: 3rpx solid var(--zy-border, #dfe7dc);
+	border-top-color: var(--zy-primary, #2f7566);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -463,14 +463,14 @@ async function doDelete(item) {
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

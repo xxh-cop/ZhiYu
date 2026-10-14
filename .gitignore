@@ -145,3 +145,12 @@ skills/
 
 rag-store.json
 
+
+# Bundled public campus directory is source code, not runtime data
+!zhiyu-app/src/data/
+!zhiyu-app/src/data/campus-support.js
+
+# Curated media metadata; private uploaded video files are runtime-only
+!zhiyu-app/src/data/music.js
+!zhiyu-app/src/data/media-credits.js
+private-media/

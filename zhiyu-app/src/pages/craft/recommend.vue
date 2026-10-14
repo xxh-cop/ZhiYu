@@ -13,7 +13,7 @@
 			<view class="reason-quote">"</view>
 			<view class="reason-header">
 				<view class="reason-icon-wrap">
-					<wd-icon name="chat" size="28rpx" color="#2D9B8F" />
+					<wd-icon name="chat" size="28rpx" color="#2f7566" />
 				</view>
 				<text class="reason-label">小织推荐</text>
 			</view>
@@ -162,7 +162,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2D9B8F, #5BC4A8);'
+	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
 }
 
 function goSession(item) {
@@ -177,7 +177,7 @@ function goSession(item) {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 80rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 顶部标题区 ── */
@@ -191,19 +191,19 @@ function goSession(item) {
 .page-title {
 	font-size: 44rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 }
 
 .mood-badge {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .mood-text {
 	font-size: 24rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 /* ── 推荐理由卡片 ── */
@@ -211,8 +211,8 @@ function goSession(item) {
 	position: relative;
 	padding: 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	margin-bottom: 24rpx;
 	overflow: hidden;
@@ -224,7 +224,7 @@ function goSession(item) {
 	left: 16rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	opacity: 0.15;
 	line-height: 1;
 }
@@ -249,13 +249,13 @@ function goSession(item) {
 .reason-label {
 	font-size: 26rpx;
 	font-weight: 500;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 .reason-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 }
 
 /* ── 刷新按钮 ── */
@@ -269,7 +269,7 @@ function goSession(item) {
 
 .refresh-icon {
 	font-size: 28rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	transition: transform 0.5s ease;
 }
 
@@ -279,7 +279,7 @@ function goSession(item) {
 
 .refresh-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 /* ── 骨架屏 ── */
@@ -287,7 +287,7 @@ function goSession(item) {
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .skeleton-cover {
@@ -321,7 +321,7 @@ function goSession(item) {
 
 .status-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 .error-text {
@@ -339,7 +339,7 @@ function goSession(item) {
 .craft-card {
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	overflow: hidden;
 	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
@@ -379,7 +379,7 @@ function goSession(item) {
 .card-title {
 	font-size: 32rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .card-meta {
@@ -397,7 +397,7 @@ function goSession(item) {
 
 .meta-pill-text {
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 }
 
 /* ── 疗愈标签 ── */
@@ -411,12 +411,12 @@ function goSession(item) {
 .tag-badge {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 }
 
 /* ── 单项推荐理由 ── */
@@ -424,10 +424,10 @@ function goSession(item) {
 	display: block;
 	margin-top: 20rpx;
 	padding-top: 20rpx;
-	border-top: 1rpx solid var(--zy-border, #E5E7EB);
+	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 	font-size: 24rpx;
 	font-style: italic;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	line-height: 1.6;
 }
 
@@ -436,7 +436,7 @@ function goSession(item) {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 </style>

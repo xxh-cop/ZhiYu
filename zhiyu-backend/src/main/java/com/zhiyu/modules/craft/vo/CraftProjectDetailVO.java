@@ -43,6 +43,9 @@ public class CraftProjectDetailVO {
     /** 封面图 URL */
     private String coverUrl;
 
+    /** 平台上传的教学视频引用；与项目一起审核。 */
+    private String videoUrl;
+
     /** 创建时间 */
     private LocalDateTime createTime;
 

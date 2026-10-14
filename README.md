@@ -128,3 +128,21 @@ npm run dev
 
 - 设计文档（概要/详细/需求规格）见仓库根目录 `.docx`。
 - 开发者与 AI Agent 协作先读 [`AGENTS.md`](./AGENTS.md)。
+
+## 企业管理界面与正念工具
+
+主业务管理端位于 `zhiyu-admin-vben/`，运行 `pnpm --filter @vben/web-ele dev`。
+`zhiyu-admin/` 保留为早期基础管理端。学生端首页可进入“正念片刻”。
+本批实施范围与后续计划见 [优化实施说明](docs/optimization-implementation.md)。
+
+## 品牌、成长记录与活动预约
+
+用户端新增五栏导航，底部“开始”集中进入自评、成长记录、活动预约与绘色。后台新增“活动与预约”和项目“材料安全”。
+既有数据库部署前执行 `sql/migrations/20261011-growth.sql` 并重启后端；首次安装已包含在 `sql/schema.sql`。
+功能范围、量表来源、验证及未开放事项见 [成长与活动交付说明](docs/growth-modules.md)，品牌源文件见 [品牌说明](docs/brand-assets.md)。
+
+
+> 2026-10-11 后续交互、AI 辅助线稿、平面临摹和材料探索的实现状态，以[第三阶段交付与产品建议](docs/interaction-and-product-review.md)为准。
+
+
+> 第四阶段已落实入门内容、条件筛选、可靠恢复、真实过程汇总与江西师大校内支持，详见[交付与数据来源](docs/starter-and-campus-delivery.md)。

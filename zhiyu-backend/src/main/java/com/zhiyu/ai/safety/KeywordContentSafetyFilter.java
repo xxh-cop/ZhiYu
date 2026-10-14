@@ -53,7 +53,7 @@ public class KeywordContentSafetyFilter implements ContentSafetyFilter {
     private static final String SAFE_REWRITE =
             "我在这里陪你。如果愿意，可以跟我聊聊你现在的感受。";
 
-    @Value("${zhiyu.crisis.psych-center-phone:0791-0000000}")
+    @Value("${zhiyu.crisis.psych-center-phone:0791-88120129}")
     private String psychCenterPhone;
 
     @Value("${zhiyu.crisis.national-hotline:12356}")

@@ -10,7 +10,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<view class="card-head">
 				<view class="card-icon-wrap">
-					<wd-icon name="setting" size="32rpx" color="#2D9B8F" />
+					<wd-icon name="setting" size="32rpx" color="#2f7566" />
 				</view>
 				<text class="section-heading">隐私授权状态</text>
 			</view>
@@ -32,7 +32,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="card-head">
 				<view class="card-icon-wrap">
-					<wd-icon name="user" size="32rpx" color="#2D9B8F" />
+					<wd-icon name="user" size="32rpx" color="#2f7566" />
 				</view>
 				<text class="section-heading">可联系授权</text>
 			</view>
@@ -44,7 +44,7 @@
 				<switch
 					:checked="canContact === 1"
 					:disabled="!isAgreed"
-					color="#2D9B8F"
+					color="#2f7566"
 					@change="handleContactChange"
 				/>
 			</view>
@@ -215,7 +215,7 @@ async function handleDelete() {
 	min-height: 100vh;
 	padding: 32rpx 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 /* ── 页面标题 ── */
@@ -226,14 +226,14 @@ async function handleDelete() {
 .page-title {
 	font-size: 44rpx;
 	font-weight: 500;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
 	display: block;
 }
 
 .page-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 	margin-top: 8rpx;
 }
@@ -244,7 +244,7 @@ async function handleDelete() {
 	border-radius: var(--zy-radius-lg, 32rpx);
 	padding: 32rpx 28rpx;
 	margin-bottom: 20rpx;
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 }
 
@@ -259,7 +259,7 @@ async function handleDelete() {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -273,7 +273,7 @@ async function handleDelete() {
 .section-heading {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 }
 
 .section-heading--danger {
@@ -284,7 +284,7 @@ async function handleDelete() {
 	display: block;
 	margin-top: 16rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	line-height: 1.6;
 }
 
@@ -301,32 +301,32 @@ async function handleDelete() {
 }
 
 .status-badge--agreed {
-	background-color: var(--zy-bg-tint-mint, #F0F9F7);
+	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .status-badge--pending {
-	background-color: var(--zy-bg-tint-warm, #FFF8EE);
+	background-color: var(--zy-bg-tint-warm, #f5edde);
 }
 
 .status-badge--agreed .status-badge-text {
-	color: var(--zy-primary, #2D9B8F);
+	color: var(--zy-primary, #2f7566);
 	font-size: 26rpx;
 }
 
 .status-badge--pending .status-badge-text {
-	color: var(--zy-warning, #FFB547);
+	color: var(--zy-warning, #bb914d);
 	font-size: 26rpx;
 }
 
 .btn-withdraw {
 	padding: 12rpx 32rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .btn-withdraw:active {
-	background-color: var(--zy-bg, #F8F9FB);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 .btn-withdraw-text {
@@ -337,7 +337,7 @@ async function handleDelete() {
 .btn-agree-sm {
 	padding: 12rpx 32rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2D9B8F), var(--zy-primary-light, #5BC4A8));
+	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
@@ -367,13 +367,13 @@ async function handleDelete() {
 
 .contact-title {
 	font-size: 30rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	display: block;
 }
 
 .contact-desc {
 	font-size: 24rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	display: block;
 	margin-top: 6rpx;
 	line-height: 1.5;
@@ -383,7 +383,7 @@ async function handleDelete() {
 	display: block;
 	margin-top: 16rpx;
 	font-size: 24rpx;
-	color: var(--zy-warning, #FFB547);
+	color: var(--zy-warning, #bb914d);
 }
 
 /* ── 区块 3：注销 ── */
@@ -423,7 +423,7 @@ async function handleDelete() {
 	display: block;
 	margin-top: 32rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #9CA3AF);
+	color: var(--zy-aid, #718478);
 	text-align: center;
 }
 
@@ -457,7 +457,7 @@ async function handleDelete() {
 .modal-title {
 	font-size: 34rpx;
 	font-weight: 600;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	display: block;
 	text-align: center;
 	margin-bottom: 16rpx;
@@ -477,7 +477,7 @@ async function handleDelete() {
 
 .modal-input-label {
 	font-size: 26rpx;
-	color: var(--zy-content, #4B5563);
+	color: var(--zy-content, #586e62);
 	display: block;
 	margin-bottom: 12rpx;
 }
@@ -485,11 +485,11 @@ async function handleDelete() {
 .modal-input {
 	width: 100%;
 	height: 80rpx;
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-sm, 12rpx);
 	padding: 0 24rpx;
 	font-size: 30rpx;
-	color: var(--zy-title, #1F2937);
+	color: var(--zy-title, #233d34);
 	box-sizing: border-box;
 }
 
@@ -502,7 +502,7 @@ async function handleDelete() {
 	flex: 1;
 	height: 80rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 1rpx solid var(--zy-border, #E5E7EB);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
 	display: flex;
 	align-items: center;
 	justify-content: center;

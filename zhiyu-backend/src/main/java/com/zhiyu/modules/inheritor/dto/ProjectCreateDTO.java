@@ -27,4 +27,7 @@ public class ProjectCreateDTO {
     private String therapyTags;
 
     private String coverUrl;
+
+    /** 平台上传的教学视频引用；与项目一起审核。 */
+    private String videoUrl;
 }
