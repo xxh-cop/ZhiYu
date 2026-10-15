@@ -1,148 +1,189 @@
-# 织愈（ZhiYu）
+# 织愈 · ZhiYu
 
 > 用一针一线，缝补青春的焦虑。
->
-> AI 引导下的非遗艺术疗愈平台 —— 把情绪倾听、手作推荐、专注创作与社区分享串成完整疗愈闭环。
 
-## 这是什么
+面向大学生的情绪陪伴与非遗手作平台，连接小织对话、手作学习、专注创作、音乐放松和社区分享。当前以江西师范大学人工智能学院校内试用为场景。
 
-面向在校大学生的情绪陪伴与非遗手作疗愈应用。学生在情绪低落时可与 AI 陪伴助手对话，
-系统根据其当下状态推荐合适的非遗手作项目（赣绣、剪纸、扎染、陶艺等），在分步引导下完成创作，
-并通过匿名作品分享获得同伴温暖反馈。
+**本系统不能替代专业心理咨询，不提供医疗诊断或治疗承诺。** 当前具备校内试用的功能基础，尚未完成企业生产环境的全面验收。
 
-**产品定位**：陪伴与引导，非医疗诊断。本系统不能替代专业心理咨询。
+## 功能概览
 
-## 技术栈
+| 使用者 | 已实现的主要能力 |
+| --- | --- |
+| 学生 | 小织情绪陪伴、手作推荐与入门项目、步骤引导与创作恢复、音乐放松、成长记录、活动预约、图片／文字／视频作品分享 |
+| 传承人 | 手作项目与步骤维护、材料安全提示、教学视频上传与预览，随项目提交审核 |
+| 咨询师 | 在授权范围内查看脱敏关怀汇总，支持线下跟进 |
+| 管理员 | 用户与内容管理、项目及社区视频审核、活动管理、真实业务数据看板 |
 
-- 后端：Java 17 · Spring Boot 3.4.13 · Spring AI 1.0.0 · MyBatis-Plus 3.5.7 · MySQL 8 · Redis 7
-- 学生端：UniApp（Vue3.4 + Vite 5 + Pinia2）→ 微信小程序 + H5；自研 SSE 封装
-- 管理端：Vue3 + Vite + Element Plus + ECharts
-- AI：DeepSeek / 通义千问（云端），Ollama + Qwen（本地模式）
-- 向量库：Milvus / Chroma（非遗知识库 RAG）
+- 学生端与管理端使用统一的松绿色视觉体系；小织以内嵌入口提供陪伴。
+- 音乐需主动播放，支持切歌、音量、进度、定时停止和离页暂停；首批两首开放授权音乐附来源与署名。
+- 新上传视频采用本地私有存储和有时效的播放链接，按当前权限访问；社区视频审核后才公开。教学视频在课程详情和创作步骤中观看。
+- 视频目前支持 MP4，每个文件最大 50MB，每用户每天最多 20 次上传；建议 H.264 + AAC。尚未接入转码和断点续传。
 
-## 目录结构
+## 工程与技术
 
-```
-织愈/
-├── AGENTS.md                  # AI 编码 Agent 必读约定
-├── docs/
-│   ├── project-context.md    # 项目上下文与架构约束、历史决策
-│   ├── task-breakdown.md      # 任务拆解与里程碑
-│   └── privacy-policy.md      # 隐私政策与用户协议
-├── features/                  # Gherkin BDD 用例
-├── openapi/openapi.yaml       # 后端接口契约
-├── ai-config/ai-capabilities.yaml  # AI 能力与阈值配置
+| 工程 | 技术与用途 |
+| --- | --- |
+| `zhiyu-backend/` | Java 17、Spring Boot 3.4.13、Spring AI、MyBatis-Plus、MySQL 8；共用 `/api` 接口与角色权限 |
+| `zhiyu-app/` | UniApp、Vue 3、Pinia、Wot Design Uni；学生端 H5 与微信小程序 |
+| `zhiyu-admin-vben/` | **当前主业务管理端**，基于 Vue Vben Admin、Element Plus、ECharts，使用 pnpm 工作区 |
+| `zhiyu-admin/` | 早期管理端，保留历史实现；本轮界面与音视频功能主要维护 Vben 版本 |
+
+AI 调用通过统一 `AiClient` 门面，包含内容过滤、审计和失败降级。实际启用能力取决于服务端配置与密钥；不能将配置中的候选服务理解为已部署。当前 RAG 存储路径由 `ZHIYU_RAG_STORE_PATH` 配置，默认使用本地文件，不要求先部署 Milvus 或 Chroma。
+
+## 目录约定
+
+```text
+Zhi_Yu/
+├── README.md                       # 项目入口与运行说明
+├── AGENTS.md                       # 协作规范
+├── .env.example                    # 本地配置示例
+├── start-backend.ps1                # Windows 本地后端启动入口
+├── docs/                           # 架构、隐私、视觉规范、阶段交付与素材署名
+├── design/                         # 设计令牌等设计资料
+├── features/                       # Gherkin 验收场景
+├── openapi/openapi.yaml             # 唯一维护的接口契约
+├── ai-config/                      # AI 能力配置
 ├── sql/
-│   ├── schema.sql             # 建表 DDL
-│   └── init-data.sql          # 字典/初始数据
-├── .env.example               # 环境变量模板
-├── zhiyu-backend/             # Spring Boot 后端
-├── zhiyu-app/                 # UniApp 学生端（小程序 + H5）
-└── zhiyu-admin/               # Vue3 管理端
+│   ├── schema.sql                  # 新数据库建表结构
+│   ├── init-data.sql               # 初始数据
+│   ├── schema-h2.sql               # H2 结构参考
+│   └── migrations/                 # 现有数据库增量升级脚本
+├── zhiyu-backend/
+│   ├── src/main/java/              # 后端代码
+│   ├── src/main/resources/         # 配置、提示词与静态素材
+│   └── src/test/                   # 测试与测试库结构
+├── zhiyu-app/src/                  # 学生端页面、组件与静态素材
+├── zhiyu-admin-vben/apps/web-ele/   # 当前管理端应用
+└── zhiyu-admin/                    # 早期管理端
 ```
 
-## 快速开始
+业务 `.vue`、`.java`、SQL 迁移和接口契约应放在对应工程目录，**不要在根目录保留第二份**。`README.md`、启动脚本、Git 配置和根级工具配置可放在根目录。
 
-### 1. 准备环境
+`rag-store.json` 是运行时向量存储，位置与后端工作目录及配置有关；`uploads/`、`private-media/` 是运行数据，均不应提交。根目录的 `lefthook.yml` 是 Git 钩子配置，不属于业务源码。历史 `.docx` 保留在根目录；若与当前源码、Markdown 或接口契约冲突，以当前维护版本为准。
 
-```bash
-cp .env.example .env
-# 编辑 .env，填入数据库、Redis、大模型 API Key 等
-```
+## 本地运行
 
-**必需环境变量：**
+### 1. 环境与配置
 
-| 变量 | 用途 | 默认值 |
-|---|---|---|
-| `DEEPSEEK_API_KEY` | DeepSeek 大模型 API Key（必填，否则走 MockLlmClient 降级话术） | `sk-placeholder` |
-| `DB_PASSWORD` | MySQL 密码 | `123456`（本地开发） |
-| `JWT_SECRET` | JWT 签名密钥（≥ 32 字节） | 本地开发假密钥 |
+- Java 17、Maven、MySQL 8。
+- Node.js 与 pnpm 以 `zhiyu-admin-vben/package.json` 为准：当前 Node.js `^22.18.0 || ^24.12.0`，包管理器 `pnpm@11.16.0`。
+- 根据启用的共享存储能力准备 Redis；单机与多实例设置请查后端配置。
 
-### 2. 初始化数据库
-
-```bash
-# 按此顺序执行。schema.sql 不传库名，因为它内部已 `USE zhiyu`
-mysql -u root -p < sql/schema.sql
-mysql -u root -p zhiyu < sql/dict-category.sql
-mysql -u root -p zhiyu < sql/dict-therapy-tags.sql
-mysql -u root -p zhiyu < sql/init-data.sql
-```
-
-> 以上脚本均幂等（`CREATE TABLE IF NOT EXISTS` + `ON DUPLICATE KEY UPDATE`），可重复执行。
-> 本地需要重置时：先 `mysql -u root -p < sql/reset.sql`，再重跑上面四条。
-
-### 3. 启动后端
+在仓库根目录复制配置示例，已有 `.env` 时不要覆盖：
 
 ```powershell
-cd zhiyu-backend
-# PowerShell 下 -D 参数必须用引号包住
+Copy-Item .env.example .env
+```
+
+`.env` 用于本地配置，不提交密钥。直接执行 Maven **不会自动加载根目录 `.env`**；请在启动进程中设置环境变量，或使用根目录的本地启动脚本。
+
+| 配置 | 用途 |
+| --- | --- |
+| `DB_URL`、`DB_USERNAME`、`DB_PASSWORD` | 数据库连接，以 `application-dev.yml` 为准 |
+| `JWT_SECRET` | JWT 签名密钥，至少 32 字节 |
+| `FIELD_ENCRYPT_SECRET` | 敏感字段加密密钥，格式要求见后端配置；已有数据的密钥不可随意更换 |
+| `DEEPSEEK_API_KEY` | 云端对话能力；未配置有效服务时使用降级路径 |
+| `DOUBAO_API_KEY` | 当前配置的向量模型服务密钥 |
+| `ZHIYU_RAG_STORE_PATH` | 本地向量存储文件位置 |
+| `ZHIYU_UPLOAD_DIR` | 图片等公开上传文件的位置 |
+
+示例中的默认凭据仅用于本地开发。正式环境必须使用独立密钥与数据库凭据；不要将 `.env.example` 中关于开发默认值的注释理解为生产部署要求。
+
+### 2. 初始化或升级数据库
+
+先运行 `mysql --default-character-set=utf8mb4 -u root -p` 进入 MySQL 客户端，再执行以下命令。示例路径按仓库实际位置修改。
+
+**首次安装：**
+
+```sql
+SOURCE D:/develop/Zhi_Yu/sql/schema.sql;
+SOURCE D:/develop/Zhi_Yu/sql/dict-category.sql;
+SOURCE D:/develop/Zhi_Yu/sql/dict-therapy-tags.sql;
+SOURCE D:/develop/Zhi_Yu/sql/init-data.sql;
+SOURCE D:/develop/Zhi_Yu/sql/migrations/20261011-starter-content.sql;
+```
+
+入门内容脚本依赖已有有效管理员账号；执行前确认初始化数据已导入。
+
+**已有数据库升级：**先备份，再按需补齐以下迁移。不要使用 `reset.sql` 修复缺列，它用于重置数据。
+
+```sql
+SOURCE D:/develop/Zhi_Yu/sql/migrations/20261011-growth.sql;
+SOURCE D:/develop/Zhi_Yu/sql/migrations/20261011-starter-content.sql;
+SOURCE D:/develop/Zhi_Yu/sql/migrations/20261012-runtime-columns.sql;
+SOURCE D:/develop/Zhi_Yu/sql/migrations/20261012-media-library.sql;
+```
+
+`schema.sql` 中的 `CREATE TABLE IF NOT EXISTS` **不会给已有表补字段**。出现 `Unknown column 'media_type'` 时，检查是否对当前连接的数据库执行了 `20261012-runtime-columns.sql`；教学视频另需 `20261012-media-library.sql`。完成迁移后重启后端，查看启动兼容检查结果。
+
+### 3. 后端
+
+推荐在已配置环境变量的新终端中运行：
+
+```powershell
+Set-Location D:/develop/Zhi_Yu/zhiyu-backend
 mvn spring-boot:run "-Dmaven.repo.local=../.ai-tmp/m2"
-# 默认 http://localhost:8080
-# 如需 AI 对话功能，先设置环境变量：
-#   $env:DEEPSEEK_API_KEY='sk-your-key'
 ```
 
-### 4. 启动学生端（UniApp）
+默认监听 `http://localhost:8080`。也可从仓库根执行 `./start-backend.ps1` 加载 `.env`；该脚本当前包含本机 `JAVA_HOME` 路径，其他电脑使用前需调整。
 
-```bash
-cd zhiyu-app
+### 4. 学生端
+
+另开终端：
+
+```powershell
+Set-Location D:/develop/Zhi_Yu/zhiyu-app
 npm install
-npm run dev:h5              # H5 调试（http://localhost:5175）
-npm run build:mp-weixin      # 构建微信小程序（输出 dist/build/mp-weixin/）
-# 微信开发者工具导入 dist/build/mp-weixin 目录调试
+npm run dev:h5 -- --port 5195
 ```
 
-### 5. 启动管理端
+按终端显示的实际地址访问。学生端接口地址集中在 `src/utils/config.js`；微信真机不能使用 `localhost`，需设置可访问的局域网或正式 HTTPS 地址，并配置小程序合法域名。
 
-```bash
-cd zhiyu-admin
-npm install
-npm run dev
-# http://localhost:5174
+### 5. 当前管理端
+
+另开终端，进入 Vben 工作区根目录安装依赖：
+
+```powershell
+Set-Location D:/develop/Zhi_Yu/zhiyu-admin-vben
+pnpm install
+pnpm --filter @vben/web-ele dev --port 5194
 ```
 
-## 角色
+按终端显示的实际地址访问。开发代理在 `apps/web-ele/vite.config.ts`，默认转发 `/api` 和 `/uploads` 到后端 8080 端口。不要误启动 `zhiyu-admin/` 后再查找新工作台或视频审核界面。
 
-| 角色 | 端 | 主要能力 |
-|---|---|---|
-| 学生 | 小程序 / H5 | AI 情绪倾听、手作推荐、创作、作品社区、互助小组 |
-| 传承人 | Web | 上传手作项目/步骤/语音、开课、一对一指导 |
-| 心理咨询师 | Web | 查看脱敏关怀提醒汇总，线下兜底 |
-| 管理员 | Web | 内容审核、用户管理、数据看板、团体活动、配置 |
+## 构建与验证
 
-## 核心闭环
+在对应工程目录运行：
 
-```
-情绪表达（AI 对话）
-   ↓
-疗愈推荐（规则 + LLM 生成理由）
-   ↓
-专注创作（分步引导 + 心流检测 + 呼吸提醒）
-   ↓
-作品分享（匿名发布 + 留暖 + 寄语）
-   ↓
-社区互助（小组结伴，循环回到情绪表达）
+```powershell
+# zhiyu-backend/
+mvn test "-Dmaven.repo.local=../.ai-tmp/m2"
+
+# zhiyu-app/
+npm run build:h5
+npm run build:mp-weixin
+
+# zhiyu-admin-vben/
+pnpm --filter @vben/web-ele typecheck
+pnpm --filter @vben/web-ele build
 ```
 
-## 文档
+微信开发者工具导入 `zhiyu-app/dist/build/mp-weixin/`。构建成功不等于真机播放、网络和权限验收通过。
 
-- 设计文档（概要/详细/需求规格）见仓库根目录 `.docx`。
-- 开发者与 AI Agent 协作先读 [`AGENTS.md`](./AGENTS.md)。
+2026-10-13 阶段验收记录：相关 21 个后端套件共 130 项测试通过，双端构建及管理端类型检查通过，浏览器验证了音乐播放与视频上传、审核、下架流程。这是当次验证记录，不代表持续集成状态或整个测试集的永久结论。
 
-## 企业管理界面与正念工具
+## 文档与素材
 
-主业务管理端位于 `zhiyu-admin-vben/`，运行 `pnpm --filter @vben/web-ele dev`。
-`zhiyu-admin/` 保留为早期基础管理端。学生端首页可进入“正念片刻”。
-本批实施范围与后续计划见 [优化实施说明](docs/optimization-implementation.md)。
+- [架构与上下文](docs/project-context.md) · [任务拆解](docs/task-breakdown.md)
+- [视觉规范](docs/ui-guidelines.md) · [品牌说明](docs/brand-assets.md)
+- [隐私政策](docs/privacy-policy.md) · [接口契约](openapi/openapi.yaml)
+- [成长与活动](docs/growth-modules.md) · [交互与产品建议](docs/interaction-and-product-review.md)
+- [入门内容与校园支持](docs/starter-and-campus-delivery.md)
+- [统一界面与音视频交付](docs/phase6-delivery.md) · [素材来源与授权记录](docs/media-attribution.json)
 
-## 品牌、成长记录与活动预约
+开放授权照片和音乐均保留作者、来源及许可证；品类照片不代表具体课程成品。管理端基于 Vue Vben Admin，具体开源参考与素材授权见阶段交付说明。
 
-用户端新增五栏导航，底部“开始”集中进入自评、成长记录、活动预约与绘色。后台新增“活动与预约”和项目“材料安全”。
-既有数据库部署前执行 `sql/migrations/20261011-growth.sql` 并重启后端；首次安装已包含在 `sql/schema.sql`。
-功能范围、量表来源、验证及未开放事项见 [成长与活动交付说明](docs/growth-modules.md)，品牌源文件见 [品牌说明](docs/brand-assets.md)。
+## 上线前仍需完成
 
-
-> 2026-10-11 后续交互、AI 辅助线稿、平面临摹和材料探索的实现状态，以[第三阶段交付与产品建议](docs/interaction-and-product-review.md)为准。
-
-
-> 第四阶段已落实入门内容、条件筛选、可靠恢复、真实过程汇总与江西师大校内支持，详见[交付与数据来源](docs/starter-and-campus-delivery.md)。
+HTTPS 与正式密钥配置、真实设备与弱网验收、媒体转码和字幕、对象存储与孤立文件清理、备份恢复演练、权限审查及并发压测。新视频的私有访问机制不自动覆盖历史公开上传文件；隐私文案需与最终部署和实际删除流程一致。
