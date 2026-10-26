@@ -385,3 +385,107 @@ CREATE TABLE IF NOT EXISTS craft_safety (
 CREATE TABLE IF NOT EXISTS media_asset (
  id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, storage_key VARCHAR(180) NOT NULL, size_bytes BIGINT NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL, deleted TINYINT NOT NULL DEFAULT 0
 );
+
+-- Additive migration; no existing records are rewritten.
+CREATE TABLE IF NOT EXISTS campus_verification (
+ id BIGINT NOT NULL PRIMARY KEY, user_id BIGINT NOT NULL UNIQUE,
+ school VARCHAR(100) NOT NULL, college VARCHAR(100) NOT NULL,
+ identity_cipher TEXT NOT NULL, status VARCHAR(20) NOT NULL,
+ review_reason VARCHAR(300) NOT NULL DEFAULT '', reviewer_id BIGINT DEFAULT NULL,
+ create_time DATETIME NOT NULL, update_time DATETIME NOT NULL, deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS care_case (
+ id BIGINT NOT NULL PRIMARY KEY, reminder_id BIGINT NOT NULL UNIQUE,
+ owner_id BIGINT DEFAULT NULL, state VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+ create_time DATETIME NOT NULL, update_time DATETIME NOT NULL, deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS care_followup (
+ id BIGINT NOT NULL PRIMARY KEY, reminder_id BIGINT NOT NULL, actor_id BIGINT NOT NULL,
+ action VARCHAR(20) NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS admin_operation_log (
+ id BIGINT NOT NULL PRIMARY KEY, actor_id BIGINT NOT NULL, action VARCHAR(100) NOT NULL,
+ target_id BIGINT DEFAULT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0
+);
+
+
+CREATE TABLE IF NOT EXISTS course_lesson (
+ id BIGINT NOT NULL PRIMARY KEY,
+ program_id BIGINT NOT NULL,
+ chapter VARCHAR(100) NOT NULL,
+ title VARCHAR(100) NOT NULL,
+ position INT NOT NULL,
+ content TEXT NOT NULL,
+ project_id BIGINT DEFAULT NULL,
+ published TINYINT NOT NULL DEFAULT 0,
+ create_time DATETIME NOT NULL,
+ update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS lesson_progress (
+ id BIGINT NOT NULL PRIMARY KEY,
+ lesson_id BIGINT NOT NULL,
+ user_id BIGINT NOT NULL,
+ completed TINYINT NOT NULL DEFAULT 0,
+ create_time DATETIME NOT NULL,
+ update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_lesson_user (lesson_id,user_id)
+);
+
+CREATE TABLE IF NOT EXISTS group_message (
+ id BIGINT NOT NULL PRIMARY KEY,
+ group_id BIGINT NOT NULL,
+ user_id BIGINT NOT NULL,
+ content TEXT NOT NULL,
+ create_time DATETIME NOT NULL,
+ update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0,
+ KEY idx_group_message (group_id,deleted,id)
+);
+
+-- Final business workflows: invitations never expose personal emotional records.
+CREATE TABLE IF NOT EXISTS program_collaborator (
+ id BIGINT PRIMARY KEY, program_id BIGINT NOT NULL, user_id BIGINT NOT NULL,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_program_collaborator (program_id,user_id)
+);
+CREATE TABLE IF NOT EXISTS guidance_channel (
+ id BIGINT PRIMARY KEY, booking_id BIGINT NOT NULL UNIQUE, enabled TINYINT NOT NULL DEFAULT 0,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS guidance_message (
+ id BIGINT PRIMARY KEY, booking_id BIGINT NOT NULL, user_id BIGINT NOT NULL, content TEXT NOT NULL,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ KEY idx_guidance_history (booking_id,id)
+);
+CREATE TABLE IF NOT EXISTS group_companion (
+ id BIGINT PRIMARY KEY, group_id BIGINT NOT NULL, first_user_id BIGINT NOT NULL,
+ second_user_id BIGINT NOT NULL, requester_id BIGINT NOT NULL, state VARCHAR(16) NOT NULL,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_companion_pair (group_id,first_user_id,second_user_id)
+);
+CREATE TABLE IF NOT EXISTS group_work (
+ id BIGINT PRIMARY KEY, group_id BIGINT NOT NULL, work_id BIGINT NOT NULL UNIQUE,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ KEY idx_group_work (group_id,work_id)
+);
+CREATE TABLE IF NOT EXISTS runtime_config (
+ id BIGINT PRIMARY KEY, config_key VARCHAR(80) NOT NULL UNIQUE, payload TEXT NOT NULL, revision INT NOT NULL DEFAULT 1,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS file_cleanup_job (
+ id BIGINT PRIMARY KEY, storage_kind VARCHAR(16) NOT NULL, storage_key VARCHAR(255) NOT NULL,
+ attempts INT NOT NULL DEFAULT 0, state VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_cleanup_key (storage_kind,storage_key)
+);

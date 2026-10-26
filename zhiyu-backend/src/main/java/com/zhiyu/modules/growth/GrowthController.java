@@ -12,6 +12,8 @@ import java.util.*;
 public class GrowthController {
     private final GrowthService service;
     private final ScaleCatalog scales;
+    public record BookingReview(@jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp="CONFIRM|REJECT") String decision) {}
+    @PostMapping("/programs/{id}/bookings/{bookingId}/review") public Result<?> review(@PathVariable Long id,@PathVariable Long bookingId,@Valid @RequestBody BookingReview r){service.reviewBooking(id,bookingId,r.decision());return Result.success();}
     @GetMapping("/material-map") public Result<?> materialMap(){return Result.success(service.materialMap());}
     @GetMapping("/journey") public Result<?> journey(){return Result.success(service.journey());}
     @DeleteMapping("/records") public Result<?> erase(){service.erase();return Result.success();}

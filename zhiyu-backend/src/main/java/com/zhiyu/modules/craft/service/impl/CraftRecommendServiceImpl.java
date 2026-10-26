@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CraftRecommendServiceImpl implements CraftRecommendService {
 
+    private final com.zhiyu.modules.admin.service.RuntimeSettings settings;
+    private final org.springframework.jdbc.core.JdbcTemplate db;
     private final CraftProjectMapper craftProjectMapper;
     private final CraftRecommendationMapper craftRecommendationMapper;
     private final CraftRecommendationItemMapper craftRecommendationItemMapper;
@@ -42,7 +44,7 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
     private final AiClient aiClient;
 
     /** 兜底文案：项目表为空时 */
-    private static final String EMPTY_REASON = "暂无可推荐项目";
+    private static final String EMPTY_REASON = "暂无符合材料安全范围的推荐项目，请稍后查看或咨询带领者";
 
     /** 兜底文案：LLM 降级时（AiClient 内部已有，此处用于 checkOutput 的 fallback） */
     private static final String LLM_FALLBACK_REASON = "（暂时无法生成个性化理由，先看看这些手作吧）";
@@ -112,7 +114,10 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
     private String resolveMood(Long userId, Long sessionId) {
         if (sessionId != null) {
             EmotionSession session = emotionSessionMapper.selectById(sessionId);
-            if (session != null && session.getMood() != null) {
+            if (session == null || !java.util.Objects.equals(session.getUserId(), userId)) {
+                throw new com.zhiyu.common.exception.BusinessException(1004, "会话不存在");
+            }
+            if (session.getMood() != null) {
                 return session.getMood();
             }
         }
@@ -138,6 +143,9 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
         LambdaQueryWrapper<CraftProject> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CraftProject::getStatus, 1);
         List<CraftProject> allProjects = craftProjectMapper.selectList(wrapper);
+        String max=settings.values("recommendation").get("maxSafety").toString();
+        Set<Long> safe=new HashSet<>(db.queryForList("SELECT project_id FROM craft_safety WHERE deleted=0 AND (level='LOW' OR (level='GUIDED' AND ?='GUIDED'))",Long.class,max));
+        allProjects=allProjects.stream().filter(p->safe.contains(p.getId())).collect(Collectors.toList());
 
         if (allProjects.isEmpty()) {
             return Collections.emptyList();
@@ -168,10 +176,10 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
         // 兜底 (b)：按标签匹配后仍为空（不太可能，allProjects 非空时 scored 非空）→ 返回前 3 条
         if (scored.isEmpty()) {
             log.info("标签匹配后仍为空，返回前 3 条");
-            return allProjects.stream().limit(3).collect(Collectors.toList());
+            return allProjects.stream().limit((int)settings.number("recommendation","count")).collect(Collectors.toList());
         }
 
-        return scored.stream().limit(3).map(ScoredProject::getProject).collect(Collectors.toList());
+        return scored.stream().limit((int)settings.number("recommendation","count")).map(ScoredProject::getProject).collect(Collectors.toList());
     }
 
     /**
@@ -188,13 +196,13 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
             Set<String> projectTags = new HashSet<>(Arrays.asList(project.getTherapyTags().split(",")));
             for (String tag : preferTags) {
                 if (projectTags.contains(tag.trim())) {
-                    score += 0.6;
+                    score += settings.number("recommendation","tagWeight");
                 }
             }
         }
         // 易上手加分
         if (project.getLevel() != null) {
-            score += 0.4 * (4 - project.getLevel()) / 3.0;
+            score += settings.number("recommendation","easeWeight") * (4 - project.getLevel()) / 3.0;
         }
         return score;
     }

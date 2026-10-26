@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WorkInteractionServiceImpl implements WorkInteractionService {
 
+    private final com.zhiyu.modules.work.service.WorkAudience audience;
     private final WorkMapper workMapper;
     private final WorkCommentMapper workCommentMapper;
     private final WorkLikeMapper workLikeMapper;
@@ -49,8 +50,8 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     @Transactional(rollbackFor = Exception.class)
     public LikeVO toggleLike(Long userId, Long workId, Integer type) {
         // 1. 校验作品存在且已发布
-        Work work = workMapper.selectById(workId);
-        if (work == null || work.getStatus() == null || work.getStatus() != 1) {
+        Work work = workMapper.lockById(workId);
+        if (!audience.canRead(work,userId)) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
 
@@ -89,11 +90,11 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(noRollbackFor = BusinessException.class)
     public CommentVO comment(Long userId, Long workId, String content) {
         // 1. 校验作品存在且已发布
-        Work work = workMapper.selectById(workId);
-        if (work == null || work.getStatus() == null || work.getStatus() != 1) {
+        Work work = workMapper.lockById(workId);
+        if (!audience.canRead(work,userId)) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
 
@@ -113,7 +114,7 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
         comment.setWorkId(workId);
         comment.setUserId(userId);
         comment.setContent(content);
-        comment.setStatus(1);
+        comment.setStatus(0);
         workCommentMapper.insert(comment);
         log.info("发表评论: commentId={}, workId={}, userId={}", comment.getId(), workId, userId);
 
@@ -126,7 +127,7 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     public CommentPageVO listComments(Long workId, Integer page, Integer size) {
         // 1. 校验作品存在
         Work work = workMapper.selectById(workId);
-        if (work == null) {
+        if (!audience.canRead(work,com.zhiyu.security.UserContext.getUserId())) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
 
@@ -136,7 +137,7 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
         // 2. 分页查评论 where work_id=? AND status=1 AND deleted=0，按 create_time asc
         LambdaQueryWrapper<WorkComment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(WorkComment::getWorkId, workId)
-                .eq(WorkComment::getStatus, 1)
+                .and(q -> q.eq(WorkComment::getStatus,1).or(com.zhiyu.security.UserContext.getUserId()!=null).eq(com.zhiyu.security.UserContext.getUserId()!=null,WorkComment::getUserId,com.zhiyu.security.UserContext.getUserId()))
                 .orderByAsc(WorkComment::getCreateTime);
 
         IPage<WorkComment> pageResult = workCommentMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
@@ -180,6 +181,8 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     private CommentVO buildCommentVO(WorkComment comment, String nickname) {
         CommentVO vo = new CommentVO();
         vo.setId(comment.getId());
+        vo.setStatus(comment.getStatus());
+        vo.setMine(Objects.equals(comment.getUserId(),com.zhiyu.security.UserContext.getUserId()));
         vo.setContent(comment.getContent());
         vo.setAuthorName(nickname != null ? nickname : "未知用户");
         vo.setCreateTime(comment.getCreateTime());

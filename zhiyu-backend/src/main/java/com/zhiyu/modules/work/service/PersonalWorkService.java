@@ -1,0 +1,49 @@
+package com.zhiyu.modules.work.service;
+import com.zhiyu.common.exception.BusinessException;
+import com.zhiyu.security.BusinessAccess;
+import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.*;
+
+@Service @RequiredArgsConstructor
+public class PersonalWorkService {
+    private final com.zhiyu.modules.file.MediaService media;
+    private final JdbcTemplate db;
+    private final BusinessAccess access;
+    @Transactional public void unfavorite(long id){
+        long uid=access.user();
+        db.update("UPDATE work_like SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=? AND work_id=? AND type=0 AND deleted=0",uid,id);
+    }
+    public Map<String,Object> favorites(int page){
+        long uid=access.user();
+        if(page<1||page>100000)throw new BusinessException(1001,"分页无效");
+        String from=" FROM work_like l JOIN work w ON w.id=l.work_id WHERE l.user_id=? AND l.type=0 AND l.deleted=0 AND w.deleted=0 AND w.status=1 AND (w.visible=1 OR w.user_id=? OR (w.visible=2 AND EXISTS(SELECT 1 FROM group_work g JOIN group_member m ON m.group_id=g.group_id AND m.deleted=0 JOIN support_group s ON s.id=g.group_id AND s.status=1 AND s.deleted=0 WHERE g.work_id=w.id AND g.deleted=0 AND m.user_id=?)))";
+        Long total=db.queryForObject("SELECT COUNT(*)"+from,Long.class,uid,uid,uid);
+        var records=db.queryForList("SELECT TRIM(CAST(w.id AS CHAR(20))) id,w.title,w.cover_url coverUrl,w.media_type mediaType,w.message,w.visible,w.create_time createTime,l.update_time savedAt"+from+" ORDER BY l.update_time DESC,l.id DESC LIMIT 12 OFFSET ?",uid,uid,uid,(page-1)*12);
+        for(var r:records)r.put("coverUrl",media.imageUrl(uid,(String)r.get("coverUrl")));
+        return Map.of("records",records,"total",total);
+    }
+    public Map<String,Object> mine(int page,Integer status){
+        long uid=access.user();
+        if(page<1||page>100000||(status!=null&&(status<0||status>2)))throw new BusinessException(1001,"分页或状态无效");
+        String where=" WHERE user_id=? AND deleted=0"+(status==null?"":" AND status=?");
+        List<Object> args=new ArrayList<>();args.add(uid);if(status!=null)args.add(status);
+        Long total=db.queryForObject("SELECT COUNT(*) FROM work"+where,Long.class,args.toArray());
+        args.add((page-1)*12);
+        var records=db.queryForList("SELECT TRIM(CAST(id AS CHAR(20))) id,title,cover_url coverUrl,media_type mediaType,video_url videoUrl,message,visible,status,anonymous,like_count likeCount,create_time createTime FROM work"+where+" ORDER BY create_time DESC,id DESC LIMIT 12 OFFSET ?",args.toArray());
+        Map<String,Long> counts=new LinkedHashMap<>();counts.put("all",0L);for(var row:db.queryForList("SELECT status,COUNT(*) amount FROM work WHERE user_id=? AND deleted=0 GROUP BY status",uid)){long count=((Number)row.get("amount")).longValue();counts.put(row.get("status").toString(),count);counts.put("all",counts.get("all")+count);}
+        for(var r:records)r.put("coverUrl",media.imageUrl(uid,(String)r.get("coverUrl")));
+        return Map.of("records",records,"total",total,"counts",counts);
+    }
+    @Transactional public void withdraw(long id){
+        long uid=access.user();
+        var rows=db.queryForList("SELECT user_id FROM work WHERE id=? AND deleted=0 FOR UPDATE",id);
+        if(rows.isEmpty())throw new BusinessException(1004,"作品已不存在");
+        if(((Number)rows.get(0).get("user_id")).longValue()!=uid)throw new BusinessException(1003,"只能撤回自己的作品");
+        db.update("UPDATE work SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE id=?",id);
+        db.update("UPDATE work_comment SET content='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE work_id=? AND deleted=0",id);
+        db.update("UPDATE work_like SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE work_id=? AND deleted=0",id);
+    }
+}

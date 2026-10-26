@@ -13,7 +13,7 @@ spring:
     # 不加则 `CREATE TABLE user (...)` 与 MyBatis-Plus 生成的
     # `SELECT ... FROM user` 都会报 "Syntax error ... expected identifier"。
     # DATABASE_TO_LOWER=TRUE 让表名/字段名按小写处理，与 MySQL 行为接近。
-    url: jdbc:h2:mem:zhiyu_test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER
+    url: jdbc:h2:mem:zhiyu_test_${random.uuid};MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER
     username: sa
     password: ""
 

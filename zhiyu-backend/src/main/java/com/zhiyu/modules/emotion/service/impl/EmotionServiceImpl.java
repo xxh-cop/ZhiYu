@@ -39,9 +39,14 @@ public class EmotionServiceImpl implements EmotionService {
     private final EmotionSessionMapper sessionMapper;
     private final EmotionMessageMapper messageMapper;
     private final AesEncryptor encryptor;
+    private final org.springframework.jdbc.core.JdbcTemplate db;
+    private void lockOwner(Long uid){var users=db.queryForList("SELECT id FROM user WHERE id=? AND deleted=0 AND status=1 AND privacy_agreed=1 FOR UPDATE",uid);if(users.isEmpty())throw new com.zhiyu.common.exception.BusinessException(1003,"账号或隐私授权已失效");}
+    private void lockSession(Long sid){var rows=db.queryForList("SELECT user_id FROM emotion_session WHERE id=? AND deleted=0",Long.class,sid);if(rows.isEmpty())throw new com.zhiyu.common.exception.BusinessException(1004,"会话不存在");lockOwner(rows.get(0));if(db.queryForList("SELECT id FROM emotion_session WHERE id=? AND deleted=0 AND status=0 FOR UPDATE",sid).isEmpty())throw new com.zhiyu.common.exception.BusinessException(3001,"会话已结束，请从历史记录恢复后继续");}
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Long createSession(Long userId, String mood) {
+        lockOwner(userId);
         EmotionSession session = new EmotionSession();
         session.setUserId(userId);
         session.setMood(mood);
@@ -52,7 +57,9 @@ public class EmotionServiceImpl implements EmotionService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void appendMessage(Long sessionId, String role, String content) {
+        lockSession(sessionId);
         EmotionMessage msg = new EmotionMessage();
         msg.setSessionId(sessionId);
         msg.setRole(role);
@@ -82,7 +89,9 @@ public class EmotionServiceImpl implements EmotionService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void endSession(Long sessionId, String summary) {
+        lockSession(sessionId);
         EmotionSession session = sessionMapper.selectById(sessionId);
         if (session == null) {
             log.warn("结束会话失败：会话不存在, sessionId={}", sessionId);
@@ -97,7 +106,9 @@ public class EmotionServiceImpl implements EmotionService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void updateSummary(Long sessionId, String summary) {
+        lockSession(sessionId);
         if (summary == null || summary.isBlank()) {
             return;
         }

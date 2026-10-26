@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 class CraftControllerTest {
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate authFixtureDb;
 
     @Autowired
     private MockMvc mockMvc;
@@ -81,6 +82,7 @@ class CraftControllerTest {
     }
 
     private String validToken(Long userId, int role) {
+        com.zhiyu.support.AuthenticatedTestUser.ensure(authFixtureDb,userId,role);
         return jwtUtil.createToken(userId, role);
     }
 

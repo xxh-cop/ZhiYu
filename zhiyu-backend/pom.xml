@@ -168,17 +168,12 @@
                 </configuration>
             </plugin>
 
-            <!-- 测试 JVM 参数。
-                 jdk.attach.allowAttachSelf=true：Spring Boot 对每个 @SpringBootTest 都会初始化
-                 Mockito，而 Mockito 5 的内联 mock maker 需要向当前 JVM attach Java agent。
-                 JDK 默认禁止 self-attach，此时 ByteBuddy 会退化为「另起一个 java 进程做 attach」——
-                 在禁止派生进程的沙箱里必然失败（报 Could not self-attach to current VM
-                 using external process）。放开 self-attach 后走进程内路径，本机与 CI 都受益。 -->
+            <!-- 启动时加载 Mockito 代理，避免受限 Windows 环境动态 attach 阻塞。 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Djdk.attach.allowAttachSelf=true</argLine>
+                    <argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar</argLine>
                 </configuration>
             </plugin>
         </plugins>

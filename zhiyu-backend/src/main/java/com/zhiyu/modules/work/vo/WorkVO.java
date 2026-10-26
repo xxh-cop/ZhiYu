@@ -21,6 +21,11 @@ public class WorkVO {
     private String authorName;
     private Boolean anonymous;
     private Integer visible;
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Boolean liked;
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Boolean favorited;
+    private Boolean shareable;
     private Integer likeCount;
     private Integer commentCount;
     private LocalDateTime createTime;

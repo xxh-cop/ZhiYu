@@ -29,10 +29,13 @@ public class WorkPublishReq {
     private String videoUrl;
 
     /** AI 寄语（可选） */
+    @Size(max=2000)
     private String message;
 
     /** 0私密 1公开 2仅小组（可选，默认 1） */
     private Integer visible;
+    @jakarta.validation.constraints.Positive
+    private Long groupId;
 
     /** 是否匿名（可选，默认 true） */
     private Boolean anonymous;

@@ -28,6 +28,10 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 class CraftRecommendServiceLlmTest {
+    @Mock com.zhiyu.modules.admin.service.RuntimeSettings settings;
+    @Mock org.springframework.jdbc.core.JdbcTemplate db;
+    @org.junit.jupiter.api.BeforeEach void configuration(){when(settings.values("recommendation")).thenReturn(java.util.Map.of("maxSafety","GUIDED"));when(settings.number(eq("recommendation"),anyString())).thenAnswer(i->switch((String)i.getArgument(1)){case "count"->3.0;case "tagWeight"->0.6;default->0.4;});when(db.queryForList(anyString(),eq(Long.class),eq("GUIDED"))).thenReturn(List.of(101L,102L,201L));}
+
 
     @Mock
     CraftProjectMapper craftProjectMapper;

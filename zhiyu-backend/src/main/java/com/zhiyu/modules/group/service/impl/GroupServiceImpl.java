@@ -103,7 +103,7 @@ public class GroupServiceImpl implements GroupService {
     @Transactional(rollbackFor = Exception.class)
     public GroupVO joinGroup(Long userId, Long groupId) {
         // 1. 查小组 → 不存在 → 1004
-        SupportGroup group = supportGroupMapper.selectById(groupId);
+        SupportGroup group = supportGroupMapper.lockById(groupId);
         if (group == null) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
@@ -133,7 +133,7 @@ public class GroupServiceImpl implements GroupService {
         member.setGroupId(groupId);
         member.setUserId(userId);
         member.setRole("成员");
-        groupMemberMapper.insert(member);
+        if(groupMemberMapper.restore(groupId,userId)==0)groupMemberMapper.insert(member);
         log.info("加入小组: groupId={}, userId={}", groupId, userId);
 
         // 6. 重新查小组获取最新 memberCount

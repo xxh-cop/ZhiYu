@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminUserServiceImpl implements AdminUserService {
 
+    private final com.zhiyu.modules.auth.service.AccountLifecycle lifecycle;
     private final UserMapper userMapper;
     private final InheritorProfileMapper inheritorProfileMapper;
 
@@ -100,6 +101,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    @Transactional
     public void updateStatus(Long id, Integer status) {
         Long currentUserId = UserContext.getUserId();
         if (currentUserId != null && currentUserId.equals(id)) {
@@ -115,6 +117,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "status 只能为 0 或 1");
         }
 
+        if(status==0)lifecycle.suspend(id);
         user.setStatus(status);
         userMapper.updateById(user);
         log.info("管理员切换用户状态: userId={}, status={}, operator={}", id, status, currentUserId);
@@ -142,6 +145,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         Long currentUserId = UserContext.getUserId();
         if (currentUserId != null && currentUserId.equals(id)) {
@@ -153,6 +157,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
 
+        lifecycle.erase(id);
         userMapper.deleteById(id);
         log.info("管理员逻辑删除用户: userId={}, operator={}", id, currentUserId);
     }

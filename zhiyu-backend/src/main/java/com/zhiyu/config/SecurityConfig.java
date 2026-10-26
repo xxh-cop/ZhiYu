@@ -58,13 +58,14 @@ public class SecurityConfig {
     private static final String[] ADMIN_ROLES = {"ROLE_1", "ROLE_2", "ROLE_3"};
 
     private final JwtUtil jwtUtil;
+    private final com.zhiyu.modules.auth.mapper.UserMapper userMapper;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // 手工构造而非注入 Bean：见 JwtAuthFilter 的类注释（避免被 Servlet 容器重复注册）
-        JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtUtil);
+        JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtUtil, userMapper);
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -107,6 +108,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/groups/*").hasAuthority("ROLE_3")
                         // 传承人端接口：仅传承人（role=1）可访问
                         .requestMatchers("/api/inheritor/**").hasAuthority("ROLE_1")
+                        .requestMatchers("/api/admin/care-reminders", "/api/admin/care-reminders/**").hasAnyAuthority("ROLE_2", "ROLE_3")
+                        .requestMatchers("/api/admin/campus-verifications/**", "/api/admin/campus-verifications", "/api/admin/operation-logs", "/api/admin/users/**", "/api/admin/users", "/api/admin/audit-logs", "/api/admin/config/**").hasAuthority("ROLE_3")
+                        .requestMatchers("/api/admin/comments", "/api/admin/comments/**").hasAuthority("ROLE_3")
                         .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN_ROLES)
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling

@@ -46,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 class EmotionNoteControllerTest {
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate authFixtureDb;
 
     @Autowired
     private MockMvc mockMvc;
@@ -66,6 +67,7 @@ class EmotionNoteControllerTest {
     private JdbcTemplate jdbcTemplate;
 
     private String token(Long userId, int role) {
+        com.zhiyu.support.AuthenticatedTestUser.ensure(authFixtureDb,userId,role);
         return jwtUtil.createToken(userId, role);
     }
 

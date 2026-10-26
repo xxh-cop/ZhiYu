@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserPrivacyServiceImpl implements UserPrivacyService {
 
+    private final com.zhiyu.modules.auth.service.AccountLifecycle lifecycle;
     private final UserMapper userMapper;
     private final org.springframework.jdbc.core.JdbcTemplate growthDb;
 
@@ -45,8 +46,10 @@ public class UserPrivacyServiceImpl implements UserPrivacyService {
     }
 
     @Override
+    @Transactional
     public void withdrawPrivacy() {
         User user = requireCurrentUser();
+        growthDb.update("UPDATE guidance_channel SET enabled=0,update_time=CURRENT_TIMESTAMP WHERE booking_id IN (SELECT id FROM program_booking WHERE user_id=?)",user.getId());
         user.setPrivacyAgreed(0);
         // 撤回同意同时取消可联系授权
         user.setCanContact(0);
@@ -73,26 +76,16 @@ public class UserPrivacyServiceImpl implements UserPrivacyService {
         User user = requireCurrentUser();
         Long userId = user.getId();
 
+        lifecycle.erase(userId);
         // Serialize against personal-record writes before erasing encrypted growth data.
         growthDb.queryForObject("SELECT id FROM user WHERE id=? FOR UPDATE", Long.class, userId);
         growthDb.update("DELETE FROM wellbeing_record WHERE user_id=?", userId);
         growthDb.update("UPDATE program_booking SET status='CANCELLED',deleted=1 WHERE user_id=?", userId);
         growthDb.update("UPDATE learning_program SET status='CANCELLED' WHERE owner_id=?", userId);
-        // 匿名化敏感字段，保持数据完整性但不可识别用户
-        user.setUsername("deleted_" + userId);
-        user.setPassword("");
-        user.setNickname("已注销用户");
-        user.setAvatarUrl(null);
-        user.setSchool(null);
-        user.setCraftPreferences(null);
-        user.setCanContact(0);
-        user.setPrivacyAgreed(0);
-        user.setStatus(0); // 禁用
-        // 逻辑删除：@TableLogic 会自动设置 deleted=1
-        // 但 updateById 不会触发逻辑删除，需要手动设置 deleted 字段
-        // 由于 @TableField(select = false) 导致 deleted 不在查询结果中，
-        // 这里用 MyBatis-Plus 的 removeById 完成逻辑删除
-        userMapper.updateById(user);
+        // Explicit NULL assignments bypass MyBatis NOT_NULL update strategy.
+        growthDb.update("UPDATE user SET username=?,password='',nickname='已注销用户',avatar_url=NULL,school=NULL,intro=NULL,craft_preferences=NULL,can_contact=0,privacy_agreed=0,status=0,update_time=CURRENT_TIMESTAMP WHERE id=?",
+                "deleted_" + userId, userId);
+        // Keep logical deletion in the mapper so its session cache is invalidated too.
         userMapper.deleteById(userId);
         log.info("用户注销账号 userId={}", userId);
     }
@@ -112,6 +105,9 @@ public class UserPrivacyServiceImpl implements UserPrivacyService {
         if (user == null) {
             // token 有效但用户已被注销/删除
             throw new BusinessException(ResultCode.UNAUTHORIZED);
+        }
+        if (!Integer.valueOf(1).equals(user.getStatus())) {
+            throw new BusinessException(ResultCode.FORBIDDEN);
         }
         return user;
     }

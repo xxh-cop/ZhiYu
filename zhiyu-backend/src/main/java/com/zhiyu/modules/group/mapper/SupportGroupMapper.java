@@ -11,6 +11,8 @@ import org.apache.ibatis.annotations.Update;
  */
 @Mapper
 public interface SupportGroupMapper extends BaseMapper<SupportGroup> {
+    @org.apache.ibatis.annotations.Select("SELECT * FROM support_group WHERE id=#{id} AND deleted=0 FOR UPDATE")
+    SupportGroup lockById(@Param("id") Long id);
 
     /**
      * 原子递增成员数（带并发保护）。
@@ -22,6 +24,6 @@ public interface SupportGroupMapper extends BaseMapper<SupportGroup> {
      * @return 影响行数（1=成功，0=已满/不存在）
      */
     @Update("UPDATE support_group SET member_count = member_count + 1 " +
-            "WHERE id = #{id} AND member_count < max_count AND deleted = 0")
+            "WHERE id = #{id} AND member_count < max_count AND status=1 AND deleted = 0")
     int incrementMemberCount(@Param("id") Long id);
 }

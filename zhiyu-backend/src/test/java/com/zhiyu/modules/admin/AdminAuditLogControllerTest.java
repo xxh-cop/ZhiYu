@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @org.springframework.transaction.annotation.Transactional
 class AdminAuditLogControllerTest {
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate authFixtureDb;
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,6 +52,7 @@ class AdminAuditLogControllerTest {
     private Long logId;
 
     private String token(Long userId, int role) {
+        com.zhiyu.support.AuthenticatedTestUser.ensure(authFixtureDb,userId,role);
         return jwtUtil.createToken(userId, role);
     }
 
@@ -82,12 +84,12 @@ class AdminAuditLogControllerTest {
     }
 
     @Test
-    @DisplayName("咨询师查询审计日志列表 → 200（role ∈ {2,3}）")
-    void testCounselor_ListAuditLogs_Returns200() throws Exception {
+    @DisplayName("咨询师不能访问管理员审计日志 → 403")
+    void testCounselor_ListAuditLogs_Returns403() throws Exception {
         mockMvc.perform(get("/api/admin/audit-logs")
                         .header("Authorization", "Bearer " + token(2L, 2)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
     }
 
     @Test
@@ -111,7 +113,7 @@ class AdminAuditLogControllerTest {
     // ── 接口 8：GET /api/admin/audit-logs/{id} ──
 
     @Test
-    @DisplayName("管理员查询审计日志详情 → 200 + 解密内容")
+    @DisplayName("管理员查询审计日志详情 → 200 + 隐私保护占位，不返回原始对话")
     void testAdmin_GetAuditLog_Returns200() throws Exception {
         mockMvc.perform(get("/api/admin/audit-logs/{id}", logId)
                         .header("Authorization", "Bearer " + token(1L, 3)))
@@ -120,8 +122,8 @@ class AdminAuditLogControllerTest {
                 .andExpect(jsonPath("$.data.id").value(logId))
                 .andExpect(jsonPath("$.data.scene").value("chat"))
                 .andExpect(jsonPath("$.data.action").value("PASS"))
-                .andExpect(jsonPath("$.data.rawInput").value("用户说：我很焦虑"))
-                .andExpect(jsonPath("$.data.aiOutput").value("我理解你的感受，让我们一起来做手工吧"));
+                .andExpect(jsonPath("$.data.rawInput").value("[隐私保护：不提供原始输入]"))
+                .andExpect(jsonPath("$.data.aiOutput").value("[隐私保护：不提供原始回复]"));
     }
 
     @Test

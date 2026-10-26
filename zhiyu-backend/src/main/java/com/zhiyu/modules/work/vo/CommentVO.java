@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 public class CommentVO {
 
     private Long id;
+    private Integer status;
+    private boolean mine;
     private String content;
     private String authorName;
     private LocalDateTime createTime;

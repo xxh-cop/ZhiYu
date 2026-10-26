@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AdminControllerTest {
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate authFixtureDb;
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,6 +45,7 @@ class AdminControllerTest {
     private ObjectMapper objectMapper;
 
     private String token(Long userId, int role) {
+        com.zhiyu.support.AuthenticatedTestUser.ensure(authFixtureDb,userId,role);
         return jwtUtil.createToken(userId, role);
     }
 

@@ -46,6 +46,8 @@ class EmotionServiceTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @org.junit.jupiter.api.BeforeEach void seedActiveOwners(){for(long id:new long[]{1001L,2002L})jdbcTemplate.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) VALUES(?,?,'unused','情绪测试',0,1,1,0)",id,"emotionowner"+id);}
+
     @Test
     @DisplayName("createSession：创建会话返回 ID")
     void testCreateSession() {

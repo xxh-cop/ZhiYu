@@ -83,10 +83,11 @@ class AiClientTest {
     }
 
     @Test
-    @DisplayName("streamChat：不走熔断，直接透传")
+    @DisplayName("streamChat：使用独立熔断资源并记录成功")
     void testStreamChat_PassThrough() {
         Consumer<String> onToken = s -> {};
         List<ChatMessage> history = List.of(ChatMessage.user("hi"));
+        when(breaker.allowRequest("llm-chat")).thenReturn(true);
 
         // doNothing — streamChat 返回 void
         doNothing().when(llmClient).streamChat(history, onToken);
@@ -94,9 +95,8 @@ class AiClientTest {
         aiClient.streamChat(history, onToken);
 
         verify(llmClient).streamChat(history, onToken);
-        // streamChat 不调 breaker.allowRequest / recordSuccess / recordFailure
-        verify(breaker, never()).allowRequest(any());
-        verify(breaker, never()).recordSuccess(any());
+        verify(breaker).allowRequest("llm-chat");
+        verify(breaker).recordSuccess("llm-chat");
         verify(breaker, never()).recordFailure(any());
     }
 }

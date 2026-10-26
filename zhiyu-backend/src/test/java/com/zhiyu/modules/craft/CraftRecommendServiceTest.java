@@ -43,6 +43,7 @@ import static org.mockito.Mockito.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
 class CraftRecommendServiceTest {
+    @Autowired org.springframework.jdbc.core.JdbcTemplate db;
 
     @Autowired
     private CraftRecommendService craftRecommendService;
@@ -220,6 +221,7 @@ class CraftRecommendServiceTest {
         p.setUpdateTime(LocalDateTime.now());
         p.setDeleted(0);
         craftProjectMapper.insert(p);
+        db.update("INSERT INTO craft_safety(id,project_id,medium,level,hazards,guidance,source,create_time,update_time,deleted) VALUES(?,?,'测试材料','LOW','','按步骤操作','测试夹具',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,0)",id+1000000,id);
     }
 
     private EmotionSession insertSession(String mood) {

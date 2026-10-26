@@ -37,6 +37,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WorkServiceImpl implements WorkService {
 
+    private final com.zhiyu.modules.work.service.WorkAudience audience;
+    private final org.springframework.jdbc.core.JdbcTemplate db;
+    private final com.zhiyu.ai.safety.ContentSafetyFilter safety;
     private final WorkMapper workMapper;
     private final WorkCommentMapper workCommentMapper;
     private final UserMapper userMapper;
@@ -44,13 +47,18 @@ public class WorkServiceImpl implements WorkService {
     private final CraftProjectMapper craftProjectMapper;
     private final AiClient aiClient;
     private final com.zhiyu.modules.file.MediaService media;
+    private final com.zhiyu.modules.work.mapper.WorkLikeMapper workLikeMapper;
 
     private static final String ANONYMOUS_NAME = "匿名同学";
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(noRollbackFor = BusinessException.class)
     public WorkVO publish(Long userId, WorkPublishReq req) {
-        if(req.getVisible()!=null && req.getVisible()!=0 && req.getVisible()!=1)throw new BusinessException(1001,"暂支持公开或仅自己可见");
+        if(req.getVisible()!=null && !List.of(0,1,2).contains(req.getVisible()))throw new BusinessException(1001,"请选择有效的可见范围");
+        if(Objects.equals(req.getVisible(),2))audience.member(req.getGroupId(),userId);
+        if(safety.checkInput(userId,null,"work",req.getTitle()+" "+Objects.toString(req.getMessage(),"")).getAction()==com.zhiyu.ai.safety.SafetyAction.BLOCK)throw new BusinessException(1001,"内容暂不适合发布，请调整后重试");
+        if(req.getCoverUrl()!=null&&req.getCoverUrl().startsWith("/api/media/"))media.requireOwned(userId,req.getCoverUrl());
+        else if(Objects.equals(req.getVisible(),2)&&req.getCoverUrl()!=null&&!req.getCoverUrl().isBlank())throw new BusinessException(1001,"小组作品请重新上传受保护的图片");
         // ── 媒体类型校验（批次 2） ──
         String mediaType = (req.getMediaType() == null || req.getMediaType().isBlank())
                 ? "image" : req.getMediaType().toLowerCase().trim();
@@ -127,12 +135,14 @@ public class WorkServiceImpl implements WorkService {
             // 但通过 session → emotion_session 查 mood 的链路逻辑待 M2 实现，
             // 当前传空字符串，Prompt 模板对空 mood 有兜底。
             String mood = "";
+            if(req.getSessionId()!=null){var moods=db.queryForList("SELECT e.mood FROM craft_session c JOIN emotion_session e ON e.id=c.emotion_session_id AND e.user_id=c.user_id AND e.deleted=0 WHERE c.id=? AND c.user_id=? AND c.deleted=0",String.class,req.getSessionId(),userId);if(!moods.isEmpty())mood=Objects.toString(moods.get(0),"");}
             String generated = aiClient.workMessage(req.getTitle(), mood);
             work.setMessage(generated);
             log.info("AI 生成寄语: workId(预)={}, title={}, message={}", work.getId(), req.getTitle(), generated);
         }
 
         workMapper.insert(work);
+        if(Objects.equals(work.getVisible(),2))audience.attach(work.getId(),req.getGroupId());
         log.info("发布作品: workId={}, userId={}, title={}, mediaType={}", work.getId(), userId, req.getTitle(), mediaType);
 
         return buildVO(work, getNickname(userId));
@@ -188,11 +198,10 @@ public class WorkServiceImpl implements WorkService {
         }
 
         // 2. 权限校验：visible=0（私密）只有作者能看
-        if (work.getVisible() != null && work.getVisible() != 1
-                && !userId.equals(work.getUserId())) {
+        if (!audience.canRead(work,userId)) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
-        // visible=2（仅小组）：M1 暂时当公开处理，不拦截
+        // 历史小组可见标记在成员授权接入前仅允许作者访问。
 
         // 3. 组装 VO
         String nickname = getNickname(work.getUserId());
@@ -204,6 +213,11 @@ public class WorkServiceImpl implements WorkService {
                 .eq(WorkComment::getStatus, 1);
         Long count = workCommentMapper.selectCount(commentWrapper);
         vo.setCommentCount(count != null ? count.intValue() : 0);
+        var interactions = workLikeMapper.selectList(new LambdaQueryWrapper<com.zhiyu.modules.work.entity.WorkLike>()
+                .eq(com.zhiyu.modules.work.entity.WorkLike::getWorkId, workId)
+                .eq(com.zhiyu.modules.work.entity.WorkLike::getUserId, userId));
+        vo.setLiked(interactions.stream().anyMatch(i -> Objects.equals(i.getType(), 1)));
+        vo.setFavorited(interactions.stream().anyMatch(i -> Objects.equals(i.getType(), 0)));
 
         return vo;
     }
@@ -245,13 +259,14 @@ public class WorkServiceImpl implements WorkService {
         WorkVO vo = new WorkVO();
         vo.setId(work.getId());
         vo.setTitle(work.getTitle());
-        vo.setCoverUrl(work.getCoverUrl());
+        vo.setCoverUrl(media.imageUrl(com.zhiyu.security.UserContext.getUserId(),work.getCoverUrl()));
         vo.setMediaType(work.getMediaType());
         vo.setVideoUrl(work.getVideoUrl());
         vo.setMessage(work.getMessage());
         vo.setAnonymous(work.getAnonymous() != null && work.getAnonymous() == 1);
         vo.setAuthorName(vo.getAnonymous() ? ANONYMOUS_NAME : (nickname != null ? nickname : ANONYMOUS_NAME));
         vo.setVisible(work.getVisible());
+        vo.setShareable(Objects.equals(work.getVisible(), 1) && Objects.equals(work.getStatus(), 1));
         vo.setLikeCount(work.getLikeCount());
         vo.setCommentCount(0); // 默认 0，由调用方覆盖
         vo.setCreateTime(work.getCreateTime());

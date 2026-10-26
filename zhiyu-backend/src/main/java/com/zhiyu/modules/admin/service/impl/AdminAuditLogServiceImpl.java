@@ -93,8 +93,8 @@ public class AdminAuditLogServiceImpl implements AdminAuditLogService {
         vo.setCreateTime(log.getCreateTime());
 
         // 解密 rawInput / aiOutput，失败时返回空字符串
-        vo.setRawInput(decryptSafely(log.getRawInput(), id, "rawInput"));
-        vo.setAiOutput(decryptSafely(log.getAiOutput(), id, "aiOutput"));
+        vo.setRawInput("[隐私保护：不提供原始输入]");
+        vo.setAiOutput("[隐私保护：不提供原始回复]");
 
         return vo;
     }

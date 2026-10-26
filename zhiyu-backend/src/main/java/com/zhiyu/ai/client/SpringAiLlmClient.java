@@ -31,17 +31,22 @@ import java.util.stream.Collectors;
 public class SpringAiLlmClient implements LlmClient {
 
     private final ChatClient chatClient;
+    private final com.zhiyu.modules.admin.service.RuntimeSettings settings;
+    private final String workPrompt;
+    private org.springframework.ai.chat.prompt.ChatOptions options(){return org.springframework.ai.chat.prompt.ChatOptions.builder().temperature(settings.number("model","temperature")).maxTokens((int)settings.number("model","maxTokens")).build();}
     private final String companionPrompt;
     private final String safetyPrompt;
     private final String recommendPrompt;
     private final String ragPrompt;
 
-    public SpringAiLlmClient(ChatClient.Builder builder,
+    public SpringAiLlmClient(ChatClient.Builder builder, com.zhiyu.modules.admin.service.RuntimeSettings settings,
                              @Qualifier("companionPrompt") String companionPrompt,
                              @Qualifier("safetyPrompt") String safetyPrompt,
                              @Qualifier("recommendPrompt") String recommendPrompt,
                              @Qualifier("ragPrompt") String ragPrompt) {
         this.chatClient = builder.build();
+        this.settings=settings;
+        try(var in=new org.springframework.core.io.ClassPathResource("prompts/work_message.st").getInputStream()){this.workPrompt=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}catch(java.io.IOException e){throw new IllegalStateException("寄语模板读取失败",e);}
         this.companionPrompt = companionPrompt;
         this.safetyPrompt = safetyPrompt;
         this.recommendPrompt = recommendPrompt;
@@ -53,10 +58,10 @@ public class SpringAiLlmClient implements LlmClient {
     public void streamChat(List<ChatMessage> history, Consumer<String> onToken) {
         // prepend 系统提示词到 history 最前面：companion.st（人设）+ safety.st（安全边界）
         List<ChatMessage> withSystem = new ArrayList<>(history.size() + 2);
-        withSystem.add(ChatMessage.system(companionPrompt));
+        withSystem.add(ChatMessage.system(companionPrompt+"\n"+settings.prompt("companion")));
         withSystem.add(ChatMessage.system(safetyPrompt));
         withSystem.addAll(history);
-        var promptBuilder = chatClient.prompt().messages(toSpringMessages(withSystem));
+        var promptBuilder = chatClient.prompt().options(options()).messages(toSpringMessages(withSystem));
         promptBuilder.stream().content().doOnNext(onToken).blockLast();
     }
 
@@ -66,23 +71,18 @@ public class SpringAiLlmClient implements LlmClient {
         String promptText = recommendPrompt
                 .replace("{mood}", mood)
                 .replace("{craftNames}", String.join("、", craftNames));
-        return chatClient.prompt().user(promptText).call().content();
+        return chatClient.prompt().options(options()).system(safetyPrompt).user(promptText+"\n"+settings.prompt("recommendation")).call().content();
     }
 
     @Override
     public String workMessage(String workTitle, String mood) {
-        // T1.1a 先硬编码 prompt；T1.1b/T1.3 外置到 prompts/work_message.st
-        String promptText = String.format(
-                "你是一位非遗艺术疗愈助手。用户刚完成了作品「%s」，" +
-                "创作时的心情是「%s」。请为ta写一段简短的寄语（不超过50字），" +
-                "肯定ta的专注与表达，语气温暖但不夸张。",
-                workTitle, mood);
-        return chatClient.prompt().user(promptText).call().content();
+        String promptText=workPrompt.replace("{workTitle}",workTitle).replace("{mood}",mood);
+        return chatClient.prompt().options(options()).system(safetyPrompt).user(promptText+"\n"+settings.prompt("work")).call().content();
     }
 
     @Override
     public String chat(String prompt) {
-        return chatClient.prompt().user(prompt).call().content();
+        return chatClient.prompt().options(options()).system(safetyPrompt).user(prompt).call().content();
     }
 
     /**

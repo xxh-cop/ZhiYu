@@ -21,6 +21,10 @@ public class MediaService {
  private final JdbcTemplate db;private final MediaStorage storage;private final byte[] secret;
  private static final Pattern REF=Pattern.compile("/api/media/(\\d+)/content");
  public MediaService(JdbcTemplate db,MediaStorage storage,@Value("${zhiyu.jwt.secret}") String secret){this.db=db;this.storage=storage;this.secret=secret.getBytes(StandardCharsets.UTF_8);}
+ public java.util.List<java.util.Map<String,Object>> mine(Long uid,Long before){requireUser(uid);var rows=db.queryForList("SELECT id,size_bytes,create_time,storage_key FROM media_asset WHERE user_id=? AND deleted=0 AND id<? ORDER BY id DESC LIMIT 50",uid,before==null?Long.MAX_VALUE:before);for(var row:rows){row.put("id",row.get("id").toString());row.put("kind",row.remove("storage_key").toString().endsWith(".mp4")?"video":"image");}return rows;}
+ public String contentType(long id){String key=db.queryForObject("SELECT storage_key FROM media_asset WHERE id=? AND deleted=0",String.class,id);return key.endsWith(".mp4")?"video/mp4":key.endsWith(".png")?"image/png":key.endsWith(".webp")?"image/webp":"image/jpeg";}
+ public String imageUrl(Long uid,String ref){if(ref!=null&&REF.matcher(ref).matches())return playback(uid,Long.parseLong(REF.matcher(ref).replaceAll("$1")));return ref;}
+ public String uploadImage(Long uid,MultipartFile file){requireUser(uid);if(file==null||file.isEmpty()||file.getSize()>5L*1024*1024)throw new BusinessException(1001,"请选择不超过 5MB 的图片");if(db.queryForObject("SELECT COUNT(*) FROM media_asset WHERE user_id=? AND create_time>=?",Long.class,uid,LocalDate.now().atStartOfDay())>=50)throw new BusinessException(1001,"今天的媒体上传次数已达上限");String key=null;try{byte[] bytes=file.getBytes();String ext;if(bytes.length>=8&&bytes[0]==(byte)0x89&&bytes[1]==80&&bytes[2]==78&&bytes[3]==71)ext="png";else if(bytes.length>=3&&bytes[0]==(byte)0xff&&bytes[1]==(byte)0xd8&&bytes[2]==(byte)0xff)ext="jpg";else if(bytes.length>=12&&new String(bytes,0,4,StandardCharsets.US_ASCII).equals("RIFF")&&new String(bytes,8,4,StandardCharsets.US_ASCII).equals("WEBP"))ext="webp";else throw new BusinessException(1001,"仅支持真实的 JPG、PNG 或 WebP 图片");key=UUID.randomUUID().toString().replace("-","")+"."+ext;storage.put(key,new java.io.ByteArrayInputStream(bytes));long id=IdWorker.getId();db.update("INSERT INTO media_asset(id,user_id,storage_key,size_bytes,create_time,update_time) VALUES(?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",id,uid,key,file.getSize());return reference(id);}catch(BusinessException e){throw e;}catch(Exception e){if(key!=null)try{storage.remove(key);}catch(Exception ignored){}throw new BusinessException(5000,"图片保存失败，请重试");}}
  public String upload(Long uid,MultipartFile file){
   requireUser(uid);
   if(file==null||file.isEmpty()||file.getSize()>50L*1024*1024)throw new BusinessException(1001,"请选择不超过 50MB 的 MP4 视频");
@@ -55,9 +59,10 @@ public class MediaService {
   requireUser(uid);var owners=db.queryForList("SELECT user_id FROM media_asset WHERE id=? AND deleted=0",Long.class,id);if(owners.isEmpty())throw new BusinessException(1004,"视频不存在");
   if(owners.get(0).equals(uid)||db.queryForObject("SELECT role FROM user WHERE id=?",Integer.class,uid)==3)return;
   String ref=reference(id);
-  if(db.queryForObject("SELECT COUNT(*) FROM work WHERE video_url=? AND deleted=0 AND status=1 AND visible=1",Long.class,ref)>0)return;
+  if(db.queryForObject("SELECT COUNT(*) FROM work WHERE (video_url=? OR cover_url=?) AND deleted=0 AND status=1 AND visible=1",Long.class,ref,ref)>0)return;
   if(db.queryForObject("SELECT COUNT(*) FROM craft_project WHERE video_url=? AND deleted=0 AND status=1",Long.class,ref)>0)return;
-  throw new BusinessException(1003,"此视频尚未公开或已下架");
+  if(db.queryForObject("SELECT COUNT(*) FROM work w JOIN group_work g ON g.work_id=w.id AND g.deleted=0 JOIN group_member m ON m.group_id=g.group_id AND m.deleted=0 JOIN support_group s ON s.id=g.group_id AND s.deleted=0 AND s.status=1 WHERE (w.video_url=? OR w.cover_url=?) AND w.deleted=0 AND w.status=1 AND w.visible=2 AND m.user_id=?",Long.class,ref,ref,uid)>0)return;
+  throw new BusinessException(1003,"此媒体尚未公开或已下架");
  }
  private String sign(long id,Long uid,long expires){try{Mac mac=Mac.getInstance("HmacSHA256");mac.init(new SecretKeySpec(secret,"HmacSHA256"));return HexFormat.of().formatHex(mac.doFinal(("media:"+id+":"+uid+":"+expires).getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}}
  private static String reference(long id){return "/api/media/"+id+"/content";}

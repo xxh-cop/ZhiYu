@@ -37,6 +37,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final String ROLE_PREFIX = "ROLE_";
 
     private final JwtUtil jwtUtil;
+    private final com.zhiyu.modules.auth.mapper.UserMapper userMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -48,7 +49,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String token = header.substring(BEARER_PREFIX.length()).trim();
                 LoginUser loginUser = jwtUtil.parseToken(token);
                 if (loginUser != null) {
-                    authenticate(loginUser);
+                    var current = userMapper.selectById(loginUser.getUserId());
+                    if (current != null && Integer.valueOf(1).equals(current.getStatus())) {
+                        authenticate(new LoginUser(current.getId(), current.getRole()));
+                    }
                 }
             }
             filterChain.doFilter(request, response);

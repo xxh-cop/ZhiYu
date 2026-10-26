@@ -11,6 +11,8 @@ import org.apache.ibatis.annotations.Update;
  */
 @Mapper
 public interface WorkMapper extends BaseMapper<Work> {
+    @org.apache.ibatis.annotations.Select("SELECT * FROM work WHERE id=#{id} AND deleted=0 FOR UPDATE")
+    Work lockById(@Param("id") Long id);
 
     /**
      * 原子更新点赞数（T1.8a）。

@@ -60,6 +60,9 @@ public class FileUploadController {
      * @param file 图片文件（jpg/jpeg/png/webp，≤5MB）
      * @return { url: "/uploads/images/yyyy/MM/dd/xxx.jpg" }
      */
+    @PostMapping("/upload/private-image")
+    public Result<java.util.Map<String,String>> privateImage(@RequestParam("file") MultipartFile file){return Result.success(java.util.Map.of("url",media.uploadImage(com.zhiyu.security.UserContext.getUserId(),file)));}
+
     @PostMapping("/upload/image")
     public Result<java.util.Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         return doUpload(file, "images", IMAGE_EXTENSIONS, IMAGE_MAX_SIZE);

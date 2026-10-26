@@ -44,8 +44,7 @@ import java.util.Map;
  *   <li>保存用户消息（加密）</li>
  *   <li>加载历史</li>
  *   <li>调 AiClient.streamChat，逐 token SSE 推送</li>
- *   <li>流结束后 <b>checkOutput</b> 检查完整回复（不阻塞流，事后审计；
- *       命中 REWRITE 仅记审计，已推送内容不改）</li>
+ *   <li>流结束后先检查完整回复，使用安全替换文本后再推送</li>
  *   <li>保存 AI 回复（加密）</li>
  *   <li>发 event: done</li>
  *   <li>异常发 event: error（HTTP 恒 200）</li>
@@ -61,6 +60,7 @@ public class EmotionController {
     /** 会话总结最大长度（取 AI 最后回复的前 N 字） */
     private static final int SUMMARY_MAX_LENGTH = 100;
 
+    private final com.zhiyu.security.BusinessAccess access;
     private final AiClient aiClient;
     private final EmotionService emotionService;
     private final ContentSafetyFilter safetyFilter;
@@ -70,11 +70,16 @@ public class EmotionController {
 
     @PostMapping(value = "/api/emotion/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chat(@Valid @RequestBody ChatDTO dto) {
-        Long userId = UserContext.getUserId();
+        Long userId = access.consentedUser();
+        if (dto.getSessionId() != null) access.emotionSession(dto.getSessionId(), userId);
+        var identity = UserContext.get();
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
 
         sseExecutor.execute(() -> {
+            var previousIdentity = UserContext.get();
+            UserContext.set(identity);
             try {
+                access.consentedUser();
                 // 危机检测标志（M3-B1：done 事件携带，前端据此决定是否展示援助入口）
                 boolean crisisDetected = false;
 
@@ -114,30 +119,21 @@ public class EmotionController {
                 // 4. 加载历史
                 List<ChatMessage> history = emotionService.loadRecentHistory(sessionId, 10);
 
-                // 5. 流式对话
+                // 完整检查后才向客户端发送，避免跨 token 的危险文本提前泄漏。
                 StringBuilder fullReply = new StringBuilder();
-                aiClient.streamChat(history, token -> {
-                    try {
-                        fullReply.append(token);
-                        emitter.send(SseEmitter.event().data(token));
-                    } catch (IOException e) {
-                        log.warn("SSE 发送 token 失败: {}", e.getMessage());
-                    }
-                });
-
-                // 6. 输出侧安全检查（事后审计；流式无法拦截，命中 REWRITE 仅记审计不改已推送内容）
+                aiClient.streamChat(history, fullReply::append);
                 SafetyResult outputResult = safetyFilter.checkOutput(userId, "chat", fullReply.toString());
-                if (outputResult.getAction() == SafetyAction.REWRITE) {
-                    crisisDetected = true;
-                    log.warn("AI 输出越界已记审计（已推送内容不改）: userId={}, sessionId={}",
-                            userId, sessionId);
+                String safeReply = fullReply.toString();
+                if (outputResult.getAction() != SafetyAction.PASS) {
+                    safeReply = outputResult.getRewrittenText();
+                    if (safeReply == null || safeReply.isBlank()) safeReply = "我在这里陪着你。我们可以先停一停，关注当下的感受。本系统不能替代专业心理咨询。";
+                    crisisDetected = outputResult.isHighRisk();
                 }
-
-                // 7. 保存 AI 回复（加密）
-                emotionService.appendMessage(sessionId, "assistant", fullReply.toString());
-
-                // 7a. 更新会话总结（正常路径：取 AI 回复前 100 字作为 summary，不改 status）
-                emotionService.updateSummary(sessionId, truncate(fullReply.toString()));
+                access.consentedUser();
+                access.emotionSession(sessionId, userId);
+                emotionService.appendMessage(sessionId, "assistant", safeReply);
+                emotionService.updateSummary(sessionId, truncate(safeReply));
+                emitter.send(SseEmitter.event().data(safeReply));
 
                 // 8. 发送 done 事件（携带 crisis 标志）
                 emitter.send(SseEmitter.event()
@@ -154,6 +150,8 @@ public class EmotionController {
                 } catch (IOException ignored) {
                 }
                 emitter.complete();
+            } finally {
+                if (previousIdentity == null) UserContext.clear(); else UserContext.set(previousIdentity);
             }
         });
 

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminWorkServiceImpl implements AdminWorkService {
 
+    private final com.zhiyu.modules.file.MediaService media;
     private final WorkMapper workMapper;
     private final UserMapper userMapper;
 
@@ -72,7 +73,7 @@ public class AdminWorkServiceImpl implements AdminWorkService {
                     vo.setUserId(w.getUserId());
                     vo.setAuthorName(finalNicknameMap.getOrDefault(w.getUserId(), ""));
                     vo.setTitle(w.getTitle());
-                    vo.setCoverUrl(w.getCoverUrl());
+                    vo.setCoverUrl(media.imageUrl(com.zhiyu.security.UserContext.getUserId(),w.getCoverUrl()));
                     vo.setMediaType(w.getMediaType());
                     vo.setVideoUrl(w.getVideoUrl());
                     vo.setVisible(w.getVisible());
@@ -125,7 +126,7 @@ public class AdminWorkServiceImpl implements AdminWorkService {
         vo.setId(work.getId());
         vo.setUserId(work.getUserId());
         vo.setTitle(work.getTitle());
-        vo.setCoverUrl(work.getCoverUrl());
+        vo.setCoverUrl(media.imageUrl(com.zhiyu.security.UserContext.getUserId(),work.getCoverUrl()));
         vo.setMediaType(work.getMediaType());
         vo.setVideoUrl(work.getVideoUrl());
         vo.setVisible(work.getVisible());

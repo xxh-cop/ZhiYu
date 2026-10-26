@@ -34,7 +34,7 @@ public class GrowthService {
     }
     private int role(long id){return db.queryForObject("SELECT role FROM user WHERE id=? AND deleted=0",Integer.class,id);}
     private void requireHost(long id){if(!List.of(1,2,3).contains(role(id)))throw new BusinessException(1003,"仅活动带领者可以操作");}
-    private void own(Map<String,Object> p,long uid){if(number(p.get("owner_id"))!=uid && role(uid)!=3)throw new BusinessException(1003,"仅主办人可以操作");}
+    private void own(Map<String,Object> p,long uid){requireHost(uid);if(number(p.get("owner_id"))!=uid && role(uid)!=3 && (p.get("id")==null || "GUIDANCE".equals(p.get("kind")) || !List.of(1,2).contains(role(uid)) || db.queryForObject("SELECT COUNT(*) FROM program_collaborator WHERE program_id=? AND user_id=? AND deleted=0",Integer.class,p.get("id"),uid)==0))throw new BusinessException(1003,"仅主办人可以操作");}
     private String encode(Object value){try{return crypto.encrypt(json.writeValueAsString(value));}catch(Exception e){throw new IllegalStateException("记录加密失败",e);}}
     private Map<String,Object> decode(String value){try{return json.readValue(crypto.decrypt(value),new TypeReference<>(){});}catch(Exception e){throw new IllegalStateException("记录读取失败",e);}}
     private void save(long uid,String kind,String key,Object payload){
@@ -80,7 +80,9 @@ public class GrowthService {
 
     public Map<String,Object> journey(){
         long uid=user(false);
-        var rows=db.queryForList("SELECT id,kind,record_key,payload,create_time,update_time FROM wellbeing_record WHERE user_id=? AND deleted=0 ORDER BY update_time DESC LIMIT 365",uid);
+        var rows=db.queryForList("SELECT id,kind,record_key,payload,create_time,update_time FROM wellbeing_record WHERE user_id=? AND deleted=0 ORDER BY update_time DESC,id DESC LIMIT 366",uid);
+        boolean truncated=rows.size()>365;
+        if(truncated)rows=rows.subList(0,365);
         List<Map<String,Object>> records=new ArrayList<>();
         for(var row:rows){var item=decode((String)row.get("payload"));item.put("id",row.get("id").toString());item.put("kind",row.get("kind"));item.put("key",row.get("record_key"));item.put("date",row.get("update_time").toString());records.add(item);}
         var summary=one("SELECT COUNT(*) AS completed,COALESCE(SUM(flow_seconds),0) AS flow_seconds,COUNT(DISTINCT CAST(end_time AS DATE)) AS days FROM craft_session WHERE user_id=? AND status=3 AND deleted=0",uid);
@@ -88,19 +90,19 @@ public class GrowthService {
         List<String> badges=new ArrayList<>();if(number(summary.get("completed"))>0)badges.add("第一份创作");if(number(summary.get("completed"))>=5)badges.add("五次专注");
         Set<String> days=new HashSet<>();for(var row:records)if("MOOD".equals(row.get("kind")))days.add(row.get("key").toString());
         int streak=0;LocalDate day=LocalDate.now(ZONE);if(!days.contains(day.toString()))day=day.minusDays(1);while(days.contains(day.toString())){streak++;day=day.minusDays(1);}if(streak>=7)badges.add("连续七天记录");
-        return Map.of("records",records,"completed",summary.get("completed"),"flowSeconds",summary.get("flow_seconds"),"days",summary.get("days"),"works",works,"badges",badges,"streak",streak,"limit",365);
+        return Map.of("records",records,"completed",summary.get("completed"),"flowSeconds",summary.get("flow_seconds"),"days",summary.get("days"),"works",works,"badges",badges,"streak",streak,"limit",365,"truncated",truncated);
     }
     @Transactional public void erase(){long uid=user(false);db.queryForObject("SELECT id FROM user WHERE id=? FOR UPDATE",Long.class,uid);db.update("DELETE FROM wellbeing_record WHERE user_id=?",uid);}
     private LocalDateTime date(Object value){if(value instanceof Timestamp t)return t.toLocalDateTime();return (LocalDateTime)value;}
     private Map<String,Object> publicProgram(Map<String,Object> row,long uid){
         Map<String,Object> v=new LinkedHashMap<>();for(String name:List.of("id","owner_id","kind","title","description","location","co_leader","materials","capacity","status"))v.put(name,row.get(name));
         v.put("id",row.get("id").toString());v.put("owner_id",row.get("owner_id").toString());v.put("start_time",date(row.get("start_time")).toString());v.put("end_time",date(row.get("end_time")).toString());
-        v.put("booked",db.queryForObject("SELECT COUNT(*) FROM program_booking WHERE program_id=? AND status<>'CANCELLED' AND deleted=0",Long.class,row.get("id")));
-        var mine=db.queryForList("SELECT status FROM program_booking WHERE program_id=? AND user_id=? AND deleted=0",row.get("id"),uid);v.put("myStatus",mine.isEmpty()?"":mine.get(0).get("status"));return v;
+        v.put("booked",db.queryForObject("SELECT COUNT(*) FROM program_booking WHERE program_id=? AND status IN ('PENDING','BOOKED','CHECKED_IN') AND deleted=0",Long.class,row.get("id")));
+        var mine=db.queryForList("SELECT id,status FROM program_booking WHERE program_id=? AND user_id=? AND deleted=0",row.get("id"),uid);v.put("myStatus",mine.isEmpty()?"":mine.get(0).get("status"));v.put("myBookingId",mine.isEmpty()?"":mine.get(0).get("id").toString());v.put("canManage",role(uid)==3 || number(row.get("owner_id"))==uid || (!"GUIDANCE".equals(row.get("kind")) && List.of(1,2).contains(role(uid)) && db.queryForObject("SELECT COUNT(*) FROM program_collaborator WHERE program_id=? AND user_id=? AND deleted=0",Integer.class,row.get("id"),uid)>0));return v;
     }
     public List<Map<String,Object>> programs(boolean manage){
         long uid=user(false);List<Map<String,Object>> rows;
-        if(manage){requireHost(uid);rows=role(uid)==3?db.queryForList("SELECT * FROM learning_program WHERE deleted=0 ORDER BY start_time DESC LIMIT 200"):db.queryForList("SELECT * FROM learning_program WHERE deleted=0 AND owner_id=? ORDER BY start_time DESC LIMIT 200",uid);}
+        if(manage){requireHost(uid);rows=role(uid)==3?db.queryForList("SELECT * FROM learning_program WHERE deleted=0 ORDER BY start_time DESC LIMIT 200"):db.queryForList("SELECT p.* FROM learning_program p WHERE p.deleted=0 AND (p.owner_id=? OR (p.kind<>'GUIDANCE' AND EXISTS(SELECT 1 FROM program_collaborator c WHERE c.program_id=p.id AND c.user_id=? AND c.deleted=0))) ORDER BY p.start_time DESC LIMIT 200",uid,uid);}
         else rows=db.queryForList("SELECT p.* FROM learning_program p WHERE p.deleted=0 AND (p.status='PUBLISHED' OR EXISTS(SELECT 1 FROM program_booking b WHERE b.program_id=p.id AND b.user_id=? AND b.deleted=0)) ORDER BY p.start_time DESC LIMIT 200",uid);
         return rows.stream().map(row->publicProgram(row,uid)).toList();
     }
@@ -109,7 +111,7 @@ public class GrowthService {
         if(!req.endTime().isAfter(req.startTime()) || req.endTime().isAfter(req.startTime().plusDays(90)))throw new BusinessException(1001,"结束时间须晚于开始时间，课程最长 90 天");
         if("GUIDANCE".equals(req.kind()) && req.capacity()!=1)throw new BusinessException(1001,"一对一时段名额必须为 1");
         long owner=uid;
-        if(id!=null){var existing=one("SELECT owner_id FROM learning_program WHERE id=? AND deleted=0",id);own(existing,uid);owner=number(existing.get("owner_id"));}
+        if(id!=null){var existing=one("SELECT * FROM learning_program WHERE id=? AND deleted=0",id);own(existing,uid);owner=number(existing.get("owner_id"));}
         db.queryForObject("SELECT id FROM user WHERE id=? FOR UPDATE",Long.class,owner);
         if("GUIDANCE".equals(req.kind()) && "PUBLISHED".equals(req.status())){
             long overlap=db.queryForObject("SELECT COUNT(*) FROM learning_program WHERE owner_id=? AND id<>? AND kind='GUIDANCE' AND status='PUBLISHED' AND deleted=0 AND start_time<? AND end_time>?",Long.class,owner,id==null?-1L:id,req.endTime(),req.startTime());
@@ -119,7 +121,7 @@ public class GrowthService {
             db.update("INSERT INTO learning_program(id,owner_id,kind,title,description,location,co_leader,materials,start_time,end_time,capacity,status,create_time,update_time,deleted) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)",id,uid,req.kind(),req.title(),req.description(),req.location(),Objects.toString(req.coLeader(),""),Objects.toString(req.materials(),""),req.startTime(),req.endTime(),req.capacity(),req.status(),now(),now());
         }else{
             var p=one("SELECT * FROM learning_program WHERE id=? AND deleted=0 FOR UPDATE",id);own(p,uid);
-            long booked=db.queryForObject("SELECT COUNT(*) FROM program_booking WHERE program_id=? AND status<>'CANCELLED' AND deleted=0",Long.class,id);
+            long booked=db.queryForObject("SELECT COUNT(*) FROM program_booking WHERE program_id=? AND status IN ('PENDING','BOOKED','CHECKED_IN') AND deleted=0",Long.class,id);
             if(booked>0 && (!req.startTime().equals(date(p.get("start_time"))) || !req.endTime().equals(date(p.get("end_time"))) || !req.kind().equals(p.get("kind")) || "DRAFT".equals(req.status())))throw new BusinessException(3001,"已有报名，不可改动日程、类型或撤回草稿；可取消活动");
             if(req.capacity()<booked)throw new BusinessException(3001,"容量不能小于已报名人数");
             db.update("UPDATE learning_program SET kind=?,title=?,description=?,location=?,co_leader=?,materials=?,start_time=?,end_time=?,capacity=?,status=?,update_time=? WHERE id=?",req.kind(),req.title(),req.description(),req.location(),Objects.toString(req.coLeader(),""),Objects.toString(req.materials(),""),req.startTime(),req.endTime(),req.capacity(),req.status(),now(),id);
@@ -131,15 +133,24 @@ public class GrowthService {
         if(cancel){if(!now().isBefore(date(p.get("start_time"))) && !"CANCELLED".equals(p.get("status")))throw new BusinessException(3001,"活动已开始，请联系主办人");db.update("UPDATE program_booking SET status='CANCELLED',update_time=? WHERE program_id=? AND user_id=?",now(),id,uid);return;}
         if(!"PUBLISHED".equals(p.get("status")) || !now().isBefore(date(p.get("start_time"))))throw new BusinessException(3001,"报名已结束或活动未开放");
         if(number(p.get("owner_id"))==uid)throw new BusinessException(3001,"主办人无需报名自己的活动");
-        if(!rows.isEmpty() && !"CANCELLED".equals(rows.get(0).get("status")))return;
-        long overlaps=db.queryForObject("SELECT COUNT(*) FROM program_booking b JOIN learning_program p ON p.id=b.program_id WHERE b.user_id=? AND b.status<>'CANCELLED' AND b.deleted=0 AND p.deleted=0 AND p.status='PUBLISHED' AND p.start_time<? AND p.end_time>?",Long.class,uid,date(p.get("end_time")),date(p.get("start_time")));
+        if(!rows.isEmpty() && List.of("PENDING","BOOKED","CHECKED_IN").contains(rows.get(0).get("status")))return;
+        long overlaps=db.queryForObject("SELECT COUNT(*) FROM program_booking b JOIN learning_program p ON p.id=b.program_id WHERE b.user_id=? AND b.status IN ('PENDING','BOOKED','CHECKED_IN') AND b.deleted=0 AND p.deleted=0 AND p.status='PUBLISHED' AND p.start_time<? AND p.end_time>?",Long.class,uid,date(p.get("end_time")),date(p.get("start_time")));
         if(overlaps>0)throw new BusinessException(3001,"该时间已有预约，请先取消冲突的安排");
-        long count=db.queryForObject("SELECT COUNT(*) FROM program_booking WHERE program_id=? AND status<>'CANCELLED' AND deleted=0",Long.class,id);
+        long count=db.queryForObject("SELECT COUNT(*) FROM program_booking WHERE program_id=? AND status IN ('PENDING','BOOKED','CHECKED_IN') AND deleted=0",Long.class,id);
         if(count>=number(p.get("capacity")))throw new BusinessException(3001,"名额已满，请选择其他时段");
-        if(rows.isEmpty())db.update("INSERT INTO program_booking(id,program_id,user_id,status,create_time,update_time,deleted) VALUES(?,?,?,'BOOKED',?,?,0)",IdWorker.getId(),id,uid,now(),now());
-        else db.update("UPDATE program_booking SET status='BOOKED',update_time=? WHERE id=?",now(),rows.get(0).get("id"));
+        String bookingStatus="GUIDANCE".equals(p.get("kind"))?"PENDING":"BOOKED";
+        if(rows.isEmpty())db.update("INSERT INTO program_booking(id,program_id,user_id,status,create_time,update_time,deleted) VALUES(?,?,?,?,?,?,0)",IdWorker.getId(),id,uid,bookingStatus,now(),now());
+        else {db.update("UPDATE guidance_channel SET enabled=0,update_time=CURRENT_TIMESTAMP WHERE booking_id=?",rows.get(0).get("id"));db.update("UPDATE program_booking SET status=?,update_time=? WHERE id=?",bookingStatus,now(),rows.get(0).get("id"));}
     }
-    public List<Map<String,Object>> attendees(long id){long uid=user(false);own(one("SELECT * FROM learning_program WHERE id=? AND deleted=0",id),uid);return db.queryForList("SELECT b.id,b.status,u.nickname FROM program_booking b JOIN user u ON u.id=b.user_id WHERE b.program_id=? AND b.deleted=0 AND b.status<>'CANCELLED' ORDER BY b.create_time",id).stream().map(row->{row.put("id",row.get("id").toString());return row;}).toList();}
+    @Transactional public void reviewBooking(long id,long booking,String decision){
+        long uid=user(false);requireHost(uid);
+        var p=one("SELECT * FROM learning_program WHERE id=? AND deleted=0 FOR UPDATE",id);own(p,uid);
+        if(!List.of("CONFIRM","REJECT").contains(decision))throw new BusinessException(1001,"请选择确认或拒绝");
+        if(!"GUIDANCE".equals(p.get("kind")) || !"PUBLISHED".equals(p.get("status")) || !now().isBefore(date(p.get("start_time"))))throw new BusinessException(3001,"仅可处理尚未开始的一对一预约");
+        int changed=db.update("UPDATE program_booking SET status=?,update_time=? WHERE id=? AND program_id=? AND status='PENDING' AND deleted=0","CONFIRM".equals(decision)?"BOOKED":"REJECTED",now(),booking,id);
+        if(changed!=1)throw new BusinessException(3001,"预约已处理或已取消，请刷新后查看");
+    }
+    public List<Map<String,Object>> attendees(long id){long uid=user(false);own(one("SELECT * FROM learning_program WHERE id=? AND deleted=0",id),uid);return db.queryForList("SELECT b.id,b.status,u.nickname FROM program_booking b JOIN user u ON u.id=b.user_id WHERE b.program_id=? AND b.deleted=0 ORDER BY b.create_time",id).stream().map(row->{row.put("id",row.get("id").toString());return row;}).toList();}
     @Transactional public void checkin(long id,long booking){long uid=user(false);var p=one("SELECT * FROM learning_program WHERE id=? AND deleted=0 FOR UPDATE",id);own(p,uid);
         if(!"PUBLISHED".equals(p.get("status")) || now().isBefore(date(p.get("start_time")).minusMinutes(30)) || now().isAfter(date(p.get("end_time")).plusHours(24)))throw new BusinessException(3001,"当前不在签到时间内");
         int changed=db.update("UPDATE program_booking SET status='CHECKED_IN',update_time=? WHERE id=? AND program_id=? AND status='BOOKED' AND deleted=0",now(),booking,id);if(changed==0)throw new BusinessException(3001,"报名记录不可签到或已经签到");}

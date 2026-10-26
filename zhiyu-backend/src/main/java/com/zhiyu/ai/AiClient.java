@@ -43,6 +43,36 @@ public class AiClient {
     private final LlmClient llmClient;
     private final CircuitBreakerStore breaker;
     private final ContentSafetyFilter contentSafetyFilter;
+    private com.zhiyu.ai.client.SpeechClient speechClient;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setSpeechClient(com.zhiyu.ai.client.SpeechClient speechClient) { this.speechClient=speechClient; }
+
+    public boolean speechAvailable() { return speechClient!=null && speechClient.available(); }
+
+    public String transcribe(byte[] audio,String mimeType) {
+        requireSpeech("asr");
+        String text;
+        try { text=speechClient.transcribe(audio,mimeType);breaker.recordSuccess("asr"); }
+        catch(RuntimeException e){breaker.recordFailure("asr");throw e;}
+        var input=contentSafetyFilter.checkInput(UserContext.getUserId(),null,"asr",text);
+        if(input.getAction()==SafetyAction.BLOCK)return input.getCareMessage();
+        return applyOutputSafety("asr",text);
+    }
+
+    public byte[] synthesize(String text) {
+        requireSpeech("tts");
+        var input=contentSafetyFilter.checkInput(UserContext.getUserId(),null,"tts",text);
+        String safe=input.getAction()==SafetyAction.BLOCK?input.getCareMessage():text;
+        safe=applyOutputSafety("tts",safe);
+        try{byte[] result=speechClient.synthesize(safe);breaker.recordSuccess("tts");return result;}
+        catch(RuntimeException e){breaker.recordFailure("tts");throw e;}
+    }
+
+    private void requireSpeech(String resource) {
+        if(!speechAvailable())throw new com.zhiyu.common.exception.BusinessException(4001,"语音服务尚未配置，请使用文字输入或文字引导");
+        if(!breaker.allowRequest(resource))throw new com.zhiyu.common.exception.BusinessException(4001,"语音服务暂时繁忙，请稍后重试");
+    }
 
     public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
                     ContentSafetyFilter contentSafetyFilter) {
@@ -55,7 +85,9 @@ public class AiClient {
     // ── 流式对话：不走熔断（流式无法简单降级到同步 fallback） ──
 
     public void streamChat(List<ChatMessage> history, Consumer<String> onToken) {
-        llmClient.streamChat(history, onToken);
+        if(!breaker.allowRequest("llm-chat"))throw new com.zhiyu.common.exception.BusinessException(4001,"对话服务暂时不可用");
+        try{llmClient.streamChat(history,onToken);breaker.recordSuccess("llm-chat");}
+        catch(RuntimeException e){breaker.recordFailure("llm-chat");throw e;}
     }
 
     // ── 推荐理由：走熔断 ──

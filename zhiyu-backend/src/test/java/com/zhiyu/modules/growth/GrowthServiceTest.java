@@ -22,7 +22,7 @@ class GrowthServiceTest {
     final ScaleCatalog scales=new ScaleCatalog();
     @BeforeEach void setup() throws Exception {
         var source=new DriverManagerDataSource("jdbc:h2:mem:growth"+UUID.randomUUID()+";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER","sa","");
-        try(var connection=source.getConnection()){ScriptUtils.executeSqlScript(connection,new FileSystemResource("../sql/schema-h2.sql"));}
+        try(var connection=source.getConnection()){ScriptUtils.executeSqlScript(connection,new FileSystemResource("src/test/resources/schema-h2.sql"));}
         db=new JdbcTemplate(source);tx=new TransactionTemplate(new DataSourceTransactionManager(source));
         service=new GrowthService(db,new ObjectMapper().findAndRegisterModules(),new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32])),scales);
         for(long id=1;id<=4;id++) db.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) VALUES(?,?,?,?,?,1,1,0)",id,"u"+id,"hash","测试"+id,id==1?1:0);
@@ -65,6 +65,13 @@ class GrowthServiceTest {
         var req=new GrowthRequests.Reflection(99L,"我的作品",2,4,"平静","",true);
         assertThrows(BusinessException.class,()->service.reflection(req));
     }
+    @Test void journeyExplicitlyReportsTruncationAndStableOrdering(){
+        var crypto=new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32]));
+        for(int i=0;i<366;i++)db.update("INSERT INTO wellbeing_record(id,user_id,kind,record_key,payload,create_time,update_time,deleted) VALUES(?,2,'MOOD',?,?,CURRENT_TIMESTAMP,'2026-10-01 12:00:00',0)",990000+i,"key"+i,crypto.encrypt("{\"mood\":3}"));
+        var result=service.journey();var records=(List<Map<String,Object>>)result.get("records");
+        assertEquals(true,result.get("truncated"));assertEquals(365,records.size());assertEquals("990365",records.get(0).get("id"));assertEquals("990001",records.get(364).get("id"));
+        login(3);assertEquals(false,service.journey().get("truncated"));assertTrue(((List<?>)service.journey().get("records")).isEmpty());
+    }
     @Test void bookingIsIdempotentCancellationReleasesSeatAndOverlapIsRejected(){
         long id=create(1),other=create(1);login(2);
         tx.executeWithoutResult(s->service.book(id,false));tx.executeWithoutResult(s->service.book(id,false));
@@ -84,6 +91,29 @@ class GrowthServiceTest {
         try{List<Future<Boolean>> futures=new ArrayList<>();for(long uid:new long[]{2,3})futures.add(pool.submit(()->{login(uid);gate.await();try{tx.executeWithoutResult(s->service.book(id,false));return true;}catch(BusinessException e){return false;}finally{UserContext.clear();}}));
             gate.countDown();int successes=0;for(var f:futures)if(f.get(10,TimeUnit.SECONDS))successes++;assertEquals(1,successes);
         }finally{pool.shutdownNow();}
+    }
+    @Test void guidanceRequiresConfirmationAndRejectReleasesSeat(){
+        login(1);var p=program(1);var req=new GrowthRequests.Program("GUIDANCE",p.title(),p.description(),p.location(),"","",p.startTime(),p.endTime(),1,"PUBLISHED");
+        long id=Long.parseLong(tx.execute(s->service.program(null,req)));
+        login(2);tx.executeWithoutResult(s->service.book(id,false));
+        long booking=db.queryForObject("SELECT id FROM program_booking WHERE program_id=?",Long.class,id);
+        assertEquals("PENDING",service.programs(false).get(0).get("myStatus"));
+        assertThrows(BusinessException.class,()->tx.executeWithoutResult(s->service.reviewBooking(id,booking,"CONFIRM")));
+        login(3);assertThrows(BusinessException.class,()->tx.executeWithoutResult(s->service.book(id,false)));
+        login(1);tx.executeWithoutResult(s->service.reviewBooking(id,booking,"REJECT"));
+        assertEquals(0L,service.programs(true).get(0).get("booked"));
+        assertThrows(BusinessException.class,()->tx.executeWithoutResult(s->service.reviewBooking(id,booking,"CONFIRM")));
+        login(3);tx.executeWithoutResult(s->service.book(id,false));
+        long next=db.queryForObject("SELECT id FROM program_booking WHERE program_id=? AND user_id=3",Long.class,id);
+        login(1);tx.executeWithoutResult(s->service.reviewBooking(id,next,"CONFIRM"));
+        login(3);assertEquals("BOOKED",service.programs(false).get(0).get("myStatus"));
+    }
+    @Test void cancelledPendingBookingCannotBeConfirmed(){
+        long id=create(1);db.update("UPDATE learning_program SET kind='GUIDANCE' WHERE id=?",id);
+        tx.executeWithoutResult(s->service.book(id,false));
+        long booking=db.queryForObject("SELECT id FROM program_booking WHERE program_id=?",Long.class,id);
+        tx.executeWithoutResult(s->service.book(id,true));login(1);
+        assertThrows(BusinessException.class,()->tx.executeWithoutResult(s->service.reviewBooking(id,booking,"CONFIRM")));
     }
     @Test void onlyHostCanReadAttendeesAndCheckInWithinWindow(){
         long id=create(2);tx.executeWithoutResult(s->service.book(id,false));
