@@ -1,0 +1,114 @@
+/* Shared business-page layout. Scoped to business screens, not Vben internals. */
+.zy-business-page,
+.zy-workspace {
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  --el-color-primary: var(--zy-admin-primary);
+}
+.dark .zy-business-page,
+.dark .zy-workspace {
+  --zy-admin-primary: #a5b4fc;
+  --zy-admin-muted: #a6b1c2;
+}
+.zy-business-page {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 24px;
+  color: var(--zy-admin-title);
+  .zy-business-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  .zy-business-heading h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 4px 0 8px;
+  }
+  .zy-business-eyebrow {
+    color: var(--zy-admin-primary);
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin: 0;
+  }
+  .zy-business-description {
+    font-size: 13px;
+    color: var(--zy-admin-text);
+    margin: 0;
+  }
+  > .el-card {
+    border: 1px solid var(--zy-admin-border);
+    border-radius: 12px;
+    background: var(--zy-admin-card-bg);
+  }
+  .zy-filter-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .zy-filter-content {
+    flex-wrap: wrap;
+  }
+  .el-table {
+    --el-table-header-bg-color: var(--zy-admin-bg);
+    --el-table-header-text-color: var(--zy-admin-text);
+    --el-table-border-color: var(--zy-admin-border);
+  }
+  .el-table th.el-table__cell {
+    height: 48px;
+    font-weight: 600;
+  }
+  .el-table td.el-table__cell {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+  .el-pagination {
+    padding-top: 16px;
+    border-top: 1px solid var(--zy-admin-border);
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+  .el-button:focus-visible {
+    outline: 2px solid var(--zy-admin-primary);
+    outline-offset: 3px;
+  }
+}
+@media (max-width: 640px) {
+  .zy-business-page {
+    padding: 16px;
+  }
+  .zy-business-page .zy-business-heading {
+    align-items: flex-start;
+  }
+  .zy-business-page .el-card__body {
+    padding: 16px;
+  }
+  .zy-business-page .zy-filter-content > .el-input,
+  .zy-business-page .zy-filter-content > .el-select {
+    width: 100% !important;
+  }
+  .el-dialog {
+    max-width: calc(100vw - 32px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zy-business-page *,
+  .zy-workspace * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Shared brand family: same primary, surfaces and typography as the student app. */
+:root{--zy-primary:#2f7566;--zy-bg:#f5f7f2;--zy-card:#fff;--zy-text:#233d34;--zy-muted:#586e62;--zy-border:#dfe7dc;--el-color-primary:#2f7566;--el-border-radius-base:10px;--el-font-family:"Inter","PingFang SC","Microsoft YaHei",sans-serif}
+html:not(.dark) .zy-business-page{background:var(--zy-bg);color:var(--zy-text)}
+html:not(.dark) .el-card{border-color:var(--zy-border);border-radius:18px;box-shadow:none} .el-button{border-radius:10px}.el-table{--el-table-header-bg-color:var(--el-fill-color-light)}
+
+/* Shared brand and accessible focus for the campus workspace. */
+html:not(.dark){--el-color-primary:#2f7566;--el-color-primary-light-9:#eef4ef;--el-text-color-primary:#233d34;--el-text-color-regular:#586e62;--el-text-color-secondary:#586e62;--el-color-danger:#aa463b;}
+.zy-business-page :is(button,a,input,textarea):focus-visible{outline:2px solid var(--el-color-primary);outline-offset:3px;}
+@media(prefers-reduced-motion:reduce){.zy-business-page *{animation:none!important;scroll-behavior:auto!important;transition:none!important;}}

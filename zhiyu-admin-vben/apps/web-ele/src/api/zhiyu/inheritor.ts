@@ -15,6 +15,7 @@ export namespace InheritorApi {
     category?: string;
     therapyTags?: string;
     coverUrl?: string;
+    videoUrl?: string;
   }
   export interface StepBody {
     stepNo: number;
@@ -30,6 +31,7 @@ export namespace InheritorApi {
     id: number | string;
     title: string;
     coverUrl?: string;
+    videoUrl?: string;
     category?: string;
     status: number;
     createTime: string;

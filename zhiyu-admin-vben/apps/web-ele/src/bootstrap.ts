@@ -15,6 +15,7 @@ import { useTitle } from '@vueuse/core';
 import ElementPlus from 'element-plus';
 // eslint-disable-next-line -- 「织愈」页面使用 el-table 等原生 EP 组件，需完整样式
 import 'element-plus/dist/index.css';
+import './styles/business.scss';
 import { ElLoading } from 'element-plus';
 
 import { $t, setupI18n } from '#/locales';

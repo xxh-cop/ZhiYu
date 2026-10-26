@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import VideoPreview from "./components/VideoPreview.vue";
+const videoToReview=ref('');
+import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import { computed, onMounted, ref } from 'vue';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -41,6 +44,7 @@ const keyword = ref('');
 /** 表格 */
 const tableData = ref<any[]>([]);
 const loading = ref(false);
+const filtersVisible = ref(true);
 const errorMsg = ref('');
 
 /** 分页 */
@@ -83,7 +87,9 @@ function formatTime(dt?: string) {
 }
 
 /** 拉取列表 */
+let listRequest = 0;
 async function fetchList() {
+  const requestId = ++listRequest;
   loading.value = true;
   errorMsg.value = '';
   try {
@@ -92,14 +98,16 @@ async function fetchList() {
     if (filterVisible.value !== '') params.visible = filterVisible.value;
     if (keyword.value.trim()) params.keyword = keyword.value.trim();
     const data = await getWorkList(params);
+    if (requestId !== listRequest) return;
     tableData.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
+    if (requestId !== listRequest) return;
     errorMsg.value = (e && e.message) || '加载失败';
     tableData.value = [];
     total.value = 0;
   } finally {
-    loading.value = false;
+    if (requestId === listRequest) loading.value = false;
   }
 }
 
@@ -157,12 +165,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
-    <h2 class="m-0 text-xl font-semibold">作品管理</h2>
+  <div class="zy-business-page flex flex-col gap-4">
+    <BusinessPageHeader title="作品管理" description="维护社区作品与内容展示状态。" :loading="loading" @refresh="fetchList" />
 
     <!-- 筛选栏 -->
     <el-card shadow="never">
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="zy-filter-heading"><span>筛选条件</span><el-button link type="primary" :aria-expanded="filtersVisible" @click="filtersVisible = !filtersVisible">{{ filtersVisible ? '收起筛选' : '展开筛选' }}</el-button></div>
+      <div v-show="filtersVisible" class="zy-filter-content flex flex-wrap items-center gap-3">
         <el-select
           v-model="filterStatus"
           placeholder="状态"
@@ -218,7 +227,7 @@ onMounted(() => {
             {{ row.anonymous === 1 ? '匿名同学' : (row.authorName || '-') }}
           </template>
         </el-table-column>
-        <el-table-column label="封面" width="80">
+        <el-table-column label="视频" width="110"><template #default="{row}"><el-button v-if="row.mediaType==='video' && row.videoUrl" link type="primary" @click="videoToReview=row.videoUrl">查看视频</el-button><span v-else>—</span></template></el-table-column><el-table-column label="封面" width="80">
           <template #default="{ row }">
             <el-image
               v-if="row.coverUrl"
@@ -252,7 +261,7 @@ onMounted(() => {
         <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button
-              v-if="isAdmin && row.status === 2"
+              v-if="isAdmin && row.status !== 1"
               type="success"
               link
               size="small"
@@ -293,4 +302,4 @@ onMounted(() => {
       />
     </el-card>
   </div>
-</template>
+<el-dialog :model-value="!!videoToReview" title="创作视频审核" width="min(720px, 94vw)" @close="videoToReview=''"> <VideoPreview v-if="videoToReview" :src="videoToReview"/><p>请确认内容与授权情况后，再通过审核。</p></el-dialog></template>

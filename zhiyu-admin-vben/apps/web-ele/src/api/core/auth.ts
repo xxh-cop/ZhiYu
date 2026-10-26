@@ -1,4 +1,4 @@
-import { baseRequestClient, requestClient } from '#/api/request';
+import { requestClient } from '#/api/request';
 
 export namespace AuthApi {
   export interface LoginParams {
@@ -35,7 +35,7 @@ export async function loginApi(data: AuthApi.LoginParams) {
  * 「织愈」后端无此接口，preferences 中已关闭 enableRefreshToken，
  * 此函数不应被调用；保留以兼容 Vben 类型定义
  */
-export async function refreshTokenApi() {
+export async function refreshTokenApi(): Promise<{ data: string }> {
   throw new Error('Refresh token is not supported by ZhiYu backend');
 }
 

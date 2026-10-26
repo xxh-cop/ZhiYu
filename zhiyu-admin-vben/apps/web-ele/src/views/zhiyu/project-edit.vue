@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import VideoUpload from "./components/VideoUpload.vue";
+const videoBusy=ref(false);
+import CraftSafetyEditor from './components/CraftSafetyEditor.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -49,6 +52,7 @@ const form = ref<InheritorApi.ProjectCreateBody>({
   category: '',
   therapyTags: '',
   coverUrl: '',
+  videoUrl: '',
 });
 
 /** 步骤列表 */
@@ -226,6 +230,7 @@ async function handleDeleteMaterial(material: InheritorApi.MaterialItem) {
 
 // ── 保存基础信息 ──
 async function handleSaveBasic() {
+  if(videoBusy.value){ElMessage.warning("请等待视频上传完成");return;}
   if (!form.value.title.trim()) {
     ElMessage.warning('请填写项目标题');
     return;
@@ -264,6 +269,7 @@ async function fetchDetail() {
       category: data.category || '',
       therapyTags: data.therapyTags || '',
       coverUrl: data.coverUrl || '',
+      videoUrl: data.videoUrl || '',
     };
     steps.value = data.steps || [];
     materials.value = data.materials || [];
@@ -324,7 +330,7 @@ watch(projectId, (newId) => {
     <!-- 非待审状态提示 -->
     <el-alert
       v-if="!isNew && !editable"
-      title="该项目已上架或下架，无法编辑"
+      title="该项目已上架或下架，基础信息暂不可编辑；仍可维护材料安全说明"
       type="info"
       :closable="false"
       show-icon
@@ -333,6 +339,7 @@ watch(projectId, (newId) => {
     <!-- Tab 区域 -->
     <el-card shadow="never">
       <el-tabs v-model="activeTab">
+ <el-tab-pane v-if="projectId" label="材料安全" name="safety"><CraftSafetyEditor :project-id="projectId" /></el-tab-pane>
         <!-- Tab 1: 基础信息 -->
         <el-tab-pane label="基础信息" name="basic">
           <el-form
@@ -398,7 +405,8 @@ watch(projectId, (newId) => {
                 style="width: 320px"
               />
             </el-form-item>
-            <el-form-item label="封面图 URL">
+            <el-form-item label="教学视频"><VideoUpload v-model="form.videoUrl" :disabled="!editable" @busy="videoBusy=$event"/></el-form-item>
+          <el-form-item label="封面图 URL">
               <el-input
                 v-model="form.coverUrl"
                 placeholder="图片 URL 地址"

@@ -20,6 +20,11 @@ import { useAuthStore } from '#/store';
 import { refreshTokenApi } from './core';
 
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
+// Fresh Vben checkouts may retain the template demo endpoint in ignored env files.
+// Never send work accounts to that external demo service.
+const businessApiURL = !apiURL || /^https?:\/\/mock-napi\.vben\.pro(?:\/|$)/i.test(apiURL)
+  ? '/api'
+  : apiURL;
 
 function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   const client = new RequestClient({
@@ -106,8 +111,8 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   return client;
 }
 
-export const requestClient = createRequestClient(apiURL, {
+export const requestClient = createRequestClient(businessApiURL, {
   responseReturn: 'data',
 });
 
-export const baseRequestClient = new RequestClient({ baseURL: apiURL });
+export const baseRequestClient = new RequestClient({ baseURL: businessApiURL });

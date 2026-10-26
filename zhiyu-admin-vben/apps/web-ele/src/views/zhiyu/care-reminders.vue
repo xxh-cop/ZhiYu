@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import { onMounted, ref } from 'vue';
 
 import { ElMessage } from 'element-plus';
+import { requestClient } from '#/api/request';
 
 import { getCareReminders } from '#/api/zhiyu/admin';
 
@@ -16,6 +18,7 @@ const filterStatus = ref<number | string>('');
 /** 表格数据 */
 const tableData = ref<any[]>([]);
 const loading = ref(false);
+const filtersVisible = ref(true);
 const errorMsg = ref('');
 
 /** 分页 */
@@ -46,7 +49,9 @@ function statusTagType(status: number) {
 }
 
 /** 拉取列表 */
+let listRequest = 0;
 async function fetchList() {
+  const requestId = ++listRequest;
   loading.value = true;
   errorMsg.value = '';
   try {
@@ -55,14 +60,16 @@ async function fetchList() {
       params.status = filterStatus.value;
     }
     const data = await getCareReminders(params);
+    if (requestId !== listRequest) return;
     tableData.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
+    if (requestId !== listRequest) return;
     errorMsg.value = (e && e.message) || '加载失败';
     tableData.value = [];
     total.value = 0;
   } finally {
-    loading.value = false;
+    if (requestId === listRequest) loading.value = false;
   }
 }
 
@@ -78,9 +85,11 @@ function handlePageChange(page: number) {
   fetchList();
 }
 
-function handleView(row: any) {
-  ElMessage.info(`关怀提醒 #${row.id} 详情功能开发中`);
-}
+const detail=ref<any>(null),drawer=ref(false),busy=ref(false),detailError=ref('');
+const actionLabels:Record<string,string>={CLAIM:'领取任务',REVIEWED:'已查看并评估',CONTACTED:'记录已联系',REFERRED:'记录已转介',CLOSE:'完成任务',REOPEN:'重新打开'};
+async function handleView(row:any){drawer.value=true;detail.value=null;detailError.value='';try{detail.value=await requestClient.get('/admin/care-reminders/'+row.id);}catch(e:any){detailError.value=e.message||'详情加载失败';}}
+async function follow(action:string){if(!detail.value||busy.value)return;busy.value=true;try{const id=detail.value.id;await requestClient.post('/admin/care-reminders/'+id+'/followups',{action});ElMessage.success('跟进已保存');detail.value=await requestClient.get('/admin/care-reminders/'+id);await fetchList();}catch(e:any){ElMessage.error(e.message||'操作失败');}finally{busy.value=false;}}
+
 
 onMounted(() => {
   fetchList();
@@ -88,14 +97,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
-    <h2 class="m-0 text-xl font-semibold">关怀提醒</h2>
+  <div class="zy-business-page flex flex-col gap-4">
+    <BusinessPageHeader title="关怀提醒" description="在授权范围内查看脱敏摘要，及时跟进关怀。" :loading="loading" @refresh="fetchList" />
     <p class="m-0 text-sm text-gray-500 leading-relaxed">
       以下为系统自动生成的脱敏汇总，供授权角色查看。原始对话内容已加密存储，不在此展示。
     </p>
 
     <el-card shadow="never">
-      <div class="flex items-center gap-3">
+      <div class="zy-filter-heading"><span>筛选条件</span><el-button link type="primary" :aria-expanded="filtersVisible" @click="filtersVisible = !filtersVisible">{{ filtersVisible ? '收起筛选' : '展开筛选' }}</el-button></div>
+      <div v-show="filtersVisible" class="zy-filter-content flex flex-wrap items-center gap-3">
         <el-select
           v-model="filterStatus"
           placeholder="状态"
@@ -159,5 +169,16 @@ onMounted(() => {
         @current-change="handlePageChange"
       />
     </el-card>
+    <el-drawer v-model="drawer" title="关怀跟进" size="min(560px, 100vw)">
+      <el-alert v-if="detailError" :title="detailError" type="error" :closable="false" />
+      <template v-if="detail"><el-alert :title="Number(detail.can_contact)===1?'用户已授权联系；记录联系前仍会校验授权':'用户未授权联系，请尊重其选择'" :type="Number(detail.can_contact)===1?'success':'warning'" :closable="false"/>
+      <p class="my-4 leading-relaxed">{{detail.summary}}</p>
+      <p>任务状态：{{detail.state==='CLOSED'?'已完成':detail.claimed?'已领取':'待领取'}}</p>
+      <div class="my-4 flex flex-wrap gap-2"><el-button v-if="!detail.claimed" type="primary" :loading="busy" @click="follow('CLAIM')">领取任务</el-button>
+      <template v-else-if="detail.state!=='CLOSED'"><el-button v-for="a in ['REVIEWED','CONTACTED','REFERRED','CLOSE']" :key="a" :disabled="busy||(a==='CONTACTED'&&Number(detail.can_contact)!==1)" @click="follow(a)">{{actionLabels[a]}}</el-button></template>
+      <el-button v-else :loading="busy" @click="follow('REOPEN')">重新打开</el-button></div>
+      <el-timeline class="mt-6"><el-timeline-item v-for="(e,i) in detail.events" :key="i" :timestamp="formatTime(e.create_time)">{{actionLabels[e.action]||e.action}}</el-timeline-item></el-timeline>
+      <p class="text-sm text-gray-500">只记录处理动作，不收集可识别个人身份的跟进正文。本系统不能替代专业心理咨询。</p></template>
+    </el-drawer>
   </div>
 </template>

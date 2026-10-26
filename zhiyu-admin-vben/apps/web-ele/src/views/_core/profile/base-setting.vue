@@ -3,13 +3,11 @@ import { onMounted, ref } from 'vue';
 
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import {
   ElButton,
   ElCard,
   ElInput,
-  ElOption,
-  ElSelect,
   ElTag,
 } from 'element-plus';
 

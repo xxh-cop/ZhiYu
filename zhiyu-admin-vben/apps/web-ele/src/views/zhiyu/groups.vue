@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import { computed, onMounted, ref } from 'vue';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -33,6 +34,7 @@ const keyword = ref('');
 /** 表格 */
 const tableData = ref<any[]>([]);
 const loading = ref(false);
+const filtersVisible = ref(true);
 const errorMsg = ref('');
 
 /** 分页 */
@@ -47,7 +49,9 @@ function formatTime(dt?: string) {
 }
 
 /** 拉取列表 */
+let listRequest = 0;
 async function fetchList() {
+  const requestId = ++listRequest;
   loading.value = true;
   errorMsg.value = '';
   try {
@@ -55,14 +59,16 @@ async function fetchList() {
     if (filterStatus.value !== '') params.status = filterStatus.value;
     if (keyword.value.trim()) params.keyword = keyword.value.trim();
     const data = await getGroupList(params);
+    if (requestId !== listRequest) return;
     tableData.value = data.records || [];
     total.value = data.total || 0;
   } catch (e: any) {
+    if (requestId !== listRequest) return;
     errorMsg.value = (e && e.message) || '加载失败';
     tableData.value = [];
     total.value = 0;
   } finally {
-    loading.value = false;
+    if (requestId === listRequest) loading.value = false;
   }
 }
 
@@ -120,12 +126,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
-    <h2 class="m-0 text-xl font-semibold">小组管理</h2>
+  <div class="zy-business-page flex flex-col gap-4">
+    <BusinessPageHeader title="小组管理" description="维护互助空间，连接共同创作的伙伴。" :loading="loading" @refresh="fetchList" />
 
     <!-- 筛选栏 -->
     <el-card shadow="never">
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="zy-filter-heading"><span>筛选条件</span><el-button link type="primary" :aria-expanded="filtersVisible" @click="filtersVisible = !filtersVisible">{{ filtersVisible ? '收起筛选' : '展开筛选' }}</el-button></div>
+      <div v-show="filtersVisible" class="zy-filter-content flex flex-wrap items-center gap-3">
         <el-select
           v-model="filterStatus"
           placeholder="状态"
