@@ -1,0 +1,23 @@
+-- Additive migration; no existing records are rewritten.
+CREATE TABLE IF NOT EXISTS campus_verification (
+ id BIGINT NOT NULL PRIMARY KEY, user_id BIGINT NOT NULL UNIQUE,
+ school VARCHAR(100) NOT NULL, college VARCHAR(100) NOT NULL,
+ identity_cipher TEXT NOT NULL, status VARCHAR(20) NOT NULL,
+ review_reason VARCHAR(300) NOT NULL DEFAULT '', reviewer_id BIGINT DEFAULT NULL,
+ create_time DATETIME NOT NULL, update_time DATETIME NOT NULL, deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS care_case (
+ id BIGINT NOT NULL PRIMARY KEY, reminder_id BIGINT NOT NULL UNIQUE,
+ owner_id BIGINT DEFAULT NULL, state VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+ create_time DATETIME NOT NULL, update_time DATETIME NOT NULL, deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS care_followup (
+ id BIGINT NOT NULL PRIMARY KEY, reminder_id BIGINT NOT NULL, actor_id BIGINT NOT NULL,
+ action VARCHAR(20) NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS admin_operation_log (
+ id BIGINT NOT NULL PRIMARY KEY, actor_id BIGINT NOT NULL, action VARCHAR(100) NOT NULL,
+ target_id BIGINT DEFAULT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0
+);

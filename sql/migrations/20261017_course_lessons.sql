@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS course_lesson (
+ id BIGINT NOT NULL PRIMARY KEY,
+ program_id BIGINT NOT NULL,
+ chapter VARCHAR(100) NOT NULL,
+ title VARCHAR(100) NOT NULL,
+ position INT NOT NULL,
+ content TEXT NOT NULL,
+ project_id BIGINT DEFAULT NULL,
+ published TINYINT NOT NULL DEFAULT 0,
+ create_time DATETIME NOT NULL,
+ update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS lesson_progress (
+ id BIGINT NOT NULL PRIMARY KEY,
+ lesson_id BIGINT NOT NULL,
+ user_id BIGINT NOT NULL,
+ completed TINYINT NOT NULL DEFAULT 0,
+ create_time DATETIME NOT NULL,
+ update_time DATETIME NOT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_lesson_user (lesson_id,user_id)
+);

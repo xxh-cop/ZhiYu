@@ -292,3 +292,7 @@ INSERT INTO craft_safety(id,project_id,medium,level,hazards,guidance,source,crea
 COMMIT;
 
 -- 原创纸艺为一般材料分类，不作非遗认证。
+
+-- 2026-10-20: runtime_config uses validated application defaults when empty.
+-- Do not seed credentials or overwrite administrator revisions.
+-- Collaboration, guidance, companion and cleanup tables contain user-created records only.
