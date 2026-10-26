@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>提供 2 个接口：
  * <ul>
- *   <li>GET /api/admin/audit-logs       — 审计日志分页查询（role ∈ {2,3}）</li>
+ *   <li>GET /api/admin/audit-logs       — 审计日志分页查询（仅 role=3）</li>
  *   <li>GET /api/admin/audit-logs/{id}  — 审计日志详情（仅 role=3）</li>
  * </ul>
  *
- * <p>权限：{@code /api/admin/**} 已由 {@code SecurityConfig} 限定 role ∈ {1,2,3}，
- * 详情接口（GET /api/admin/audit-logs/*）由 SecurityConfig 精确匹配限定 role=3。
+ * <p>权限：{@code /api/admin/**} 默认仅 role=3，本控制器未做任何放宽；
+ * 列表与详情都要求管理员（role=3）。
  */
 @Slf4j
 @RestController

@@ -62,6 +62,43 @@ class BusinessWorkflowTest {
   assertFalse(care.detail(970020L).containsKey("user_id"));
   actor(970001,1);assertThrows(BusinessException.class,()->care.detail(970020L));
  }
+ @Test void careDetailEnforcesCaseOwnership(){
+  jdbc.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,can_contact,deleted) VALUES(970004,'workflow4','unused','test',2,1,1,0,0)");
+  // 咨询师看不到未领取 case（避免 summary 在咨询师之间横向泄露）
+  actor(970002,2);
+  BusinessException unclaimed=assertThrows(BusinessException.class,()->care.detail(970020L));
+  assertEquals(1003,unclaimed.getCode().intValue());
+  // 领取后可读自己的 case
+  care.follow(970020L,"CLAIM");
+  assertEquals("OPEN",care.detail(970020L).get("state"));
+  assertEquals(true,care.detail(970020L).get("mine"));
+  // 其他咨询师跨 case 读取被拒
+  actor(970004,2);
+  BusinessException foreign=assertThrows(BusinessException.class,()->care.detail(970020L));
+  assertEquals(1003,foreign.getCode().intValue());
+  // 管理员可读全部
+  actor(970003,3);
+  assertTrue(care.detail(970020L).containsKey("summary"));
+  // 学生角色一律拒绝
+  actor(970000,0);
+  assertThrows(BusinessException.class,()->care.detail(970020L));
+ }
+ @Test void deletedCareCaseIsNotReusedOnFollow(){
+  jdbc.update("INSERT INTO care_case(id,reminder_id,owner_id,state,create_time,update_time,deleted) VALUES(970030,970020,970001,'CLOSED',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,1)");
+  actor(970002,2);
+  care.follow(970020L,"CLAIM");
+  Long owner=jdbc.queryForObject("SELECT owner_id FROM care_case WHERE reminder_id=970020 AND deleted=0",Long.class);
+  assertEquals(970002L,owner.longValue(),"软删除 case 的 owner 不应被沿用");
+  assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM care_case WHERE reminder_id=970020",Integer.class));
+ }
+ @Test void accessRejectsDisabledAndDeletedUser(){
+  jdbc.update("UPDATE user SET status=0 WHERE id=970000");
+  BusinessException disabled=assertThrows(BusinessException.class,()->access.user());
+  assertEquals(1002,disabled.getCode().intValue());
+  jdbc.update("UPDATE user SET status=1,deleted=1 WHERE id=970000");
+  BusinessException deleted=assertThrows(BusinessException.class,()->access.user());
+  assertEquals(1002,deleted.getCode().intValue());
+ }
  @Test void ownershipRejectsOtherUser(){
   access.emotionSession(970010L,970000L);
   assertThrows(BusinessException.class,()->access.emotionSession(970010L,970001L));

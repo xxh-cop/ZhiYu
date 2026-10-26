@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>提供 4 个接口：
  * <ul>
- *   <li>GET    /api/admin/works            — 作品分页列表（role ∈ {2,3}）</li>
- *   <li>GET    /api/admin/works/{id}       — 作品详情（role ∈ {2,3}）</li>
+ *   <li>GET    /api/admin/works            — 作品分页列表（仅 role=3）</li>
+ *   <li>GET    /api/admin/works/{id}       — 作品详情（仅 role=3）</li>
  *   <li>PUT    /api/admin/works/{id}/status — 变更状态（仅 role=3）</li>
  *   <li>DELETE /api/admin/works/{id}       — 逻辑删除（仅 role=3）</li>
  * </ul>

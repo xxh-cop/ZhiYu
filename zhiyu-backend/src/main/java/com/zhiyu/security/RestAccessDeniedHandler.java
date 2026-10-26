@@ -17,8 +17,8 @@ import java.io.IOException;
 /**
  * 权限不足出口：返回 <b>HTTP 403 + body {@code Result(1003)}</b>。
  *
- * <p>触发场景：<b>已认证</b>但角色不够。当前唯一例子是学生（role=0）访问
- * {@code /api/admin/**}（要求 role ∈ {1,2,3}，见 AGENTS.md §3.1 与 B7 口径）。
+ * <p>触发场景：<b>已认证</b>但角色不够。例如学生（role=0）访问
+ * {@code /api/admin/**}（默认仅 role=3），或咨询师（role=2）访问非关怀任务的管理端接口。
  *
  * <p>未认证（匿名）访问受保护接口走的是 {@link RestAuthenticationEntryPoint}（401），
  * 不会走到这里 —— 这是 {@code ExceptionTranslationFilter} 的标准行为。

@@ -20,16 +20,15 @@ import org.springframework.web.bind.annotation.*;
  * <p>提供 7 个接口：
  * <ul>
  *   <li>POST   /api/admin/users            — 创建用户（仅 role=3）</li>
- *   <li>GET    /api/admin/users            — 用户分页列表（role ∈ {2,3}）</li>
- *   <li>GET    /api/admin/users/{id}       — 用户详情（role ∈ {2,3}）</li>
+ *   <li>GET    /api/admin/users            — 用户分页列表（仅 role=3）</li>
+ *   <li>GET    /api/admin/users/{id}       — 用户详情（仅 role=3）</li>
  *   <li>PUT    /api/admin/users/{id}       — 编辑用户（仅 role=3）</li>
  *   <li>PUT    /api/admin/users/{id}/status — 切换状态（仅 role=3）</li>
  *   <li>PUT    /api/admin/users/{id}/role   — 变更角色（仅 role=3）</li>
  *   <li>DELETE /api/admin/users/{id}       — 逻辑删除（仅 role=3）</li>
  * </ul>
  *
- * <p>权限：{@code /api/admin/**} 已由 {@code SecurityConfig} 限定 role ∈ {1,2,3}，
- * 敏感操作（PUT/DELETE）由 SecurityConfig 精确匹配限定 role=3。
+ * <p>权限：{@code /api/admin/users/**} 由 {@code SecurityConfig} 限定仅 role=3。
  */
 @Slf4j
 @RestController

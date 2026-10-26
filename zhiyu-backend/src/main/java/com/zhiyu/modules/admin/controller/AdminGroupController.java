@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>提供 4 个接口：
  * <ul>
- *   <li>GET    /api/admin/groups            — 小组分页列表（role ∈ {2,3}）</li>
- *   <li>GET    /api/admin/groups/{id}       — 小组详情（role ∈ {2,3}）</li>
+ *   <li>GET    /api/admin/groups            — 小组分页列表（仅 role=3）</li>
+ *   <li>GET    /api/admin/groups/{id}       — 小组详情（仅 role=3）</li>
  *   <li>PUT    /api/admin/groups/{id}/status — 变更状态（仅 role=3）</li>
  *   <li>DELETE /api/admin/groups/{id}       — 逻辑删除（仅 role=3）</li>
  * </ul>

@@ -32,9 +32,18 @@ import java.util.List;
  *   <li>{@code STATELESS}：不建 HttpSession，每个请求都靠 token 自证。</li>
  *   <li>放行清单只有注册与登录；其余一律 {@code authenticated()}，
  *       新增公开接口必须在这里显式放行（默认拒绝，避免"忘了加鉴权"）。</li>
- *   <li>{@code /api/admin/**} 要求 role ∈ {1,2,3}（AGENTS.md §3.1 / B7 口径）；
- *       role=0 的学生 → 403 + {@code Result(1003)}。</li>
+ *   <li>{@code /api/admin/**} 默认仅管理员（role=3）。只有明确需要的接口才显式放宽：
+ *     <ul>
+ *       <li>关怀任务 {@code /api/admin/care-reminders/**} —— role ∈ {2,3}
+ *           （咨询师可领取/跟进，服务层再做 case 归属校验）</li>
+ *       <li>其余管理端接口（用户/审核/日志/配置/作品/小组/传承人管理）—— 仅 role=3</li>
+ *     </ul>
+ *     传承人自己的项目/步骤/材料维护在 {@code /api/inheritor/**}，仍仅 role=1。
+ *     role=0 的学生访问任何 {@code /api/admin/**} → 403 + {@code Result(1003)}。</li>
  * </ul>
+ *
+ * <p>规则顺序：先写方法级/路径级窄规则，最后才是 {@code /api/admin/**} 兜底；
+ * Spring Security 按声明顺序首个命中生效，窄规则必须在宽规则之前。
  */
 @Configuration
 @EnableWebSecurity
@@ -53,9 +62,6 @@ public class SecurityConfig {
 
     private static final List<String> ALLOWED_METHODS =
             List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
-
-    /** 允许访问管理端的角色码（AGENTS.md §3.1：1 传承人 / 2 咨询师 / 3 管理员）。 */
-    private static final String[] ADMIN_ROLES = {"ROLE_1", "ROLE_2", "ROLE_3"};
 
     private final JwtUtil jwtUtil;
     private final com.zhiyu.modules.auth.mapper.UserMapper userMapper;
@@ -106,12 +112,15 @@ public class SecurityConfig {
                         // 小组敏感操作：仅管理员（role=3）
                         .requestMatchers(HttpMethod.PUT, "/api/admin/groups/*/status").hasAuthority("ROLE_3")
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/groups/*").hasAuthority("ROLE_3")
-                        // 传承人端接口：仅传承人（role=1）可访问
+                        // 传承人端接口：仅传承人（role=1）可访问（项目/步骤/材料/课程维护）
                         .requestMatchers("/api/inheritor/**").hasAuthority("ROLE_1")
+                        // 唯一放宽到咨询师的 /api/admin 接口：关怀任务（服务层再校验 case 归属）
                         .requestMatchers("/api/admin/care-reminders", "/api/admin/care-reminders/**").hasAnyAuthority("ROLE_2", "ROLE_3")
+                        // 其余管理端接口一律仅管理员（role=3）
                         .requestMatchers("/api/admin/campus-verifications/**", "/api/admin/campus-verifications", "/api/admin/operation-logs", "/api/admin/users/**", "/api/admin/users", "/api/admin/audit-logs", "/api/admin/config/**").hasAuthority("ROLE_3")
                         .requestMatchers("/api/admin/comments", "/api/admin/comments/**").hasAuthority("ROLE_3")
-                        .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN_ROLES)
+                        // 兜底：/api/admin/** 只允许 role=3（role=0/1/2 → 403 + Result(1003)）
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_3")
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint(authenticationEntryPoint)

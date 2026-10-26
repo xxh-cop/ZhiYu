@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>提供 4 个接口：
  * <ul>
- *   <li>GET /api/admin/inheritors            — 传承人分页列表（role ∈ {2,3}）</li>
- *   <li>GET /api/admin/inheritors/{id}       — 传承人详情（role ∈ {2,3}）</li>
+ *   <li>GET /api/admin/inheritors            — 传承人分页列表（仅 role=3）</li>
+ *   <li>GET /api/admin/inheritors/{id}       — 传承人详情（仅 role=3）</li>
  *   <li>PUT /api/admin/inheritors/{id}/verify — 认证/取消认证（仅 role=3）</li>
  *   <li>PUT /api/admin/inheritors/{id}       — 编辑传承人资料（仅 role=3）</li>
  * </ul>

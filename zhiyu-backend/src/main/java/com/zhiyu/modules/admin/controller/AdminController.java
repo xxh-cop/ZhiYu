@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.*;
  *   <li>GET  /api/admin/dashboard/stats       — 数据看板指标</li>
  * </ul>
  *
- * <p>权限：Spring Security 已配置 {@code /api/admin/**} 要求 role ∈ {1,2,3}，
- * 接口 2（audit）由 SecurityConfig 精确匹配 PUT 方法限定 role=3（仅管理员）。
+ * <p>权限：Spring Security 默认要求 {@code /api/admin/**} 为 role=3；
+ * 仅接口 3（care-reminders）显式放行 role ∈ {2,3}，接口 2（audit）仍仅 role=3。
  */
 @Slf4j
 @RestController
