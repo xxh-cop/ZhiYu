@@ -208,7 +208,11 @@ components:
         sessionId: { type: integer, nullable: true }
         title: { type: string }
         message: { type: string, nullable: true, description: AI 寄语，可由系统生成 }
-        visible: { type: integer, enum: [0, 1, 2], description: 0私密 1公开 2仅小组, default: 1 }
+        visible: { type: integer, enum: [0, 1, 2], description: 0私密 1公开 2仅指定小组, default: 1 }
+        groupId: { type: string, pattern: '^[1-9][0-9]{0,18}$', nullable: true, description: visible为2时必填，必须属于当前有效小组 }
+        mediaType: { type: string, enum: [image, video, text], default: image }
+        coverUrl: { type: string, nullable: true, description: 小组图片须使用受保护媒体引用，禁止外部公开图片链接 }
+        videoUrl: { type: string, nullable: true, description: 本人上传的视频引用，视频发布后须审核 }
         anonymous:
           type: boolean
           default: true
@@ -252,6 +256,9 @@ components:
         authorName: { type: string, description: 匿名时为"匿名同学" }
         anonymous: { type: boolean }
         visible: { type: integer, enum: [0, 1, 2] }
+        liked: { type: boolean, description: 详情接口返回当前用户是否已点赞 }
+        favorited: { type: boolean, description: 详情接口返回当前用户是否已收藏 }
+        shareable: { type: boolean, description: 仅审核通过且公开的作品可分享，接收者仍需登录且重新校验访问权限 }
         likeCount: { type: integer }
         commentCount: { type: integer }
         createTime: { type: string, format: date-time }
@@ -268,8 +275,11 @@ components:
 
     CommentVO:
       type: object
+      description: 新评论待审核，列表仅返回公开评论及本人评论。
       properties:
         id: { type: integer, format: int64 }
+        status: {type: integer, enum: [0, 1, 2], description: '0 待审核，1 已公开，2 已隐藏'}
+        mine: {type: boolean, description: 是否为当前用户的评论}
         content: { type: string }
         authorName: { type: string }
         createTime: { type: string, format: date-time }
@@ -388,8 +398,418 @@ components:
         psychCenterName: { type: string, description: 学校心理中心名称 }
         nationalHotlineName: { type: string, description: 全国心理援助热线名称 }
 paths:
+  /api/growth/programs/{id}/feedback:
+    parameters:
+      - {in: path, name: id, required: true, schema: {type: string}}
+    get:
+      operationId: growthProgramsByIdFeedbackGet
+      summary: 查看本人的活动反馈及填写资格
+      security: [{bearerAuth: []}]
+      responses:
+        '200': {description: 'Result.data 包含 title、kind、eligible、reason、feedback；feedback 为本人评分及私密笔记或 null'}
+    put:
+      operationId: growthProgramsByIdFeedbackPut
+      summary: 已签到参加者在活动结束后保存反馈
+      description: 一人一份，可修改；评分和笔记加密存储。笔记仅本人可见，非一对一活动达到五份反馈后向主办人提供评分汇总。未授权、未签到、未结束或取消活动不可提交。
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating, consent]
+              properties:
+                rating: {type: integer, minimum: 1, maximum: 5}
+                note: {type: string, maxLength: 1000}
+                consent: {type: boolean, enum: [true]}
+      responses:
+        '200': {description: Result}
+        '403': {description: 未授权保存个人记录}
+    delete:
+      operationId: growthProgramsByIdFeedbackDelete
+      summary: 删除本人反馈正文并停止计入汇总
+      security: [{bearerAuth: []}]
+      responses:
+        '200': {description: Result}
+  /api/growth/programs/{id}/feedback-summary:
+    get:
+      operationId: growthProgramsByIdFeedbackSummaryGet
+      summary: 主办人或管理员查看评分汇总，不返回个人笔记
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: 'Result.data 包含 visible、count、minimum=5、reason；visible=true 时包含 average、distribution。少于五份、一对一或取消活动不返回评分。'}
+        '403': {description: 非主办人或管理员}
+  /api/works/mine:
+    get:
+      operationId: worksMineGet
+      summary: 查看本人所有未撤回作品及审核状态
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: query, name: page, schema: {type: integer, minimum: 1, default: 1}}
+        - {in: query, name: status, schema: {type: integer, enum: [0, 1, 2]}}
+      responses:
+        '200': {description: 'Result.data 含 records、total、counts。每页 12 条，id 为字符串；状态 0 待审核、1 正常、2 已下架；visible=0 仅自己可见。'}
+        '401': {description: 未登录}
+  /api/works/{id}/withdraw:
+    post:
+      operationId: worksByIdWithdrawPost
+      summary: 作者撤回作品及其评论互动
+      description: 逻辑删除本人作品、相关评论和点赞收藏，评论正文清除；社区详情与互动不可访问。视频文件可被其他作品复用，不在此删除原文件；视频访问按当前公开引用重新鉴权。撤回不可恢复。
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Result}
+        '403': {description: 不可撤回他人作品}
+        '404': {description: 作品已不存在}
+  /api/admin/comments:
+    get:
+      operationId: adminCommentsGet
+      summary: 管理员分页查看评论审核队列
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: query, name: page, schema: {type: integer, minimum: 1, default: 1}}
+        - {in: query, name: status, schema: {type: integer, enum: [0, 1, 2], default: 0}}
+      responses:
+        '200': {description: 'Result.data 包含 records、total；状态 0 待审核、1 公开、2 隐藏'}
+        '403': {description: 仅管理员可访问}
+  /api/admin/comments/{id}/review:
+    post:
+      operationId: adminCommentsByIdReviewPost
+      summary: 审核评论并记录管理操作
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, expectedStatus]
+              properties:
+                status: {type: integer, enum: [1, 2]}
+                expectedStatus: {type: integer, enum: [0, 1, 2]}
+      responses:
+        '200': {description: 'Result，0 成功，3001 状态已变化；已删除或下架作品不可通过评论'}
+        '403': {description: 仅管理员可访问}
+  /api/works/{id}/comments/{commentId}:
+    delete:
+      operationId: worksByIdCommentsByCommentIdDelete
+      summary: 作者撤回自己的评论并清除正文
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string}}
+        - {in: path, name: commentId, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Result；新评论状态为 0，列表仅包含公开评论和本人评论，额外返回 status 与 mine}
+        '403': {description: 无权删除他人评论}
+  /api/groups/{id}:
+    get:
+      operationId: groupsByIdGet
+      summary: 成员查看小组详情和成员昵称，非成员不可访问
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result，data 含小组信息、myRole、本人成员编号 myMemberId（字符串）和 members'}
+  /api/groups/{id}/leave:
+    post:
+      operationId: groupsByIdLeavePost
+      summary: 退出小组；组长须先转让，最后一人退出会关闭小组
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result；退出后不可读取组内交流，重新加入可恢复成员资格'}
+  /api/groups/{id}/leader:
+    put:
+      operationId: groupsByIdLeaderPut
+      summary: 组长将管理权转让给另一名有效成员
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [memberId]
+              properties:
+                memberId: {type: integer, format: int64}
+      responses:
+        '200': {description: 'Result'}
+  /api/groups/{id}/messages:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+    get:
+      operationId: groupsByIdMessagesGet
+      summary: 成员读取最近五十条组内消息，可通过 before 游标读取更早消息
+      parameters:
+        - {name: before, in: query, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result，data 为消息数组，正文加密存储，仅成员可读'}
+    post:
+      operationId: groupsByIdMessagesPost
+      summary: 发送组内消息，需隐私同意且通过安全检查
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: {type: string, minLength: 1, maxLength: 1000}
+      responses:
+        '200': {description: 'Result'}
+  /api/groups/{id}/messages/{messageId}:
+    delete:
+      operationId: groupsByIdMessagesByMessageIdDelete
+      summary: 消息作者或组长删除消息，其他成员无权删除
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+        - {name: messageId, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result'}
+  /api/speech/status:
+    get:
+      operationId: speechStatusGet
+      summary: 语音服务能力状态，不返回密钥或服务地址
+      responses:
+        '200': {description: 'Result，data 含 available、message'}
+  /api/speech/transcribe:
+    post:
+      operationId: speechTranscribePost
+      summary: 经统一 AI 门面识别音频，未配置返回 4001，不保存音频文件
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '200': {description: 'Result，data.text 为已检查文本，最多 2000 字；音频最多 5MB'}
+  /api/speech/synthesize:
+    post:
+      operationId: speechSynthesizePost
+      summary: 经统一 AI 门面合成已检查文本，未配置返回 4001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: {type: string, minLength: 1, maxLength: 2000}
+      responses:
+        '200': {description: 'Result，data.audioBase64 和 mimeType，音频最多 5MB；不落盘'}
+  /api/admin/config/speech:
+    get:
+      operationId: adminConfigSpeechGet
+      summary: 管理员查看语音网关配置状态与所需环境变量，不回传配置值
+      responses:
+        '200': {description: 'Result，配置步骤与可用状态'}
+  /api/growth/programs/{id}/bookings/{bookingId}/review:
+    post:
+      operationId: reviewGuidanceBooking
+      summary: 主办人确认或拒绝待确认的一对一预约
+      description: 一对一新预约为 PENDING，占用名额和日程；确认变为 BOOKED，拒绝变为 REJECTED 并释放名额。已确认的历史预约保持不变。仅开放且未开始的活动允许审核，重复审核返回 3001。
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string, pattern: '^[0-9]+$'}}
+        - {in: path, name: bookingId, required: true, schema: {type: string, pattern: '^[0-9]+$'}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: {type: string, enum: [CONFIRM, REJECT]}
+      responses:
+        '200': {description: 'Result，成功为 0，非法状态为 3001'}
+        '400': {description: 参数错误}
+        '401': {description: 未登录}
+        '403': {description: 非主办人或管理员}
+  /api/growth/programs/{id}/lessons:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+    get:
+      operationId: growthProgramsByIdLessonsGet
+      summary: 查看课程章节，报名学生可查看发布课节，主办人和管理员可查看草稿
+      responses:
+        '200': {description: 'Result，data 为章节数组，含本人完成状态'}
+    post:
+      operationId: growthProgramsByIdLessonsPost
+      summary: 主办人或管理员新增课程章节
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, chapter, position, content, published]
+              properties:
+                title: {type: string, maxLength: 100}
+                chapter: {type: string, maxLength: 100}
+                position: {type: integer, minimum: 1, maximum: 999}
+                content: {type: string, maxLength: 10000}
+                projectId: {type: integer, format: int64, nullable: true}
+                published: {type: boolean}
+      responses:
+        '200': {description: 'Result，data.id 为新增课节编号'}
+  /api/growth/programs/{id}/lessons/{lessonId}:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      - {name: lessonId, in: path, required: true, schema: {type: integer, format: int64}}
+    put:
+      operationId: growthProgramsByIdLessonsByLessonIdPut
+      summary: 主办人或管理员编辑课节，字段同新增课节
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [title, chapter, position, content, published]}
+      responses:
+        '200': {description: 'Result'}
+    delete:
+      operationId: growthProgramsByIdLessonsByLessonIdDelete
+      summary: 主办人或管理员删除课节，相关学习进度不再计入
+      responses:
+        '200': {description: 'Result'}
+  /api/growth/programs/{id}/lessons/{lessonId}/progress:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      - {name: lessonId, in: path, required: true, schema: {type: integer, format: int64}}
+    put:
+      operationId: growthProgramsByIdLessonsByLessonIdProgressPut
+      summary: 报名学生主动标记完成或继续学习，状态仅代表本人确认
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [completed]
+              properties:
+                completed: {type: boolean}
+      responses:
+        '200': {description: 'Result；未报名或课程已取消时拒绝'}
+  /api/campus/verification:
+    get:
+      operationId: campusVerificationGet
+      summary: 查看本人校园身份申请，证件信息仅本人和管理员可见
+      responses:
+        '200': {description: 'Result，data 为申请或 null'}
+    post:
+      operationId: campusVerificationPost
+      summary: 提交或重新提交校园身份审核，不改变用户角色
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [school, college, studentNumber, realName]
+              properties:
+                school: {type: string, maxLength: 100}
+                college: {type: string, maxLength: 100}
+                studentNumber: {type: string, maxLength: 40}
+                realName: {type: string, maxLength: 40}
+      responses:
+        '200': {description: 'Result，PENDING；已批准申请不能重提'}
+  /api/admin/campus-verifications:
+    get:
+      operationId: adminCampusVerificationsGet
+      summary: 管理员分页查看校园身份申请
+      parameters:
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+      responses:
+        '200': {description: 'Result，data 包含 records、total；仅 role 3'}
+  /api/admin/campus-verifications/{id}/review:
+    post:
+      operationId: adminCampusVerificationsByIdReviewPost
+      summary: 管理员审核待处理申请，重复审核被拒绝并记录操作审计
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, reason]
+              properties:
+                decision: {type: string, enum: [APPROVED, REJECTED]}
+                reason: {type: string, minLength: 1, maxLength: 300}
+      responses:
+        '200': {description: 'Result'}
+  /api/admin/care-reminders/{id}:
+    get:
+      operationId: adminCareRemindersByIdGet
+      summary: 咨询师或管理员查看脱敏关怀详情、授权状态、负责人和跟进事件
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result；不返回原始对话和学生身份'}
+  /api/admin/care-reminders/{id}/followups:
+    post:
+      operationId: adminCareRemindersByIdFollowupsPost
+      summary: 领取、记录跟进、完成或重新打开关怀任务
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: {type: string, enum: [CLAIM, REVIEWED, CONTACTED, REFERRED, CLOSE, REOPEN]}
+      responses:
+        '200': {description: 'Result；只有负责人或管理员可跟进；CONTACTED 需用户仍授权联系'}
+  /api/emotion/sessions:
+    get:
+      operationId: emotionSessionsGet
+      summary: 分页查看本人情绪会话摘要，需隐私同意
+      parameters:
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+      responses:
+        '200': {description: 'Result，data 含 records、total'}
+  /api/emotion/sessions/{id}:
+    get:
+      operationId: emotionSessionsByIdGet
+      summary: 查看本人的会话和最近消息，禁止跨用户访问
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result，data 含 session、messages'}
+    delete:
+      operationId: emotionSessionsByIdDelete
+      summary: 删除本人会话及消息，保留独立安全审计
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result'}
+  /api/admin/operation-logs:
+    get:
+      operationId: adminOperationLogsGet
+      summary: 管理员分页查看操作元数据，不记录请求体与敏感信息
+      parameters:
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+      responses:
+        '200': {description: 'Result，data 含 records、total'}
   /api/files/upload/video:
     post:
+      operationId: filesUploadVideoPost
       summary: 上传 MP4 视频到私有本地存储
       description: '已登录且启用的用户；最大 50MB；每日最多 20 次；返回稳定引用。社区视频新发布为待审，传承人视频随项目审核。'
       requestBody:
@@ -407,6 +827,7 @@ paths:
         '401': {description: 未登录}
   /api/media/{id}/playback:
     get:
+      operationId: mediaByIdPlaybackGet
       summary: 为当前有权观看的用户生成限时视频播放地址
       parameters:
         - {name: id, in: path, required: true, schema: {type: string}}
@@ -415,6 +836,7 @@ paths:
         '403': {description: 无权查看未审核或私密视频}
   /api/media/{id}/content:
     get:
+      operationId: mediaByIdContentGet
       summary: 校验限时签名和当前权限后传输 MP4，支持 Range
       parameters:
         - {name: id, in: path, required: true, schema: {type: string}}
@@ -427,6 +849,7 @@ paths:
         '403': {description: 签名过期或权限已撤销}
   /api/admin/dashboard/operations:
     get:
+      operationId: adminDashboardOperationsGet
       tags: [Admin]
       summary: 管理员运营图表汇总
       description: '数据库实时聚合，Asia/Shanghai 自然日；所有查询排除逻辑删除。返回 totals、daily（date/users/works/sessions/finished）、categories、projectStates、sessionStates、programKinds、bookingStates、generatedAt。分类元素为 name/value。仅管理员可访问，不包含个人身份或心理原文。'
@@ -447,6 +870,7 @@ paths:
           description: 非管理员，code 1003
   /api/admin/starter-quality:
     get:
+      operationId: adminStarterQualityGet
       tags: [Admin]
       summary: 原创入门内容的创作过程汇总
       description: '仅管理员可读。基于入门目录对应项目全部未删除创作会话计算，data 包含 started、finished、paused、abandoned、completionRate（无会话为 null）。不包含身份、心理内容或疗效推断。'
@@ -457,6 +881,7 @@ paths:
           description: 无管理员权限，code 1003
   /api/craft/starter:
     get:
+      operationId: craftStarterGet
       tags: [Craft]
       summary: 已上架的原创入门练习与材料准备说明
       description: '仅返回资源目录中且数据库已上架未删除的项目；id 为字符串，含 title、minutes、medium、tools、places、materials（name、qty、substitute）、steps（title、guide、rescue、diagram）、source（label、url）、authorship。时间是编辑估计，不作疗效承诺。'
@@ -469,6 +894,7 @@ paths:
           description: 账号不可用，code 1003
   /api/craft/session/active:
     get:
+      operationId: craftSessionActiveGet
       tags: [Craft]
       summary: 本人可继续的创作会话
       description: 仅返回本人进行中或暂停且项目仍上架的最近 20 条；不包含情绪会话或心理记录。
@@ -514,7 +940,7 @@ paths:
         '200':
           description: 'Result.data.items 最多 200 项；含 id/title/category/medium/level/hazards/guidance/source/estMinutes；未标注时 level=UNKNOWN；truncated 表示有更多项目'
         '401': {description: '1002 未登录'}
-  "/api/growth/journey": {"get":{"operationId":"growth1","summary":"本人记录、真实创作统计与成就","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
+  "/api/growth/journey": {"get":{"operationId":"growth1","summary":"本人记录、真实创作统计与成就","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result.data 包含 records、limit=365、truncated（还有较早记录未返回）及真实创作统计。按更新时间与ID倒序返回最近365条本人记录；date为北京时间。量表趋势须按scale和version分别比较，草稿不计入。id字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
   "/api/growth/records": {"delete":{"operationId":"growth2","summary":"永久清除本人成长记录（不删除作品或审计日志）","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
   "/api/growth/mood": {"put":{"operationId":"growth3","summary":"保存当天本人心情（服务端加密）","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}},"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"mood":{"type":"integer","minimum":1,"maximum":5},"note":{"type":"string","maxLength":500},"consent":{"type":"boolean"}},"required":["mood","consent"],"additionalProperties":false}}}}}}
   "/api/growth/scales": {"get":{"operationId":"growth4","summary":"可用量表与版本及来源","tags":["Growth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Result 包装；code=0 成功，1001 参数错误，1003 无权限，1004 不存在，3001 状态冲突。id 字段以字符串返回。","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Result"}}}},"400":{"description":"参数校验失败"},"401":{"description":"未登录"},"403":{"description":"无权限"}}}}
@@ -594,27 +1020,14 @@ paths:
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- 情绪 ----------
-  /api/emotion/sessions:
-    get:
-      operationId: emotionSessionList
-      summary: 当前用户会话历史列表
-      responses:
-        '200':
-          description: 会话列表
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Result' }
-        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-
   /api/emotion/chat:
     post:
       operationId: emotionChat
       summary: AI 情绪对话（SSE 流式）
       description: |
-        返回 Content-Type: text/event-stream，HTTP 状态码恒为 200。
+        身份、隐私同意和会话归属校验通过后返回 text/event-stream。
+        前置校验失败使用标准 HTTP 错误；开始流后失败使用 error 事件。
+        AI 回复完整检查后再展示，可能比原始逐 token 输出有更长的等待时间。
         事件：
         - message: { "delta": "你好" }
         - done: { "sessionId": 123, "crisis": false }
@@ -979,14 +1392,36 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/works/favorites/{id}:
+    delete:
+      operationId: worksFavoritesByIdDelete
+      tags: [作品]
+      summary: 取消本人收藏（幂等）
+      description: 仅清除本人对应收藏，不影响点赞或作品。重复请求、作品已下架或已删除均返回成功。
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 操作完成 }
+        '401': { description: 未登录 }
+  /api/works/favorites:
+    get:
+      operationId: worksFavoritesGet
+      tags: [作品]
+      summary: 分页查看本人收藏
+      description: 只返回当前仍可访问的审核通过作品；他人的非公开、下架或已删除作品不会返回。按收藏时间倒序，每页12条。
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1, maximum: 100000, default: 1 } }
+      responses:
+        '200': { description: 'Result.data 包含 records 与 total，records 字段包括 id（字符串）、title、coverUrl、mediaType、message、visible、createTime、savedAt；不含作者账号或视频签名地址。' }
+        '401': { description: 未登录 }
   /api/works/{id}:
     get:
       operationId: workGet
       summary: 作品详情
       description: |
         返回单条作品详情。权限规则：
-        - visible=1（公开）：所有人可看
-        - visible=2（仅小组）：M1 暂时当公开处理
+        - visible=1（公开）：登录用户可看
+        - visible=2（历史仅小组标记）：暂限作者本人查看，不能分享
         - visible=0（私密）：只有作者能看，其他人返回 1004
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -2201,6 +2636,268 @@ paths:
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- 用户隐私合规（M3-B1） ----------
+  /api/admin/project-catalog:
+    get:
+      operationId: adminProjectCatalogGet
+      summary: 管理员按上架状态和分类分页查看项目
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1, minimum: 1 } }
+        - { name: status, in: query, schema: { type: integer, minimum: 0, maximum: 2, default: 0 } }
+        - { name: category, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: keyword, in: query, schema: { type: string, maxLength: 100 } }
+      responses:
+        '200': { description: 'records与total；每项含字符串id、title、category、status、level、estMinutes、videoUrl、createTime，不包含用户私人数据' }
+  /api/admin/config/runtime:
+    get:
+      operationId: adminConfigRuntimeGet
+      summary: 管理员读取推荐、模型参数和提示扩展配置
+      responses:
+        '200': { description: 固定配置键、当前值与修订号，不含任何密钥 }
+    put:
+      operationId: adminConfigRuntimePut
+      summary: 管理员以修订号更新运行配置
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key, revision, value]
+              properties:
+                key: { type: string, enum: [recommendation, model, prompts] }
+                revision: { type: integer, minimum: 0 }
+                value: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: 保存成功或3001修订冲突；安全系统提示不可更改 }
+  /api/emotion/sessions/{id}/state:
+    put:
+      operationId: emotionSessionsByIdStatePut
+      summary: 本人恢复或结束情绪会话
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [RESUME, END] }
+      responses:
+        '200': { description: 返回会话；结束时保留已过滤回复摘要，不生成诊断性结论 }
+  /api/files/upload/private-image:
+    post:
+      operationId: filesUploadPrivateImagePost
+      summary: 上传受权限保护的作品图片
+      description: JPG/PNG/WebP，不超过5MB，返回受保护媒体引用；仅本人或作品授权观众可以读取。
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200': { description: Result包装的媒体引用 }
+  /api/media/mine:
+    get:
+      operationId: mediaMineGet
+      summary: 分页查看本人上传的媒体
+      parameters:
+        - { name: before, in: query, schema: { type: integer, format: int64, minimum: 1 } }
+      responses:
+        '200': { description: 最新50项，包含id、size_bytes、create_time、kind；不含存储路径 }
+  /api/growth/hosts:
+    get:
+      operationId: growthHostsGet
+      tags: [成长与活动]
+      summary: 带领者选择协作者
+      description: 仅当前有效带领者或管理员可用，仅返回可协作账号编号和昵称。
+      responses:
+        '200': { description: 有效传承人与咨询师列表 }
+  /api/growth/programs/{id}/collaborators:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer, format: int64 } }
+    get:
+      operationId: growthProgramsByIdCollaboratorsGet
+      tags: [成长与活动]
+      summary: 查看活动协作者
+      responses:
+        '200': { description: 仅主办人、协作者或管理员可查看 }
+    put:
+      operationId: growthProgramsByIdCollaboratorsPut
+      tags: [成长与活动]
+      summary: 主办人设置协作者
+      description: 主办人或管理员设置，最多五名有效带领者。一对一预约不允许协作者。协作者可维护活动课节和签到，不可转授权限或读取私密交流。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userIds]
+              properties:
+                userIds: { type: array, maxItems: 5, uniqueItems: true, items: { type: string, pattern: '^[0-9]+$' } }
+      responses:
+        '200': { description: 权限已更新 }
+  /api/growth/conversations:
+    get:
+      operationId: growthConversationsGet
+      tags: [成长与活动]
+      summary: 本人一对一预约交流入口
+      description: 仅预约本人或主办人，管理员无额外阅读权。取消后保留历史只读入口。
+      responses:
+        '200': { description: 最近200项预约及交流授权状态 }
+  /api/growth/bookings/{id}/conversation:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer, format: int64 } }
+    put:
+      operationId: growthBookingsByIdConversationPut
+      tags: [成长与活动]
+      summary: 预约用户单独开启或撤回私密交流授权
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties: { enabled: { type: boolean } }
+      responses:
+        '200': { description: 授权已更新，撤回后双方不能发送但本人可保存历史 }
+  /api/growth/bookings/{id}/messages:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer, format: int64 } }
+    get:
+      operationId: growthBookingsByIdMessagesGet
+      tags: [成长与活动]
+      summary: 参与双方查看加密交流历史
+      parameters:
+        - { in: query, name: before, schema: { type: integer, format: int64, minimum: 1 } }
+      responses:
+        '200': { description: 最新50条，按编号倒序，服务端解密，不缓存 }
+    post:
+      operationId: growthBookingsByIdMessagesPost
+      tags: [成长与活动]
+      summary: 发送预约私密消息
+      description: 需有效已确认预约、双方有效账号及用户单独授权；仅发送人当前隐私同意有效时可写入，安全过滤后加密保存。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties: { content: { type: string, minLength: 1, maxLength: 1000 } }
+      responses:
+        '200': { description: 已发送 }
+  /api/growth/bookings/{id}/messages/{messageId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer, format: int64 } }
+      - { in: path, name: messageId, required: true, schema: { type: integer, format: int64 } }
+    delete:
+      operationId: growthBookingsByIdMessagesByMessageIdDelete
+      tags: [成长与活动]
+      summary: 撤回本人发送的预约消息
+      responses:
+        '200': { description: 清除正文并逻辑删除 }
+  /api/groups/{id}/companions:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer, format: int64 } }
+    get:
+      operationId: groupsByIdCompanionsGet
+      tags: [互助小组]
+      summary: 查看本人与组内成员的结伴邀请
+      responses:
+        '200': { description: 仅返回涉及本人的邀请，不共享任何情绪记录 }
+    post:
+      operationId: groupsByIdCompanionsPost
+      tags: [互助小组]
+      summary: 向同组有效成员发起结伴邀请
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [memberId]
+              properties: { memberId: { type: string, pattern: '^[0-9]+$' } }
+      responses:
+        '200': { description: 待对方确认；重复邀请不重复创建 }
+  /api/groups/{id}/companions/{invitationId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer, format: int64 } }
+      - { in: path, name: invitationId, required: true, schema: { type: integer, format: int64 } }
+    put:
+      operationId: groupsByIdCompanionsByInvitationIdPut
+      tags: [互助小组]
+      summary: 接受拒绝或取消结伴
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties: { action: { type: string, enum: [ACCEPT, DECLINE, CANCEL] } }
+      responses:
+        '200': { description: 状态更新；仅收件人可接受/拒绝，参与者可取消 }
+  /api/groups/{id}/works:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer, format: int64 } }
+    get:
+      operationId: groupsByIdWorksGet
+      tags: [互助小组]
+      summary: 当前成员查看小组作品
+      parameters:
+        - { in: query, name: before, schema: { type: integer, format: int64, minimum: 1 } }
+      responses:
+        '200': { description: 最新20项已审核作品；退出后立即失去作品和视频访问权限 }
+  /api/user/data-export:
+    get:
+      operationId: userDataExportGet
+      tags: [用户隐私]
+      summary: 分批导出本人记录
+      description: 仅当前有效账号本人可用，撤回隐私授权后仍可导出。每批最多100条，按ID升序；不含已删除记录、媒体文件或地址、密码或审计日志。这不是全库快照，记录变更后可从头重新导出。作品含本人私密及待审作品的文字与状态，不含他人评论；预约含本人报名状态与仍可用的活动基本信息，不含主办人身份或其他参与人；校园核验含本人姓名学号和审核结果，不含审核人编号。敏感内容由服务端解密，响应禁止缓存。
+      parameters:
+        - in: query
+          name: category
+          required: true
+          schema:
+            type: string
+            enum: [profile, notes, sessions, messages, records, works, bookings, campus, crafts, lessons, memberships, group-messages, guidance-messages, comments, favorites, media]
+        - in: query
+          name: after
+          schema:
+            type: string
+            pattern: '^[0-9]+$'
+            default: '0'
+      responses:
+        '200':
+          description: 本批数据与下一批游标；nextCursor为空表示该类别导出结束
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      version: { type: integer }
+                      category: { type: string }
+                      exportedAt: { type: string }
+                      rows:
+                        type: array
+                        items: { type: object, additionalProperties: true }
+                      hasMore: { type: boolean }
+                      nextCursor: { type: string, nullable: true }
+        '400': { description: 不支持的类别或无效游标 }
+        '401': { description: 未登录或账号已注销 }
   /api/user/privacy/status:
     get:
       operationId: userPrivacyStatus

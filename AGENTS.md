@@ -16,24 +16,27 @@
 - 任何页面/对话流都必须能看到「本系统不能替代专业心理咨询」声明。
 - 高危情绪（自伤、绝望）走危机干预流程，**不做心理疏导结论**。
 
-## 2. 技术栈（固定，不要擅自换）
+## 2. 工程入口与技术栈（核对日期：2026-10-21）
 
-| 层 | 选型 |
+版本以各工程 package.json、pnpm catalog、锁文件与 pom.xml 为准；下表描述现有实现，不授权升级框架。学生端与管理端独立构建，禁止混用依赖。
+
+| 层 | 当前实现 |
 |---|---|
 | 后端 | Java 17、Spring Boot 3.4.13、Spring AI 1.0.0、MyBatis-Plus 3.5.7 |
-| 存储 | MySQL 8.0、Redis 7、向量库（Milvus 或 Chroma）、对象存储（本地/MinIO） |
-| 学生端 | UniApp（Vue3.4 + Vite 5 + Pinia2），编译微信小程序 + H5；SSE 用自研 sse.js（H5: fetch + ReadableStream / MP-WEIXIN: wx.request enableChunked） |
-| 管理端 | Vue3.4 + Vite + Element Plus 2 + ECharts5 + Pinia2 |
-| 学生端构建 | Vite 5.x | UniApp 官方锁定版本 |
-| 管理端构建 | Vite 8.x | create-vite@9 默认；与 UniApp 独立 |
-| AI | 大模型 DeepSeek / 通义千问（云端）；本地化模式 Ollama + Qwen |
-| UI 组件库（学生端） | Leaf Island UI | 仅引入全局样式，组件使用待 M1.5 决策 |
-| 鉴权 | JWT（无状态），Authorization: Bearer <token> |
+| 数据 | MySQL 8；Redis 用于共享状态；RAG 当前使用本地文件存储，不能写成已部署 Milvus/Chroma |
+| 学生端 | UniApp、Vue 3.4、Pinia 2、Vite 5；Wot Design Uni 与仓库自有组件；H5 + 微信小程序 |
+| 当前管理端 | Vue Vben Admin 的 Element Plus 工程；Vue 3.5、Pinia 4、Vite 8、Element Plus 2、ECharts 6（以 catalog 为准） |
+| 媒体 | 当前本地私有存储、授权播放；MediaStorage 是扩展接口，不等于已部署 MinIO |
+| AI | AiClient 统一接入；可配置云模型/本地端点，真实可用性取决于环境；无配置的降级不算真实 AI 验收 |
+| 鉴权 | 共用后端 JWT，Authorization: Bearer <token>；以服务端当前身份和授权为准 |
 
-**三个工程目录（与 README 一致）**：
-- `zhiyu-backend/` —— Spring Boot 后端
-- `zhiyu-app/` —— UniApp 学生端（小程序 + H5）
-- `zhiyu-admin/` —— Vue3 管理端
+**实际维护的三个工程**：
+- `zhiyu-backend/` —— Spring Boot 后端。
+- `zhiyu-app/` —— UniApp 学生端。
+- `zhiyu-admin-vben/apps/web-ele/` —— 当前管理端；在 `zhiyu-admin-vben/` 用 pnpm 安装依赖。
+- `zhiyu-admin/` —— 早期管理端，仅保留历史实现。除非任务明确指向它，不在此目录实现新功能。
+
+`Leaf Island UI`、旧管理端目录和旧模板版本属于历史说明，不作为当前选型依据。
 
 **包结构约定**（后端 Maven 多模块或单模块均可，包名前缀 `com.zhiyu`）：
 ```
@@ -49,7 +52,12 @@ com.zhiyu
 │   ├── group/      # 互助小组
 │   ├── inheritor/  # 传承人
 │   ├── admin/      # 内容审核、看板、团体活动、配置
-│   └── audit/      # AI 审计日志、关怀提醒
+│   ├── audit/      # AI 审计日志
+│   ├── campus/     # 校园身份人工核验
+│   ├── care/       # 授权关怀跟进
+│   ├── growth/     # 自评、成长、课程、预约与反馈
+│   ├── file/       # 媒体授权、存储、清理重试
+│   └── speech/     # 语音接入与配置状态
 ```
 
 ## 3. 错误码（全局唯一，不要新造）
@@ -97,7 +105,8 @@ com.zhiyu
 
 > 与 `sql/schema.sql` 的 `user.role TINYINT` 一一对应，后端由
 > `com.zhiyu.modules.auth.enums.RoleEnum` 承载。管理端路由守卫按 `role ∈ {1,2,3}` 放行，
-> `role = 0` 跳转学生端或提示无权限；管理端不做独立登录入口。
+> `role = 0` 跳转学生端或提示无权限。两端可有各自登录页面，但共用认证接口与账号体系；
+> 公开注册只创建学生账号，不提供自助提权。
 
 ## 4. AI 能力硬约束
 
@@ -106,7 +115,7 @@ com.zhiyu
 - 所有 AI 输入输出必须经过**内容安全过滤**，并落 `ai_audit_log`。
 - AI 调用必须配熔断：**连续失败 5 次 → 熔断 60 秒**，按资源 key 隔离（`llm-chat`/`llm-recommend`/`llm-message`/`asr`/`tts`），不得全局共享一个计数器。
 - 超时降级：AI 超时 → 返回缓存的图文推荐理由 + 图文引导，不得让用户白屏。
-- Prompt 模板外置到 `resources/prompts/*.st`，不要硬编码在 Java 里。
+- Prompt 模板外置到 `zhiyu-backend/src/main/resources/prompts/*.st`，不要硬编码在 Java 里。
 - 外部 API Key 只存服务端环境变量，**绝不允许下发到前端**。
 - 例外：非 AI 场景的文本过滤（如用户评论 `WorkInteractionServiceImpl.comment`）可直接使用 `ContentSafetyFilter`，无需走 `AiClient`。
 
@@ -125,10 +134,18 @@ com.zhiyu
 - 用户注册默认 `can_contact=0`；咨询师联系用户必须由用户单独授权，代码不得默认置 1。
 - 建表 DDL 一律放 `sql/schema.sql`，**不要写在 .md 代码块里**；初始化数据放 `sql/init-data.sql`。
 
+### 5.1 数据库升级与媒体权限
+
+- 新建结构维护在 sql/schema.sql；已有数据库必须有 sql/migrations 增量脚本，不能只改 CREATE TABLE IF NOT EXISTS。
+- 结构修改同时核对 H2 测试结构与启动 SchemaCompatibilityCheck。迁移先备份，在测试库验证首次执行和重复执行，不用 reset.sql 修复缺列。
+- 雪花 ID 在前端/API 中按字符串传递，禁止转成 JavaScript Number 后再提交。
+- 私有媒体不能退回公开 uploads 路径。读取、播放、下载均检查本人/受众权限；撤销授权、退出小组、下架、注销后重新鉴权。
+- 撤回隐私授权、导出和注销使用已有 AccountLifecycle/清理机制，禁止顺手删除其他用户数据。临时验收数据只能按本次明确记录的 ID 清理。
+
 ## 6. 接口约定
 
 - 路径前缀统一 `/api`；学生端与管理端共用同一套后端，靠 JWT 角色区分。
-- 对话接口 `POST /api/emotion/chat` 返回 `text/event-stream`（SSE）；前端用 uni-sse（学生端）/ fetch-event-source（管理端）。
+- 对话接口 `POST /api/emotion/chat` 返回 `text/event-stream`（SSE）；学生端使用 `src/utils/sse.js` 自研适配（H5 fetch/ReadableStream，小程序 wx.request 分块），不要误写为已引入 uni-sse 插件。
 - 接口契约以 `openapi/openapi.yaml` 为准，改接口先改 YAML 再改代码。
 
 ## 7. 心流判定（已固化，不要拍脑袋改）
@@ -143,12 +160,27 @@ com.zhiyu
 - [ ] 新功能有对应 `.feature` Gherkin 场景（至少 1 个 happy path + 1 个异常路径）。
 - [ ] AI 相关调用走 `AiClient` 门面 + 安全过滤 + 审计日志。
 - [ ] 不出现诊断性医疗措辞；涉及心理的页面有免责声明。
-- [ ] `mvn -q compile` 通过；不提交硬编码密钥。
+- [ ] 后端修改执行有针对性的测试和编译；前端修改执行对应构建，跨端组件需 H5 与小程序构建，管理端需类型检查。
+- [ ] 表单有可见标签、键盘焦点、加载/错误/空状态；手机无横向溢出；不依赖仅鼠标点击的 view 完成关键动作。
+- [ ] 不提交硬编码密钥；日志、截图、测试报告不包含真实密码、token、对话或个人资料。
+- [ ] 交付说明区分「已实现」「本次验证」「历史验证」「未接入/待验收」。构建、H2 测试、浏览器模拟不能代替 MySQL、真机、真实外部服务或压测验收。
+- [ ] 新接口/字段/状态流转同步契约、迁移、场景与状态文档；不把旧任务框的勾选作为唯一完成依据。
+
+### 8.1 工作区与验证约定
+
+- 先看 git status 和局部 diff，保留用户及前轮未提交工作；不要为了整洁重写整个仓库或删除不明文件。
+- 临时脚本与日志放 .ai-tmp/；截图放 output/playwright/。业务源文件归入对应工程，不放根目录。
+- 编译/测试前检查本任务启动的后端进程，停止后再编译，避免在线 class 被覆盖导致 NoClassDefFoundError；不要结束用户启动的其他进程。
+- 运行说明与业务缺口分别维护 README 和 docs/requirements-audit-20261021.md；阶段报告保留日期，不能当作永久有效的当前验收结果。
+- UI 复用已有设计令牌、AccessibleButton/AccessibleDialog 等组件，保留小织，不擅自增加新吉祥物。外部图片/音乐保留来源与授权。
+
 
 ## 9. 关键文档索引
 
 | 文档 | 路径 |
 |---|---|
+| 最新需求差距与验收边界 | `docs/requirements-audit-20261021.md` |
+| 历史集中验收记录 | `docs/final-delivery-checklist.md` |
 | 项目上下文/架构约束 | `docs/project-context.md` |
 | 任务拆解 | `docs/task-breakdown.md` |
 | 隐私政策/用户协议 | `docs/privacy-policy.md` |
@@ -166,18 +198,15 @@ com.zhiyu
 ## 10. 环境注意（Windows + DSH 沙箱）
 
 - **Maven 本地仓库**：默认路径 `D:\Java\mvn-repository` 在工作区之外，沙箱会拒绝写入并报
-  `AccessDeniedException`。拉依赖时加 `-Dmaven.repo.local=.ai-tmp/m2` 指到仓库内。
-- **出网**：pwsh 侧的 `curl` / `Invoke-WebRequest` 被沙箱阻断（`schannel: SEC_E_NO_CREDENTIALS`）；
-  走 Maven / Java 自己的 TLS 栈可正常访问网络。
+  `AccessDeniedException`。拉依赖时加 `"-Dmaven.repo.local=../.ai-tmp/m2"`（在 zhiyu-backend 目录运行）指到仓库内。
+- **出网**：网络与权限限制以当前工具环境为准。必要下载被沙箱阻断时使用工具规定的权限申请，不换工具绕过限制；不得关闭 TLS 校验。
 - **中文文件分析**：**禁止**用 pwsh 的 `Get-Content` / `Select-String` 读本仓库的 `.md` / `.sql`
   （会把 UTF-8 当 GBK 解码，产生乱码并合并相邻行）；一律用 node 或 Java 显式按 UTF-8 读取。
 - **运行期读 UTF-8 中文资源**：读取 UTF-8 中文资源（`resources/prompts/*.st`、
   `resources/lexicon/*.txt`、`resources/fallback/*.md`）时，必须显式指定 UTF-8，
   不得依赖 `file.encoding`（JDK 17 在 Windows 下默认 GBK）。
   例：`new InputStreamReader(in, StandardCharsets.UTF_8)`
-- **改 `openapi/openapi.yaml`**：**优先用 `edit` 工具，不要用 node / pwsh 脚本批量改**
-  （沙箱对该文件的脚本写入直接拒绝：`EPERM: operation not permitted`；`edit` / `write` 工具
-  走的是另一条通道，不受此限）。确有必要用脚本时，需把该次命令升级到 `danger-full-access`。
+- **改 `openapi/openapi.yaml`**：优先使用可用的补丁/编辑工具（如 apply_patch），保持改动局部。修改后解析 YAML，检查路径和 operationId。遇到权限拒绝按实际工具机制处理，不宣称存在不可用的权限模式。
 - **`application-dev.yml` 的密码默认值**：`DB_PASSWORD` 的默认值（`123456`）是**本地开发密码**，
   生产 / 演示环境必须通过环境变量 `DB_PASSWORD` 覆盖。
   CI / 评审部署前必须确认该文件不含真实生产密码。
@@ -201,8 +230,7 @@ com.zhiyu
 - **多行 commit message**：用 `git commit -F <文件>`，不要用 `-m "..."` 拼多行
   （PowerShell 对引号转义处理不可靠，容易截断或混入换行符）。
 - **小程序端 baseURL**：微信小程序不能用 `localhost`，需用局域网 IP（如
-  `http://192.168.x.x:8080`）。`zhiyu-app/src/utils/request.js` 和
-  `src/pages/emotion/chat.vue` 已用条件编译区分平台。
+  `http://192.168.x.x:8080`）。接口地址统一维护在 `zhiyu-app/src/utils/config.js`，请求与 SSE 复用该配置；正式域名还需平台白名单与 HTTPS。
 - **微信小程序 enableChunked**：`wx.request` 的 `enableChunked: true` +
   `onChunkReceived` 需要基础库 **≥ 2.20.1**。`sse.js` 已用 `wx.canIUse` 检测并
   提供 fallback（`enableChunked: false` + `success` 回调一次性解析）。
