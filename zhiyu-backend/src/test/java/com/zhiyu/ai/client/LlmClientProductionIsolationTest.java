@@ -30,12 +30,23 @@ class LlmClientProductionIsolationTest {
     }
 
     @Test
-    @DisplayName("非 prod + 未配置 Key：MockLlmClient 生效（matchIfMissing）")
+    @DisplayName("非 prod + 未配置 Key：MockLlmClient 生效")
     void mockActiveOutsideProdWithoutKey() {
         runner.run(context -> {
             assertThat(context).hasSingleBean(MockLlmClient.class);
             assertThat(context).doesNotHaveBean("productionLlmClientGuard");
         });
+    }
+
+    @Test
+    @DisplayName("非 prod + 空字符串 Key：MockLlmClient 仍生效")
+    void mockActiveOutsideProdWithEmptyKey() {
+        runner.withPropertyValues("spring.ai.openai.api-key=")
+                .run(context -> {
+                    assertThat(context).hasSingleBean(MockLlmClient.class);
+                    assertThat(context).hasSingleBean(LlmClient.class);
+                    assertThat(context).doesNotHaveBean("productionLlmClientGuard");
+                });
     }
 
     @Test

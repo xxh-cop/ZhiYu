@@ -161,11 +161,13 @@ class AiClientTest {
             return null;
         }).when(llmClient).streamChat(eq(history), any());
 
+        StringBuilder tokens = new StringBuilder();
         AiClient.StreamChatResult result =
-                aiClient.streamChat(8L, "最近怎么样", history, ignored -> {});
+                aiClient.streamChat(8L, "最近怎么样", history, tokens::append);
 
         assertFalse(result.blocked());
         assertEquals("我在这里陪你", result.reply());
+        assertEquals("我在这里陪你", tokens.toString(), "输出终检前不得外发原始 token");
     }
 
     @Test

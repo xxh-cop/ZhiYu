@@ -1,7 +1,7 @@
 package com.zhiyu.ai.client;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +25,8 @@ import java.util.function.Consumer;
 @Slf4j
 @Component
 @Profile("!prod")
-// 当 api-key 为占位值 sk-placeholder 或缺失时生效，此时 SpringAiLlmClient 不创建（互斥）
-@ConditionalOnProperty(name = "spring.ai.openai.api-key", havingValue = "sk-placeholder", matchIfMissing = true)
+// 当 api-key 为空串、缺失或仍为占位值时生效；与 SpringAiLlmClient 的真实 Key 条件严格互斥
+@ConditionalOnExpression("'${spring.ai.openai.api-key:}' == '' or '${spring.ai.openai.api-key:}' == 'sk-placeholder'")
 public class MockLlmClient implements LlmClient {
 
     public MockLlmClient() {

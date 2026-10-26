@@ -82,11 +82,10 @@ public class EmotionController {
                 emotionService.appendMessage(sessionId, "user", dto.getContent());
                 List<ChatMessage> history = emotionService.loadRecentHistory(sessionId, 10);
 
-                // 3. 门面内部：输入前置过滤（命中高危不调 LLM）→ 熔断 → 流式生成 →
-                //    完整回复输出终检。token 只累积，不逐条转发给客户端。
-                StringBuilder rawReply = new StringBuilder();
+                // 3. 门面内部：输入前置过滤（命中高危不调 LLM）→ 熔断 → 生成 →
+                //    完整回复输出终检。终检前不外发任何 token。
                 AiClient.StreamChatResult chat = aiClient.streamChat(
-                        sessionId, dto.getContent(), history, rawReply::append);
+                        sessionId, dto.getContent(), history, ignored -> { });
 
                 // 3a. 输入命中高危 → 危机干预流程：门面未调 LLM
                 if (chat.blocked()) {

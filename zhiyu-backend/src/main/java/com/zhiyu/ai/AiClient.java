@@ -37,7 +37,8 @@ import java.util.function.Consumer;
  *       不得再自行调 {@link ContentSafetyFilter}，否则会产生重复审计/重复改写</li>
  * </ul>
  *
- * <p>审计粒度：每次 AI 调用恰好两条（输入一条、输出一条），由
+ * <p>审计粒度：对话与语音的输入/输出各一条；推荐/寄语只写输出一条；
+ * 熔断或 LLM 调用失败时不写审计。审计由
  * {@link ContentSafetyFilter#checkInput} / {@link ContentSafetyFilter#checkOutput}
  * 内部写入，且都带 userId。
  */
@@ -120,16 +121,20 @@ public class AiClient {
      * <ol>
      *   <li>{@link ContentSafetyFilter#checkInput}（写一条审计；BLOCK 时另写 care_reminder）</li>
      *   <li>BLOCK → 直接返回关怀话术，<b>不调 LLM、不回调 onToken</b></li>
-     *   <li>PASS → 熔断检查 → 调 LLM，token 既累积到内部缓冲区也回调给调用方</li>
+     *   <li>PASS → 熔断检查 → 调 LLM，token 只累积到内部缓冲区，<b>不提前外发</b></li>
      *   <li>回复结束后 {@link ContentSafetyFilter#checkOutput}（写一条审计）；
-     *       REWRITE 时用安全文本替换整个回复（流式场景无法逐 token 改写，
-     *       调用方不应把原始 token 直接推给客户端）</li>
+     *       REWRITE/BLOCK 时用安全文本替换整个回复</li>
+     *   <li>终检通过后，才把最终安全文本通过 {@code onToken} 回调一次</li>
      * </ol>
+     *
+     * <p><b>注意</b>：输出安全必须看到完整回复才能判定，因此本方法的
+     * {@code onToken} 不是逐 token 实时流，而是“安全后的整段文本”。
+     * 调用方不得绕过本方法把 {@link LlmClient} 的原始 token 直接推给客户端。
      *
      * @param sessionId 会话 ID（可空；用于 care_reminder 关联与脱敏摘要）
      * @param userInput 本轮用户输入明文（只检查本轮，不用历史消息代替）
      * @param history   对话历史（含本轮用户消息）
-     * @param onToken   流式 token 回调（仅供调用方累积或转发安全文本前的原始 token）
+     * @param onToken   输出终检后的安全文本回调（整段一次）
      * @return 过滤结果与可展示文本
      */
     public StreamChatResult streamChat(Long sessionId, String userInput,
@@ -146,10 +151,8 @@ public class AiClient {
         }
         StringBuilder fullReply = new StringBuilder();
         try {
-            llmClient.streamChat(history, token -> {
-                fullReply.append(token);
-                onToken.accept(token);
-            });
+            // 原始 token 只进缓冲区；输出终检前绝不外发。
+            llmClient.streamChat(history, fullReply::append);
             breaker.recordSuccess("llm-chat");
         } catch (RuntimeException e) {
             breaker.recordFailure("llm-chat");
@@ -162,6 +165,7 @@ public class AiClient {
             String rewritten = output.getRewrittenText();
             reply = (rewritten == null || rewritten.isBlank()) ? SAFE_CHAT_REPLY : rewritten;
         }
+        onToken.accept(reply);
         return new StreamChatResult(input, output, reply);
     }
 
