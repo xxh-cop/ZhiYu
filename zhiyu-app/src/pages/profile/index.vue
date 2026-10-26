@@ -95,6 +95,10 @@ const ROLE_LABEL = {
 }
 
 const menuItems = [
+ { icon: 'star', label: '我的收藏', action: 'favorites', iconBg: '#bb914d' },
+ { icon: 'picture', label: '我的作品', action: 'works', iconBg: '#2f7566' },
+ { icon: 'user', label: '校园身份', action: 'campus', iconBg: '#2f7566' },
+ { icon: 'chat', label: '倾听记录', action: 'history', iconBg: '#718478' },
 	{ icon: 'picture', label: '成长旅程', action: 'journey', iconBg: 'linear-gradient(135deg, #2f7566, #82ad9b)' },
 	{ icon: 'chat', label: '自我了解', action: 'assessment', iconBg: 'linear-gradient(135deg, #82ad9b, #8DD9C4)' },
 	{ icon: 'edit', label: '我的便签', action: 'notes', iconBg: 'linear-gradient(135deg, #bb914d, #FFCB6E)' },
@@ -188,6 +192,10 @@ async function loadStats() {
 }
 
 function handleMenu(item) {
+ if(item.action==='works'){uni.navigateTo({url:'/pages/work/mine'});return}
+ if(item.action==='favorites'){uni.navigateTo({url:'/pages/work/favorites'});return}
+ if(item.action==='campus'){uni.navigateTo({url:'/pages/campus/index'});return}
+ if(item.action==='history'){uni.navigateTo({url:'/pages/emotion/history'});return}
  if (['journey','assessment','programs'].includes(item.action)) { uni.navigateTo({ url: '/pages/'+item.action+'/index' }); return }
 	if (item.action === 'crisis') {
 		uni.navigateTo({ url: '/pages/crisis/index' })

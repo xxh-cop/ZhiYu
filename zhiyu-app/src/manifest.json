@@ -50,6 +50,7 @@
     "quickapp" : {},
     /* 小程序特有相关 */
     "mp-weixin" : {
+        "mergeVirtualHostAttributes": true,
         "permission": {"scope.camera": {"desc": "用于你主动开启的平面临摹辅助，不录制或上传画面"}},
         "appid" : "wx6efc1261514cc021",
         "setting" : {

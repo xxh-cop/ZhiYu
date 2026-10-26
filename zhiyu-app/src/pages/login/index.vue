@@ -1,258 +1,60 @@
 <template>
-	<view class="page">
-		<!-- 顶部品牌区 -->
-		<view class="hero zy-slide-up">
-			<view class="hero-logo-wrap">
-				<image class="hero-logo" src="/static/logo.png" mode="aspectFit" />
-			</view>
-			<text class="brand">织愈</text>
-			<text class="slogan">用一针一线，缝补青春的焦虑</text>
-		</view>
-
-		<!-- 登录表单卡 -->
-		<view class="form-card zy-slide-up" style="--stagger-i: 1">
-			<view class="form">
-				<view class="input-wrap">
-					<wd-input
-						v-model="form.username"
-						placeholder="登录名（学号或昵称）"
-						:disabled="loading"
-						no-border
-						custom-class="form-input-el"
-					/>
-				</view>
-				<view class="input-wrap">
-					<wd-input
-						v-model="form.password"
-						placeholder="密码"
-						show-password
-						:disabled="loading"
-						no-border
-						custom-class="form-input-el"
-						@confirm="handleLogin"
-					/>
-				</view>
-				<view class="login-btn" :class="{ 'login-btn--loading': loading }" @click="handleLogin">
-					<text class="login-btn-text">{{ loading ? '登录中…' : '登 录' }}</text>
-				</view>
-				<text v-if="errMsg" class="error">{{ errMsg }}</text>
-			</view>
-		</view>
-
-		<!-- 底部免责 + 隐私政策 -->
-		<view class="footer zy-slide-up" style="--stagger-i: 2">
-			<view class="register-link-row">
-				<text class="footer-text">还没有账号？</text>
-				<text class="register-link" @click="goRegister">立即注册</text>
-			</view>
-			<text class="footnote">本系统不能替代专业心理咨询</text>
-			<text class="privacy-link" @click="goPrivacy">查看隐私政策</text>
-		</view>
-	</view>
+  <AccountShell title="欢迎回来" eyebrow="和小织，继续今天的故事" description="登录你的账号，继续创作、记录与分享。">
+    <view v-if="returnTo" class="account-notice">登录后将返回你刚才查看的内容。</view>
+    <view v-if="restoring" class="account-notice" role="status">正在确认登录状态…</view>
+    <template v-else-if="restoreFailed">
+      <view class="account-notice error" role="alert">暂时无法确认登录状态，请检查网络后重试。</view>
+      <AccessibleButton class="account-action" @click="restoreSession">重试连接</AccessibleButton>
+      <AccessibleButton class="account-action secondary" @click="switchAccount">使用其他账号</AccessibleButton>
+    </template>
+    <template v-else>
+      <AccountField id="login-username" ref="usernameField" v-model="form.username" label="登录名" placeholder="注册时使用的登录名" autocomplete="username" :maxlength="50" :disabled="loading" :error="errors.username" @confirm="passwordField?.focus()"/>
+      <AccountField id="login-password" ref="passwordField" v-model="form.password" label="密码" placeholder="请输入密码" autocomplete="current-password" secret :maxlength="32" :disabled="loading" :error="errors.password" confirm-type="done" @confirm="handleLogin"/>
+      <view v-if="errMsg" class="account-notice error" role="alert">{{errMsg}}</view>
+      <AccessibleButton class="account-action" :loading="loading" @click="handleLogin">{{loading?'正在登录…':'登录织愈'}}</AccessibleButton>
+      <view class="account-links"><text>第一次来到这里？</text><AccessibleButton class="account-link" :disabled="loading" @click="goRegister">创建账号</AccessibleButton></view>
+    </template>
+    <view class="account-divider"/>
+    <text class="account-help">使用平台注册账号登录。校园身份可在登录后申请人工核验；账号问题请联系平台管理员。</text>
+    <view class="account-policy"><AccessibleButton class="account-link" @click="goPrivacy">隐私政策与用户协议</AccessibleButton></view>
+  </AccountShell>
 </template>
-
 <script setup>
-import { reactive, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
-import { request } from '../../utils/request'
-import { useUserStore } from '../../stores/user'
-
-const userStore = useUserStore()
-
-const form = reactive({
-	username: '',
-	password: '',
-})
-const loading = ref(false)
-const errMsg = ref('')
-
-// 冷启动 / 刷新时本地若已有 token，直接进首页，保持登录态
-onShow(() => {
-	if (userStore.isLogin) {
-		uni.reLaunch({ url: '/pages/home/index' })
-	}
-})
-
-async function handleLogin() {
-	if (loading.value) return
-	errMsg.value = ''
-
-	if (!form.username || !form.password) {
-		errMsg.value = '请填写登录名和密码'
-		return
-	}
-
-	loading.value = true
-	try {
-		const data = await request({
-			url: '/api/auth/login',
-			method: 'POST',
-			auth: false,
-			data: { username: form.username, password: form.password },
-		})
-		userStore.setToken(data.token)
-		userStore.setUserInfo(data)
-		uni.reLaunch({ url: '/pages/home/index' })
-	} catch (e) {
-		errMsg.value = (e && e.message) || '登录失败，请稍后重试'
-	} finally {
-		loading.value = false
-	}
+import {reactive,ref} from 'vue'
+import {onLoad,onShow} from '@dcloudio/uni-app'
+import AccountShell from '../../components/AccountShell.vue'
+import AccountField from '../../components/AccountField.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import {safeWorkReturn} from '../../utils/work-navigation'
+import {request} from '../../utils/request'
+import {useUserStore} from '../../stores/user'
+const userStore=useUserStore()
+const form=reactive({username:'',password:''}),errors=reactive({username:'',password:''})
+const loading=ref(false),errMsg=ref(''),returnTo=ref(''),restoring=ref(false),restoreFailed=ref(false)
+const usernameField=ref(null),passwordField=ref(null)
+onLoad(query=>{returnTo.value=safeWorkReturn(query.next)})
+onShow(()=>{if(userStore.isLogin&&!restoreFailed.value)restoreSession()})
+function enter(){uni.reLaunch({url:returnTo.value||'/pages/home/index'})}
+async function restoreSession(){
+  if(restoring.value)return
+  restoring.value=true;restoreFailed.value=false
+  try{const info=await request({url:'/api/auth/me',timeout:15000});userStore.setUserInfo(info);enter()}
+  catch(e){if(e.code===1002||e.code===1003){userStore.clearAuth();errMsg.value='登录已失效，请重新登录。'}else restoreFailed.value=true}
+  finally{restoring.value=false}
 }
-
-function goPrivacy() {
-	uni.navigateTo({ url: '/pages/privacy/index' })
+function switchAccount(){userStore.clearAuth();restoreFailed.value=false;errMsg.value=''}
+async function handleLogin(){
+  if(loading.value)return
+  errMsg.value='';errors.username=form.username.trim()?'':'请填写登录名';errors.password=form.password?'':'请填写密码'
+  if(errors.username||errors.password){(errors.username?usernameField:passwordField).value?.focus();return}
+  loading.value=true
+  try{
+    const data=await request({url:'/api/auth/login',method:'POST',auth:false,timeout:15000,data:{username:form.username,password:form.password}})
+    userStore.setToken(data.token);userStore.setUserInfo(data);enter()
+  }catch(e){errMsg.value=e.code===-1?'暂时无法连接，请检查网络后重试。':e.message||'登录未成功，请稍后重试。'}
+  finally{loading.value=false}
 }
-
-function goRegister() {
-	uni.navigateTo({ url: '/pages/register/index' })
-}
+function goRegister(){uni.navigateTo({url:'/pages/register/index'+(returnTo.value?'?next='+encodeURIComponent(returnTo.value):'')})}
+function goPrivacy(){uni.navigateTo({url:'/pages/privacy/index'})}
 </script>
-
-<style scoped>
-.page {
-	min-height: 100vh;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	padding: 0 64rpx;
-	box-sizing: border-box;
-	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #f5f7f2) 50%);
-}
-
-/* ── 品牌区 ── */
-.hero {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	margin-bottom: 56rpx;
-}
-
-.hero-logo-wrap {
-	width: 160rpx;
-	height: 160rpx;
-	border-radius: var(--zy-radius-full);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 28rpx;
-	box-shadow: var(--zy-shadow-md);
-}
-
-.hero-logo {
-	width: 100rpx;
-	height: 100rpx;
-}
-
-.brand {
-	font-family: var(--zy-serif);
-	font-size: 56rpx;
-	font-weight: 600;
-	letter-spacing: 12rpx;
-	color: var(--zy-title, #233d34);
-}
-
-.slogan {
-	margin-top: 16rpx;
-	font-size: 26rpx;
-	color: var(--zy-content, #586e62);
-	letter-spacing: 2rpx;
-}
-
-/* ── 表单卡 ── */
-.form-card {
-	width: 100%;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-md);
-	padding: 48rpx 40rpx;
-	box-sizing: border-box;
-}
-
-.form {
-	display: flex;
-	flex-direction: column;
-	gap: 28rpx;
-}
-
-.input-wrap {
-	background-color: var(--zy-bg, #f5f7f2);
-	border-radius: var(--zy-radius-md, 24rpx);
-	padding: 0 8rpx;
-	overflow: hidden;
-}
-
-.login-btn {
-	height: 88rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-	margin-top: 8rpx;
-}
-
-.login-btn:active {
-	transform: scale(0.97);
-}
-
-.login-btn--loading {
-	opacity: 0.7;
-}
-
-.login-btn-text {
-	font-size: 32rpx;
-	font-weight: 500;
-	color: #FFFFFF;
-	letter-spacing: 4rpx;
-}
-
-.error {
-	margin-top: 8rpx;
-	font-size: 26rpx;
-	color: var(--zy-danger, #FF6B6B);
-	text-align: center;
-}
-
-/* ── 底部 ── */
-.footer {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 12rpx;
-	margin-top: 56rpx;
-}
-
-.register-link-row {
-	display: flex;
-	align-items: center;
-	gap: 8rpx;
-	margin-bottom: 4rpx;
-}
-
-.footer-text {
-	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
-}
-
-.register-link {
-	font-size: 26rpx;
-	color: var(--zy-primary, #2f7566);
-	font-weight: 500;
-}
-
-.footnote {
-	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
-}
-
-.privacy-link {
-	font-size: 22rpx;
-	color: var(--zy-primary, #2f7566);
-	text-decoration: underline;
-}
-</style>
+<style scoped src="../../styles/account.css"></style>

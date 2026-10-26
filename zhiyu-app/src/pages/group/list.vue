@@ -62,8 +62,8 @@
 						</view>
 					</view>
 					<!-- 右侧加入按钮 -->
-					<view v-if="group.joined" class="joined-tag">
-						<text class="joined-text">已加入</text>
+					<view v-if="group.joined" class="joined-tag" @click="openGroup(group)">
+						<text class="joined-text">进入小组</text>
 					</view>
 					<view v-else-if="group.memberCount >= group.maxCount" class="full-tag">
 						<text class="full-text">已满</text>
@@ -99,6 +99,7 @@ const loading = ref(false)
 const errorMsg = ref('')
 const groups = ref([])
 const joiningId = ref(null)
+function openGroup(group){uni.navigateTo({url:'/pages/group/detail?id='+group.id})}
 
 const GRADIENTS = [
 	'linear-gradient(135deg, #2f7566, #82ad9b)',

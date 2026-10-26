@@ -1,6 +1,6 @@
 <template>
 	<view class="page">
-		<view class="chat-header"><view class="header-avatar">织</view><view><text class="header-name">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><text class="header-help" @click="goCrisisPage">寻求支持</text></view>
+		<view class="chat-header"><image src="/static/xiaozhi-avatar.png" class="chat-companion" mode="aspectFit" aria-label="小织"/><view><text class="header-name">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><button v-if="emotionStore.sessionId" class="header-help" :disabled="streaming" @click="endConversation">结束倾听</button><button class="header-help" @click="goCrisisPage">寻求支持</button></view>
 		<!-- 对话区 -->
 		<scroll-view
 			class="chat-area"
@@ -12,7 +12,7 @@
 				<!-- 空状态欢迎区 -->
 				<view v-if="messages.length === 0" class="welcome">
 					<view class="welcome-avatar">
-						<text class="welcome-avatar-text">织</text>
+						<image src="/static/xiaozhi-caring.png" style="width:130rpx;height:150rpx" mode="aspectFit" aria-label="小织陪伴你"/>
 					</view>
 					<text class="welcome-title">我在这里陪你</text>
 					<text class="welcome-sub">我是小织，一个耐心的倾听者</text>
@@ -28,7 +28,7 @@
 					<!-- AI 消息：头像 + 气泡 -->
 					<view v-if="msg.role === 'assistant'" class="msg-content">
 						<view class="ai-avatar">
-							<text class="ai-avatar-text">织</text>
+							<image src="/static/xiaozhi-avatar.png" style="width:60rpx;height:70rpx" mode="aspectFit" aria-label="小织"/>
 							<view class="ai-avatar-dot"></view>
 						</view>
 						<view class="msg-main">
@@ -97,19 +97,19 @@
 				custom-class="chat-input"
 				v-model="inputText"
 				placeholder="说说你现在的感受..."
-				:disabled="streaming"
+				:disabled="streaming || historyLoading || historyError"
 				confirm-type="send"
 				@confirm="handleSend"
 				no-border
 				custom-style="flex: 1;"
 			/>
 			<view class="voice-btn" @click="handleVoice">
-				<text class="voice-icon">🎤</text>
+				<text class="voice-icon">{{voiceState==='recording'?'停止':voiceState==='idle'?'🎤':'处理中'}}</text>
 			</view>
 			<wd-button
 				type="primary"
 				size="small"
-				:disabled="streaming || !inputText.trim()"
+				:disabled="streaming || historyLoading || historyError || !inputText.trim()"
 				@click="handleSend"
 				custom-style="border-radius: 999rpx; min-width: 120rpx;"
 			>
@@ -127,20 +127,36 @@
 <script setup>
 import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import {request} from '../../utils/request'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
+import {useVoiceInput} from '../../composables/useVoiceInput'
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
 const { messages, streaming, errorMsg, scrollSignal, crisisTriggered } = storeToRefs(emotionStore)
 
 const inputText = ref('')
+const {state:voiceState,toggle:toggleVoice}=useVoiceInput(text=>{inputText.value=text})
 const showRecommendBtn = ref(false)
 const showCrisisCard = ref(false)
 const scrollTop = ref(0)
+const historyId = ref('')
+const historyLoading = ref(false)
+const historyError = ref(false)
+async function loadHistory() {
+ historyLoading.value = true; historyError.value = false; emotionStore.errorMsg = ''
+ try {
+  const detail = await request({url:'/api/emotion/sessions/'+historyId.value})
+  emotionStore.sessionId = detail.session.sessionId
+  emotionStore.messages = detail.messages.map(m=>({role:m.role,text:m.content,done:true}))
+ } catch(e) { historyError.value = true; emotionStore.errorMsg = e.message || '历史对话读取失败，请重试' }
+ finally { historyLoading.value = false }
+}
 
-onLoad(() => {
+onLoad(async (query) => {
+ if(query?.sessionId){emotionStore.reset();historyId.value=query.sessionId;await loadHistory();return;}
 	// 面板关闭后跳来时 preserveMessages=true，保留消息上下文
 	if (emotionStore.preserveMessages) {
 		emotionStore.preserveMessages = false // 消费掉
@@ -159,7 +175,7 @@ onUnload(() => {
 watch(scrollSignal, () => {
 	scrollToBottom()
 })
-watch(() => messages.length, () => {
+watch(() => messages.value.length, () => {
 	scrollToBottom()
 })
 
@@ -170,7 +186,7 @@ function scrollToBottom() {
 }
 
 function handleSend() {
-	if (streaming.value) return
+	if (streaming.value || historyLoading.value || historyError.value) return
 	const content = inputText.value.trim()
 	if (!content) return
 
@@ -182,6 +198,7 @@ function handleSend() {
 }
 
 function handleRetry() {
+	if (historyError.value) { loadHistory(); return }
 	emotionStore.retryLast()
 }
 
@@ -193,7 +210,7 @@ function handleRecommend() {
 }
 
 function handleVoice() {
-	uni.showToast({ title: '语音功能即将上线', icon: 'none' })
+	if(!streaming.value)toggleVoice()
 }
 
 function goCrisisPage() {
@@ -236,10 +253,11 @@ watch(crisisTriggered, (val) => {
 		showCrisisCard.value = false
 	}
 })
+async function endConversation(){if(streaming.value||!emotionStore.sessionId)return;try{await request({url:'/api/emotion/sessions/'+emotionStore.sessionId+'/state',method:'PUT',data:{action:'END'}});uni.redirectTo({url:'/pages/emotion/history'})}catch(e){emotionStore.errorMsg=e.message}}
 </script>
 
 <style lang="scss" scoped>
-.chat-header{display:flex;align-items:center;gap:20rpx;padding:24rpx 28rpx;border-bottom:1rpx solid var(--zy-border,#e2e9e9);background:var(--zy-card-bg,#fff);flex-shrink:0}.header-avatar{padding:12rpx 20rpx;background:#2f7566;color:#fff;border-radius:18rpx}.header-name{display:block;font-size:28rpx;font-weight:600;color:var(--zy-title,#253c36)}.header-state{display:block;font-size:22rpx;color:var(--zy-sub,#708078);margin-top:6rpx}.header-help{font-size:23rpx;color:#2f7566;margin-left:auto}.input-area,.footer-disclaimer{flex-shrink:0}
+.chat-companion{width:64rpx;height:80rpx;flex-shrink:0}.chat-header .header-help{font-size:22rpx;padding:8rpx 12rpx;line-height:1.8;background:#e8efe4;border-radius:12rpx}.chat-header{display:flex;align-items:center;gap:20rpx;padding:24rpx 28rpx;border-bottom:1rpx solid var(--zy-border,#e2e9e9);background:var(--zy-card-bg,#fff);flex-shrink:0}.header-avatar{padding:12rpx 20rpx;background:#2f7566;color:#fff;border-radius:18rpx}.header-name{display:block;font-size:28rpx;font-weight:600;color:var(--zy-title,#253c36)}.header-state{display:block;font-size:22rpx;color:var(--zy-sub,#708078);margin-top:6rpx}.header-help{font-size:23rpx;color:#2f7566;margin-left:auto}.input-area,.footer-disclaimer{flex-shrink:0}
 
 .page {
 	display: flex;

@@ -26,7 +26,7 @@
 				<!-- 音频播放按钮 -->
 				<view v-if="currentStepData.audioUrl" class="audio-btn" @click="handleAudio">
 					<text class="audio-icon">🔊</text>
-					<text class="audio-text">播放引导语音</text>
+					<text class="audio-text">{{ guidePlaying ? '停止引导语音' : '播放引导语音' }}</text>
 				</view>
 			</view>
 		</scroll-view>
@@ -69,7 +69,9 @@
 
 <script setup>
 import MediaVideo from "../../components/MediaVideo.vue"
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted, watch } from 'vue'
+import { createMusicAudio } from '../../utils/music-audio'
+import { API_BASE_URL } from '../../utils/config'
 import { onLoad, onUnload, onShow, onHide } from '@dcloudio/uni-app'
 import { useCraftStore } from '../../stores/craft'
 import { http } from '../../utils/request'
@@ -297,9 +299,36 @@ function onBreathingFinish() {
 
 // ── 其他 ──
 
-function handleAudio() {
-	uni.showToast({ title: '即将上线', icon: 'none' })
+const guidePlaying = ref(false)
+let guideAudio = null
+function stopGuideAudio() {
+  if (guideAudio) { guideAudio.destroy(); guideAudio = null }
+  guidePlaying.value = false
 }
+function handleAudio() {
+  if (guideAudio) { stopGuideAudio(); return }
+  const source = currentStepData.value.audioUrl
+  if (!source) return
+  // Accept configured HTTP(S) resources and server-local upload paths only.
+  if (!/^https?:\/\//i.test(source) && !/^\/(?!\/)/.test(source)) {
+    uni.showToast({ title: '音频地址无效，请联系内容管理员', icon: 'none' }); return
+  }
+  const player = createMusicAudio()
+  guideAudio = player
+  player.onPlay(() => { if (guideAudio === player) guidePlaying.value = true })
+  player.onEnded(() => { if (guideAudio === player) stopGuideAudio() })
+  player.onError(() => {
+    if (guideAudio !== player) return
+    stopGuideAudio()
+    uni.showToast({ title: '音频暂时无法播放，可继续阅读文字引导', icon: 'none' })
+  })
+  player.src = /^https?:\/\//i.test(source) ? source : API_BASE_URL + source
+  player.play()
+}
+watch(currentStep, stopGuideAudio)
+watch(() => craftStore.status, status => { if (status !== 1) stopGuideAudio() })
+onHide(stopGuideAudio)
+onUnload(stopGuideAudio)
 
 function handlePublish() {
 	uni.navigateTo({

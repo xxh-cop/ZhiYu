@@ -11,6 +11,7 @@
  */
 import { useUserStore } from '../stores/user'
 import { API_BASE_URL } from './config.js'
+import { safeWorkReturn } from './work-navigation'
 
 const BASE_URL = API_BASE_URL
 
@@ -54,7 +55,11 @@ function handleUnauthorized() {
 		}
 	}
 	if (currentRoute() === 'pages/login/index') return
-	uni.reLaunch({ url: LOGIN_PAGE })
+	const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+	const page = pages[pages.length - 1]
+	const options = page?.options || page?.$page?.options || {}
+	const next=safeWorkReturn('/'+currentRoute()+'?id='+options.id)
+	uni.reLaunch({ url: LOGIN_PAGE+(next?'?next='+encodeURIComponent(next):'') })
 }
 
 /**
@@ -66,10 +71,11 @@ function handleUnauthorized() {
  * @param {any}    [options.data]   请求体 / query
  * @param {object} [options.header] 额外请求头
  * @param {boolean}[options.auth]   是否附带 Authorization，默认 true
+ * @param {number} [options.timeout] 请求超时毫秒数，默认 60000；账号入口使用 15000
  * @returns {Promise<any>} resolve 业务 data
  */
 export function request(options = {}) {
-	const { url, method = 'GET', data, header = {}, auth = true } = options
+	const { url, method = 'GET', data, header = {}, auth = true, timeout = 60000 } = options
 
 	return new Promise((resolve, reject) => {
 		const finalHeader = Object.assign({ 'Content-Type': 'application/json' }, header)
@@ -84,6 +90,7 @@ export function request(options = {}) {
 		uni.request({
 			url: BASE_URL + url,
 			method,
+			timeout,
 			data,
 			header: finalHeader,
 			success: (res) => {
@@ -91,7 +98,7 @@ export function request(options = {}) {
 
 				// 登录失效：HTTP 401 与业务码 1002 后端都会出现，一并处理
 				if (res.statusCode === 401 || (body && body.code === 1002)) {
-					handleUnauthorized()
+					if (auth) handleUnauthorized()
 					reject(
 						new RequestError(1002, (body && body.message) || '未登录或登录已过期')
 					)

@@ -23,7 +23,7 @@
 			</view>
 
 			<CraftCover v-if="!project.coverUrl" :category="project.category"/><MediaVideo v-if="project.videoUrl" :src="project.videoUrl" caption="传承人教学视频"/><!-- ═══ 信息条（pill 标签） ═══ -->
-			<view class="info-pills zy-slide-up zy-stagger" style="--stagger-i: 1">
+			<button open-type="share" class="share-craft" @click="share">分享手作项目</button><view class="info-pills zy-slide-up zy-stagger" style="--stagger-i: 1">
 				<view v-if="project.category" class="pill">
 					<wd-icon name="grid" size="24rpx" color="#2f7566" />
 					<text class="pill-text">{{ project.category }}</text>
@@ -132,6 +132,7 @@
 </template>
 
 <script setup>
+import {useContentShare} from '../../composables/useContentShare'
 import MediaVideo from "../../components/MediaVideo.vue"
 import CraftCover from "../../components/CraftCover.vue"
 import { ref, computed } from 'vue'
@@ -141,6 +142,7 @@ import { http } from '../../utils/request'
 
 const projectId = ref(null)
 const project = ref(null)
+const {share}=useContentShare('craft',()=>({id:projectId.value,title:project.value?.title}))
 const loading = ref(false)
 const errorMsg = ref('')
 
@@ -226,6 +228,7 @@ function goSession() {
 </script>
 
 <style lang="scss" scoped>
+.share-craft{margin:24rpx;background:#e8efe4;color:#245f51;font-size:26rpx;border-radius:16rpx;}
 .page {
 	min-height: 100vh;
 	padding: 0 0 120rpx;

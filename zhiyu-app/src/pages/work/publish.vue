@@ -21,7 +21,7 @@
 		<view v-if="currentStep === 1" class="step-content zy-slide-up">
 			<view class="step-card">
 				<text class="step-card-title">选择作品</text>
-				<text class="step-card-sub">为你的作品选一种表达方式</text>
+				<text class="step-card-sub">{{form.groupId?'分享给当前小组，图片与视频都受成员权限保护':'为你的作品选一种表达方式'}}</text>
 
 				<!-- 媒体类型 Tab -->
 				<view class="media-tabs">
@@ -54,7 +54,7 @@
 				<!-- Tab 1：图片上传 -->
 				<view v-if="form.mediaType === 'image'" class="media-content">
 					<view class="image-upload-area" @click="chooseImage">
-						<image v-if="form.coverUrl && !uploading" class="image-preview" :src="fullUrl(form.coverUrl)" mode="aspectFill" />
+						<image v-if="form.coverUrl && !uploading" class="image-preview" :src="imagePreview||fullUrl(form.coverUrl)" mode="aspectFill" />
 						<view v-else-if="uploading" class="upload-loading">
 							<view class="loading-spinner"></view>
 							<text class="upload-loading-text">上传中…</text>
@@ -141,7 +141,7 @@
 
 				<view class="form-item">
 					<text class="form-label">谁可以看到</text>
-					<view class="radio-group">
+					<view class="radio-group"><button v-if="form.groupId" class="radio-item" :class="{'radio-active':form.visible===2}" :aria-pressed="form.visible===2" @click="form.visible=2">仅当前小组</button>
 						<view
 							class="radio-item"
 							:class="{ 'radio-active': form.visible === 1 }"
@@ -206,7 +206,7 @@
 				<!-- 预览卡片 -->
 				<view class="preview-card">
 					<!-- 图片预览 -->
-					<view v-if="form.mediaType === 'image' && form.coverUrl" class="preview-cover" :style="{ backgroundImage: 'url(' + fullUrl(form.coverUrl) + ')' }">
+					<view v-if="form.mediaType === 'image' && form.coverUrl" class="preview-cover" :style="{ backgroundImage: 'url(' + (imagePreview||fullUrl(form.coverUrl)) + ')' }">
 					</view>
 					<!-- 视频预览 -->
 					<view v-else-if="form.mediaType === 'video' && form.videoUrl" class="preview-cover preview-cover--video">
@@ -269,6 +269,7 @@ import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
 
+const imagePreview=ref('')
 const currentStep = ref(1)
 const published = ref(false)
 const submitting = ref(false)
@@ -309,7 +310,9 @@ const mediaTypeLabel = computed(() => {
 })
 
 onLoad((query) => {
-	form.value.sessionId = query.sessionId || null
+	form.value.groupId=query.groupId||null
+ if(form.value.groupId)form.value.visible=2
+ form.value.sessionId = query.sessionId || null
 	form.value.projectId = query.projectId || null
 	if (query.projectTitle) {
 		form.value.title = decodeURIComponent(query.projectTitle)
@@ -364,7 +367,7 @@ function chooseImage() {
 	})
 }
 
-function uploadImage(filePath){uploadMedia(filePath,'image')}
+function uploadImage(filePath){imagePreview.value=filePath;uploadMedia(filePath,'private-image')}
 
 function chooseVideo() {
 	if (uploading.value) return
@@ -427,6 +430,7 @@ async function handleSubmit() {
 			sessionId: form.value.sessionId,
 			title: form.value.title.trim(),
 			visible: form.value.visible,
+            groupId: form.value.visible===2?form.value.groupId:null,
 			anonymous: form.value.anonymous,
 			mediaType: form.value.mediaType,
 		}

@@ -16,9 +16,9 @@ page {
 	/* ── wot-design-uni 主题变量 ── */
 	--wot-color-theme: #2f7566;        /* 薄荷青 — 主色 */
 	--wot-color-success: #2f7566;       /* 松绿 */
-	--wot-color-warning: #bb914d;       /* 暖橙 */
-	--wot-color-danger: #FF6B6B;        /* 珊瑚红 */
-	--wot-color-info: #718478;          /* 浅灰 */
+	--wot-color-warning: #8a642b;       /* 暖橙 */
+	--wot-color-danger: #aa463b;        /* 珊瑚红 */
+	--wot-color-info: #586e62;          /* 浅灰 */
 
 	--wot-color-bg: #f5f7f2;            /* 冷白背景 */
 	--wot-color-border: #dfe7dc;        /* 冷灰边框 */
@@ -27,7 +27,7 @@ page {
 	--wot-color-title: #233d34;         /* 深灰蓝 — 标题 */
 	--wot-color-content: #586e62;       /* 中灰 — 正文 */
 	--wot-color-secondary: #586e62;     /* 中灰 — 次要 */
-	--wot-color-aid: #718478;           /* 浅灰 — 辅助 */
+	--wot-color-aid: #586e62;           /* 浅灰 — 辅助 */
 	--wot-color-tip: #D1D5DB;           /* 银灰 — 提示 */
 
 	/* ── 织愈色板（v3.0 薄荷青） ── */
@@ -37,16 +37,16 @@ page {
 	--zy-card-bg: #FFFFFF;
 	--zy-title: #233d34;
 	--zy-text: #586e62;
-	--zy-muted: #718478;
+	--zy-muted: #586e62;
 	--zy-border: #dfe7dc;
-	--zy-accent: #bb914d;
-	--zy-danger: #FF6B6B;
+	--zy-accent: #8a642b;
+	--zy-danger: #aa463b;
 
 	--zy-bg-warm: #FFFFFF;              /* 卡片纯白 */
 	--zy-bg-tint-mint: #e8efe4;         /* 薄荷青 4% — 模块底色 */
 	--zy-bg-tint-warm: #f5edde;         /* 暖橙 4% */
 	--zy-content: #586e62;              /* 中灰 */
-	--zy-aid: #718478;                  /* 浅灰 */
+	--zy-aid: #586e62;                  /* 浅灰 */
 
 	--zy-font: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 	/* 保留旧变量供已有页面引用，统一为易读的界面字体。 */

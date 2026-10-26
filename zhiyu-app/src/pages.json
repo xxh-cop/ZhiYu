@@ -13,6 +13,18 @@
       }
     },
     {
+      "path": "pages/privacy/media",
+      "style": { "navigationBarTitleText": "我的媒体" }
+    },
+    {
+      "path": "pages/programs/conversations",
+      "style": { "navigationBarTitleText": "预约交流" }
+    },
+    {
+      "path": "pages/work/favorites",
+      "style": { "navigationBarTitleText": "我的收藏" }
+    },
+    {
       "path": "pages/register/index",
       "style": {
         "navigationBarTitleText": "注册",
@@ -229,6 +241,42 @@
       "path": "pages/music/credits",
       "style": {
         "navigationBarTitleText": "素材来源"
+      }
+    },
+    {
+      "path": "pages/campus/index",
+      "style": {
+        "navigationBarTitleText": "校园身份"
+      }
+    },
+    {
+      "path": "pages/emotion/history",
+      "style": {
+        "navigationBarTitleText": "倾听记录"
+      }
+    },
+    {
+      "path": "pages/programs/course",
+      "style": {
+        "navigationBarTitleText": "我的课程"
+      }
+    },
+    {
+      "path": "pages/group/detail",
+      "style": {
+        "navigationBarTitleText": "小组空间"
+      }
+    },
+    {
+      "path": "pages/work/mine",
+      "style": {
+        "navigationBarTitleText": "我的作品"
+      }
+    },
+    {
+      "path": "pages/programs/feedback",
+      "style": {
+        "navigationBarTitleText": "体验反馈"
       }
     }
   ],
