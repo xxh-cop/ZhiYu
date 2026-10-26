@@ -2,6 +2,7 @@ package com.zhiyu.ai.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,9 +17,14 @@ import java.util.function.Consumer;
  *
  * <p>用途：本地开发 / CI 环境无 API Key 时应用仍能启动，功能不阻塞。
  * 返回固定话术，不调任何外部 API。
+ *
+ * <p><b>生产隔离</b>：{@code prod} profile 下本类永不注册；若 prod 缺少真实 Key，
+ * 由 {@link ProductionLlmClientConfig} 在启动期直接失败并给出配置指引，
+ * 不允许静默降级到 mock（见 AGENTS.md §4）。
  */
 @Slf4j
 @Component
+@Profile("!prod")
 // 当 api-key 为占位值 sk-placeholder 或缺失时生效，此时 SpringAiLlmClient 不创建（互斥）
 @ConditionalOnProperty(name = "spring.ai.openai.api-key", havingValue = "sk-placeholder", matchIfMissing = true)
 public class MockLlmClient implements LlmClient {
