@@ -21,8 +21,10 @@ import java.util.regex.Pattern;
  * <p>决策（T1.3b 已确认）：
  * <ul>
  *   <li>不做 LLM 语义判断，只做本地词库 + 正则</li>
- *   <li>流式输出不在此拦截，靠 Prompt 约束 + 事后审计；同步接口在此拦截改写</li>
- *   <li>空输入 → PASS，不写审计</li>
+ *   <li>流式对话由 {@code AiClient.streamChat} 在调用 LLM 前调 {@code checkInput}，
+ *       并在完整回复结束后调 {@code checkOutput} 做整段改写（token 无法逐字改写）；
+ *       同步接口在返回前调用 {@code checkOutput}</li>
+ *   <li>每次检查写一条带 userId 的 ai_audit_log；空输入 → PASS，不写审计</li>
  * </ul>
  */
 @Slf4j

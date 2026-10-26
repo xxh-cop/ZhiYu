@@ -5,6 +5,10 @@ import com.zhiyu.ai.client.LlmClient;
 import com.zhiyu.ai.resilience.CircuitBreakerStore;
 import com.zhiyu.ai.safety.ContentSafetyFilter;
 import com.zhiyu.ai.safety.SafetyResult;
+import com.zhiyu.common.exception.BusinessException;
+import com.zhiyu.security.LoginUser;
+import com.zhiyu.security.UserContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,21 +86,102 @@ class AiClientTest {
         verify(breaker, never()).recordFailure(any());
     }
 
+    @AfterEach
+    void clearContext() {
+        UserContext.clear();
+    }
+
     @Test
-    @DisplayName("streamChat：使用独立熔断资源并记录成功")
+    @DisplayName("streamChat：输入/输出各过滤一次，带 userId 审计，使用独立熔断资源")
     void testStreamChat_PassThrough() {
-        Consumer<String> onToken = s -> {};
+        UserContext.set(new LoginUser(42L, 0));
+        StringBuilder tokens = new StringBuilder();
         List<ChatMessage> history = List.of(ChatMessage.user("hi"));
+        when(contentSafetyFilter.checkInput(42L, 100L, "chat", "hi"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(contentSafetyFilter.checkOutput(42L, "chat", "你好"))
+                .thenReturn(SafetyResult.pass("通过"));
         when(breaker.allowRequest("llm-chat")).thenReturn(true);
+        doAnswer(inv -> {
+            Consumer<String> consumer = inv.getArgument(1);
+            consumer.accept("你");
+            consumer.accept("好");
+            return null;
+        }).when(llmClient).streamChat(eq(history), any());
 
-        // doNothing — streamChat 返回 void
-        doNothing().when(llmClient).streamChat(history, onToken);
+        AiClient.StreamChatResult result =
+                aiClient.streamChat(100L, "hi", history, tokens::append);
 
-        aiClient.streamChat(history, onToken);
-
-        verify(llmClient).streamChat(history, onToken);
-        verify(breaker).allowRequest("llm-chat");
+        assertFalse(result.blocked());
+        assertFalse(result.crisis());
+        assertEquals("你好", result.reply());
+        assertEquals("你好", tokens.toString());
+        verify(contentSafetyFilter).checkInput(42L, 100L, "chat", "hi");
+        verify(contentSafetyFilter).checkOutput(42L, "chat", "你好");
         verify(breaker).recordSuccess("llm-chat");
+        verify(breaker, never()).recordFailure(any());
+    }
+
+    @Test
+    @DisplayName("streamChat：输入命中 BLOCK → 不调 LLM、不回调 token、返回关怀话术")
+    void testStreamChat_InputBlocked_NoLlmCall() {
+        UserContext.set(new LoginUser(42L, 0));
+        List<ChatMessage> history = List.of(ChatMessage.user("我不想活了"));
+        when(contentSafetyFilter.checkInput(42L, 7L, "chat", "我不想活了"))
+                .thenReturn(SafetyResult.block("关键词命中", "请拨打心理援助热线"));
+
+        StringBuilder tokens = new StringBuilder();
+        AiClient.StreamChatResult result =
+                aiClient.streamChat(7L, "我不想活了", history, tokens::append);
+
+        assertTrue(result.blocked());
+        assertTrue(result.crisis(), "危机标志应保留");
+        assertEquals("请拨打心理援助热线", result.reply());
+        assertEquals("", tokens.toString(), "BLOCK 时不应推送任何 token");
+        verifyNoInteractions(llmClient);
+        verify(breaker, never()).allowRequest(anyString());
+        verify(breaker, never()).recordSuccess(any());
+        verify(breaker, never()).recordFailure(any());
+        verify(contentSafetyFilter, never()).checkOutput(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("streamChat：输出越界 → 整段改写为安全文本")
+    void testStreamChat_OutputRewrite() {
+        UserContext.set(new LoginUser(42L, 0));
+        List<ChatMessage> history = List.of(ChatMessage.user("最近怎么样"));
+        when(contentSafetyFilter.checkInput(42L, 8L, "chat", "最近怎么样"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(contentSafetyFilter.checkOutput(42L, "chat", "你可能患有抑郁症"))
+                .thenReturn(SafetyResult.rewrite("输出越界", "我在这里陪你"));
+        when(breaker.allowRequest("llm-chat")).thenReturn(true);
+        doAnswer(inv -> {
+            Consumer<String> consumer = inv.getArgument(1);
+            consumer.accept("你可能患有抑郁症");
+            return null;
+        }).when(llmClient).streamChat(eq(history), any());
+
+        AiClient.StreamChatResult result =
+                aiClient.streamChat(8L, "最近怎么样", history, ignored -> {});
+
+        assertFalse(result.blocked());
+        assertEquals("我在这里陪你", result.reply());
+    }
+
+    @Test
+    @DisplayName("streamChat：熔断打开 → 4001，不调 LLM")
+    void testStreamChat_BreakerOpen() {
+        UserContext.set(new LoginUser(42L, 0));
+        List<ChatMessage> history = List.of(ChatMessage.user("hi"));
+        when(contentSafetyFilter.checkInput(42L, 9L, "chat", "hi"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-chat")).thenReturn(false);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> aiClient.streamChat(9L, "hi", history, ignored -> {}));
+
+        assertEquals(4001, ex.getCode().intValue());
+        verifyNoInteractions(llmClient);
         verify(breaker, never()).recordFailure(any());
     }
 }

@@ -45,10 +45,14 @@ class KeywordContentSafetyFilterTest {
         assertEquals(SafetyAction.PASS, result.getAction());
         assertFalse(result.isHighRisk());
 
-        // 应写一条 PASS 审计
+        // 应写一条 PASS 审计，并带 userId
         long count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM ai_audit_log WHERE action = 'PASS'", Long.class);
         assertTrue(count >= 1, "应有 PASS 审计记录");
+        Long storedUserId = jdbcTemplate.queryForObject(
+                "SELECT user_id FROM ai_audit_log WHERE scene = 'chat' AND reason = '输入检查通过'",
+                Long.class);
+        assertEquals(5001L, storedUserId, "输入审计必须带 userId");
     }
 
     @Test

@@ -26,6 +26,7 @@ public class AiAuditLogServiceImpl implements AiAuditLogService {
     public void log(Long userId, String scene, String rawInput, String aiOutput,
                     String action, String reason) {
         AiAuditLog logEntry = new AiAuditLog();
+        logEntry.setUserId(userId);
         logEntry.setScene(scene);
         logEntry.setRawInput(encryptor.encrypt(rawInput));
         logEntry.setAiOutput(encryptor.encrypt(aiOutput));

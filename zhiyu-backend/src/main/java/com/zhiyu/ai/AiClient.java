@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  * 本类在 LLM 调用外包裹熔断器（{@link CircuitBreakerStore}），
  * 按 AGENTS.md §4 的资源 key 隔离：
  * <ul>
- *   <li>{@code llm-chat}      —— 流式对话（本批次不走熔断，T1.3 接 SSE 时处理）</li>
+ *   <li>{@code llm-chat}      —— 流式对话（走熔断；流式无法简单降级到同步 fallback）</li>
  *   <li>{@code llm-recommend}  —— 推荐理由</li>
  *   <li>{@code llm-message}    —— 作品寄语</li>
  * </ul>
@@ -32,9 +32,14 @@ import java.util.function.Consumer;
  * <ul>
  *   <li>{@code recommendReason} / {@code workMessage} —— 输出过滤在本类内部完成，
  *       调用方无需再显式调 {@code ContentSafetyFilter.checkOutput}</li>
- *   <li>{@code streamChat} —— 流式接口的输入/输出过滤由 Controller 层处理
- *       （输入 BLOCK 时不调 LLM、需控制 SSE emitter）</li>
+ *   <li>{@code streamChat} —— 输入过滤前置到本类；完整回复生成后再做输出过滤
+ *       （流式 token 无法逐字改写）。调用方只消费 {@link StreamChatResult}，
+ *       不得再自行调 {@link ContentSafetyFilter}，否则会产生重复审计/重复改写</li>
  * </ul>
+ *
+ * <p>审计粒度：每次 AI 调用恰好两条（输入一条、输出一条），由
+ * {@link ContentSafetyFilter#checkInput} / {@link ContentSafetyFilter#checkOutput}
+ * 内部写入，且都带 userId。
  */
 @Slf4j
 @Component
@@ -82,12 +87,82 @@ public class AiClient {
         log.info("AiClient 初始化完成，breaker store={}", breaker.implementationName());
     }
 
-    // ── 流式对话：不走熔断（流式无法简单降级到同步 fallback） ──
+    // ── 流式对话：不走降级 fallback，但走熔断 + 输入前置过滤 + 输出终检 ──
 
-    public void streamChat(List<ChatMessage> history, Consumer<String> onToken) {
-        if(!breaker.allowRequest("llm-chat"))throw new com.zhiyu.common.exception.BusinessException(4001,"对话服务暂时不可用");
-        try{llmClient.streamChat(history,onToken);breaker.recordSuccess("llm-chat");}
-        catch(RuntimeException e){breaker.recordFailure("llm-chat");throw e;}
+    /** 输出侧越界时，兜底交给用户的陪伴话术（含 AGENTS.md §1 免责声明）。 */
+    static final String SAFE_CHAT_REPLY =
+            "我在这里陪着你。我们可以先停一停，关注当下的感受。本系统不能替代专业心理咨询。";
+
+    /**
+     * 流式对话的返回结果。
+     *
+     * @param input  输入侧过滤结果（BLOCK 时不调 LLM）
+     * @param output 完整回复的输出侧过滤结果；输入被 BLOCK 时为 {@code null}
+     * @param reply  可安全展示给用户的最终文本：正常回复 / 输出改写文本 / 关怀话术
+     */
+    public record StreamChatResult(SafetyResult input, SafetyResult output, String reply) {
+        /** 输入命中高危，未调用 LLM。 */
+        public boolean blocked() {
+            return input != null && input.getAction() == SafetyAction.BLOCK;
+        }
+
+        /** SSE done 事件的危机标志：输入或输出任一侧命中高危。 */
+        public boolean crisis() {
+            return (input != null && input.isHighRisk())
+                    || (output != null && output.isHighRisk());
+        }
+    }
+
+    /**
+     * 流式情绪对话（输入前置过滤 + 完整回复终检）。
+     *
+     * <p>时序：
+     * <ol>
+     *   <li>{@link ContentSafetyFilter#checkInput}（写一条审计；BLOCK 时另写 care_reminder）</li>
+     *   <li>BLOCK → 直接返回关怀话术，<b>不调 LLM、不回调 onToken</b></li>
+     *   <li>PASS → 熔断检查 → 调 LLM，token 既累积到内部缓冲区也回调给调用方</li>
+     *   <li>回复结束后 {@link ContentSafetyFilter#checkOutput}（写一条审计）；
+     *       REWRITE 时用安全文本替换整个回复（流式场景无法逐 token 改写，
+     *       调用方不应把原始 token 直接推给客户端）</li>
+     * </ol>
+     *
+     * @param sessionId 会话 ID（可空；用于 care_reminder 关联与脱敏摘要）
+     * @param userInput 本轮用户输入明文（只检查本轮，不用历史消息代替）
+     * @param history   对话历史（含本轮用户消息）
+     * @param onToken   流式 token 回调（仅供调用方累积或转发安全文本前的原始 token）
+     * @return 过滤结果与可展示文本
+     */
+    public StreamChatResult streamChat(Long sessionId, String userInput,
+                                       List<ChatMessage> history, Consumer<String> onToken) {
+        Long userId = UserContext.getUserId();
+        SafetyResult input = contentSafetyFilter.checkInput(userId, sessionId, "chat", userInput);
+        if (input.getAction() == SafetyAction.BLOCK) {
+            log.warn("流式对话输入侧拦截: userId={}, sessionId={}, 不调 LLM", userId, sessionId);
+            return new StreamChatResult(input, null, input.getCareMessage());
+        }
+
+        if (!breaker.allowRequest("llm-chat")) {
+            throw new com.zhiyu.common.exception.BusinessException(4001, "对话服务暂时不可用");
+        }
+        StringBuilder fullReply = new StringBuilder();
+        try {
+            llmClient.streamChat(history, token -> {
+                fullReply.append(token);
+                onToken.accept(token);
+            });
+            breaker.recordSuccess("llm-chat");
+        } catch (RuntimeException e) {
+            breaker.recordFailure("llm-chat");
+            throw e;
+        }
+
+        SafetyResult output = contentSafetyFilter.checkOutput(userId, "chat", fullReply.toString());
+        String reply = fullReply.toString();
+        if (output.getAction() != SafetyAction.PASS) {
+            String rewritten = output.getRewrittenText();
+            reply = (rewritten == null || rewritten.isBlank()) ? SAFE_CHAT_REPLY : rewritten;
+        }
+        return new StreamChatResult(input, output, reply);
     }
 
     // ── 推荐理由：走熔断 ──

@@ -328,6 +328,7 @@ CREATE TABLE IF NOT EXISTS inheritor_profile (
 -- 例外：只追加，不更新不删除，故只保留 create_time、无 deleted
 CREATE TABLE IF NOT EXISTS ai_audit_log (
   id          BIGINT      NOT NULL,
+  user_id     BIGINT      DEFAULT NULL COMMENT '关联用户ID；迁移前历史行为 NULL，新写入必须带',
   scene       VARCHAR(30) NOT NULL COMMENT 'chat/recommend/message',
   raw_input   TEXT        COMMENT '输入(加密)',
   ai_output   TEXT        COMMENT '输出(加密)',
@@ -335,7 +336,8 @@ CREATE TABLE IF NOT EXISTS ai_audit_log (
   reason      VARCHAR(255),
   create_time DATETIME    DEFAULT NULL,
   PRIMARY KEY (id),
-  KEY idx_scene (scene)
+  KEY idx_scene (scene),
+  KEY idx_audit_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI审核日志表';
 
 -- ============================================================
@@ -354,6 +356,10 @@ ALTER TABLE user MODIFY COLUMN can_contact TINYINT NOT NULL DEFAULT 0
 -- T0.6a：work.anonymous 默认值 0 → 1（默认匿名发布，符合产品定位；与 openapi.yaml WorkPublishReq.anonymous default=true 对齐）
 ALTER TABLE work MODIFY COLUMN anonymous TINYINT NOT NULL DEFAULT 1
   COMMENT '0显示昵称 1匿名展示；默认匿名';
+
+-- 20261026：ai_audit_log 增加 user_id。
+-- MySQL 8 不支持 ADD COLUMN IF NOT EXISTS，本区要求可重复执行，故不在 schema.sql 内 ALTER；
+-- 已有库请执行 sql/migrations/20261026_ai_audit_user_id.sql（含备份与重复执行检查说明）。
 
 
 -- Growth modules: encrypted personal records, scheduled programs and capacity-safe bookings.

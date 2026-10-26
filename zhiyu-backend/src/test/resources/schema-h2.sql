@@ -316,6 +316,7 @@ CREATE TABLE IF NOT EXISTS inheritor_profile (
 -- ---------- AI 审计日志（只追加，故只保留 create_time、无 deleted） ----------
 CREATE TABLE IF NOT EXISTS ai_audit_log (
   id          BIGINT      NOT NULL,
+  user_id     BIGINT      DEFAULT NULL,
   scene       VARCHAR(30) NOT NULL,
   raw_input   CLOB,
   ai_output   CLOB,
@@ -345,6 +346,7 @@ CREATE INDEX IF NOT EXISTS idx_work_user                     ON work (user_id);
 CREATE INDEX IF NOT EXISTS idx_work_status                   ON work (status);
 CREATE INDEX IF NOT EXISTS idx_work_comment_work             ON work_comment (work_id);
 CREATE INDEX IF NOT EXISTS idx_ai_audit_log_scene            ON ai_audit_log (scene);
+CREATE INDEX IF NOT EXISTS idx_ai_audit_log_user             ON ai_audit_log (user_id);
 
 -- Additive migration; no existing rows are modified.
 

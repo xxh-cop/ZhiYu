@@ -29,6 +29,13 @@ public class AiAuditLog {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+    /**
+     * 关联用户 ID（非空写入；迁移前的历史行可能为 {@code null}）。
+     *
+     * <p>不是外键：审计日志只追加，用户注销后仍保留归属线索。
+     */
+    private Long userId;
+
     /** 场景：chat / recommend / work_message 等。 */
     private String scene;
 

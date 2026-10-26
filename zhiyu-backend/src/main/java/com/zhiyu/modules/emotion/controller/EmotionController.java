@@ -2,9 +2,6 @@ package com.zhiyu.modules.emotion.controller;
 
 import com.zhiyu.ai.AiClient;
 import com.zhiyu.ai.client.ChatMessage;
-import com.zhiyu.ai.safety.ContentSafetyFilter;
-import com.zhiyu.ai.safety.SafetyAction;
-import com.zhiyu.ai.safety.SafetyResult;
 import com.zhiyu.modules.emotion.dto.ChatDTO;
 import com.zhiyu.modules.emotion.service.EmotionService;
 import com.zhiyu.security.UserContext;
@@ -30,25 +27,20 @@ import java.util.Map;
  *
  * <p>POST /api/emotion/chat —— SSE 流式对话。
  *
- * <p>流程（T1.3b 增加内容安全过滤）：
+ * <p>流程（内容安全过滤 / 审计全部下沉到 {@link AiClient#streamChat}，本类不重复过滤）：
  * <ol>
  *   <li>从 UserContext 取 userId</li>
  *   <li>sessionId 为 null → 新建会话</li>
- *   <li><b>checkInput 安全检查</b>：
- *     <ul>
- *       <li>BLOCK（命中高危）→ 保存用户消息（加密）→ 推送关怀话术 → event:done，
- *           <b>不调 LLM</b>，直接返回</li>
- *       <li>PASS → 继续</li>
- *     </ul>
- *   </li>
- *   <li>保存用户消息（加密）</li>
- *   <li>加载历史</li>
- *   <li>调 AiClient.streamChat，逐 token SSE 推送</li>
- *   <li>流结束后先检查完整回复，使用安全替换文本后再推送</li>
- *   <li>保存 AI 回复（加密）</li>
- *   <li>发 event: done</li>
+ *   <li>保存用户消息（加密）并加载历史</li>
+ *   <li>调 AiClient.streamChat（门面内部完成输入前置过滤 + 输出终检 + 两次审计）</li>
+ *   <li>输入被 BLOCK（命中高危）→ 推送关怀话术 → event:done(crisis=true)，
+ *       <b>不调 LLM</b>，直接返回</li>
+ *   <li>正常 → 保存门面返回的安全回复（加密）→ 推送 → event:done(crisis)</li>
  *   <li>异常发 event: error（HTTP 恒 200）</li>
  * </ol>
+ *
+ * <p>安全提示：门面可能把流式 token 回调给本类后再在完整回复上做 REWRITE，
+ * 因此本类只累积 token、不逐条转发；最终只发送 {@link AiClient.StreamChatResult#reply()}。
  */
 @Slf4j
 @RestController
@@ -63,7 +55,6 @@ public class EmotionController {
     private final com.zhiyu.security.BusinessAccess access;
     private final AiClient aiClient;
     private final EmotionService emotionService;
-    private final ContentSafetyFilter safetyFilter;
     private final ObjectMapper objectMapper;
     @Qualifier("sseExecutor")
     private final ThreadPoolTaskExecutor sseExecutor;
@@ -80,8 +71,6 @@ public class EmotionController {
             UserContext.set(identity);
             try {
                 access.consentedUser();
-                // 危机检测标志（M3-B1：done 事件携带，前端据此决定是否展示援助入口）
-                boolean crisisDetected = false;
 
                 // 1. 新建或复用会话
                 Long sessionId = dto.getSessionId();
@@ -89,56 +78,44 @@ public class EmotionController {
                     sessionId = emotionService.createSession(userId, dto.getMood());
                 }
 
-                // 2. 输入侧安全检查（T1.3b）
-                SafetyResult inputResult = safetyFilter.checkInput(userId, sessionId, "chat", dto.getContent());
+                // 2. 保存用户消息（加密）并加载历史；内容安全检查由 AiClient 门面负责
+                emotionService.appendMessage(sessionId, "user", dto.getContent());
+                List<ChatMessage> history = emotionService.loadRecentHistory(sessionId, 10);
 
-                // 2a. 命中高危 → 危机干预流程：不调 LLM
-                if (inputResult.getAction() == SafetyAction.BLOCK) {
-                    crisisDetected = true;
-                    // 保存用户消息（加密）
-                    emotionService.appendMessage(sessionId, "user", dto.getContent());
-                    // 推送关怀话术
-                    String careMessage = inputResult.getCareMessage();
+                // 3. 门面内部：输入前置过滤（命中高危不调 LLM）→ 熔断 → 流式生成 →
+                //    完整回复输出终检。token 只累积，不逐条转发给客户端。
+                StringBuilder rawReply = new StringBuilder();
+                AiClient.StreamChatResult chat = aiClient.streamChat(
+                        sessionId, dto.getContent(), history, rawReply::append);
+
+                // 3a. 输入命中高危 → 危机干预流程：门面未调 LLM
+                if (chat.blocked()) {
+                    String careMessage = chat.reply();
                     if (careMessage != null) {
                         emitter.send(SseEmitter.event().data(careMessage));
                     }
                     // 更新会话总结（危机路径：用关怀话术作为 summary，不改 status）
                     emotionService.updateSummary(sessionId, truncate(careMessage));
-                    // 推送 done（携带 crisis 标志）
                     emitter.send(SseEmitter.event()
                             .name("done")
-                            .data(donePayload(sessionId, crisisDetected)));
+                            .data(donePayload(sessionId, true)));
                     emitter.complete();
                     log.warn("危机干预触发: userId={}, sessionId={}, 不调 LLM", userId, sessionId);
                     return;
                 }
 
-                // 3. PASS → 保存用户消息（加密）
-                emotionService.appendMessage(sessionId, "user", dto.getContent());
-
-                // 4. 加载历史
-                List<ChatMessage> history = emotionService.loadRecentHistory(sessionId, 10);
-
-                // 完整检查后才向客户端发送，避免跨 token 的危险文本提前泄漏。
-                StringBuilder fullReply = new StringBuilder();
-                aiClient.streamChat(history, fullReply::append);
-                SafetyResult outputResult = safetyFilter.checkOutput(userId, "chat", fullReply.toString());
-                String safeReply = fullReply.toString();
-                if (outputResult.getAction() != SafetyAction.PASS) {
-                    safeReply = outputResult.getRewrittenText();
-                    if (safeReply == null || safeReply.isBlank()) safeReply = "我在这里陪着你。我们可以先停一停，关注当下的感受。本系统不能替代专业心理咨询。";
-                    crisisDetected = outputResult.isHighRisk();
-                }
+                // 4. 保存并推送门面筛过的安全回复
+                String safeReply = chat.reply();
                 access.consentedUser();
                 access.emotionSession(sessionId, userId);
                 emotionService.appendMessage(sessionId, "assistant", safeReply);
                 emotionService.updateSummary(sessionId, truncate(safeReply));
                 emitter.send(SseEmitter.event().data(safeReply));
 
-                // 8. 发送 done 事件（携带 crisis 标志）
+                // 5. done 事件（携带 crisis 标志）
                 emitter.send(SseEmitter.event()
                         .name("done")
-                        .data(donePayload(sessionId, crisisDetected)));
+                        .data(donePayload(sessionId, chat.crisis())));
                 emitter.complete();
 
             } catch (Exception e) {

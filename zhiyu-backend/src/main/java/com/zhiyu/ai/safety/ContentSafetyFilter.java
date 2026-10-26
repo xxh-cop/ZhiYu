@@ -21,8 +21,11 @@ public interface ContentSafetyFilter {
     /**
      * 输出侧检查（AI → 用户）。
      *
-     * <p>用于同步接口（recommendReason / workMessage）的返回前拦截改写。
-     * 流式接口（streamChat）不在此拦截，改由 Prompt 约束 + 事后审计。
+     * <p>同步接口（recommendReason / workMessage / knowledgeAnswer 等）在返回前调用。
+     * 流式接口 {@code AiClient.streamChat} 在完整回复生成后调用本方法做终检；
+     * 由于 token 已经流出，无法逐 token 改写，命中 {@link SafetyAction#REWRITE}
+     * 时由门面用安全文本替换<b>整段</b>回复，调用方不得把原始 token 直接推给客户端。
+     * 两侧检查都会写 ai_audit_log（带 userId）。
      *
      * @param userId 当前用户 ID
      * @param scene  审计场景，如 {@code "chat"} / {@code "recommend"} / {@code "message"}

@@ -45,6 +45,10 @@ class AiAuditLogServiceTest {
         AiAuditLog log = aiAuditLogMapper.selectById(id);
         assertEquals("chat", log.getScene());
         assertEquals("PASS", log.getAction());
+        assertEquals(7001L, log.getUserId(), "审计必须落 user_id");
+        Long storedUserId = jdbcTemplate.queryForObject(
+                "SELECT user_id FROM ai_audit_log WHERE id = ?", Long.class, id);
+        assertEquals(7001L, storedUserId);
     }
 
     @Test
