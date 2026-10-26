@@ -755,6 +755,10 @@ paths:
     get:
       operationId: adminCareRemindersByIdGet
       summary: 咨询师或管理员查看脱敏关怀详情、授权状态、负责人和跟进事件
+      description: |
+        管理员可查看全部。咨询师查看未领取任务时只返回 id、风险等级、状态、
+        时间与 claimed=false（供领取），不返回摘要、联系方式或关联 ID；
+        查看他人已领取任务返回 1003。
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
       responses:
@@ -1998,6 +2002,10 @@ paths:
     get:
       operationId: adminCareReminderList
       summary: 咨询师/管理员：脱敏关怀提醒汇总
+      description: |
+        管理员（role=3）返回全部提醒。
+        咨询师（role=2）只返回未领取任务与本人已领取任务；未领取任务的
+        summary、userId、sessionId 为 null（领取后可见），避免横向泄露。
       x-required-role: admin
       parameters:
         - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] }, description: '0待处理 1已跟进' }

@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
+
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -64,10 +67,13 @@ class BusinessWorkflowTest {
  }
  @Test void careDetailEnforcesCaseOwnership(){
   jdbc.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,can_contact,deleted) VALUES(970004,'workflow4','unused','test',2,1,1,0,0)");
-  // 咨询师看不到未领取 case（避免 summary 在咨询师之间横向泄露）
+  // 未领取 case 对咨询师只返回可领取的最小载荷，不泄露摘要/联系方式
   actor(970002,2);
-  BusinessException unclaimed=assertThrows(BusinessException.class,()->care.detail(970020L));
-  assertEquals(1003,unclaimed.getCode().intValue());
+  Map<String,Object> pending=care.detail(970020L);
+  assertEquals(false,pending.get("claimed"));
+  assertEquals("OPEN",pending.get("state"));
+  assertFalse(pending.containsKey("summary"));
+  assertFalse(pending.containsKey("can_contact"));
   // 领取后可读自己的 case
   care.follow(970020L,"CLAIM");
   assertEquals("OPEN",care.detail(970020L).get("state"));

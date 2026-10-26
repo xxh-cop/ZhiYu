@@ -21,6 +21,7 @@ import com.zhiyu.modules.work.mapper.WorkMapper;
 import com.zhiyu.security.UserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -46,6 +47,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserMapper userMapper;
     private final WorkMapper workMapper;
     private final EmotionSessionMapper emotionSessionMapper;
+    private final JdbcTemplate jdbc;
 
     @Override
     public PageVO<AuditQueueItemVO> getAuditQueue(String type, Integer page) {
@@ -100,19 +102,59 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public PageVO<CareReminderVO> getCareReminders(Integer status, Integer page) {
         int pageNum = (page == null || page < 1) ? 1 : page;
-        Page<CareReminder> pageParam = new Page<>(pageNum, PAGE_SIZE);
-        LambdaQueryWrapper<CareReminder> wrapper = new LambdaQueryWrapper<>();
+        Long actor = UserContext.getUserId();
+        boolean admin = Integer.valueOf(3).equals(UserContext.getRole());
+
+        StringBuilder where = new StringBuilder(" WHERE r.deleted = 0");
+        List<Object> args = new ArrayList<>();
         if (status != null) {
-            wrapper.eq(CareReminder::getStatus, status);
+            where.append(" AND r.status = ?");
+            args.add(status);
         }
-        wrapper.orderByDesc(CareReminder::getCreateTime);
+        if (!admin) {
+            // 咨询师只能看到未领取任务（供领取）与本人已领取任务，
+            // 不能看到其他咨询师领取的个案。
+            where.append(" AND (c.owner_id IS NULL OR c.owner_id = ?)");
+            args.add(actor);
+        }
 
-        IPage<CareReminder> result = careReminderMapper.selectPage(pageParam, wrapper);
+        String from = " FROM care_reminder r"
+                + " LEFT JOIN care_case c ON c.reminder_id = r.id AND c.deleted = 0"
+                + where;
+        Long total = jdbc.queryForObject("SELECT COUNT(*)" + from, Long.class, args.toArray());
 
-        List<CareReminderVO> records = result.getRecords().stream()
-                .map(this::toCareReminderVO)
-                .collect(Collectors.toList());
-        return new PageVO<>(result.getTotal(), pageNum, PAGE_SIZE, records);
+        List<Object> pageArgs = new ArrayList<>(args);
+        pageArgs.add(PAGE_SIZE);
+        pageArgs.add((pageNum - 1) * PAGE_SIZE);
+        String sql = "SELECT r.id, r.user_id, r.session_id, r.risk_level, r.summary,"
+                + " r.status, r.create_time, c.owner_id" + from
+                + " ORDER BY r.create_time DESC LIMIT ? OFFSET ?";
+
+        List<CareReminderVO> records = jdbc.query(sql, (rs, rowNum) -> {
+            CareReminderVO vo = new CareReminderVO();
+            vo.setId(rs.getLong("id"));
+            vo.setRiskLevel(rs.getInt("risk_level"));
+            vo.setStatus(rs.getInt("status"));
+            vo.setCreateTime(rs.getTimestamp("create_time") == null
+                    ? null : rs.getTimestamp("create_time").toLocalDateTime());
+            Long ownerId = rs.getObject("owner_id", Long.class);
+            boolean claimed = ownerId != null;
+            boolean mine = claimed && ownerId.equals(actor);
+            vo.setClaimed(claimed);
+            vo.setMine(mine);
+            if (admin || mine) {
+                vo.setUserId(rs.getObject("user_id", Long.class));
+                vo.setSessionId(rs.getObject("session_id", Long.class));
+                vo.setSummary(rs.getString("summary"));
+            } else {
+                // 未领取：咨询师只看到风险等级与时间，领取后才展示摘要与关联标识。
+                vo.setUserId(null);
+                vo.setSessionId(null);
+                vo.setSummary(null);
+            }
+            return vo;
+        }, pageArgs.toArray());
+        return new PageVO<>(total == null ? 0 : total, pageNum, PAGE_SIZE, records);
     }
 
     @Override
@@ -164,18 +206,6 @@ public class AdminServiceImpl implements AdminService {
         vo.setInheritorId(project.getInheritorId());
         vo.setStatus(project.getStatus());
         vo.setCreateTime(project.getCreateTime());
-        return vo;
-    }
-
-    private CareReminderVO toCareReminderVO(CareReminder reminder) {
-        CareReminderVO vo = new CareReminderVO();
-        vo.setId(reminder.getId());
-        vo.setUserId(reminder.getUserId());
-        vo.setSessionId(reminder.getSessionId());
-        vo.setRiskLevel(reminder.getRiskLevel());
-        vo.setSummary(reminder.getSummary());
-        vo.setStatus(reminder.getStatus());
-        vo.setCreateTime(reminder.getCreateTime());
         return vo;
     }
 

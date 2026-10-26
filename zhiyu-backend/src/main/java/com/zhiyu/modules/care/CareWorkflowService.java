@@ -21,10 +21,21 @@ public class CareWorkflowService {
         var r=rows.get(0);r.put("id",id.toString());
         var cases=jdbc.queryForList("SELECT owner_id,state FROM care_case WHERE reminder_id=? AND deleted=0",id);
         Object owner=cases.isEmpty()?null:cases.get(0).get("owner_id");
-        // 授权：管理员（role=3）可看全部；咨询师（role=2）只能看自己领取的 case，
-        // 未领取 case 不对咨询师开放（避免 summary/can_contact 在咨询师之间横向泄露）。
+        // 授权：管理员（role=3）可看全部；咨询师（role=2）只能看本人领取的 case。
+        // 未领取任务对咨询师返回最小载荷（无摘要/联系方式/关联 ID），供其领取后再查看。
         if(actorRole!=3){
-            if(owner==null)throw new BusinessException(1003,"尚未领取的关怀任务仅管理员可查看");
+            if(owner==null){
+                Map<String,Object> pending=new LinkedHashMap<>();
+                pending.put("id",id.toString());
+                pending.put("risk_level",r.get("risk_level"));
+                pending.put("status",r.get("status"));
+                pending.put("create_time",r.get("create_time"));
+                pending.put("state","OPEN");
+                pending.put("claimed",false);
+                pending.put("mine",false);
+                pending.put("events",List.of());
+                return pending;
+            }
             if(!owner.toString().equals(actor.toString()))throw new BusinessException(1003,"仅负责人或管理员可查看关怀详情");
         }
         r.put("state",cases.isEmpty()?"OPEN":cases.get(0).get("state"));

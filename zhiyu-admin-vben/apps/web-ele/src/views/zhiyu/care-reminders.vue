@@ -89,6 +89,7 @@ const detail=ref<any>(null),drawer=ref(false),busy=ref(false),detailError=ref(''
 const actionLabels:Record<string,string>={CLAIM:'领取任务',REVIEWED:'已查看并评估',CONTACTED:'记录已联系',REFERRED:'记录已转介',CLOSE:'完成任务',REOPEN:'重新打开'};
 async function handleView(row:any){drawer.value=true;detail.value=null;detailError.value='';try{detail.value=await requestClient.get('/admin/care-reminders/'+row.id);}catch(e:any){detailError.value=e.message||'详情加载失败';}}
 async function follow(action:string){if(!detail.value||busy.value)return;busy.value=true;try{const id=detail.value.id;await requestClient.post('/admin/care-reminders/'+id+'/followups',{action});ElMessage.success('跟进已保存');detail.value=await requestClient.get('/admin/care-reminders/'+id);await fetchList();}catch(e:any){ElMessage.error(e.message||'操作失败');}finally{busy.value=false;}}
+async function claim(row:any){if(busy.value)return;busy.value=true;try{await requestClient.post('/admin/care-reminders/'+row.id+'/followups',{action:'CLAIM'});ElMessage.success('任务已领取');await fetchList();await handleView(row);}catch(e:any){ElMessage.error(e.message||'领取失败');}finally{busy.value=false;}}
 
 
 onMounted(() => {
@@ -142,7 +143,11 @@ onMounted(() => {
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="summary" label="脱敏摘要" min-width="300" />
+        <el-table-column label="脱敏摘要" min-width="300">
+          <template #default="{ row }">
+            {{ row.summary || (row.claimed ? '-' : '领取后可见脱敏摘要') }}
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="statusTagType(row.status)" size="small">
@@ -150,10 +155,13 @@ onMounted(() => {
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleView(row)">
               查看
+            </el-button>
+            <el-button v-if="!row.claimed" type="primary" link size="small" :loading="busy" @click="claim(row)">
+              领取
             </el-button>
           </template>
         </el-table-column>
@@ -171,13 +179,14 @@ onMounted(() => {
     </el-card>
     <el-drawer v-model="drawer" title="关怀跟进" size="min(560px, 100vw)">
       <el-alert v-if="detailError" :title="detailError" type="error" :closable="false" />
-      <template v-if="detail"><el-alert :title="Number(detail.can_contact)===1?'用户已授权联系；记录联系前仍会校验授权':'用户未授权联系，请尊重其选择'" :type="Number(detail.can_contact)===1?'success':'warning'" :closable="false"/>
-      <p class="my-4 leading-relaxed">{{detail.summary}}</p>
+      <template v-if="detail"><el-alert v-if="detail.claimed" :title="Number(detail.can_contact)===1?'用户已授权联系；记录联系前仍会校验授权':'用户未授权联系，请尊重其选择'" :type="Number(detail.can_contact)===1?'success':'warning'" :closable="false"/>
+      <p v-if="detail.summary" class="my-4 leading-relaxed">{{detail.summary}}</p>
+      <p v-else class="my-4 leading-relaxed text-gray-500">领取后可见脱敏摘要与关联信息。</p>
       <p>任务状态：{{detail.state==='CLOSED'?'已完成':detail.claimed?'已领取':'待领取'}}</p>
       <div class="my-4 flex flex-wrap gap-2"><el-button v-if="!detail.claimed" type="primary" :loading="busy" @click="follow('CLAIM')">领取任务</el-button>
       <template v-else-if="detail.state!=='CLOSED'"><el-button v-for="a in ['REVIEWED','CONTACTED','REFERRED','CLOSE']" :key="a" :disabled="busy||(a==='CONTACTED'&&Number(detail.can_contact)!==1)" @click="follow(a)">{{actionLabels[a]}}</el-button></template>
       <el-button v-else :loading="busy" @click="follow('REOPEN')">重新打开</el-button></div>
-      <el-timeline class="mt-6"><el-timeline-item v-for="(e,i) in detail.events" :key="i" :timestamp="formatTime(e.create_time)">{{actionLabels[e.action]||e.action}}</el-timeline-item></el-timeline>
+      <el-timeline v-if="detail.events && detail.events.length" class="mt-6"><el-timeline-item v-for="(e,i) in detail.events" :key="i" :timestamp="formatTime(e.create_time)">{{actionLabels[e.action]||e.action}}</el-timeline-item></el-timeline>
       <p class="text-sm text-gray-500">只记录处理动作，不收集可识别个人身份的跟进正文。本系统不能替代专业心理咨询。</p></template>
     </el-drawer>
   </div>
