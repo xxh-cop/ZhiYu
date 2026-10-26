@@ -182,10 +182,12 @@ export const useEmotionStore = defineStore('emotion', {
 				const aiStore = useAiCompanionStore()
 				aiStore.stopTalking()
 
-				// 危机干预检测：后端 BLOCK 时不发 error 事件，
-				// 而是将关怀话术作为普通 message 推送。
-				// 关怀话术包含「心理中心」或「热线」关键词，据此识别。
-				this._checkCrisis()
+				// 危机标志以 SSE done 事件为准；旧后端未下发 crisis 时才退回关键词识别。
+				if (data && typeof data.crisis === 'boolean') {
+					this.crisisTriggered = data.crisis
+				} else {
+					this._checkCrisis()
+				}
 			},
 				onError: (err) => {
 					this.finishAssistant()
@@ -206,9 +208,8 @@ export const useEmotionStore = defineStore('emotion', {
 		},
 
 		/**
-		 * 检测最后一条 assistant 消息是否为危机干预关怀话术。
-		 * 后端 KeywordContentSafetyFilter.buildCareMessage() 返回的文案
-		 * 包含「心理中心」和「热线」关键词。命中时设 crisisTriggered=true。
+		 * 旧后端兼容：done 事件缺少 crisis 字段时，按关怀话术关键词兜底识别。
+		 * 新后端应优先使用 done.crisis。
 		 */
 		_checkCrisis() {
 			const last = this.messages[this.messages.length - 1]
