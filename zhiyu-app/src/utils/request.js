@@ -10,13 +10,12 @@
  * 不引入 axios —— uni.request 在 H5 与小程序端行为一致，已经够用。
  */
 import { useUserStore } from '../stores/user'
-import { API_BASE_URL } from './config.js'
+import { API_BASE_URL, TOKEN_KEY, REQUEST_TIMEOUT } from './config.js'
 import { safeWorkReturn } from './work-navigation'
 
 const BASE_URL = API_BASE_URL
 
 const LOGIN_PAGE = '/pages/login/index'
-const TOKEN_KEY = 'token'
 
 /** 统一错误类型：调用方靠 err.code 区分业务错误码。 */
 export class RequestError extends Error {
@@ -71,11 +70,11 @@ function handleUnauthorized() {
  * @param {any}    [options.data]   请求体 / query
  * @param {object} [options.header] 额外请求头
  * @param {boolean}[options.auth]   是否附带 Authorization，默认 true
- * @param {number} [options.timeout] 请求超时毫秒数，默认 60000；账号入口使用 15000
+ * @param {number} [options.timeout] 请求超时毫秒数，默认取 config.REQUEST_TIMEOUT（60000）；账号入口使用 15000
  * @returns {Promise<any>} resolve 业务 data
  */
 export function request(options = {}) {
-	const { url, method = 'GET', data, header = {}, auth = true, timeout = 60000 } = options
+	const { url, method = 'GET', data, header = {}, auth = true, timeout = REQUEST_TIMEOUT } = options
 
 	return new Promise((resolve, reject) => {
 		const finalHeader = Object.assign({ 'Content-Type': 'application/json' }, header)

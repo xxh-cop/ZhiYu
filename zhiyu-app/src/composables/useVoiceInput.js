@@ -1,7 +1,7 @@
 import {ref} from 'vue'
 import {onHide,onUnload} from '@dcloudio/uni-app'
 import {request} from '../utils/request'
-import {API_BASE_URL} from '../utils/config'
+import {API_BASE_URL,TOKEN_KEY} from '../utils/config'
 
 export function useVoiceInput(onText) {
   const state=ref('idle')
@@ -19,11 +19,11 @@ export function useVoiceInput(onText) {
       const body=new FormData();body.append('file',blobOrPath,'voice.webm')
       const controller=new AbortController();upload=controller
       timer=setTimeout(()=>controller.abort(),30000)
-      const response=await fetch(API_BASE_URL+'/api/speech/transcribe',{method:'POST',headers:{Authorization:'Bearer '+uni.getStorageSync('token')},body,signal:controller.signal})
+      const response=await fetch(API_BASE_URL+'/api/speech/transcribe',{method:'POST',headers:{Authorization:'Bearer '+uni.getStorageSync(TOKEN_KEY)},body,signal:controller.signal})
       const result=await response.json();if(!response.ok||result.code!==0)throw new Error(result.message||'识别失败');data=result.data
       // #endif
       // #ifndef H5
-      data=await new Promise((resolve,reject)=>{upload=uni.uploadFile({url:API_BASE_URL+'/api/speech/transcribe',filePath:blobOrPath,name:'file',header:{Authorization:'Bearer '+uni.getStorageSync('token')},timeout:30000,success:r=>{try{const body=JSON.parse(r.data);if(body.code!==0)throw new Error(body.message||'识别失败');resolve(body.data)}catch(e){reject(e)}},fail:()=>reject(new Error('录音上传失败，请使用文字输入'))})})
+      data=await new Promise((resolve,reject)=>{upload=uni.uploadFile({url:API_BASE_URL+'/api/speech/transcribe',filePath:blobOrPath,name:'file',header:{Authorization:'Bearer '+uni.getStorageSync(TOKEN_KEY)},timeout:30000,success:r=>{try{const body=JSON.parse(r.data);if(body.code!==0)throw new Error(body.message||'识别失败');resolve(body.data)}catch(e){reject(e)}},fail:()=>reject(new Error('录音上传失败，请使用文字输入'))})})
       // #endif
       if(!cancelled){onText(data.text);uni.showToast({title:'请确认文字后再发送',icon:'none'})}
     }catch(e){if(!cancelled)fail(e)}finally{upload=null;finish()}

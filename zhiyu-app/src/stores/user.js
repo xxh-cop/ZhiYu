@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { http } from '../utils/request'
-
-const TOKEN_KEY = 'token'
+import { TOKEN_KEY } from '../utils/config'
 
 const B64_CHARS =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'

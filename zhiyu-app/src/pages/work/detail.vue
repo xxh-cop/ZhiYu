@@ -34,7 +34,7 @@ import MediaVideo from '../../components/MediaVideo.vue'
 import { ref, computed } from 'vue'
 import { onLoad, onShareAppMessage, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
-import { API_BASE_URL } from '../../utils/config'
+import { API_BASE_URL, TOKEN_KEY } from '../../utils/config'
 import { workPath, workLoginUrl, workShareUrl } from '../../utils/work-navigation'
 const work=ref(null),loading=ref(false),notFound=ref(false),error=ref(''),imageFailed=ref(false)
 const liked=ref(false),favorited=ref(false),likeCount=ref(0),commentCount=ref(0),interactionBusy=ref('')
@@ -48,7 +48,7 @@ onLoad(query=>{
  uni.hideShareMenu()
  // #endif
  if(!workPath(workId)){notFound.value=true;return}
- if(!uni.getStorageSync('token')){uni.reLaunch({url:workLoginUrl(workId)});return}
+ if(!uni.getStorageSync(TOKEN_KEY)){uni.reLaunch({url:workLoginUrl(workId)});return}
  // #ifdef H5
  systemShareSupported.value=typeof navigator.share==='function'
  // #endif

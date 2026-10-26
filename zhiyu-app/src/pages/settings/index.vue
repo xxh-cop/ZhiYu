@@ -149,7 +149,7 @@ import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
-import { API_BASE_URL } from '../../utils/config.js'
+import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
 
 const ROLE_LABEL = {
 	0: '学生',
@@ -239,7 +239,7 @@ function chooseAvatar() {
 
 function uploadAvatar(filePath) {
 	uni.showLoading({ title: '上传中...', mask: true })
-	const token = uni.getStorageSync('token') || ''
+	const token = uni.getStorageSync(TOKEN_KEY) || ''
 	uni.uploadFile({
 		url: `${API_BASE_URL}/api/files/upload/image`,
 		filePath: filePath,
