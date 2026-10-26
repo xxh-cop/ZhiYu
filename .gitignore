@@ -161,3 +161,7 @@ rag-store.json
 !zhiyu-app/src/data/music.js
 !zhiyu-app/src/data/media-credits.js
 private-media/
+
+# Design scratch stays local; brand assets are versioned
+design/*
+!design/logo/
