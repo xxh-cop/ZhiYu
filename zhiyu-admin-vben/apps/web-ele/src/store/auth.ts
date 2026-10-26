@@ -12,6 +12,7 @@ import { defineStore } from 'pinia';
 
 import { getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
 import { $t } from '#/locales';
+import { canAccessAdmin, NO_ADMIN_ROLE_ERROR } from '#/router/role-access';
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore();
@@ -45,6 +46,13 @@ export const useAuthStore = defineStore('auth', () => {
           fetchUserInfo(),
           getAccessCodesApi(),
         ]);
+
+        // 学生账号 / 空角色不允许进入管理端：在写入用户信息与跳转之前终止，
+        // 避免先进入管理端布局再被守卫弹回
+        if (!canAccessAdmin(fetchUserInfoResult?.roles)) {
+          resetAllStores();
+          throw new Error(NO_ADMIN_ROLE_ERROR);
+        }
 
         userInfo = fetchUserInfoResult;
 

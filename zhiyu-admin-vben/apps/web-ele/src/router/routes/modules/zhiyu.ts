@@ -8,13 +8,23 @@ const routes: RouteRecordRaw[] = [
  {name:'ZhiyuOperationLogs',path:'/zhiyu/operation-logs',component:()=>import('#/views/zhiyu/operation-logs.vue'),meta:{title:'操作记录',icon:'lucide:history',order:6,authority:['ROLE_3']}},
  {name:'ZhiyuPrograms',path:'/zhiyu/programs',component:()=>import('#/views/zhiyu/programs.vue'),meta:{title:'活动与预约',icon:'lucide:calendar-days',order:4,authority:['ROLE_1','ROLE_2','ROLE_3']}},
   {
-    meta: { icon: 'lucide:layout-dashboard', order: 1, title: '工作台' },
+    meta: {
+      icon: 'lucide:layout-dashboard',
+      order: 1,
+      title: '工作台',
+      authority: ['ROLE_3'],
+    },
     name: 'ZhiyuDashboard',
     path: '/zhiyu/dashboard',
     component: () => import('#/views/zhiyu/dashboard.vue'),
   },
   {
-    meta: { icon: 'lucide:bar-chart-3', order: 2, title: '数据中心' },
+    meta: {
+      icon: 'lucide:bar-chart-3',
+      order: 2,
+      title: '数据中心',
+      authority: ['ROLE_3'],
+    },
     name: 'ZhiyuDataCenter',
     path: '/zhiyu/data-center',
     children: [
@@ -22,18 +32,32 @@ const routes: RouteRecordRaw[] = [
         name: 'ZhiyuAnalytics',
         path: 'analytics',
         component: () => import('#/views/zhiyu/analytics.vue'),
-        meta: { icon: 'lucide:line-chart', title: '数据看板' },
+        meta: {
+          icon: 'lucide:line-chart',
+          title: '数据看板',
+          authority: ['ROLE_3'],
+        },
       },
       {
         name: 'ZhiyuEmotionAnalysis',
         path: 'emotion',
         component: () => import('#/views/zhiyu/emotion-analysis.vue'),
-        meta: { icon: 'lucide:heart-pulse', title: '情绪分析' },
+        meta: {
+          icon: 'lucide:heart-pulse',
+          title: '情绪分析',
+          authority: ['ROLE_3'],
+        },
       },
     ],
   },
   {
-    meta: { icon: 'lucide:sparkles', order: 3, title: '织愈业务' },
+    meta: {
+      icon: 'lucide:sparkles',
+      order: 3,
+      title: '织愈业务',
+      // 子页面最低门槛为 ROLE_2（关怀提醒）；ROLE_1 只使用「活动与预约」与「我的传承」
+      authority: ['ROLE_2', 'ROLE_3'],
+    },
     name: 'ZhiyuBusiness',
     path: '/zhiyu/business',
     children: [
@@ -65,19 +89,31 @@ const routes: RouteRecordRaw[] = [
         name: 'ZhiyuInheritors',
         path: 'inheritors',
         component: () => import('#/views/zhiyu/inheritors.vue'),
-        meta: { icon: 'lucide:award', title: '传承人管理' },
+        meta: {
+          icon: 'lucide:award',
+          title: '传承人管理',
+          authority: ['ROLE_3'],
+        },
       },
       {
         name: 'ZhiyuWorks',
         path: 'works',
         component: () => import('#/views/zhiyu/works.vue'),
-        meta: { icon: 'lucide:image', title: '作品管理' },
+        meta: {
+          icon: 'lucide:image',
+          title: '作品管理',
+          authority: ['ROLE_3'],
+        },
       },
       {
         name: 'ZhiyuGroups',
         path: 'groups',
         component: () => import('#/views/zhiyu/groups.vue'),
-        meta: { icon: 'lucide:users-round', title: '小组管理' },
+        meta: {
+          icon: 'lucide:users-round',
+          title: '小组管理',
+          authority: ['ROLE_3'],
+        },
       },
     ],
   },

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
+import { NO_ADMIN_ROLE_ERROR } from '#/router/role-access';
 import { useAuthStore } from '#/store';
 defineOptions({ name: 'Login' });
 const authStore = useAuthStore();
@@ -20,8 +21,11 @@ async function submit() {
   }
   try {
     await authStore.authLogin({ username: form.username.trim(), password: form.password });
-  } catch {
-    error.value = '登录未完成。请确认工作账号和密码，或检查网络后重试。学生账号请使用学生端。';
+  } catch (err) {
+    error.value =
+      err instanceof Error && err.message === NO_ADMIN_ROLE_ERROR
+        ? '该账号没有管理端访问权限。学生账号请使用学生端；如需协助请联系平台管理员。'
+        : '登录未完成。请确认工作账号和密码，或检查网络后重试。学生账号请使用学生端。';
   }
 }
 </script>

@@ -19,14 +19,20 @@ export async function getUserInfoApi(): Promise<UserInfo> {
       ? `ROLE_${result.role}`
       : 'ROLE_0';
 
+  // 首页按角色分流：管理员落工作台，传承人 / 咨询师落活动与预约。
+  // 工作台与数据中心已收紧为 ROLE_3，若非管理员仍按默认首页跳转会匹配到 404。
+  const homePath =
+    roleCode === 'ROLE_3' ? '/zhiyu/dashboard' : '/zhiyu/programs';
+
   return {
+    // 保留其他字段以备将来使用
+    ...result,
     userId: String(result?.id ?? result?.userId ?? ''),
     username: result?.username ?? '',
     realName: result?.nickname ?? result?.username ?? '',
     avatar: result?.avatarUrl ?? '',
     roles: [roleCode],
-    // 保留其他字段以备将来使用
-    ...result,
+    homePath,
   } as UserInfo;
 }
 
