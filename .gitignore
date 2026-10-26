@@ -103,6 +103,8 @@ application-prod.yaml
 .continue/
 .windsurf/
 .ai-tmp/
+.playwright-cli/
+output/playwright/
 .acl-recovery/
 .deepseek/
 .dsh/

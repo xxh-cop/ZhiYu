@@ -1,58 +1,36 @@
-# 织愈后端启动脚本
-# 自动读取仓库根的 .env 文件并注入环境变量
-# 用法：在仓库根执行 .\start-backend.ps1
-
+# Run from any directory. Requires Java 17 and Maven on PATH (or an existing JAVA_HOME).
+# Optional .env uses literal KEY=value lines; no shell expressions are evaluated.
 $ErrorActionPreference = 'Stop'
-
-# 检查 .env 是否存在
 $envFile = Join-Path $PSScriptRoot '.env'
-if (-not (Test-Path $envFile)) {
-    Write-Host "❌ 未找到 .env 文件。请先复制 .env.example 为 .env 并填入真实值。" -ForegroundColor Red
-    exit 1
-}
-
-# 白名单：.env 里只应放这些变量
-$allowedKeys = @('DEEPSEEK_API_KEY', 'DEEPSEEK_BASE_URL', 'DEEPSEEK_CHAT_MODEL')
-$envKeys = @()
-
-# 逐行读取 .env，跳过注释和空行
-Get-Content $envFile | ForEach-Object {
-    $line = $_.Trim()
-    if ($line -and -not $line.StartsWith('#')) {
+if (Test-Path -LiteralPath $envFile) {
+    foreach ($rawLine in [IO.File]::ReadAllLines($envFile, [Text.Encoding]::UTF8)) {
+        $line = $rawLine.Trim()
+        if (-not $line -or $line.StartsWith('#')) { continue }
         $parts = $line -split '=', 2
-        if ($parts.Length -eq 2) {
-            $key = $parts[0].Trim()
-            $value = $parts[1].Trim()
+        if ($parts.Length -ne 2 -or $parts[0].Trim() -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') {
+            throw 'Invalid .env line. Use KEY=value without shell expressions.'
+        }
+        $key = $parts[0].Trim()
+        $value = $parts[1].Trim()
+        if ($value.Length -ge 2 -and (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'")))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+        # Explicit process settings take precedence over the local convenience file.
+        if ($null -eq [Environment]::GetEnvironmentVariable($key, 'Process')) {
             [Environment]::SetEnvironmentVariable($key, $value, 'Process')
-            Write-Host "  ✓ 加载 $key" -ForegroundColor Gray
-            $envKeys += $key
         }
     }
+    Write-Host 'Loaded optional local configuration; values are not printed.'
 }
-
-# 检查非白名单变量
-$warned = $false
-foreach ($k in $envKeys) {
-    if ($k -notin $allowedKeys) {
-        if (-not $warned) {
-            Write-Host "`n⚠️  .env 中检测到非白名单变量，可能覆盖 application-dev.yml 默认值：" -ForegroundColor Yellow
-            $warned = $true
-        }
-        Write-Host "     - $k" -ForegroundColor Yellow
-    }
+if ($env:JAVA_HOME -and -not (Test-Path -LiteralPath (Join-Path $env:JAVA_HOME 'bin/java.exe'))) {
+    throw 'JAVA_HOME is invalid. Configure a Java 17 installation.'
 }
-if ($warned) {
-    Write-Host "   建议：.env 只放 DEEPSEEK_* 变量，其他走 application-dev.yml 默认值。`n" -ForegroundColor Yellow
+Get-Command mvn -ErrorAction Stop | Out-Null
+Push-Location (Join-Path $PSScriptRoot 'zhiyu-backend')
+try {
+    & mvn spring-boot:run "-Dmaven.repo.local=../.ai-tmp/m2"
+    $backendExitCode = $LASTEXITCODE
+} finally {
+    Pop-Location
 }
-
-# 检查关键变量
-if (-not $env:DEEPSEEK_API_KEY -or $env:DEEPSEEK_API_KEY -eq 'sk-your-real-key-here') {
-    Write-Host "⚠️  DEEPSEEK_API_KEY 未配置或仍为占位符，后端将使用 MockLlmClient" -ForegroundColor Yellow
-}
-
-# 启动后端
-$env:JAVA_HOME = 'D:\Java\jdk-17'
-Set-Location (Join-Path $PSScriptRoot 'zhiyu-backend')
-
-Write-Host "`n🚀 启动后端..." -ForegroundColor Cyan
-mvn spring-boot:run "-Dmaven.repo.local=../.ai-tmp/m2"
+exit $backendExitCode
