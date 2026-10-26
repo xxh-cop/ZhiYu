@@ -1,0 +1,111 @@
+# 织愈 CI：三端构建与单元测试
+#
+# 范围说明（不要扩大解释）：
+# - 后端只运行 `mvn -B test`（H2 单测），不启动 MySQL、Redis，也不连接真实 AI/语音服务。
+# - 学生端只执行 Node 测试、H5 与微信小程序构建；不运行微信开发者工具、真机或接口联调。
+# - 管理端只执行类型检查；不启动后端、不做浏览器端到端验证。
+# 构建与单测通过不等于 MySQL 迁移、真机、真实 AI 或压测验收通过。
+
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+# 同一分支/PR 的旧任务自动取消，避免重复占用 runner
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 只读仓库内容，工作流不需要写权限
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: backend (Java 17 / mvn test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: zhiyu-backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # 单测使用 H2 + MySQL 模式（sql/schema-h2.sql），不依赖外部数据库。
+      # 真实 MySQL 迁移、Redis 共享状态与 AI 服务联调不在本 job 范围内。
+      - name: Run backend unit tests
+        run: mvn -B test
+
+  app:
+    name: app (Node tests / H5 / mp-weixin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: zhiyu-app
+    env:
+      # 学生端生产构建要求提供 VITE_API_BASE_URL（缺失会抛错，不会回落 localhost）。
+      # 这里仅用 CI 占位地址完成构建，不连接任何真实服务。
+      VITE_API_BASE_URL: http://localhost:8080
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: zhiyu-app/package-lock.json
+
+      # 仓库只有 package-lock.json，使用 npm ci 保证与锁文件一致，不生成新锁。
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run app unit tests
+        run: node --test tests/*.test.mjs
+
+      - name: Build H5
+        run: npm run build:h5
+
+      - name: Build WeChat mini program
+        run: npm run build:mp-weixin
+
+  admin:
+    name: admin (pnpm typecheck)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: zhiyu-admin-vben
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本与 zhiyu-admin-vben/package.json 的 packageManager 保持一致。
+      - name: Set up pnpm 11.16.0
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.16.0
+          run_install: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: zhiyu-admin-vben/pnpm-lock.yaml
+
+      # 在工作区根目录安装，apps/web-ele 依赖 workspace:* 包。
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck @vben/web-ele
+        run: pnpm --filter @vben/web-ele typecheck

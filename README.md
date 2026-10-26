@@ -13,6 +13,7 @@
 - 运行项目：按下方「本地运行」准备数据库与三个工程。
 - 判断完成范围：看 [最新需求核查](docs/requirements-audit-20261021.md)；查历史测试证据：看 [2026-10-20 交付记录](docs/final-delivery-checklist.md)。
 - 参与开发：先读 [AGENTS.md](AGENTS.md)，再看 OpenAPI、数据库结构与对应业务场景。
+- 判断自动化验证范围：看 [CI 工作流](.github/workflows/ci.yml) 与下方「构建与验证」；CI 只覆盖构建与 H2 单测，不含 MySQL、真机或真实 AI 验收。
 - 当前管理端是 **zhiyu-admin-vben/apps/web-ele**；不要在历史 zhiyu-admin 中查找新功能。
 
 ## 功能概览
@@ -57,6 +58,7 @@ Zhi_Yu/
 ├── README.md                       # 项目入口与运行说明
 ├── AGENTS.md                       # 协作规范
 ├── .env.example                    # 本地配置示例
+├── .github/workflows/ci.yml         # CI：后端单测、学生端测试与构建、管理端类型检查
 ├── start-backend.ps1                # Windows 本地后端启动入口
 ├── docs/                           # 架构、隐私、视觉规范、阶段交付与素材署名
 ├── design/                         # 设计令牌等设计资料
@@ -106,6 +108,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 | `DOUBAO_API_KEY` | 当前配置的向量模型服务密钥 |
 | `ZHIYU_RAG_STORE_PATH` | 本地向量存储文件位置 |
 | `ZHIYU_UPLOAD_DIR` | 图片等公开上传文件的位置 |
+| `VITE_API_BASE_URL` | 学生端构建期接口地址（H5 与小程序共用，生产构建必填；仅前端公开地址，不放密钥） |
 
 示例中的默认凭据仅用于本地开发。正式环境必须使用独立密钥与数据库凭据；不要将 `.env.example` 中关于开发默认值的注释理解为生产部署要求。
 
@@ -161,7 +164,7 @@ npm install
 npm run dev:h5 -- --port 5195
 ```
 
-按终端显示的实际地址访问。学生端接口地址集中在 `src/utils/config.js`，**当前 H5 与小程序默认均为 localhost:8080**。在其他设备打开 H5 或微信真机前，必须改成可访问的后端地址；正式环境使用 HTTPS，并配置小程序合法域名。环境变量化配置仍是后续改进项，不能直接把本地构建视作部署完成。
+按终端显示的实际地址访问。学生端接口地址由构建期环境变量 `VITE_API_BASE_URL` 提供，统一在 `src/utils/config.js` 解析：开发默认值在 `zhiyu-app/.env.development`（真机/局域网改成可访问的后端地址），生产构建必须显式提供（模板见 `zhiyu-app/.env.production.example`；缺失时构建仍可能成功，但应用加载配置模块会立即抛错，不会静默回落到 localhost）。**微信真机与局域网访问不能用 localhost**；正式环境使用 HTTPS，并配置小程序合法域名。本地构建产物不等于部署完成。
 
 ### 5. 当前管理端
 
@@ -185,10 +188,26 @@ pnpm --filter @vben/web-ele dev --port 5194
 
 ## 构建与验证
 
+接口路径与操作数量不在本文硬编码，唯一来源是 [`openapi/openapi.yaml`](openapi/openapi.yaml)；测试数量以各命令当次的输出/报告为准。修改契约后用任意 YAML 解析器检查 `paths` 与 `operationId` 唯一性（本地可复用 `zhiyu-app/node_modules/yaml`，不新增依赖）。
+
+### CI（GitHub Actions）
+
+工作流：[`.github/workflows/ci.yml`](.github/workflows/ci.yml)。在 push 到 `main`/`dev` 与 pull request 时运行，`concurrency` 会取消同一分支的旧任务，权限仅为 `contents: read`。
+
+| job | 关键命令 | 覆盖范围 |
+| --- | --- | --- |
+| `backend` | `mvn -B test`（Java 17，Maven 缓存） | H2 单测；不连 MySQL/Redis，不调真实 AI |
+| `app` | `npm ci` → `node --test tests/*.test.mjs` → `npm run build:h5` → `npm run build:mp-weixin` | 学生端单测与两端构建；`VITE_API_BASE_URL` 仅为构建占位 |
+| `admin` | `pnpm install --frozen-lockfile` → `pnpm --filter @vben/web-ele typecheck` | 管理端类型检查；不做浏览器 E2E |
+
+**边界**：CI 只回答「能否编译、单测是否通过」。MySQL 迁移、微信真机、真实 AI/语音、弱网与压测必须在对应环境单独验收，CI 通过不能替代这些结论。
+
+### 本地命令
+
 在对应工程目录运行：
 
 ```powershell
-# zhiyu-backend/
+# zhiyu-backend/（仓库内 Maven 缓存，避免写入工作区外的默认仓库）
 mvn test "-Dmaven.repo.local=../.ai-tmp/m2"
 
 # zhiyu-app/
@@ -203,9 +222,9 @@ pnpm --filter @vben/web-ele build
 
 微信开发者工具导入 `zhiyu-app/dist/build/mp-weixin/`。构建成功不等于真机播放、网络和权限验收通过。
 
-2026-10-20 集中验收：后端 419 项测试，418 通过、1 跳过、0 失败；H5、微信小程序、管理端构建及管理端类型检查通过。OpenAPI 包含 126 个路径，所有操作具有唯一标识。真实 MySQL/HTTP 验证覆盖预约授权、协作权限、小组媒体权限撤销、个人导出及注销并发保护。浏览器验证覆盖真实管理端登录、图表筛选联动、学生消息撤回、媒体文件下载和手机布局。
+历史证据：2026-10-20 集中验收中，后端全量单元测试通过（1 项真实 DeepSeek 集成跳过），H5、微信小程序、管理端构建及管理端类型检查通过；OpenAPI 契约已解析校验且 operationId 无重复。真实 MySQL/HTTP 验证覆盖预约授权、协作权限、小组媒体权限撤销、个人导出及注销并发保护。浏览器验证覆盖真实管理端登录、图表筛选联动、学生消息撤回、媒体文件下载和手机布局。
 
-2026-10-21 账号入口复核：新增 3 项注册流程测试通过；H5、小程序、管理端构建及管理端类型检查通过。真实注册后模拟登录失败再恢复，确认只重试登录；新账号两项授权默认关闭、注销后旧凭证被拒绝。此前的 419 项后端回归属于历史证据，本次未重跑整套测试。
+2026-10-21 账号入口复核：新增注册流程用例通过（数量见学生端测试输出）；H5、小程序、管理端构建及管理端类型检查通过。真实注册后模拟登录失败再恢复，确认只重试登录；新账号两项授权默认关闭、注销后旧凭证被拒绝。此前的后端全量回归属于历史证据，本次未重跑整套测试。
 
 ## 常见问题
 

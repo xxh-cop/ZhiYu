@@ -230,7 +230,9 @@ com.zhiyu
 - **多行 commit message**：用 `git commit -F <文件>`，不要用 `-m "..."` 拼多行
   （PowerShell 对引号转义处理不可靠，容易截断或混入换行符）。
 - **小程序端 baseURL**：微信小程序不能用 `localhost`，需用局域网 IP（如
-  `http://192.168.x.x:8080`）。接口地址统一维护在 `zhiyu-app/src/utils/config.js`，请求与 SSE 复用该配置；正式域名还需平台白名单与 HTTPS。
+  `http://192.168.x.x:8080`）。接口地址由构建期 `VITE_API_BASE_URL` 提供：开发默认值改
+  `zhiyu-app/.env.development`，生产模板见 `.env.production.example`；`zhiyu-app/src/utils/config.js`
+  只做统一解析，请求与 SSE 复用该配置。正式域名还需平台白名单与 HTTPS。
 - **微信小程序 enableChunked**：`wx.request` 的 `enableChunked: true` +
   `onChunkReceived` 需要基础库 **≥ 2.20.1**。`sse.js` 已用 `wx.canIUse` 检测并
   提供 fallback（`enableChunked: false` + `success` 回调一次性解析）。

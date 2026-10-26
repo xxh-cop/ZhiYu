@@ -825,6 +825,45 @@ paths:
         '200': {description: 'Result 包装，data.url 为 /api/media/{id}/content 稳定引用，不是公开文件地址'}
         '400': {description: 文件扩展名、大小、MP4 文件头或配额不符合要求}
         '401': {description: 未登录}
+  /api/files/upload/image:
+    post:
+      operationId: filesUploadImagePost
+      summary: 上传 JPG/PNG/WebP 图片到本地公开目录
+      description: |
+        已登录用户可用；multipart 字段名固定为 file；允许 jpg/jpeg/png/webp，
+        单文件不超过 5MB（按扩展名判断，不校验真实文件头）。
+        成功时返回 `/uploads/images/yyyy/MM/dd/{uuid}.{ext}`，由 `/uploads/**` 静态放行，
+        不写入 media_asset，也不生成限时签名。
+        因此该接口只适用于公开图片；作品等私有内容必须使用
+        `POST /api/files/upload/private-image`，不要用本接口的 URL 承载私密图片。
+
+        注意：本接口的参数错误（空文件、超过 5MB、扩展名不支持）与保存失败
+        都以 HTTP 200 返回，业务结果看 body.code（1001 / 5000），不是 HTTP 400/500。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: '成功时 code=0 且 data.url 为公开访问路径；失败时 code=1001（参数/大小/类型）或 code=5000（保存失败）'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string, example: /uploads/images/2026/10/21/0123456789abcdef.jpg }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
   /api/media/{id}/playback:
     get:
       operationId: mediaByIdPlaybackGet
@@ -1158,32 +1197,8 @@ paths:
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- 手作 ----------
-  /api/craft/projects:
-    get:
-      operationId: craftProjectList
-      summary: 手作项目列表（已上架）
-      parameters:
-        - { name: tag, in: query, schema: { type: string } }
-        - { name: page, in: query, schema: { type: integer }, description: 页码，从 1 开始 }
-        - { name: size, in: query, schema: { type: integer }, description: 每页条数，默认 10 }
-      responses:
-        '200':
-          description: 分页项目列表
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Result'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items: { $ref: '#/components/schemas/CraftProject' }
-        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-
+  # 注意：后端没有 GET /api/craft/projects 列表接口。项目列表按传承人查询
+  # （GET /api/inheritors/{id}/projects），详情用 GET /api/craft/projects/{id}。
   /api/craft/projects/{id}/steps:
     get:
       operationId: craftProjectSteps
@@ -1272,7 +1287,7 @@ paths:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
         '200':
-          description: 会话状态、当前步骤、心流时长（flow_seconds，占比 = flow_seconds/(end_time-start_time)）
+          description: 会话状态、当前步骤与总步骤数、开始/结束时间（字段以 CraftSessionVO 为准，不含心流时长或占比字段）
           content:
             application/json:
               schema:
@@ -2002,11 +2017,15 @@ paths:
   /api/admin/dashboard/stats:
     get:
       operationId: adminDashboardStats
-      summary: 数据看板指标（闭环完成率、心流时长、作品数等）
+      summary: 数据看板基础计数（用户数、作品数、待审项目、待处理关怀提醒、情绪分布、近7天注册趋势）
+      description: |
+        返回 DashboardStatsVO 的真实聚合字段：totalUsers、totalWorks、pendingProjects、
+        pendingCareReminders、moodDistribution、userTrend7d。
+        本接口不计算闭环完成率、心流时长或心流占比；这些指标尚无严格口径，不要在前端补造。
       x-required-role: admin
       responses:
         '200':
-          description: 看板指标
+          description: 看板基础计数与分布；无数据时返回 0 或空数组，不填充演示数据
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }

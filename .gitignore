@@ -59,6 +59,9 @@ stats.html
 .env
 .env.*
 !.env.example
+# 只放行不含密钥的开发默认值与模板；.env.local / .env.production 等仍保持忽略
+!zhiyu-app/.env.development
+!zhiyu-app/.env.production.example
 
 # ===== 日志 =====
 logs/
@@ -135,7 +138,9 @@ replay_pid*
 .fseventsd/
 .sts4-cache/
 .springBeans
+# 根目录 lefthook 钩子配置需要纳入版本控制（早期规则误忽略）
 lefthook.yml
+!/lefthook.yml
 
 
 # 用户上传文件

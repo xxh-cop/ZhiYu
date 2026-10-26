@@ -1,0 +1,16 @@
+# 织愈 Git 钩子配置（可选安装，不参与构建）
+#
+# 安装（需要本机已装 lefthook；仓库不为此新增依赖）：
+#   lefthook install
+#
+# 设计约束：
+# - 只放“无依赖、秒级、跨机可用”的检查；编译、单测、三端构建交给
+#   .github/workflows/ci.yml，避免把 pre-commit 变成慢速全量验证。
+# - 不使用仓库未安装的 linter/formatter，避免不同机器行为不一致。
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: git-diff-check
+      # 校验暂存内容中的空白错误与冲突标记；git 自带，无需额外工具。
+      run: git diff --cached --check
