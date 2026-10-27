@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus';
 
 import { getAuditLogDetail, getAuditLogList } from '#/api/zhiyu/admin-audit-log';
 import DataState from '#/components/data-state/DataState.vue';
+import TablePagination from '#/components/table-pagination/TablePagination.vue';
 
 /** 场景下拉 */
 const sceneOptions = [
@@ -37,7 +38,7 @@ const errorMsg = ref('');
 /** 分页 */
 const total = ref(0);
 const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = ref(20);
 
 /** 详情抽屉 */
 const drawerVisible = ref(false);
@@ -78,7 +79,10 @@ async function fetchList() {
   loading.value = true;
   errorMsg.value = '';
   try {
-    const params: any = { page: currentPage.value };
+    const params: any = {
+      page: currentPage.value,
+      pageSize: pageSize.value,
+    };
     if (filterScene.value !== '') params.scene = filterScene.value;
     if (filterAction.value !== '') params.action = filterAction.value;
     const data = await getAuditLogList(params);
@@ -210,14 +214,12 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        class="mt-4 flex justify-end"
-        layout="total, prev, pager, next"
+      <TablePagination
+        v-model:page="currentPage"
+        v-model:page-size="pageSize"
+        :show-sizes="true"
         :total="total"
-        :page-size="pageSize"
-        :current-page="currentPage"
-        @current-change="handlePageChange"
+        @change="handlePageChange"
       />
     </el-card>
 

@@ -11,6 +11,7 @@ import { ElMessage } from 'element-plus';
 
 import { auditProject } from '#/api/zhiyu/admin';
 import DataState from '#/components/data-state/DataState.vue';
+import TablePagination from '#/components/table-pagination/TablePagination.vue';
 
 /** 类型筛选选项 */
 const typeOptions = [{ value: 'project', label: '项目' }];
@@ -211,14 +212,11 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        class="mt-4 flex justify-end"
-        layout="total, prev, pager, next"
-        :total="total"
+      <TablePagination
+        v-model:page="currentPage"
         :page-size="pageSize"
-        v-model:current-page="currentPage"
-        @current-change="handlePageChange"
+        :total="total"
+        @change="handlePageChange"
       />
     </el-card>
 

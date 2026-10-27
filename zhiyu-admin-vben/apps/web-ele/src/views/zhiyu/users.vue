@@ -17,6 +17,7 @@ import {
 } from '#/api/zhiyu/admin-user';
 import type { UserCreateBody } from '#/api/zhiyu/admin-user';
 import DataState from '#/components/data-state/DataState.vue';
+import TablePagination from '#/components/table-pagination/TablePagination.vue';
 
 /** 角色中文映射 */
 const ROLE_LABELS: Record<number, string> = {
@@ -52,7 +53,7 @@ const errorMsg = ref('');
 /** 分页 */
 const total = ref(0);
 const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = ref(20);
 
 /** 编辑弹窗 */
 const editDialogVisible = ref(false);
@@ -113,7 +114,10 @@ async function fetchList() {
   loading.value = true;
   errorMsg.value = '';
   try {
-    const params: any = { page: currentPage.value };
+    const params: any = {
+      page: currentPage.value,
+      pageSize: pageSize.value,
+    };
     if (filterRole.value !== '') params.role = filterRole.value;
     if (filterStatus.value !== '') params.status = filterStatus.value;
     if (keyword.value.trim()) params.keyword = keyword.value.trim();
@@ -448,14 +452,12 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        class="mt-4 flex justify-end"
-        layout="total, prev, pager, next"
+      <TablePagination
+        v-model:page="currentPage"
+        v-model:page-size="pageSize"
+        :show-sizes="true"
         :total="total"
-        :page-size="pageSize"
-        :current-page="currentPage"
-        @current-change="handlePageChange"
+        @change="handlePageChange"
       />
     </el-card>
 

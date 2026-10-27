@@ -7,6 +7,7 @@ import { requestClient } from '#/api/request';
 
 import { getCareReminders } from '#/api/zhiyu/admin';
 import DataState from '#/components/data-state/DataState.vue';
+import TablePagination from '#/components/table-pagination/TablePagination.vue';
 
 /** 状态筛选 */
 const statusOptions = [
@@ -175,14 +176,11 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        class="mt-4 flex justify-end"
-        layout="total, prev, pager, next"
-        :total="total"
+      <TablePagination
+        v-model:page="currentPage"
         :page-size="pageSize"
-        :current-page="currentPage"
-        @current-change="handlePageChange"
+        :total="total"
+        @change="handlePageChange"
       />
     </el-card>
     <el-drawer v-model="drawer" title="关怀跟进" size="min(560px, 100vw)">

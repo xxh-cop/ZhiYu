@@ -6,6 +6,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteProject, getMyProjects } from '#/api/zhiyu/inheritor';
 import DataState from '#/components/data-state/DataState.vue';
+import TablePagination from '#/components/table-pagination/TablePagination.vue';
 
 const router = useRouter();
 
@@ -218,14 +219,11 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        class="mt-4 flex justify-end"
-        layout="total, prev, pager, next"
-        :total="total"
+      <TablePagination
+        v-model:page="currentPage"
         :page-size="pageSize"
-        :current-page="currentPage"
-        @current-change="handlePageChange"
+        :total="total"
+        @change="handlePageChange"
       />
     </el-card>
   </div>
