@@ -1,6 +1,4 @@
-import {
-  defineOverridesPreferences,
-} from '@vben/preferences';
+import { defineOverridesPreferences } from '@vben/preferences';
 
 /**
  * @description 项目配置文件
@@ -17,6 +15,21 @@ export const overridesPreferences = defineOverridesPreferences({
     accessMode: 'frontend',
     // 默认登录后跳转路径
     defaultHomePath: '/zhiyu/dashboard',
+  },
+  widget: {
+    notification: false,
+    notificationButtonPosition: 'none',
+    order: [
+      'globalSearch',
+      'preferences',
+      'themeToggle',
+      'languageToggle',
+      'timezone',
+      'fullscreen',
+      'refresh',
+      'lockScreenBtn',
+      'logoutBtn',
+    ],
   },
   theme: {
     mode: 'light',
