@@ -51,6 +51,7 @@
 - 不替换组件库、不引入新 UI 框架、不搭 Figma 设计交付流程。
 - 不在本轮做像素级视觉稿还原；本轮要的是**一致性与可维护性**。
 - 不改学生端（另立 spec）。
+- **不接入品牌标志**：最终 logo 由用户后续自行设计定稿；`design/logo/` 仅作为已入库的参考资产保留，两端应用继续使用现有 logo，本 spec 的验收不依赖它。
 
 ## 3. 设计决策
 
@@ -123,7 +124,10 @@ theme: {
 ### D7 · 列表页契约
 
 - 筛选：统一 `FilterBar`，字段顺序 = 使用频率；窄屏折叠为"筛选"抽屉；重置按钮存在且真的重置分页与排序。
-- 分页：`pageSize` 为 `ref`，默认 20，`page-sizes: [10,20,50,100]`，`layout="total,sizes,prev,pager,next,jumper"`。
+- 分页：统一 `TablePagination` 组件，**按后端能力分级**，避免"前端显示 20 条、服务端仍按 10 条切"：
+  - 已支持 `pageSize`（`@RequestParam(defaultValue="10") Integer pageSize`）：`/admin/audit-logs`、`/admin/groups`、`/admin/inheritors`、`/admin/users`、`/admin/works`。开启 `showSizes`，`page-sizes: [10,20,50,100]`，默认 20，请求必须带上 `pageSize`。
+  - 只接受 `page` 或一次返回全量：`/admin/project-catalog`（硬编码 `LIMIT 10`）、`/admin/care-reminders`、`/admin/campus-verifications`、`/admin/operation-logs`、`/growth/programs/manage`。本轮 `showSizes=false`，保持现有每页条数，不提供无效的尺寸切换。
+  - 后端补齐 `pageSize` 属独立任务（涉及 OpenAPI、控制器与测试），不在本轮范围；补齐后再逐页打开 `showSizes`。
 - 操作列：主操作 ≤ 2 个直出，其余收进 `更多` dropdown；禁止一行 5 个按钮。
 - 表格：`min-width` 而非固定 `width`；375px 下允许横向滚动，但主键列（标题 / 状态 / 操作）必须首屏可见；表头可排序时提供 `aria-sort`。
 - 破坏性操作：一律 `ElMessageBox.confirm`，标题动词化（"下架作品"而非"提示"），说明后果，`window.confirm` 在 `src/views` 下必须为 0 处。
@@ -179,7 +183,7 @@ theme: {
 - `:8,:10` 的 `VBEN_DOC_URL`、`VBEN_GITHUB_URL`、`SvgGithubIcon` 头部入口移除或指向项目自有文档。
 - 403 / 404 使用品牌化兜底：说明"为什么进不来"和"下一步找谁"，不保留通用文案。
 - 登录页 `login.vue:33` 全部改为主题变量，保留现有 `label`、`aria-invalid`、`role="alert"`、44px 密码切换按钮。
-- 接入 `design/logo/` 管理端资产：`public/logo.svg`、`public/logo.png`、`favicon-admin.ico`，`preferences.ts` 的 `logo.source` 指向新文件。
+- 品牌标志不在本轮更换：继续使用 `public/logo.svg`、`public/logo.png` 与现有 favicon；只在它们遮挡布局或对比度不足时调整尺寸/容器，不改图形。
 
 ## 4. 主题数据流（目标态）
 
@@ -203,7 +207,7 @@ preferences.ts (唯一品牌色入口)
 | `dashboard.vue` | KPI ≤ 4 张且层级一致；待办与图表分区明确；所有图表走 `ChartCard` + `useChartTheme`；无演示通知 |
 | `care-reminders.vue` | 抽屉打开即 loading；逐行 busy（不用全局 busy 让所有"领取"按钮同时转）；摘要脱敏文案；`CLAIM/REVIEWED/CONTACTED/REFERRED/CLOSE/REOPEN` 状态标签走 `StatusTag`；错误与空态分离 |
 | `programs.vue` | 走 `BusinessPageShell`；分页可调；`window.confirm` 归零；状态流转校验前置到按钮禁用而非提交后报错；操作列收纳；删除本地硬编码色 |
-| 全局壳层 | `basic.vue` 去演示内容；403/404 品牌化；登录页令牌化；logo 接入 |
+| 全局壳层 | `basic.vue` 去演示内容；403/404 品牌化；登录页令牌化 |
 
 其余列表页（`works`、`users`、`audit`、`audit-logs`、`groups`、`inheritors`、`my-projects`、`campus`、`operation-logs`、`emotion-analysis`）在试点验收后按同一契约滚动改造，不在本轮验收范围内，但**新增硬编码色一律禁止**。
 
@@ -213,7 +217,7 @@ preferences.ts (唯一品牌色入口)
 |---|---|---|
 | B1 | 引擎收口：改 `preferences.ts`、删 `business.scss` 覆盖、删 `variables.scss` EP 色阶、bump version | P-1、P-2、P-11 |
 | B2 | 状态与列表契约：`DataState`、分页、确认、抽屉 | P-3、P-4、P-5、P-6 |
-| B3 | 三试点页 + 壳层 + logo | P-8、P-9、D12 |
+| B3 | 三试点页 + 壳层 | P-8、P-9、D12 |
 | B4 | 图表桥与色板清理 | P-7 |
 | B5 | 剩余页面滚动改造 | P-10 |
 
@@ -258,8 +262,9 @@ rg 'var\(--el-color-primary' apps/web-ele/src/views      # 期望 > 0（证明�
 
 1. 是否允许运营在管理端把主题切成学生端薄荷青（跨品牌预设），还是管理端预设池只留冷色系。
 2. 角色差异：咨询师与传承人登录后是否给不同默认主题或不同首页密度。
+3. `audit.vue` 的搜索是对**当前页**做前端过滤，但顶部展示的是服务端 `total`——属于数据正确性问题，不在本轮 UI 范围；要么后端补搜索，要么先改文案消除误导，需单独立项。
 
-以上两项不阻塞 B1–B5；确认前按 D4（保留全部预设）与"所有角色同一默认主题"执行。
+以上三项不阻塞 B1–B5；确认前按 D4（保留全部预设）与"所有角色同一默认主题"执行。
 
 ## 10. 交付顺序
 
