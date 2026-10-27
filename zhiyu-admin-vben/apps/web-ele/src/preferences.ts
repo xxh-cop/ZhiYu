@@ -19,17 +19,6 @@ export const overridesPreferences = defineOverridesPreferences({
   widget: {
     notification: false,
     notificationButtonPosition: 'none',
-    order: [
-      'globalSearch',
-      'preferences',
-      'themeToggle',
-      'languageToggle',
-      'timezone',
-      'fullscreen',
-      'refresh',
-      'lockScreenBtn',
-      'logoutBtn',
-    ],
   },
   theme: {
     mode: 'light',
