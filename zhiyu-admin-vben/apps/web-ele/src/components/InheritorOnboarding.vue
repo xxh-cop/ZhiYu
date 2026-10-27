@@ -241,13 +241,13 @@ async function handleSave() {
 .onboarding-title {
   font-size: 18px;
   font-weight: 600;
-  color: var(--zy-admin-title, #1f2937);
+  color: var(--el-text-color-primary);
   margin: 0 0 4px;
 }
 
 .onboarding-subtitle {
   font-size: 13px;
-  color: var(--zy-admin-muted, #9ca3af);
+  color: var(--el-text-color-secondary);
   margin: 0;
 }
 
@@ -258,10 +258,10 @@ async function handleSave() {
 .avatar-wrapper {
   width: 64px;
   height: 64px;
-  border-radius: var(--zy-radius-full, 9999px);
+  border-radius: 9999px;
   overflow: hidden;
   flex-shrink: 0;
-  border: 2px solid var(--zy-admin-border, #e4e7ed);
+  border: 2px solid var(--el-border-color);
 }
 
 .avatar-img {
@@ -276,8 +276,8 @@ async function handleSave() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--zy-admin-primary-bg, #eef2ff);
-  color: var(--zy-admin-muted, #9ca3af);
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
 }
 
 .avatar-plus {

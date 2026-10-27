@@ -124,8 +124,8 @@ onMounted(async () => {
   gap: 16px;
 }
 .chart-card {
-  background: var(--zy-admin-card-bg, #fff);
-  border-radius: var(--zy-radius-lg, 12px);
+  background: var(--el-bg-color);
+  border-radius: var(--el-border-radius-base);
   box-shadow: var(--zy-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
   padding: 16px 20px;
 }
@@ -135,7 +135,7 @@ onMounted(async () => {
 .card-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--zy-admin-title, #1f2937);
+  color: var(--el-text-color-primary);
 }
 
 @media (max-width: 1280px) {

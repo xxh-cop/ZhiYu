@@ -18,7 +18,16 @@ export const overridesPreferences = defineOverridesPreferences({
     // 默认登录后跳转路径
     defaultHomePath: '/zhiyu/dashboard',
   },
-  theme: { mode: 'light', colorPrimary: '#2f7566' },
+  theme: {
+    mode: 'light',
+    // 自定义品牌色必须显式声明 custom，否则抽屉高亮与实际色值不一致
+    builtinType: 'custom',
+    colorPrimary: '#4F46E5',
+    colorSuccess: '#047857',
+    colorWarning: '#B45309',
+    colorDestructive: '#DC2626',
+    radius: '0.5',
+  },
   copyright: {
     companyName: '织愈',
     companySiteLink: '',
