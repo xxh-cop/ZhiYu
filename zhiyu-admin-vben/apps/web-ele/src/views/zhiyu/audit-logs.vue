@@ -227,7 +227,7 @@ onMounted(() => {
     <el-drawer
       v-model="drawerVisible"
       title="审计日志详情"
-      size="50%"
+      size="min(560px, 100vw)"
       direction="rtl"
     >
       <div v-loading="detailLoading" class="flex flex-col gap-4">
