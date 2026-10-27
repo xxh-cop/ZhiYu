@@ -10,6 +10,7 @@ import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 
 import { auditProject } from '#/api/zhiyu/admin';
+import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
 import DataState from '#/components/data-state/DataState.vue';
 import TablePagination from '#/components/table-pagination/TablePagination.vue';
 
@@ -57,8 +58,6 @@ async function fetchList() {
   } catch (e: any) {
     if (requestId !== listRequest) return;
     errorMsg.value = (e && e.message) || '加载失败';
-    tableData.value = [];
-    total.value = 0;
   } finally {
     if (requestId === listRequest) loading.value = false;
   }
@@ -173,6 +172,12 @@ onMounted(() => {
     </el-card>
 
     <el-card shadow="never">
+      <DataErrorBanner
+        v-if="errorMsg && total > 0"
+        :error="errorMsg"
+        :retrying="loading"
+        @retry="fetchList"
+      />
       <el-table
         v-loading="loading"
         :data="filteredData"

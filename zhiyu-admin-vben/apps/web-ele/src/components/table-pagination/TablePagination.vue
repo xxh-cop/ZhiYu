@@ -13,6 +13,9 @@ withDefaults(
   },
 );
 
+// Keep `change` declared here. If it falls through to el-pagination,
+// EP emits change with [currentPage, pageSize] and every
+// handlePageChange(page: number) receives an array instead of a number.
 const emit = defineEmits<{
   'update:page': [value: number];
   'update:pageSize': [value: number];
@@ -34,7 +37,6 @@ function handleSize(value: number) {
 <template>
   <el-pagination
     v-if="total > 0"
-    class="mt-4 flex justify-end"
     :current-page="page"
     :layout="
       showSizes

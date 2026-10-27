@@ -1,5 +1,9 @@
 # 织愈 · 设计 Token 对照表
 
+> **已废弃（2026-10-27）**：管理端令牌不再由 `zhiyu-admin-vben/apps/web-ele/src/styles/variables.scss` 维护。
+> 品牌色、语义色与圆角统一由 `apps/web-ele/src/preferences.ts` 经 Vben 派生；下表中的管理端值为历史记录，已失效。
+> 当前管理端基线见 `docs/superpowers/specs/2026-10-26-admin-ui-baseline-design.md`。
+
 > 建立于 UI 冲刺阶段一。两端共用间距/圆角/动效，色板可差异化。
 > 参考项目：Art Design Pro（圆角/阴影/动效 Token 体系）、Leaf Island UI（圆润形态/低饱和暖色/弹入缓动）、Spark UI（Aurora Text / Meteors / Bento Grid 动效思路）。
 

@@ -932,7 +932,7 @@ fix(admin): 统一危险操作确认与抽屉宽度
 
 | 计划 | 范围 | 依赖 |
 |---|---|---|
-| `2026-10-26-admin-pilot-pages.md` | B3：dashboard / care-reminders / programs 三试点页 + `basic.vue` 去演示内容 + 403/404 + 登录页令牌化 | 本计划的 DataState / TablePagination / confirmAction |
+| `2026-10-26-admin-pilot-pages.md` | B3：dashboard / care-reminders / programs 三试点页 + `basic.vue` 去演示内容 + 403/404 + 登录页令牌化 + offline 全局提示条 | 本计划的 DataState / TablePagination / confirmAction |
 | `2026-10-26-admin-chart-theme.md` | B4：`useChartTheme` + `ChartCard` + `OperationsChart` / `emotion-analysis` 色板替换 + 空态 | 本计划的主题引擎（Task 1） |
 | `2026-10-26-admin-remaining-pages.md` | B5：其余列表页与 `OperationsBoard` / `layouts/auth.vue` 硬编码清理 | 以上三份 |
 

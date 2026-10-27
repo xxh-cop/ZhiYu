@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteProject, getMyProjects } from '#/api/zhiyu/inheritor';
+import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
 import DataState from '#/components/data-state/DataState.vue';
 import TablePagination from '#/components/table-pagination/TablePagination.vue';
 
@@ -74,8 +75,6 @@ async function fetchList() {
     total.value = data.total || 0;
   } catch (e: any) {
     errorMsg.value = (e && e.message) || '加载失败';
-    tableData.value = [];
-    total.value = 0;
   } finally {
     loading.value = false;
   }
@@ -151,6 +150,12 @@ onMounted(() => {
 
     <!-- 表格 -->
     <el-card shadow="never">
+      <DataErrorBanner
+        v-if="errorMsg && total > 0"
+        :error="errorMsg"
+        :retrying="loading"
+        @retry="fetchList"
+      />
       <el-table
         v-loading="loading"
         :data="tableData"
@@ -161,6 +166,7 @@ onMounted(() => {
             :loading="loading"
             :error="errorMsg"
             empty-text="暂无项目"
+            empty-hint="点击「新建项目」开始创建"
             @retry="fetchList"
           />
         </template>
