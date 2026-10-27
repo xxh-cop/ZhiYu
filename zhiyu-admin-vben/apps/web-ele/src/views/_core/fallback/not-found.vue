@@ -1,9 +1,34 @@
 <script lang="ts" setup>
-import { Fallback } from '@vben/common-ui';
+import { useRouter } from 'vue-router';
 
-defineOptions({ name: 'Fallback404Demo' });
+import { ElButton, ElResult } from 'element-plus';
+
+defineOptions({ name: 'NotFoundView' });
+
+const router = useRouter();
 </script>
 
 <template>
-  <Fallback status="404" />
+  <div class="fallback-page">
+    <ElResult
+      icon="info"
+      title="页面不存在或已移动"
+      sub-title="请检查链接是否完整；也可以返回工作台继续处理待办。"
+    >
+      <template #extra>
+        <ElButton type="primary" @click="router.push('/zhiyu/dashboard')">
+          返回工作台
+        </ElButton>
+      </template>
+    </ElResult>
+  </div>
 </template>
+
+<style scoped>
+.fallback-page {
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  padding: 48px 24px;
+}
+</style>
