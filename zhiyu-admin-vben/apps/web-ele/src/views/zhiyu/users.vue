@@ -16,6 +16,7 @@ import {
   updateUserStatus,
 } from '#/api/zhiyu/admin-user';
 import type { UserCreateBody } from '#/api/zhiyu/admin-user';
+import DataState from '#/components/data-state/DataState.vue';
 
 /** 角色中文映射 */
 const ROLE_LABELS: Record<number, string> = {
@@ -390,8 +391,15 @@ onMounted(() => {
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
-        :empty-text="errorMsg || '暂无用户'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="暂无用户"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column label="序号" width="80">
           <template #default="{ $index }">
             {{ (currentPage - 1) * pageSize + $index + 1 }}

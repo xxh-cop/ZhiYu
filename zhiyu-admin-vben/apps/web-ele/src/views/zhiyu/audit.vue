@@ -10,6 +10,7 @@ import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 
 import { auditProject } from '#/api/zhiyu/admin';
+import DataState from '#/components/data-state/DataState.vue';
 
 /** 类型筛选选项 */
 const typeOptions = [{ value: 'project', label: '项目' }];
@@ -175,8 +176,15 @@ onMounted(() => {
         v-loading="loading"
         :data="filteredData"
         style="width: 100%"
-        :empty-text="errorMsg || '没有匹配的项目'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="没有匹配的项目"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="title" label="标题" min-width="240" />
         <el-table-column label="教学视频" width="110"><template #default="{row}"><el-button v-if="row.videoUrl" link type="primary" @click="videoToReview=row.videoUrl">预览视频</el-button><span v-else>无视频</span></template></el-table-column><el-table-column prop="category" label="品类" width="100" />

@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus';
 import { requestClient } from '#/api/request';
 
 import { getCareReminders } from '#/api/zhiyu/admin';
+import DataState from '#/components/data-state/DataState.vue';
 
 /** 状态筛选 */
 const statusOptions = [
@@ -129,8 +130,15 @@ onMounted(() => {
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
-        :empty-text="errorMsg || '暂无关怀提醒'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="暂无关怀提醒"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column label="时间" width="160">
           <template #default="{ row }">
             {{ formatTime(row.createTime) }}

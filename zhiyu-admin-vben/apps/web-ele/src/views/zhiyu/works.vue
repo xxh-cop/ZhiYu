@@ -12,6 +12,7 @@ import {
   getWorkList,
   updateWorkStatus,
 } from '#/api/zhiyu/admin-work';
+import DataState from '#/components/data-state/DataState.vue';
 
 /** 当前用户角色码 */
 const userStore = useUserStore();
@@ -218,8 +219,15 @@ onMounted(() => {
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
-        :empty-text="errorMsg || '暂无作品'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="暂无作品"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column prop="id" label="ID" width="180" />
         <el-table-column prop="title" label="标题" min-width="160" show-overflow-tooltip />
         <el-table-column prop="authorName" label="作者" width="100">

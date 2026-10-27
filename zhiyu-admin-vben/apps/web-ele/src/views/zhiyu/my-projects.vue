@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteProject, getMyProjects } from '#/api/zhiyu/inheritor';
+import DataState from '#/components/data-state/DataState.vue';
 
 const router = useRouter();
 
@@ -153,8 +154,15 @@ onMounted(() => {
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
-        :empty-text="errorMsg || '暂无项目'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="暂无项目"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column prop="id" label="ID" width="180" />
         <el-table-column
           prop="title"
@@ -208,11 +216,6 @@ onMounted(() => {
             </el-button>
           </template>
         </el-table-column>
-        <template #empty>
-          <div class="py-8 text-center text-gray-400">
-            {{ errorMsg || '暂无项目，点击「新建项目」开始创建' }}
-          </div>
-        </template>
       </el-table>
 
       <el-pagination

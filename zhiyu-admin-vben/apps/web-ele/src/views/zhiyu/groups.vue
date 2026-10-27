@@ -10,6 +10,7 @@ import {
   getGroupList,
   updateGroupStatus,
 } from '#/api/zhiyu/admin-group';
+import DataState from '#/components/data-state/DataState.vue';
 
 /** 当前用户角色码 */
 const userStore = useUserStore();
@@ -165,8 +166,15 @@ onMounted(() => {
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
-        :empty-text="errorMsg || '暂无小组'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="暂无小组"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column prop="id" label="ID" width="180" />
         <el-table-column prop="name" label="名称" width="160" show-overflow-tooltip />
         <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip>

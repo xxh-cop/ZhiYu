@@ -5,6 +5,7 @@ import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 
 import { getAuditLogDetail, getAuditLogList } from '#/api/zhiyu/admin-audit-log';
+import DataState from '#/components/data-state/DataState.vue';
 
 /** 场景下拉 */
 const sceneOptions = [
@@ -172,8 +173,15 @@ onMounted(() => {
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
-        :empty-text="errorMsg || '暂无审计日志'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="暂无审计日志"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column prop="id" label="ID" width="180" />
         <el-table-column label="场景" width="100">
           <template #default="{ row }">

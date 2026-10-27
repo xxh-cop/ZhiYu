@@ -13,6 +13,7 @@ import {
   verifyInheritor,
 } from '#/api/zhiyu/admin-inheritor';
 import { createUser } from '#/api/zhiyu/admin-user';
+import DataState from '#/components/data-state/DataState.vue';
 
 /** 当前用户角色码 */
 const userStore = useUserStore();
@@ -325,8 +326,15 @@ onMounted(() => {
         v-loading="loading"
         :data="tableData"
         style="width: 100%"
-        :empty-text="errorMsg || '暂无传承人'"
       >
+        <template #empty>
+          <DataState
+            :loading="loading"
+            :error="errorMsg"
+            empty-text="暂无传承人"
+            @retry="fetchList"
+          />
+        </template>
         <el-table-column label="序号" width="80">
           <template #default="{ $index }">
             {{ (currentPage - 1) * pageSize + $index + 1 }}
