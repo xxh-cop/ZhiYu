@@ -21,6 +21,14 @@
 - 只 commit，不 push；提交前展示 `git status --short` 与 `git diff --stat`（本计划按既有约定由子代理直接 commit，controller 每任务后展示状态）。
 - 工作目录：仓库根 `D:\develop\Zhi_Yu`；管理端命令在 `zhiyu-admin-vben/`。
 
+## 执行修正（2026-10-27，以此为准）
+
+- Task 2：`#586e62` 改用 `--el-text-color-regular`（不是 secondary）；左栏底色用 `color-mix(in srgb, var(--el-color-primary) 72%, black)`；白色文字透明阶为 78–86%；阴影用 `color-mix(in srgb, var(--el-color-primary) 12%, transparent)`；auth 焦点用白色、login 焦点用主色。
+- Task 3：返回目标用 `homePathForRoles`（ROLE_3 → dashboard，ROLE_2 → care-reminders，ROLE_1 → programs），不再硬编码 `/zhiyu/dashboard`。
+- Task 4：`--op-muted`、`.overline`、`.strip-label`、`.welcome-strip p` 用 `--el-text-color-regular`；`.updated` 为 12px。
+- Task 5：详情请求加序号防护；抽屉 `@closed` 清理；页面级免责声明；筛选加可见 label。
+- Task 6：`DataErrorBanner` 仅在 `visible.length > 0` 时显示；`:page-size="pageSize"`；列表缩短时收敛页码；未知状态允许改回草稿。
+
 ## 已知修正（避免错误前提）
 
 - 页头**没有**调色板控件。`AuthenticationColorToggle` 只存在于登录页 toolbar，本项目的 `layouts/auth.vue` 也未使用；页头只有明暗切换（`themeToggle`）与偏好齿轮。之前“一键改品牌色”的结论作废，本计划不删任何不存在的控件。
