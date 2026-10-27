@@ -69,25 +69,16 @@
 
 - [ ] **Step 1: 关闭通知 widget 并 bump 版本**
 
-在 `apps/web-ele/src/preferences.ts` 的 `app` 对象中加入：
+在 `apps/web-ele/src/preferences.ts` 的**顶层**加入 `widget`（Vben 的 `Preferences.widget` 是顶层字段，不是 `app.widget`）：
 
 ```ts
-    widget: {
-      notification: false,
-      notificationButtonPosition: 'none',
-      order: [
-        'globalSearch',
-        'preferences',
-        'themeToggle',
-        'languageToggle',
-        'timezone',
-        'fullscreen',
-        'refresh',
-        'lockScreenBtn',
-        'logoutBtn',
-      ],
-    },
+  widget: {
+    notification: false,
+    notificationButtonPosition: 'none',
+  },
 ```
+
+**不要覆盖 `widget.order`**：`initPreferences` 用 defu 合并，数组会拼接而不是替换，冷缓存首屏会把每个页头控件渲染两遍。默认 order 已包含全部控件，notification 在 flag 为 false 时不渲染。
 
 把 `apps/web-ele/package.json` 的 `"version": "5.8.1"` 改为 `"version": "5.8.2"`（namespace 含版本号，旧缓存自然失效）。
 
