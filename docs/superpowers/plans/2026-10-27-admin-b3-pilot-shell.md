@@ -944,13 +944,7 @@ watch([kindFilter, statusFilter, query], () => {
 />
 ```
 
-5. 在 import 区加入：
-
-```ts
-import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
-import DataState from '#/components/data-state/DataState.vue';
-import TablePagination from '#/components/table-pagination/TablePagination.vue';
-```
+5. 组件导入已在 Step 7 完成，**不要重复添加** `DataErrorBanner` / `DataState` / `TablePagination`。
 
 - [ ] **Step 9: 类型检查、构建与门禁**
 
