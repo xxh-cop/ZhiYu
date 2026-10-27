@@ -20,7 +20,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="!online" class="offline-banner" role="status" aria-live="polite">
+  <div v-show="!online" class="offline-banner" role="status" aria-live="polite" aria-atomic="true">
     网络已断开，部分内容可能无法加载。网络恢复后请重试。
   </div>
 </template>
@@ -30,15 +30,17 @@ onBeforeUnmount(() => {
   position: fixed;
   bottom: 20px;
   left: 50%;
-  z-index: 3000;
+  z-index: 1999;
+  width: max-content;
   max-width: calc(100vw - 32px);
   padding: 10px 16px;
   font-size: 13px;
-  color: var(--el-color-warning);
+  color: var(--el-text-color-primary);
   background: var(--el-color-warning-light-9);
   border: 1px solid var(--el-color-warning-light-5);
   border-radius: var(--el-border-radius-base);
   box-shadow: var(--el-box-shadow-light);
+  pointer-events: none;
   transform: translateX(-50%);
 }
 </style>

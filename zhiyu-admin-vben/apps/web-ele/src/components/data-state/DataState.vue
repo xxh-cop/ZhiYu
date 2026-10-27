@@ -55,12 +55,12 @@ const kind = computed(() =>
   text-align: center;
 }
 .data-state__loading {
-  color: var(--el-text-color-secondary);
+  color: var(--el-text-color-regular);
   font-size: 13px;
 }
 .data-state__hint {
   margin-top: 6px;
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--el-text-color-regular);
 }
 </style>
