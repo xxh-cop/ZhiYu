@@ -1,18 +1,256 @@
 <script setup lang="ts">
 import type { EchartsUIType } from '@vben/plugins/echarts';
-import { nextTick,onMounted,ref,watch } from 'vue';
-import { EchartsUI,useEcharts } from '@vben/plugins/echarts';
-import { usePreferences } from '@vben/preferences';
-const props=defineProps<{title:string;subtitle:string;kind:'line'|'bar'|'pie';rows:Array<Record<string,any>>;drilldown?:boolean}>();
-const emit=defineEmits<{select:[row:Record<string,any>]}>();
-const chart=ref<EchartsUIType>();const{renderEcharts:renderChart}=useEcharts(chart);
-async function renderEcharts(options:Parameters<typeof renderChart>[0]){const instance=await renderChart(options);instance?.off('click');if(props.drilldown)instance?.on('click',(e:any)=>{const row=props.rows[e.dataIndex];if(row)emit('select',row)})}
-const{isDark}=usePreferences();
-async function render(){await nextTick();const text=isDark.value?'#bacac7':'#6d807b',grid=isDark.value?'#334842':'#edf1ee';const color=['#287d6d','#dbaf70','#86b5a3','#829dc2','#c8b5a0'];const base:Parameters<typeof renderEcharts>[0]={animation:false,aria:{enabled:true},color,tooltip:{trigger:props.kind==='pie'?'item':'axis',renderMode:'richText'},legend:{bottom:0,textStyle:{color:text},icon:'circle',itemWidth:8,itemHeight:8}};
-if(props.kind==='pie')renderEcharts({...base,series:[{type:'pie',radius:['52%','72%'],center:['50%','43%'],label:{show:false},itemStyle:{borderRadius:5,borderWidth:3,borderColor:isDark.value?'#182621':'#fff'},data:props.rows}]});
-else if(props.kind==='bar')renderEcharts({...base,grid:{left:8,right:25,top:14,bottom:15,containLabel:true},xAxis:{type:'value',minInterval:1,axisLabel:{color:text},splitLine:{lineStyle:{color:grid}}},yAxis:{type:'category',inverse:true,data:props.rows.map(x=>x.name),axisTick:{show:false},axisLine:{show:false},axisLabel:{color:text,width:100,overflow:'truncate'}},series:[{type:'bar',barMaxWidth:20,itemStyle:{borderRadius:[0,5,5,0]},label:{show:true,position:'right',color:text},data:props.rows.map((x,i)=>({value:x.value,itemStyle:{color:color[i%color.length]}}))}]});
-else renderEcharts({...base,grid:{left:10,right:18,top:20,bottom:48,containLabel:true},xAxis:{type:'category',boundaryGap:false,data:props.rows.map(x=>x.date.slice(5)),axisTick:{show:false},axisLine:{show:false},axisLabel:{color:text}},yAxis:{type:'value',minInterval:1,axisLabel:{color:text},splitLine:{lineStyle:{color:grid,type:'dashed'}}},series:[{name:'开始创作',type:'line',smooth:false,symbol:'circle',symbolSize:5,data:props.rows.map(x=>x.sessions),areaStyle:{opacity:.08}},{name:'完成创作',type:'line',smooth:false,symbol:'circle',symbolSize:5,data:props.rows.map(x=>x.finished)},{name:'发布作品',type:'line',smooth:false,symbol:'circle',symbolSize:5,data:props.rows.map(x=>x.works)},{name:'新增用户',type:'line',smooth:false,symbol:'circle',symbolSize:5,data:props.rows.map(x=>x.users)}]});}
-watch(()=>[props.rows,isDark.value],render,{deep:true});onMounted(render);
+
+import { nextTick, onMounted, ref, watch } from 'vue';
+
+import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
+
+import ChartCard from '#/components/chart-card/ChartCard.vue';
+import { useChartTheme } from '#/composables/use-chart-theme';
+
+const props = withDefaults(
+  defineProps<{
+    drilldown?: boolean;
+    emptyHint?: string;
+    emptyText?: string;
+    kind: 'bar' | 'line' | 'pie';
+    rows: Array<Record<string, any>>;
+    subtitle: string;
+    title: string;
+  }>(),
+  {
+    drilldown: false,
+    emptyHint: '数据将在产生后呈现',
+    emptyText: '暂无数据',
+  },
+);
+
+const emit = defineEmits<{ select: [row: Record<string, any>] }>();
+
+const chart = ref<EchartsUIType>();
+const { theme } = useChartTheme();
+const { renderEcharts: renderChart } = useEcharts(chart);
+
+async function renderEcharts(options: Parameters<typeof renderChart>[0]) {
+  const instance = await renderChart(options);
+  instance?.off('click');
+  if (props.drilldown) {
+    instance?.on('click', (event: any) => {
+      const row = props.rows[event.dataIndex];
+      if (row) {
+        emit('select', row);
+      }
+    });
+  }
+}
+
+function baseOption() {
+  const c = theme.value;
+  return {
+    animation: false,
+    aria: {
+      enabled: true,
+      label: { description: `${props.title}。${props.subtitle}` },
+    },
+    color: c.colors,
+    legend: {
+      bottom: 0,
+      icon: 'circle',
+      itemHeight: 8,
+      itemWidth: 8,
+      show: props.kind === 'line',
+      textStyle: { color: c.text },
+    },
+    textStyle: { color: c.text },
+    tooltip: {
+      backgroundColor: c.tooltipBackground,
+      borderColor: c.tooltipBorder,
+      renderMode: 'richText' as const,
+      textStyle: { color: c.text },
+      trigger: props.kind === 'pie' ? ('item' as const) : ('axis' as const),
+    },
+  };
+}
+
+async function render() {
+  if (!props.rows.length) {
+    return;
+  }
+  await nextTick();
+  const c = theme.value;
+  const base = baseOption();
+
+  if (props.kind === 'pie') {
+    await renderEcharts({
+      ...base,
+      series: [
+        {
+          type: 'pie',
+          avoidLabelOverlap: true,
+          center: ['50%', '46%'],
+          data: props.rows,
+          itemStyle: {
+            borderColor: c.background,
+            borderRadius: 5,
+            borderWidth: 3,
+          },
+          label: {
+            color: c.text,
+            formatter: '{b}\n{d}%',
+            overflow: 'break',
+            show: true,
+            width: 96,
+          },
+          labelLine: { lineStyle: { color: c.border }, show: true },
+          radius: ['46%', '66%'],
+        },
+      ],
+    });
+    return;
+  }
+
+  if (props.kind === 'bar') {
+    await renderEcharts({
+      ...base,
+      grid: { bottom: 15, containLabel: true, left: 8, right: 36, top: 14 },
+      series: [
+        {
+          type: 'bar',
+          barMaxWidth: 20,
+          data: props.rows.map((row) => row.value),
+          itemStyle: { borderRadius: [0, 5, 5, 0], color: c.colors[0] },
+          label: { color: c.text, position: 'right', show: true },
+        },
+      ],
+      xAxis: {
+        type: 'value',
+        axisLabel: { color: c.text },
+        minInterval: 1,
+        splitLine: { lineStyle: { color: c.grid } },
+      },
+      yAxis: {
+        type: 'category',
+        inverse: true,
+        axisLine: { show: false },
+        axisLabel: { color: c.text, overflow: 'truncate', width: 100 },
+        axisTick: { show: false },
+        data: props.rows.map((row) => row.name),
+      },
+    });
+    return;
+  }
+
+  await renderEcharts({
+    ...base,
+    grid: { bottom: 48, containLabel: true, left: 10, right: 18, top: 20 },
+    series: [
+      {
+        name: '开始创作',
+        type: 'line',
+        smooth: false,
+        symbol: 'circle',
+        symbolSize: 5,
+        data: props.rows.map((row) => row.sessions),
+        areaStyle: { opacity: 0.08 },
+        itemStyle: { color: c.colors[0] },
+        lineStyle: { type: 'solid' },
+      },
+      {
+        name: '完成创作',
+        type: 'line',
+        smooth: false,
+        symbol: 'circle',
+        symbolSize: 5,
+        data: props.rows.map((row) => row.finished),
+        itemStyle: { color: c.colors[2] },
+        lineStyle: { type: 'dashed' },
+      },
+      {
+        name: '发布作品',
+        type: 'line',
+        smooth: false,
+        symbol: 'circle',
+        symbolSize: 5,
+        data: props.rows.map((row) => row.works),
+        itemStyle: { color: c.colors[1] },
+        lineStyle: { type: 'dotted' },
+      },
+      {
+        name: '新增用户',
+        type: 'line',
+        smooth: false,
+        symbol: 'circle',
+        symbolSize: 5,
+        data: props.rows.map((row) => row.users),
+        itemStyle: { color: c.colors[4] },
+        lineStyle: { type: 'dashed' },
+      },
+    ],
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: props.rows.map((row) => String(row.date).slice(5)),
+      axisLabel: { color: c.text },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      axisLabel: { color: c.text },
+      splitLine: { lineStyle: { color: c.grid, type: 'dashed' } },
+    },
+  });
+}
+
+watch([() => props.rows, theme], render, { deep: true });
+onMounted(render);
 </script>
-<template><section class="op-chart"><header><h3>{{title}}</h3><p>{{subtitle}}</p></header><EchartsUI ref="chart" height="268px"/><div v-if="drilldown&&rows.length" class="chart-links"><button v-for="row in rows" :key="row.name" @click="emit('select',row)">{{row.name}} · 查看列表 ↗</button></div><div v-if="!rows.length" class="empty">还没有相关记录，数据将在发生后呈现</div></section></template>
-<style scoped>.chart-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.chart-links button{font-size:12px;line-height:1.6;color:var(--el-color-primary);border:1px solid var(--el-border-color);border-radius:8px;padding:6px 10px;background:var(--el-bg-color);cursor:pointer}.chart-links button:focus-visible{outline:2px solid var(--el-color-primary);outline-offset:2px}.op-chart{position:relative;min-width:0;background:var(--op-card,#fff);border:1px solid var(--op-border,#e2e9e4);border-radius:20px;padding:24px}.op-chart h3{font-size:16px;font-weight:650;color:var(--op-text,#223e34)}.op-chart p{font-size:12px;color:var(--op-muted,#7b8a82);margin-top:7px}.empty{position:absolute;inset:145px 20px auto;text-align:center;font-size:13px;color:var(--op-muted,#7b8a82)}</style>
+
+<template>
+  <ChartCard
+    :description="subtitle"
+    :empty="!rows.length"
+    :empty-hint="emptyHint"
+    :empty-text="emptyText"
+    :title="title"
+  >
+    <EchartsUI ref="chart" height="268px" />
+    <template v-if="drilldown && rows.length" #footer>
+      <div class="chart-links">
+        <button
+          v-for="row in rows"
+          :key="row.name"
+          type="button"
+          @click="emit('select', row)"
+        >
+          {{ row.name }} · 查看列表 ↗
+        </button>
+      </div>
+    </template>
+  </ChartCard>
+</template>
+
+<style scoped>
+.chart-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chart-links button {
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--el-color-primary-dark-2);
+  cursor: pointer;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: var(--el-border-radius-base);
+}
+
+.chart-links button:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+</style>
