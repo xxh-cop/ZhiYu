@@ -6,6 +6,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
 import { getDashboardStats } from '#/api/zhiyu/admin';
+import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import ChartCard from '#/components/chart-card/ChartCard.vue';
 import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
 import DataState from '#/components/data-state/DataState.vue';
@@ -118,7 +119,13 @@ onMounted(load);
 </script>
 
 <template>
-  <div class="emotion-page">
+  <div class="zy-business-page emotion-page">
+    <BusinessPageHeader
+      title="情绪分析"
+      description="按会话中记录的情绪标签汇总，仅展示统计结果；不用于诊断或疗效判断。"
+      :loading="loading"
+      @refresh="load"
+    />
     <DataErrorBanner
       v-if="error && moodData.length"
       :error="error"
@@ -172,9 +179,7 @@ onMounted(load);
 
 <style scoped>
 .emotion-page {
-  max-width: 1600px;
-  padding: 16px;
-  margin: 0 auto;
+  padding: 0;
 }
 
 .emotion-grid {

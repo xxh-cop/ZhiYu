@@ -300,7 +300,7 @@ watch(projectId, (newId) => {
 </script>
 
 <template>
-  <div v-loading="loading" class="flex flex-col gap-4 p-4">
+  <div v-loading="loading" class="zy-business-page flex flex-col gap-4">
     <!-- 顶部标题栏 -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -389,7 +389,7 @@ watch(projectId, (newId) => {
                 :step="5"
                 style="width: 160px"
               />
-              <span class="ml-2 text-sm text-gray-400">分钟</span>
+              <span class="ml-2 text-sm muted-inline">分钟</span>
             </el-form-item>
             <el-form-item label="品类">
               <el-input
@@ -543,7 +543,7 @@ watch(projectId, (newId) => {
             :min="1"
             style="width: 120px"
           />
-          <span class="ml-2 text-xs text-gray-400">建议连续（1, 2, 3...）</span>
+          <span class="ml-2 text-xs muted-inline">建议连续（1, 2, 3...）</span>
         </el-form-item>
         <el-form-item label="标题" required>
           <el-input
