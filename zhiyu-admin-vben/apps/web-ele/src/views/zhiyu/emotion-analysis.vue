@@ -4,34 +4,21 @@ import type { EchartsUIType } from '@vben/plugins/echarts';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
-import { usePreferences } from '@vben/preferences';
 
 import { getDashboardStats } from '#/api/zhiyu/admin';
+import ChartCard from '#/components/chart-card/ChartCard.vue';
+import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
+import DataState from '#/components/data-state/DataState.vue';
+import { useChartTheme } from '#/composables/use-chart-theme';
 
-const { isDark } = usePreferences();
-
-/* ── 色板（深靛蓝系，随主题动态切换） ── */
-const C = computed(() => {
-  const dark = isDark.value;
-  return {
-    primary: '#4F46E5',
-    primaryLight: '#6366F1',
-    accent: '#F59E0B',
-    danger: '#EF4444',
-    success: '#10B981',
-    border: dark ? '#2A2A2A' : '#E5E7EB',
-    title: dark ? '#E5E7EB' : '#1F2937',
-    text: dark ? '#B0B0B0' : '#4B5563',
-    muted: dark ? '#6B7280' : '#9CA3AF',
-    palette: ['#4F46E5', '#6366F1', '#F59E0B', '#EF4444', '#94A3B8'],
-  };
-});
-
+const { theme } = useChartTheme();
 const pieChartRef = ref<EchartsUIType>();
 const { renderEcharts: renderPie } = useEcharts(pieChartRef);
 
 const loading = ref(false);
-const moodData = ref<Array<{ mood: string; count: number }>>([]);
+const error = ref('');
+const moodData = ref<Array<{ count: number; mood: string }>>([]);
+let request = 0;
 
 const moodTableData = computed(() => {
   const total = moodData.value.reduce((sum, item) => sum + item.count, 0);
@@ -42,65 +29,133 @@ const moodTableData = computed(() => {
   }));
 });
 
-/* ── 集中渲染饼图（供初始加载和主题切换复用） ── */
 function renderChart() {
-  const c = C.value;
-  const pieData = moodData.value.map((item, idx) => ({
+  if (!moodData.value.length) {
+    return;
+  }
+  const c = theme.value;
+  const pieData = moodData.value.map((item, index) => ({
     name: item.mood || '未知',
     value: item.count,
-    itemStyle: { color: c.palette[idx % c.palette.length] },
+    itemStyle: { color: c.colors[index % c.colors.length] },
   }));
 
   renderPie({
-    title: { text: '情绪分布', left: 'center', textStyle: { fontSize: 14, color: c.title } },
-    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    legend: { bottom: '5%', textStyle: { color: c.muted } },
+    animation: false,
+    aria: {
+      enabled: true,
+      label: { description: '情绪分布。按会话中记录的情绪标签汇总。' },
+    },
+    color: c.colors,
+    legend: {
+      bottom: '4%',
+      icon: 'circle',
+      itemHeight: 8,
+      itemWidth: 8,
+      textStyle: { color: c.text },
+    },
     series: [
       {
         type: 'pie',
-        radius: ['40%', '65%'],
-        center: ['50%', '45%'],
-        data: pieData.length > 0 ? pieData : [{ name: '暂无数据', value: 1, itemStyle: { color: c.border } }],
-        label: { color: c.muted },
-        itemStyle: { borderColor: isDark.value ? '#1F1F1F' : '#fff', borderWidth: 2 },
+        avoidLabelOverlap: true,
+        center: ['50%', '46%'],
+        data: pieData,
+        itemStyle: {
+          borderColor: c.background,
+          borderRadius: 4,
+          borderWidth: 2,
+        },
+        label: {
+          color: c.text,
+          formatter: '{b}\n{d}%',
+          overflow: 'break',
+          show: true,
+          width: 96,
+        },
+        labelLine: { lineStyle: { color: c.border }, show: true },
+        radius: ['40%', '64%'],
       },
     ],
+    tooltip: {
+      backgroundColor: c.tooltipBackground,
+      borderColor: c.tooltipBorder,
+      formatter: '{b}: {c} ({d}%)',
+      renderMode: 'richText',
+      textStyle: { color: c.text },
+      trigger: 'item',
+    },
   });
 }
 
-/* ── 主题切换时重新渲染 ── */
-watch(isDark, () => {
-  nextTick(() => renderChart());
-});
+watch(theme, () => nextTick(renderChart));
 
-onMounted(async () => {
+async function load() {
+  const turn = ++request;
   loading.value = true;
+  error.value = '';
   try {
     const data = await getDashboardStats();
+    if (turn !== request) {
+      return;
+    }
     moodData.value = data.moodDistribution || [];
-    renderChart();
   } catch {
-    // 拦截器已提示
+    if (turn === request) {
+      error.value = '情绪数据暂未读取成功，请稍后重试。';
+    }
   } finally {
-    loading.value = false;
+    if (turn === request) {
+      loading.value = false;
+    }
   }
-});
+  await nextTick();
+  if (turn === request && !error.value) {
+    renderChart();
+  }
+}
+
+onMounted(load);
 </script>
 
 <template>
   <div class="emotion-page">
-    <div class="emotion-grid">
-      <div class="chart-card">
-        <div class="card-header">
-          <span class="card-title">情绪分布</span>
-        </div>
+    <DataErrorBanner
+      v-if="error && moodData.length"
+      :error="error"
+      :retrying="loading"
+      @retry="load"
+    />
+    <DataState
+      v-else-if="error"
+      :error="error"
+      :loading="loading"
+      empty-text="暂无情绪分布数据"
+      @retry="load"
+    />
+    <div v-else class="emotion-grid">
+      <ChartCard
+        title="情绪分布"
+        description="按会话中记录的情绪标签汇总，仅展示统计结果。"
+        :empty="!loading && !moodData.length"
+        empty-text="暂无情绪分布数据"
+        empty-hint="完成一次对话后，这里会呈现情绪分布"
+        :loading="loading && !moodData.length"
+        @retry="load"
+      >
         <EchartsUI ref="pieChartRef" height="360px" />
-      </div>
-      <div class="chart-card">
-        <div class="card-header">
+      </ChartCard>
+      <section class="emotion-table-card">
+        <header class="card-header">
           <span class="card-title">分布明细</span>
-        </div>
-        <el-table :data="moodTableData" v-loading="loading" stripe>
+        </header>
+        <el-table v-loading="loading" :data="moodTableData" stripe>
+          <template #empty>
+            <DataState
+              :loading="loading"
+              empty-text="暂无情绪分布数据"
+              @retry="load"
+            />
+          </template>
           <el-table-column prop="mood" label="情绪" />
           <el-table-column prop="count" label="会话数" width="120" />
           <el-table-column label="占比" width="120">
@@ -109,33 +164,51 @@ onMounted(async () => {
             </template>
           </el-table-column>
         </el-table>
-      </div>
+      </section>
     </div>
+    <p class="emotion-note">本系统不能替代专业心理咨询</p>
   </div>
 </template>
 
 <style scoped>
 .emotion-page {
+  max-width: 1600px;
   padding: 16px;
+  margin: 0 auto;
 }
+
 .emotion-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
-.chart-card {
-  background: var(--el-bg-color);
-  border-radius: var(--el-border-radius-base);
-  box-shadow: var(--zy-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+
+.emotion-table-card {
+  min-width: 0;
   padding: 16px 20px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: var(--el-border-radius-base);
 }
+
+.emotion-table-card :deep(.el-table) {
+  --el-table-header-text-color: var(--el-text-color-regular);
+}
+
 .card-header {
   margin-bottom: 12px;
 }
+
 .card-title {
   font-size: 15px;
   font-weight: 600;
   color: var(--el-text-color-primary);
+}
+
+.emotion-note {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--el-text-color-regular);
 }
 
 @media (max-width: 1280px) {
