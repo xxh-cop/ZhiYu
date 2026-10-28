@@ -137,6 +137,7 @@
 						custom-class="form-textarea-el"
 					/>
 					<text class="char-hint">{{ form.message.length }} / 500</text>
+					<text v-if="prefilledMessage" class="char-hint">已带入小织回顾，可修改或删除。</text>
 				</view>
 
 				<view class="form-item">
@@ -275,6 +276,7 @@ const published = ref(false)
 const submitting = ref(false)
 const uploading = ref(false)
 const uploadProgress = ref(0)
+const prefilledMessage = ref(false)
 
 const form = ref({
 	coverUrl: '',
@@ -316,6 +318,14 @@ onLoad((query) => {
 	form.value.projectId = query.projectId || null
 	if (query.projectTitle) {
 		form.value.title = decodeURIComponent(query.projectTitle)
+	}
+	if (query.message) {
+		try {
+			form.value.message = decodeURIComponent(String(query.message)).slice(0, 500)
+		} catch (e) {
+			form.value.message = String(query.message).slice(0, 500)
+		}
+		prefilledMessage.value = true
 	}
 })
 
