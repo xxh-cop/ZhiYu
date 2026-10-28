@@ -84,6 +84,15 @@
   --el-tag-text-color: var(--el-text-color-regular);
 }
 
+.business-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+}
+.muted-inline {
+  color: var(--el-text-color-regular);
+}
+
 .zy-business-page :is(button, a, input, textarea):focus-visible {
   outline: 2px solid var(--el-color-primary);
   outline-offset: 3px;

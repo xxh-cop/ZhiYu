@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteProject, getMyProjects } from '#/api/zhiyu/inheritor';
+import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
 import DataState from '#/components/data-state/DataState.vue';
 import TablePagination from '#/components/table-pagination/TablePagination.vue';
@@ -122,20 +123,30 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
-    <div class="flex items-center justify-between">
-      <h2 class="m-0 text-xl font-semibold">我的项目</h2>
-      <el-button type="primary" @click="handleCreate">新建项目</el-button>
-    </div>
+  <div class="zy-business-page flex flex-col gap-4">
+    <BusinessPageHeader
+      title="我的项目"
+      description="维护你的手作项目、步骤与材料；提交后由平台审核。"
+      :loading="loading"
+      @refresh="fetchList"
+    >
+      <div class="flex flex-wrap gap-2">
+        <el-button :loading="loading" @click="fetchList">刷新列表</el-button>
+        <el-button type="primary" @click="handleCreate">新建项目</el-button>
+      </div>
+    </BusinessPageHeader>
 
     <!-- 筛选栏 -->
     <el-card shadow="never">
       <div class="flex flex-wrap items-center gap-3">
+        <label class="filter-label" for="my-project-status">项目状态</label>
         <el-select
+          id="my-project-status"
           v-model="filterStatus"
-          placeholder="状态"
+          placeholder="全部状态"
           clearable
-          style="width: 130px"
+          style="width: 150px"
+          aria-label="项目状态"
           @change="handleFilterChange"
         >
           <el-option
@@ -186,8 +197,12 @@ onMounted(() => {
               fit="cover"
               style="width: 40px; height: 40px; border-radius: 4px"
               preview-teleported
-            />
-            <span v-else class="text-xs text-gray-400">-</span>
+            >
+              <template #error>
+                <img class="cover-fallback" src="/library/paper.jpg" alt="项目封面占位" />
+              </template>
+            </el-image>
+            <img v-else class="cover-fallback" src="/library/paper.jpg" alt="项目封面占位" />
           </template>
         </el-table-column>
         <el-table-column
@@ -234,3 +249,19 @@ onMounted(() => {
     </el-card>
   </div>
 </template>
+
+<style scoped>
+.filter-label {
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+}
+.muted-inline {
+  color: var(--el-text-color-regular);
+}
+.cover-fallback {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+</style>

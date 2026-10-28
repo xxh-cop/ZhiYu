@@ -63,4 +63,8 @@ const kind = computed(() =>
   font-size: 12px;
   color: var(--el-text-color-regular);
 }
+.data-state :deep(.el-empty__description p) {
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+}
 </style>
