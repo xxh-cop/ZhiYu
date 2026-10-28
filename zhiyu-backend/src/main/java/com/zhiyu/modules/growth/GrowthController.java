@@ -12,6 +12,7 @@ import java.util.*;
 public class GrowthController {
     private final GrowthService service;
     private final ScaleCatalog scales;
+    private final ReflectionSummaryService reflectionSummaryService;
     public record BookingReview(@jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp="CONFIRM|REJECT") String decision) {}
     @PostMapping("/programs/{id}/bookings/{bookingId}/review") public Result<?> review(@PathVariable Long id,@PathVariable Long bookingId,@Valid @RequestBody BookingReview r){service.reviewBooking(id,bookingId,r.decision());return Result.success();}
     @GetMapping("/material-map") public Result<?> materialMap(){return Result.success(service.materialMap());}
@@ -21,6 +22,7 @@ public class GrowthController {
     @GetMapping("/scales") public Result<?> scales(){return Result.success(scales.available());}
     @PostMapping("/assessment") public Result<?> assessment(@Valid @RequestBody GrowthRequests.Assessment r){return Result.success(service.assessment(r));}
     @PostMapping("/reflection") public Result<?> reflection(@Valid @RequestBody GrowthRequests.Reflection r){service.reflection(r);return Result.success();}
+    @PostMapping("/reflection/summary") public Result<?> reflectionSummary(@Valid @RequestBody GrowthRequests.ReflectionSummary r){return Result.success(reflectionSummaryService.generate(r));}
     @GetMapping("/programs") public Result<?> programs(){return Result.success(service.programs(false));}
     @GetMapping("/programs/manage") public Result<?> manage(){return Result.success(service.programs(true));}
     @PostMapping("/programs") public Result<?> create(@Valid @RequestBody GrowthRequests.Program r){return Result.success(Map.of("id",service.program(null,r)));}

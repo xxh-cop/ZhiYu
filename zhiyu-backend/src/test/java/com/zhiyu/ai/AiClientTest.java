@@ -86,6 +86,50 @@ class AiClientTest {
         verify(breaker, never()).recordFailure(any());
     }
 
+    @Test
+    @DisplayName("创作回顾：输入/输出过滤后返回文本，复用 llm-message 熔断")
+    void reflectionSummaryPassesSafetyAndUsesMessageBreaker() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, null, "reflection", "用户自填文本"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.reflectionSummary("prompt")).thenReturn("你完成了四个步骤。");
+        when(contentSafetyFilter.checkOutput(42L, "reflection", "你完成了四个步骤。"))
+                .thenReturn(SafetyResult.pass("通过"));
+
+        String result = aiClient.reflectionSummary("prompt", "用户自填文本");
+
+        assertEquals("你完成了四个步骤。", result);
+        verify(breaker).recordSuccess("llm-message");
+        verify(breaker, never()).recordFailure(any());
+    }
+
+    @Test
+    @DisplayName("创作回顾：输入高危时不调用模型")
+    void reflectionSummaryBlockedInputSkipsModel() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, null, "reflection", "高危文本"))
+                .thenReturn(SafetyResult.block("命中高危", "请寻求支持"));
+
+        assertNull(aiClient.reflectionSummary("prompt", "高危文本"));
+        verify(llmClient, never()).reflectionSummary(anyString());
+        verify(breaker, never()).allowRequest(any());
+    }
+
+    @Test
+    @DisplayName("创作回顾：模型异常时返回 null，由业务使用固定模板")
+    void reflectionSummaryFallsBackOnFailure() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, null, "reflection", "文本"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.reflectionSummary("prompt")).thenThrow(new RuntimeException("timeout"));
+
+        assertNull(aiClient.reflectionSummary("prompt", "文本"));
+        verify(breaker).recordFailure("llm-message");
+        verify(breaker, never()).recordSuccess(any());
+    }
+
     @AfterEach
     void clearContext() {
         UserContext.clear();

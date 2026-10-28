@@ -235,6 +235,49 @@ public class AiClient {
         return applyOutputSafety("message", result);
     }
 
+    /**
+     * 生成创作回顾（一次性、非流式）。
+     *
+     * <p>输入只包含用户自填的作品名、情绪词与备注；不读取情绪对话原文。
+     * 复用 {@code llm-message} 熔断 key；输入/输出均走内容安全过滤，
+     * 输出越界或服务不可用时返回 {@code null}，由业务层使用固定模板。
+     */
+    public String reflectionSummary(String prompt, String userText) {
+        SafetyResult input = contentSafetyFilter.checkInput(
+                UserContext.getUserId(), null, "reflection", userText);
+        if (input.getAction() == SafetyAction.BLOCK) {
+            log.warn("创作回顾输入侧拦截，使用固定模板");
+            return null;
+        }
+        if (!breaker.allowRequest(KEY_MESSAGE)) {
+            log.warn("熔断中，创作回顾使用固定模板: key={}", KEY_MESSAGE);
+            return null;
+        }
+        String result;
+        try {
+            result = llmClient.reflectionSummary(prompt);
+            if (result == null || result.isBlank()) {
+                throw new IllegalStateException("empty reflection summary");
+            }
+            breaker.recordSuccess(KEY_MESSAGE);
+        } catch (Exception e) {
+            breaker.recordFailure(KEY_MESSAGE);
+            log.warn("创作回顾生成失败，使用固定模板: {}", e.getMessage());
+            return null;
+        }
+        SafetyResult output = contentSafetyFilter.checkOutput(
+                UserContext.getUserId(), "reflection", result);
+        if (output.getAction() == SafetyAction.BLOCK) {
+            return null;
+        }
+        if (output.getAction() == SafetyAction.REWRITE
+                && output.getRewrittenText() != null
+                && !output.getRewrittenText().isBlank()) {
+            return output.getRewrittenText();
+        }
+        return result;
+    }
+
     /** Knowledge answers keep the same audit and isolated breaker boundary as other AI calls. */
     public String knowledgeAnswer(String question, String prompt) {
         return knowledgeAnswer(question, () -> prompt);

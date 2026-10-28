@@ -81,6 +81,11 @@ public class SpringAiLlmClient implements LlmClient {
     }
 
     @Override
+    public String reflectionSummary(String prompt) {
+        return chatClient.prompt().options(options()).system(safetyPrompt).user(prompt).call().content();
+    }
+
+    @Override
     public String chat(String prompt) {
         return chatClient.prompt().options(options()).system(safetyPrompt).user(prompt).call().content();
     }

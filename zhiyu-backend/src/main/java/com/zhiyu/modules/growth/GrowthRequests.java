@@ -11,6 +11,15 @@ public final class GrowthRequests {
         @NotNull @Size(max=20) List<@NotNull Integer> answers, @AssertTrue boolean consent, boolean draft) {}
     public record Reflection(@NotNull Long sessionId, @NotBlank @Size(max=100) String title,
         @Min(1) @Max(5) Integer beforeMood, @NotNull @Min(1) @Max(5) Integer afterMood,
+        @Size(max=30) String emotion, @Size(max=500) String note,
+        @Size(max=300) String summary, @AssertTrue boolean consent) {
+        public Reflection(Long sessionId, String title, Integer beforeMood, Integer afterMood,
+                          String emotion, String note, boolean consent) {
+            this(sessionId, title, beforeMood, afterMood, emotion, note, null, consent);
+        }
+    }
+    public record ReflectionSummary(@NotNull Long sessionId, @NotBlank @Size(max=100) String title,
+        @Min(1) @Max(5) Integer beforeMood, @NotNull @Min(1) @Max(5) Integer afterMood,
         @Size(max=30) String emotion, @Size(max=500) String note, @AssertTrue boolean consent) {}
     public record Program(@NotBlank @Pattern(regexp="WORKSHOP|COURSE|GUIDANCE") String kind,
         @NotBlank @Size(max=100) String title, @NotBlank @Size(max=6000) String description,

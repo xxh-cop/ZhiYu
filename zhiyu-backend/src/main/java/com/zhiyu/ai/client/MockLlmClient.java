@@ -56,6 +56,11 @@ public class MockLlmClient implements LlmClient {
     }
 
     @Override
+    public String reflectionSummary(String prompt) {
+        return "你完成了这次创作，并把注意力留在了手边的动作上。愿意为自己留出这段时间，本身就值得被看见。";
+    }
+
+    @Override
     public String chat(String prompt) {
         return "（降级模式）非遗知识库暂不可用，请稍后再试。";
     }

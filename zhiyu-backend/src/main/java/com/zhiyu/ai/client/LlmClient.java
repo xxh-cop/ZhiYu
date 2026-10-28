@@ -45,6 +45,16 @@ public interface LlmClient {
     String workMessage(String workTitle, String mood);
 
     /**
+     * 生成创作回顾（一次性、非流式）。
+     *
+     * <p>调用方负责拼装完整的、已脱敏的创作回顾 prompt；本方法只负责生成文本。
+     *
+     * @param prompt 完整 prompt 文本
+     * @return LLM 生成的回顾文本
+     */
+    String reflectionSummary(String prompt);
+
+    /**
      * 一次性对话（非流式），用于 RAG 问答等场景（M3-3）。
      *
      * <p>调用方负责拼装完整的 prompt（含上下文 + 用户问题），
