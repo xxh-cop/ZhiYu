@@ -231,7 +231,7 @@ onMounted(() => {
       title="驳回项目"
       width="440px"
     >
-      <p class="mb-3 text-sm text-gray-500">请填写驳回理由（将通知传承人）</p>
+      <p class="mb-3 business-note">请填写驳回理由（将通知传承人）</p>
       <el-input
         v-model="rejectReason"
         type="textarea"

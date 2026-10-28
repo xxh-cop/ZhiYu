@@ -262,7 +262,7 @@ async function handleSave() {
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  border: 2px solid #e4e7ed;
+  border: 2px solid var(--el-border-color);
 }
 
 .avatar-img {
@@ -279,8 +279,8 @@ async function handleSave() {
   justify-content: center;
   font-size: 42px;
   font-weight: bold;
-  color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--el-color-white);
+  background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
 }
 
 .form-area {
@@ -299,7 +299,7 @@ async function handleSave() {
   width: 80px;
   text-align: right;
   line-height: 32px;
-  color: #606266;
+  color: var(--el-text-color-regular);
   font-size: 14px;
   flex-shrink: 0;
 }

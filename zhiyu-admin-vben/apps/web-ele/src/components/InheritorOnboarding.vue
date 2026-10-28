@@ -247,7 +247,7 @@ async function handleSave() {
 
 .onboarding-subtitle {
   font-size: 13px;
-  color: var(--el-text-color-secondary);
+  color: var(--el-text-color-regular);
   margin: 0;
 }
 

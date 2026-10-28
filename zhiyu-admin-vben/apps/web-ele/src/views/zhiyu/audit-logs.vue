@@ -131,7 +131,7 @@ onMounted(() => {
 <template>
   <div class="zy-business-page flex flex-col gap-4">
     <BusinessPageHeader title="AI 审计日志" description="追溯 AI 调用与安全过滤记录。" :loading="loading" @refresh="fetchList" />
-    <p class="m-0 text-sm text-gray-500 leading-relaxed">
+    <p class="m-0 business-note leading-relaxed">
       AI 调用的内容安全过滤记录。列表仅展示元数据，详情含解密后的原始输入与 AI 输出（仅管理员可查看）。
     </p>
 
@@ -250,12 +250,12 @@ onMounted(() => {
           </el-descriptions>
 
           <div>
-            <h4 class="mb-2 text-sm font-medium text-gray-700">原始输入（rawInput）</h4>
+            <h4 class="mb-2 text-sm font-medium">原始输入（rawInput）</h4>
             <pre class="m-0 max-h-48 overflow-auto rounded bg-gray-50 p-3 text-sm whitespace-pre-wrap break-words">{{ detailData.rawInput || '-' }}</pre>
           </div>
 
           <div>
-            <h4 class="mb-2 text-sm font-medium text-gray-700">AI 输出（aiOutput）</h4>
+            <h4 class="mb-2 text-sm font-medium">AI 输出（aiOutput）</h4>
             <pre class="m-0 max-h-48 overflow-auto rounded bg-gray-50 p-3 text-sm whitespace-pre-wrap break-words">{{ detailData.aiOutput || '-' }}</pre>
           </div>
         </template>

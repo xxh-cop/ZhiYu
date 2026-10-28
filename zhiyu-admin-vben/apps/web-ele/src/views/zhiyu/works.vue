@@ -253,8 +253,12 @@ onMounted(() => {
               fit="cover"
               style="width: 40px; height: 40px; border-radius: 4px"
               preview-teleported
-            />
-            <span v-else class="text-xs text-gray-400">无</span>
+            >
+              <template #error>
+                <img class="cover-fallback" src="/library/paper.jpg" alt="作品封面占位" />
+              </template>
+            </el-image>
+            <img v-else class="cover-fallback" src="/library/paper.jpg" alt="作品封面占位" />
           </template>
         </el-table-column>
         <el-table-column label="可见性" width="90">
@@ -318,3 +322,12 @@ onMounted(() => {
     </el-card>
   </div>
 <el-dialog :model-value="!!videoToReview" title="创作视频审核" width="min(720px, 94vw)" @close="videoToReview=''"> <VideoPreview v-if="videoToReview" :src="videoToReview"/><p>请确认内容与授权情况后，再通过审核。</p></el-dialog></template>
+
+<style scoped>
+.cover-fallback {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+</style>

@@ -544,7 +544,7 @@ onMounted(() => {
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  border: 2px solid #e4e7ed;
+  border: 2px solid var(--el-border-color);
 }
 
 .create-avatar-img {
@@ -561,7 +561,7 @@ onMounted(() => {
   justify-content: center;
   font-size: 24px;
   font-weight: bold;
-  color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--el-color-white);
+  background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
 }
 </style>
