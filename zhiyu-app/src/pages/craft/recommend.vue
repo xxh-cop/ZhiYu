@@ -99,10 +99,12 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import { trackRecommendationClick } from '../../utils/recommend-click'
 
 const loading = ref(false)
 const errorMsg = ref('')
 const items = ref([])
+const recommendationId = ref('')
 const reason = ref('')
 const moodTag = ref('')
 const sessionId = ref(null)
@@ -123,6 +125,7 @@ async function loadData() {
 	loading.value = true
 	errorMsg.value = ''
 	items.value = []
+	recommendationId.value = ''
 	reason.value = ''
 	moodTag.value = ''
 
@@ -133,6 +136,7 @@ async function loadData() {
 		}
 		const data = await http.get('/api/craft/recommend', { data: params })
 		if (data) {
+			recommendationId.value = data.recommendationId ? String(data.recommendationId) : ''
 			reason.value = data.reason || ''
 			moodTag.value = MOOD_LABELS[data.mood] || data.mood || ''
 			items.value = data.items || []
@@ -166,6 +170,11 @@ function coverStyle(coverUrl) {
 }
 
 function goSession(item) {
+	trackRecommendationClick({
+		recommendationId: recommendationId.value,
+		projectId: item.projectId,
+		source: 'RECOMMEND',
+	})
 	uni.navigateTo({
 		url: `/pages/craft/session?projectId=${item.projectId}&projectTitle=${encodeURIComponent(item.title)}`,
 	})

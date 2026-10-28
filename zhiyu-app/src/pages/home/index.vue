@@ -17,6 +17,7 @@ import { request } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
 import { useAiCompanionStore } from '../../stores/aiCompanion'
 import { useInteraction } from '../../composables/useInteraction'
+import { trackRecommendationClick } from '../../utils/recommend-click'
 const { reducedMotion } = useInteraction()
 import ChatPanel from '../../components/ChatPanel.vue'
 import PrivacyConsent from '../../components/PrivacyConsent.vue'
@@ -51,6 +52,7 @@ const moods = [
 ]
 
 const recommends = ref([])
+const recommendationId = ref('')
 const recommendLoading = ref(false)
 const recommendError = ref(false)
 
@@ -162,6 +164,11 @@ function goRecommend() {
 
 function goCraftDetail(item) {
 	if (item && item.projectId) {
+		trackRecommendationClick({
+			recommendationId: recommendationId.value,
+			projectId: item.projectId,
+			source: 'HOME',
+		})
 		uni.navigateTo({ url: `/pages/craft/detail?id=${item.projectId}` })
 	} else {
 		goRecommend()
@@ -187,6 +194,7 @@ async function loadRecommends() {
 	try {
 		const data = await request({ url: '/api/craft/recommend', method: 'GET' })
 		if (data && data.items) {
+			recommendationId.value = data.recommendationId ? String(data.recommendationId) : ''
 			recommends.value = data.items
 		}
 	} catch (e) {

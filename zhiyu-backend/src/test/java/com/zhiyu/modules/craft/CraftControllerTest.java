@@ -5,6 +5,8 @@ import com.zhiyu.modules.craft.entity.CraftProject;
 import com.zhiyu.modules.craft.entity.CraftStep;
 import com.zhiyu.modules.craft.mapper.CraftProjectMapper;
 import com.zhiyu.modules.craft.mapper.CraftStepMapper;
+import com.zhiyu.modules.craft.vo.RecommendItemVO;
+import com.zhiyu.modules.craft.vo.RecommendVO;
 import com.zhiyu.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -111,6 +114,52 @@ class CraftControllerTest {
                 .andExpect(jsonPath("$.data.mood").exists())
                 .andExpect(jsonPath("$.data.reason").exists())
                 .andExpect(jsonPath("$.data.items").isArray());
+    }
+
+    @Test
+    @DisplayName("推荐 ID 以字符串输出，避免 JS 精度丢失")
+    void recommendationIdsSerializeAsStrings() throws Exception {
+        RecommendItemVO item = new RecommendItemVO();
+        item.setProjectId(940001L);
+        RecommendVO vo = new RecommendVO();
+        vo.setRecommendationId(900000000000000001L);
+        vo.setItems(List.of(item));
+
+        String json = objectMapper.writeValueAsString(vo);
+
+        org.junit.jupiter.api.Assertions.assertTrue(json.contains("\"recommendationId\":\"900000000000000001\""));
+        org.junit.jupiter.api.Assertions.assertTrue(json.contains("\"projectId\":\"940001\""));
+    }
+
+    @Test
+    @DisplayName("推荐点击写入事件并保持幂等")
+    void recommendClickIsRecordedOnce() throws Exception {
+        long userId = 8004L;
+        long recommendationId = 8201L;
+        long projectId = 8202L;
+        String token = validToken(userId, 0);
+        authFixtureDb.update("INSERT INTO craft_recommendation(id,user_id,mood,reason,deleted) VALUES(?,?,?,?,0)",
+                recommendationId, userId, "stressed", "test");
+        authFixtureDb.update("INSERT INTO craft_recommendation_item(id,recommendation_id,project_id,score,deleted) VALUES(?,?,?,?,0)",
+                8203L, recommendationId, projectId, 1.0);
+        String body = objectMapper.writeValueAsString(Map.of(
+                "recommendationId", String.valueOf(recommendationId),
+                "projectId", String.valueOf(projectId),
+                "source", "HOME"));
+
+        for (int i = 0; i < 2; i++) {
+            mockMvc.perform(post("/api/craft/recommend/click")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(0));
+        }
+
+        Integer count = authFixtureDb.queryForObject(
+                "SELECT COUNT(*) FROM craft_recommend_event WHERE user_id=? AND recommendation_id=? AND event_type='CLICK'",
+                Integer.class, userId, recommendationId);
+        org.junit.jupiter.api.Assertions.assertEquals(1, count);
     }
 
     // ── 批次 6-F 新增用例 ──
