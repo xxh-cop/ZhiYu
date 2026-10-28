@@ -167,7 +167,7 @@ onMounted(() => {
 <template>
   <div class="zy-business-page flex flex-col gap-4">
     <BusinessPageHeader title="关怀提醒" description="在授权范围内查看脱敏摘要，及时跟进关怀。" :loading="loading" @refresh="fetchList" />
-    <p class="m-0 text-sm text-gray-500 leading-relaxed">
+    <p class="m-0 text-sm care-note leading-relaxed">
       以下为系统自动生成的脱敏汇总，供授权角色查看。原始对话内容已加密存储，不在此展示。本系统不能替代专业心理咨询。
     </p>
 
@@ -266,13 +266,19 @@ onMounted(() => {
       </el-alert>
       <template v-else-if="detail"><el-alert v-if="detail.claimed" :title="Number(detail.can_contact)===1?'用户已授权联系；记录联系前仍会校验授权':'用户未授权联系，请尊重其选择'" :type="Number(detail.can_contact)===1?'success':'warning'" :closable="false"/>
       <p v-if="detail.summary" class="my-4 leading-relaxed">{{detail.summary}}</p>
-      <p v-else class="my-4 leading-relaxed text-gray-500">领取后可见脱敏摘要与关联信息。</p>
+      <p v-else class="my-4 leading-relaxed care-note">领取后可见脱敏摘要与关联信息。</p>
       <p>任务状态：{{detail.state==='CLOSED'?'已完成':detail.claimed?'已领取':'待领取'}}</p>
       <div class="my-4 flex flex-wrap gap-2"><el-button v-if="!detail.claimed" type="primary" :loading="busy[detail.id] === 'CLAIM'" @click="follow('CLAIM')">领取任务</el-button>
       <template v-else-if="detail.state!=='CLOSED'"><el-button v-for="a in ['REVIEWED','CONTACTED','REFERRED','CLOSE']" :key="a" :loading="busy[detail.id] === a" :disabled="(!!busy[detail.id] && busy[detail.id] !== a) || (a === 'CONTACTED' && Number(detail.can_contact) !== 1)" @click="follow(a)">{{actionLabels[a]}}</el-button></template>
       <el-button v-else :loading="busy[detail.id] === 'REOPEN'" @click="follow('REOPEN')">重新打开</el-button></div>
       <el-timeline v-if="detail.events && detail.events.length" class="mt-6"><el-timeline-item v-for="(e,i) in detail.events" :key="i" :timestamp="formatTime(e.create_time)">{{actionLabels[e.action]||e.action}}</el-timeline-item></el-timeline>
-      <p class="text-sm text-gray-500">只记录处理动作，不收集可识别个人身份的跟进正文。本系统不能替代专业心理咨询。</p></template>
+      <p class="text-sm care-note">只记录处理动作，不收集可识别个人身份的跟进正文。本系统不能替代专业心理咨询。</p></template>
     </el-drawer>
   </div>
 </template>
+
+<style scoped>
+.care-note {
+  color: var(--el-text-color-regular);
+}
+</style>

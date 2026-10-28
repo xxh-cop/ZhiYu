@@ -66,6 +66,24 @@
   }
 }
 
+/* ElTag default type colors fall below AA on their tinted backgrounds.
+   -dark-2 is the contrast-direction ramp in both themes (darker in light, lighter in dark). */
+.el-tag--primary {
+  --el-tag-text-color: var(--el-color-primary-dark-2);
+}
+.el-tag--success {
+  --el-tag-text-color: var(--el-color-success-dark-2);
+}
+.el-tag--warning {
+  --el-tag-text-color: var(--el-color-warning-dark-2);
+}
+.el-tag--danger {
+  --el-tag-text-color: var(--el-color-danger-dark-2);
+}
+.el-tag--info {
+  --el-tag-text-color: var(--el-text-color-regular);
+}
+
 .zy-business-page :is(button, a, input, textarea):focus-visible {
   outline: 2px solid var(--el-color-primary);
   outline-offset: 3px;
