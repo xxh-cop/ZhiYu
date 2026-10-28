@@ -216,6 +216,22 @@ CREATE TABLE IF NOT EXISTS craft_recommendation_item (
   KEY idx_rec (recommendation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐明细表';
 
+CREATE TABLE IF NOT EXISTS craft_recommend_event (
+  id                BIGINT      NOT NULL,
+  user_id           BIGINT      NOT NULL COMMENT '点击用户',
+  recommendation_id BIGINT      NOT NULL COMMENT 'craft_recommendation.id',
+  project_id        BIGINT      NOT NULL COMMENT '被点击项目',
+  event_type        VARCHAR(16) NOT NULL DEFAULT 'CLICK' COMMENT 'CLICK；预留 EXPOSURE',
+  source            VARCHAR(16) NOT NULL COMMENT 'HOME / RECOMMEND',
+  create_time       DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time       DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted           TINYINT     NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_recommend_event (user_id, recommendation_id, project_id, event_type),
+  KEY idx_recommend_event_time (event_type, create_time),
+  KEY idx_recommend_event_rec (recommendation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐点击事件表';
+
 -- ---------- 创作会话 ----------
 CREATE TABLE IF NOT EXISTS craft_session (
 id          BIGINT      NOT NULL,

@@ -14,6 +14,7 @@ class SchemaCompatibilityCheckTest {
   assertTrue(error.getMessage().contains("sql/migrations/"));
   assertTrue(error.getMessage().contains("20261017_course_lessons.sql"));
   assertTrue(error.getMessage().contains("20261026_ai_audit_user_id.sql"));
+  assertTrue(error.getMessage().contains("20261028_craft_recommend_event.sql"));
  }
  @Test void upgradedSchemaCanStart() throws Exception {
   assertDoesNotThrow(()->new SchemaCompatibilityCheck(source(true)).run(null));
@@ -32,6 +33,11 @@ class SchemaCompatibilityCheckTest {
   var session=mock(ResultSet.class);when(session.next()).thenReturn(true,false);when(session.getString("COLUMN_NAME")).thenReturn("emotion_session_id");
   var project=mock(ResultSet.class);when(project.next()).thenReturn(true,false);when(project.getString("COLUMN_NAME")).thenReturn("video_url");var media=mock(ResultSet.class);when(media.next()).thenReturn(true,true,false);when(media.getString("COLUMN_NAME")).thenReturn("storage_key","user_id");when(metadata.getColumns("zhiyu",null,"craft_project",null)).thenReturn(project);when(metadata.getColumns("zhiyu",null,"media_asset",null)).thenReturn(media);
   var auditLog=mock(ResultSet.class);when(auditLog.next()).thenReturn(upgraded,false);when(auditLog.getString("COLUMN_NAME")).thenReturn("user_id");when(metadata.getColumns("zhiyu",null,"ai_audit_log",null)).thenReturn(auditLog);
+  var eventColumns=upgraded?java.util.List.of("id","user_id","recommendation_id","project_id","event_type","source","create_time","update_time","deleted"):java.util.List.<String>of();
+  var event=mock(ResultSet.class);var eventPosition=new java.util.concurrent.atomic.AtomicInteger(-1);
+  when(event.next()).thenAnswer(i->eventPosition.incrementAndGet()<eventColumns.size());
+  when(event.getString("COLUMN_NAME")).thenAnswer(i->eventColumns.get(eventPosition.get()));
+  when(metadata.getColumns("zhiyu",null,"craft_recommend_event",null)).thenReturn(event);
   when(metadata.getColumns("zhiyu",null,"work",null)).thenReturn(work);when(metadata.getColumns("zhiyu",null,"craft_session",null)).thenReturn(session);return source;
  }
 }

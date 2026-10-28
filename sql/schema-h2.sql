@@ -208,6 +208,19 @@ CREATE TABLE IF NOT EXISTS craft_recommendation_item (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS craft_recommend_event (
+  id                BIGINT      NOT NULL,
+  user_id           BIGINT      NOT NULL,
+  recommendation_id BIGINT      NOT NULL,
+  project_id        BIGINT      NOT NULL,
+  event_type        VARCHAR(16) NOT NULL DEFAULT 'CLICK',
+  source            VARCHAR(16) NOT NULL,
+  create_time       TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time       TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted           TINYINT     NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
 -- ---------- 创作会话 ----------
 CREATE TABLE IF NOT EXISTS craft_session (
   id           BIGINT      NOT NULL,
@@ -337,6 +350,9 @@ CREATE INDEX IF NOT EXISTS idx_craft_step_project            ON craft_step (proj
 CREATE INDEX IF NOT EXISTS idx_craft_material_project        ON craft_material (project_id);
 CREATE INDEX IF NOT EXISTS idx_craft_recommendation_user     ON craft_recommendation (user_id);
 CREATE INDEX IF NOT EXISTS idx_craft_recommendation_item_rec ON craft_recommendation_item (recommendation_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_craft_recommend_event   ON craft_recommend_event (user_id, recommendation_id, project_id, event_type);
+CREATE INDEX IF NOT EXISTS idx_craft_recommend_event_time    ON craft_recommend_event (event_type, create_time);
+CREATE INDEX IF NOT EXISTS idx_craft_recommend_event_rec     ON craft_recommend_event (recommendation_id);
 CREATE INDEX IF NOT EXISTS idx_craft_session_user            ON craft_session (user_id);
 CREATE INDEX IF NOT EXISTS idx_craft_session_project         ON craft_session (project_id);
 CREATE INDEX IF NOT EXISTS idx_work_user                     ON work (user_id);
