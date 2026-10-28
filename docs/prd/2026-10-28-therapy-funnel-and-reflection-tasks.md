@@ -2,7 +2,7 @@
 
 - 对应 PRD：`docs/prd/2026-10-28-therapy-funnel-and-reflection.md`
 - 日期：2026-10-28
-- 状态：Phase 1（BE-0..BE-3、FE-0..FE-2）与 Phase 2（BE-4、BE-5、FE-3、FE-4）均已实施
+- 状态：Phase 1、Phase 2 已实施；Phase 3 演示数据包与彩排已完成
 - 原则：契约先行（OpenAPI → 迁移/测试 → 服务 → 前端 → 浏览器验收）；不新增错误码；不 push。
 
 ## Phase 1 执行记录（2026-10-28）
@@ -14,7 +14,8 @@
 - 本地 MySQL 已执行 `20261028_craft_recommend_event.sql` 两次（可重复执行）。
 - 合成验收数据已按 `990001..990006` 清理；截图在 `output/playwright/p1-*`。
 - Phase 2：`reflection.st`、`AiClient.reflectionSummary`、`ReflectionSummaryService`、反思 summary 保存与发布预填完成；AI 可用/降级、未同意、非本人、未完成路径测试通过；H5/小程序构建通过；浏览器生成回顾、保存、发布预填通过，`pageErrors=0`。
-- 未做：Gherkin 文件、正式 demo seed 入库、Phase 3 演示彩排。
+- Phase 3：新增 `features/19-therapy-funnel.feature`、`features/20-ai-reflection.feature`、`sql/demo/20261028-demo-pack.sql` 与 cleanup；在隔离 `zhiyu_demo` 库完成学生+管理端彩排，漏斗 20/15/9/7/5/3，评论区/关怀/活动/作品/AI 回顾均通过，`pageErrors=0`。
+- 未做：真实模型质量、微信真机、正式运营数据与生产部署；演示库为合成数据，可随时 drop/recreate。
 
 ---
 
