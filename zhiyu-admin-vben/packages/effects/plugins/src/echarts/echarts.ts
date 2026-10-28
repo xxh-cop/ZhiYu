@@ -1,5 +1,6 @@
 import { BarChart, LineChart, PieChart, RadarChart } from 'echarts/charts';
 import {
+  AriaComponent,
   DatasetComponent,
   GraphicComponent,
   GridComponent,
@@ -18,6 +19,7 @@ import {
 import { CanvasRenderer } from 'echarts/renderers';
 
 echarts.use([
+  AriaComponent,
   TitleComponent,
   PieChart,
   RadarChart,
