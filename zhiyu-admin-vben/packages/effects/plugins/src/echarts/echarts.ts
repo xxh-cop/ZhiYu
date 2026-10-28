@@ -1,4 +1,10 @@
-import { BarChart, LineChart, PieChart, RadarChart } from 'echarts/charts';
+import {
+  BarChart,
+  FunnelChart,
+  LineChart,
+  PieChart,
+  RadarChart,
+} from 'echarts/charts';
 import {
   AriaComponent,
   DatasetComponent,
@@ -28,6 +34,7 @@ echarts.use([
   DatasetComponent,
   TransformComponent,
   BarChart,
+  FunnelChart,
   LineChart,
   LabelLayout,
   LegacyGridContainLabel,

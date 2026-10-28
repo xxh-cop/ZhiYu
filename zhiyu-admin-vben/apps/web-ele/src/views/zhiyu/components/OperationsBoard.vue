@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed,onMounted,ref } from 'vue';import { useRouter } from 'vue-router';import { useUserStore } from '@vben/stores';import { ElButton,ElSkeleton } from 'element-plus';import { requestClient } from '#/api/request';import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';import OperationsChart from './OperationsChart.vue';
+import { computed,onMounted,ref } from 'vue';import { useRouter } from 'vue-router';import { useUserStore } from '@vben/stores';import { ElButton,ElSkeleton } from 'element-plus';import { requestClient } from '#/api/request';import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';import OperationsChart from './OperationsChart.vue';import TherapyFunnelCard from './TherapyFunnelCard.vue';
 const props=defineProps<{analytics?:boolean}>();const router=useRouter(),user=useUserStore();
 type Item={name:string;value:number};type Overview={totals:Record<string,number>;daily:Array<{date:string;users:number;works:number;sessions:number;finished:number}>;categories:Item[];projectStates:Item[];sessionStates:Item[];programKinds:Item[];bookingStates:Item[];generatedAt:string};
 const data=ref<Overview|null>(null),days=ref(7),loading=ref(false),error=ref('');let generation=0;
@@ -22,6 +22,7 @@ const date=new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'
  <section v-if="!analytics" class="welcome-strip"><div><span class="strip-label">让每一次开始，都有人回应</span><h2>今天，从一件值得做的小事开始。</h2><p>查看待办，整理内容，为下一次手作留好位置。</p><button @click="router.push('/zhiyu/programs')">安排活动与预约 <span>↗</span></button></div><img src="/weave-scene.svg" alt="交织的纸带与叶形纹样"/></section>
  <section class="op-metrics"><button v-for="(card,i) in cards" :key="card.key" @click="router.push(card.path)"><div class="metric-top"><span>{{card.label}}</span><span class="metric-icon" :class="'tone-'+i">{{card.icon}}</span></div><strong>{{data?Number(data.totals[card.key]).toLocaleString():'—'}}</strong><div class="metric-bottom"><span>{{card.caption}}</span><span>↗</span></div></button></section>
  <div class="section-heading"><div><h2>{{analytics?'参与趋势与内容结构':'运营概览'}}</h2><span>趋势按北京时间自然日统计 · 分布为当前全部记录</span></div><div class="range"><button v-for="n in [7,30]" :key="n" :class="{selected:days===n}" :aria-pressed="days===n" @click="range(n)">近 {{n}} 天</button></div></div>
+ <TherapyFunnelCard v-if="!analytics" :days="days"/>
  <ElSkeleton v-if="loading&&!data" :rows="5" animated/>
  <template v-else-if="data">
  <div class="charts-top"><OperationsChart title="创作与参与趋势" :subtitle="`近 ${days} 天 · 可点击图例筛选；各曲线按各自发生日期统计`" kind="line" :rows="data?.daily||[]" empty-text="暂无创作趋势" :empty-hint="`近 ${days} 天还没有创作记录`"/><OperationsChart title="创作进行到哪一步" subtitle="全部创作会话状态分布" kind="pie" :rows="data?.sessionStates||[]" empty-text="暂无创作会话" empty-hint="完成一次创作后会在这里显示状态分布"/></div>
