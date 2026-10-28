@@ -322,7 +322,7 @@ components:
     RecommendItemVO:
       type: object
       properties:
-        projectId: { type: integer, format: int64 }
+        projectId: { type: string, pattern: '^[0-9]+$', description: 雪花/种子 ID，按字符串返回避免 JS 精度丢失 }
         title: { type: string }
         intro: { type: string }
         cultureBg: { type: string }
@@ -337,12 +337,48 @@ components:
     RecommendVO:
       type: object
       properties:
-        recommendationId: { type: integer, format: int64 }
+        recommendationId: { type: string, pattern: '^[0-9]+$', description: 雪花 ID，按字符串返回避免 JS 精度丢失 }
         mood: { type: string }
         reason: { type: string, description: 整体推荐理由 }
         items:
           type: array
           items: { $ref: '#/components/schemas/RecommendItemVO' }
+
+    RecommendClickDTO:
+      type: object
+      required: [recommendationId, projectId, source]
+      properties:
+        recommendationId: { type: string, pattern: '^[0-9]+$' }
+        projectId: { type: string, pattern: '^[0-9]+$' }
+        source: { type: string, enum: [HOME, RECOMMEND], description: 首页或推荐页入口 }
+
+    TherapyFunnelStageVO:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        users: { type: integer, format: int64 }
+        fromPrevious: { type: number, format: double, nullable: true, description: 相对上一阶段转化率；上一阶段为 0 时为 null }
+        fromStart: { type: number, format: double, nullable: true, description: 相对首阶段 cohort 的转化率；cohort 为 0 时为 null }
+
+    TherapyFunnelFlowVO:
+      type: object
+      properties:
+        completedSessions: { type: integer, format: int64 }
+        flowSeconds: { type: integer, format: int64 }
+        focusRate: { type: number, format: double, nullable: true, description: 完成会话心流秒数 / 总时长秒数；无有效时长时为 null }
+
+    TherapyFunnelVO:
+      type: object
+      properties:
+        days: { type: integer }
+        cohort: { type: integer, format: int64 }
+        insufficient: { type: boolean, description: cohort 少于 5 时为 true，转化率为 null }
+        stages:
+          type: array
+          items: { $ref: '#/components/schemas/TherapyFunnelStageVO' }
+        flow: { $ref: '#/components/schemas/TherapyFunnelFlowVO' }
+        generatedAt: { type: string, format: date-time }
 
     CreateSessionDTO:
       type: object
@@ -911,6 +947,36 @@ paths:
           description: 不支持的时间范围，code 1001
         '403':
           description: 非管理员，code 1003
+  /api/admin/dashboard/therapy-funnel:
+    get:
+      operationId: adminDashboardTherapyFunnel
+      tags: [Admin]
+      summary: 疗愈闭环六阶段漏斗
+      description: '同用户、同时间窗、按 user_id 去重的运营漏斗；不强制 session_id 串联，不代表疗效或因果。cohort<5 时 insufficient=true 且转化率为 null。仅管理员可读，不返回用户级信息。'
+      parameters:
+        - in: query
+          name: days
+          schema:
+            type: integer
+            enum: [7, 30]
+            default: 7
+          description: Asia/Shanghai 自然日窗口
+      responses:
+        '200':
+          description: Result.data 为六阶段人数、转化率、心流占比与样本不足标记
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/TherapyFunnelVO' }
+        '400': { description: 不支持的时间范围（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非管理员（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
   /api/admin/starter-quality:
     get:
       operationId: adminStarterQualityGet
@@ -1250,6 +1316,32 @@ paths:
                       data: { $ref: '#/components/schemas/RecommendVO' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/craft/recommend/click:
+    post:
+      operationId: craftRecommendClick
+      tags: [Craft]
+      summary: 记录一次推荐点击
+      description: '记录首页或推荐页的推荐卡片点击；同一用户、推荐、项目、事件只记一次。点击失败不影响客户端跳转。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecommendClickDTO' }
+      responses:
+        '200':
+          description: 点击已记录，或重复点击幂等成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 推荐或项目不存在（code=1004；不泄露他人资源）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 

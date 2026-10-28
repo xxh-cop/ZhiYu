@@ -1,5 +1,7 @@
 package com.zhiyu.modules.craft.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.util.List;
@@ -12,7 +14,8 @@ import java.util.List;
 @Data
 public class RecommendVO {
 
-    /** 推荐记录 ID（craft_recommendation.id） */
+    /** 推荐记录 ID（craft_recommendation.id）；按字符串返回，避免 JS 精度丢失。 */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long recommendationId;
 
     /** 情绪 code */

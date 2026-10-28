@@ -1,5 +1,7 @@
 package com.zhiyu.modules.craft.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 /**
@@ -10,7 +12,8 @@ import lombok.Data;
 @Data
 public class RecommendItemVO {
 
-    /** 项目 ID */
+    /** 项目 ID；按字符串返回，避免 JS 精度丢失。 */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long projectId;
 
     /** 项目标题 */
