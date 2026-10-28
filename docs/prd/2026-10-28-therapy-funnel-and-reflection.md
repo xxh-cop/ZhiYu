@@ -2,7 +2,7 @@
 
 - 版本：1.0
 - 日期：2026-10-28
-- 状态：Phase 1（点击埋点 + 漏斗）已实施；Phase 2（AI 创作回顾）待实施
+- 状态：Phase 1（点击埋点 + 漏斗）与 Phase 2（AI 创作回顾）均已实施
 - 范围：学生端 UniApp、管理端 Vben、Spring Boot 后端与 OpenAPI/数据库契约
 - 上游决策：`docs/prd/2026-10-28-therapy-funnel-and-reflection-tasks.md`
 - 相关背景：`docs/requirements-audit-20261021.md`（FR-60-03 部分实现）、`docs/superpowers/specs/2026-10-26-admin-ui-baseline-design.md`（B4 图表桥）

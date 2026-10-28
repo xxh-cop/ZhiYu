@@ -2,7 +2,7 @@
 
 - 对应 PRD：`docs/prd/2026-10-28-therapy-funnel-and-reflection.md`
 - 日期：2026-10-28
-- 状态：Phase 1 已实施（BE-0..BE-3、FE-0..FE-2）；Phase 2 待实施
+- 状态：Phase 1（BE-0..BE-3、FE-0..FE-2）与 Phase 2（BE-4、BE-5、FE-3、FE-4）均已实施
 - 原则：契约先行（OpenAPI → 迁移/测试 → 服务 → 前端 → 浏览器验收）；不新增错误码；不 push。
 
 ## Phase 1 执行记录（2026-10-28）
@@ -13,7 +13,8 @@
 - 浏览器：点击接口返回 200/code 0；漏斗 6/3/2/2/1/1，空态、样本不足、错误重试、深色均通过；`pageErrors=0`。
 - 本地 MySQL 已执行 `20261028_craft_recommend_event.sql` 两次（可重复执行）。
 - 合成验收数据已按 `990001..990006` 清理；截图在 `output/playwright/p1-*`。
-- 未做：Gherkin 文件、正式 demo seed 入库、Phase 2 AI 回顾。
+- Phase 2：`reflection.st`、`AiClient.reflectionSummary`、`ReflectionSummaryService`、反思 summary 保存与发布预填完成；AI 可用/降级、未同意、非本人、未完成路径测试通过；H5/小程序构建通过；浏览器生成回顾、保存、发布预填通过，`pageErrors=0`。
+- 未做：Gherkin 文件、正式 demo seed 入库、Phase 3 演示彩排。
 
 ---
 
