@@ -4,7 +4,7 @@
 		<view class="profile-card zy-slide-up">
 			<view class="card-accent"></view>
 			<view class="profile-body">
-				<view class="avatar-ring" @click.stop="goSettings">
+				<view class="avatar-ring" role="button" tabindex="0" aria-label="修改个人资料" @click.stop="goSettings" @keydown.enter.prevent="goSettings" @keydown.space.prevent="goSettings">
 					<image
 						v-if="avatarFullUrl"
 						class="avatar-img"
@@ -53,6 +53,11 @@
 			</view>
 		</view>
 
+		<view v-if="profileError" class="profile-error" role="alert">
+			<text>{{ profileError }}</text>
+			<button @click="retryProfile">重新加载</button>
+		</view>
+
 		<!-- 快捷入口列表 -->
 		<view class="menu-list">
 			<view
@@ -60,7 +65,12 @@
 				:key="idx"
 				class="menu-item zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx }"
+				role="button"
+				tabindex="0"
+				:aria-label="item.label"
 				@click="handleMenu(item)"
+				@keydown.enter.prevent="handleMenu(item)"
+				@keydown.space.prevent="handleMenu(item)"
 			>
 				<view class="menu-icon-wrap" :style="{ background: item.iconBg }">
 					<wd-icon :name="item.icon" size="36rpx" color="#FFFFFF" />
@@ -71,7 +81,7 @@
 		</view>
 
 		<!-- 退出登录按钮 -->
-		<view class="logout-btn zy-slide-up" @click="handleLogout">
+		<view class="logout-btn zy-slide-up" role="button" tabindex="0" aria-label="退出登录" @click="handleLogout" @keydown.enter.prevent="handleLogout" @keydown.space.prevent="handleLogout">
 			<text class="logout-btn-text">退出登录</text>
 		</view>
 
@@ -156,6 +166,7 @@ const stats = ref({
 	works: '—',
 	notes: '—',
 })
+const profileError = ref('')
 
 onShow(() => {
 	if (!userStore.isLogin) {
@@ -172,7 +183,9 @@ async function loadCurrentUser() {
 	try {
 		const data = await request({ url: '/api/auth/me', method: 'GET' })
 		userStore.setUserInfo(data)
+		profileError.value = ''
 	} catch (e) {
+		profileError.value = '个人资料暂时没有更新，请重试'
 	} finally {
 		loadingMe.value = false
 	}
@@ -185,10 +198,18 @@ async function loadStats() {
 			stats.value.days = journey.days
 			stats.value.works = data.workCount || 0
 			stats.value.notes = data.noteCount || 0
+			profileError.value = ''
 		}
 	} catch (e) {
 		stats.value = { days: '—', works: '—', notes: '—' }
+		profileError.value = '统计暂时无法读取，请重试'
 	}
+}
+
+function retryProfile() {
+	profileError.value = ''
+	loadCurrentUser()
+	loadStats()
 }
 
 function handleMenu(item) {
@@ -445,4 +466,41 @@ function handleLogout() {
 	color: var(--zy-aid, #718478);
 	text-align: center;
 }
+</style>
+
+<style scoped>
+.avatar-ring:focus-visible,
+.menu-item:focus-visible,
+.logout-btn:focus-visible {
+	outline: 3px solid var(--zy-primary, #2f7566);
+	outline-offset: 3px;
+}
+.profile-info { min-width: 0; }
+.profile-name, .profile-signature { overflow-wrap: anywhere; }
+.profile-error {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16rpx;
+	margin-bottom: 20rpx;
+	padding: 20rpx 24rpx;
+	border: 1rpx solid var(--zy-border, #dfe7dc);
+	border-radius: var(--zy-radius-md, 24rpx);
+	background: var(--zy-card-bg, #fff);
+	color: var(--zy-content, #586e62);
+	font-size: 23rpx;
+	line-height: 1.7;
+}
+.profile-error button {
+	flex-shrink: 0;
+	min-height: 64rpx;
+	padding: 0 22rpx;
+	border: 1rpx solid var(--zy-primary, #2f7566);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-bg-tint-mint, #e8efe4);
+	color: var(--zy-primary, #2f7566);
+	font-size: 23rpx;
+	line-height: 2.5;
+}
+.profile-error button::after { border: 0; }
 </style>

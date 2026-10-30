@@ -78,8 +78,14 @@
 					</view>
 				</view>
 
+				<!-- 首次加载失败 -->
+				<view v-else-if="projectError && projects.length === 0" class="empty-projects project-error" role="alert">
+					<text class="empty-text">{{ projectError }}</text>
+					<button class="project-retry" @click="retryProjects">重试</button>
+				</view>
+
 				<!-- 空状态 -->
-				<view v-else-if="!projectLoading && projects.length === 0" class="empty-projects">
+				<view v-else-if="!projectLoading && !projectError && projects.length === 0" class="empty-projects">
 					<text class="empty-text">暂无已上架作品</text>
 				</view>
 
@@ -114,6 +120,12 @@
 						</view>
 					</view>
 
+					<!-- 分页失败：保留已加载项目 -->
+					<view v-if="projectError && projects.length > 0" class="project-error-row" role="alert">
+						<text class="empty-text">{{ projectError }}</text>
+						<button class="project-retry" @click="retryProjects">重试</button>
+					</view>
+
 					<!-- 底部状态 -->
 					<view v-if="projects.length > 0" class="bottom-status">
 						<view v-if="projectLoading" class="loading-dot"></view>
@@ -145,6 +157,7 @@ const errorMsg = ref('')
 
 const projects = ref([])
 const projectLoading = ref(false)
+const projectError = ref('')
 const page = ref(1)
 const total = ref(0)
 const size = 10
@@ -192,6 +205,7 @@ async function loadInheritor() {
 
 async function loadProjects(pageNum) {
 	projectLoading.value = true
+	projectError.value = ''
 	if (pageNum === 1) {
 		projects.value = []
 	}
@@ -206,6 +220,7 @@ async function loadProjects(pageNum) {
 			projects.value = data.records || []
 		}
 	} catch (e) {
+		projectError.value = '手作项目加载失败，请重试'
 	} finally {
 		projectLoading.value = false
 	}
@@ -213,6 +228,7 @@ async function loadProjects(pageNum) {
 
 async function loadMoreProjects() {
 	projectLoading.value = true
+	projectError.value = ''
 	try {
 		const data = await http.get(`/api/inheritors/${inheritorId.value}/projects`, {
 			data: { page: page.value, pageSize: size },
@@ -222,9 +238,15 @@ async function loadMoreProjects() {
 			projects.value = projects.value.concat(data.records || [])
 		}
 	} catch (e) {
+		projectError.value = '更多手作加载失败，请重试'
 	} finally {
 		projectLoading.value = false
 	}
+}
+
+function retryProjects() {
+	if (projects.value.length > 0) loadMoreProjects()
+	else loadProjects(1)
 }
 
 function firstLetter(name) {
@@ -678,4 +700,32 @@ function goProjectDetail(item) {
 	color: var(--zy-aid, #718478);
 	text-align: center;
 }
+</style>
+
+<style scoped>
+.project-error { flex-direction: column; gap: 16rpx; }
+.project-error-row {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12rpx;
+	margin-top: 20rpx;
+	padding: 24rpx;
+	border: 1rpx dashed var(--zy-border, #dfe7dc);
+	border-radius: var(--zy-radius-md, 24rpx);
+	background: var(--zy-card-bg, #fff);
+}
+.project-retry {
+	min-height: 88rpx;
+	padding: 0 28rpx;
+	border: 1rpx solid var(--zy-primary, #2f7566);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-bg-tint-mint, #e8efe4);
+	color: var(--zy-primary, #2f7566);
+	font-size: 25rpx;
+	line-height: 2.8;
+}
+.project-retry::after { border: 0; }
+.project-retry:focus-visible { outline: 3px solid var(--zy-primary, #2f7566); outline-offset: 3px; }
 </style>

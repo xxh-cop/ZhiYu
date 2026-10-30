@@ -9,9 +9,9 @@
 </view></template>
 <script setup>
 import{campusSupport as campus}from'../../data/campus-support';import{useInteraction}from'../../composables/useInteraction';const{reducedMotion}=useInteraction()
-function copy(data){uni.setClipboardData({data})}
+function copy(data){uni.setClipboardData({data,success:()=>uni.showToast({title:'已复制',icon:'success'}),fail:()=>uni.showToast({title:'复制失败，请手动选择文本',icon:'none'})})}
 function call(){uni.makePhoneCall({phoneNumber:campus.center.phone,fail:()=>uni.showToast({title:'当前设备无法拨号，可复制号码后联系',icon:'none'})})}
 function goCrisis(){uni.navigateTo({url:'/pages/crisis/index'})}
 </script>
 <style src="../../styles/growth.css"></style>
-<style scoped>.growth-muted{display:block;margin-top:8rpx}.phone{display:block;font-size:42rpx;font-weight:600;letter-spacing:2rpx;margin:24rpx 0;color:#267d70}</style>
+<style scoped>.growth-muted{display:block;margin-top:8rpx;overflow-wrap:anywhere}.phone{display:block;font-size:42rpx;font-weight:600;letter-spacing:2rpx;margin:24rpx 0;color:var(--zy-primary,#2f7566)}</style>

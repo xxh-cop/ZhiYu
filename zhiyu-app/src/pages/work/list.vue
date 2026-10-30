@@ -7,13 +7,18 @@
 		</view>
 
 		<!-- 筛选 tab -->
-		<view class="filter-tabs zy-slide-up zy-stagger" style="--stagger-i: 1">
+		<view class="filter-tabs zy-slide-up zy-stagger" style="--stagger-i: 1" role="tablist" aria-label="作品排序">
 			<view
 				v-for="tab in tabs"
 				:key="tab.value"
 				class="filter-tab"
 				:class="{ 'tab-active': activeTab === tab.value }"
+				role="tab"
+				:aria-selected="activeTab === tab.value"
+				:tabindex="activeTab === tab.value ? 0 : -1"
 				@click="switchTab(tab.value)"
+				@keydown.enter.prevent="switchTab(tab.value)"
+				@keydown.space.prevent="switchTab(tab.value)"
 			>
 				<text class="tab-text" :class="{ 'tab-text-active': activeTab === tab.value }">{{ tab.label }}</text>
 			</view>
@@ -37,7 +42,7 @@
 			</view>
 			<text class="empty-title">还没有作品</text>
 			<text class="empty-subtitle">发布你的第一件吧</text>
-			<view class="empty-btn" @click="goPublish">
+			<view class="empty-btn" role="button" tabindex="0" @click="goPublish" @keydown.enter.prevent="goPublish" @keydown.space.prevent="goPublish">
 				<text class="empty-btn-text">去发布</text>
 			</view>
 		</view>
@@ -55,7 +60,12 @@
 				:key="item.id"
 				class="work-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx }"
+				role="button"
+				tabindex="0"
+				:aria-label="'查看作品 ' + item.title"
 				@click="goDetail(item)"
+				@keydown.enter.prevent="goDetail(item)"
+				@keydown.space.prevent="goDetail(item)"
 			>
 			<!-- 封面区域：根据 mediaType 渲染 -->
 				<view v-if="!item.mediaType || item.mediaType === 'image'" class="card-cover" :style="coverStyle(item.coverUrl)">
@@ -92,6 +102,12 @@
 						<text class="meta-time">{{ formatTime(item.createTime) }}</text>
 					</view>
 				</view>
+			</view>
+
+			<!-- 分页失败：保留已加载作品 -->
+			<view v-if="errorMsg && records.length > 0" class="bottom-error" role="alert">
+				<text>{{ errorMsg }}</text>
+				<button @click="loadMore">重试</button>
 			</view>
 
 			<!-- 底部状态 -->
@@ -170,7 +186,7 @@ async function loadData(pageNum) {
 			records.value = data.records || []
 		}
 	} catch (e) {
-		errorMsg.value = (e && e.message) || '加载失败，请稍后重试'
+		errorMsg.value = '作品加载失败，请稍后重试'
 	} finally {
 		loading.value = false
 	}
@@ -188,7 +204,7 @@ async function loadMore() {
 			records.value = records.value.concat(data.records || [])
 		}
 	} catch (e) {
-		errorMsg.value = (e && e.message) || '加载失败'
+		errorMsg.value = '更多作品加载失败，请重试'
 	} finally {
 		loading.value = false
 	}
@@ -568,4 +584,39 @@ loadData(1)
 	color: var(--zy-aid, #718478);
 	text-align: center;
 }
+</style>
+
+<style scoped>
+.filter-tab:focus-visible,
+.empty-btn:focus-visible,
+.work-card:focus-visible {
+	outline: 3px solid var(--zy-primary, #2f7566);
+	outline-offset: 3px;
+}
+.bottom-error {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12rpx;
+	margin-top: 20rpx;
+	padding: 24rpx;
+	border: 1rpx dashed var(--zy-border, #dfe7dc);
+	border-radius: var(--zy-radius-md, 24rpx);
+	background: var(--zy-card-bg, #fff);
+	color: var(--zy-content, #586e62);
+	font-size: 24rpx;
+	line-height: 1.7;
+	text-align: center;
+}
+.bottom-error button {
+	min-height: 72rpx;
+	padding: 0 26rpx;
+	border: 1rpx solid var(--zy-primary, #2f7566);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-bg-tint-mint, #e8efe4);
+	color: var(--zy-primary, #2f7566);
+	font-size: 24rpx;
+	line-height: 2.6;
+}
+.bottom-error button::after { border: 0; }
 </style>

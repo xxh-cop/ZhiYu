@@ -11,6 +11,29 @@
 			</view>
 		</view>
 
+		<!-- 关系图谱 -->
+		<view class="map-card">
+			<button
+				class="map-toggle"
+				:aria-expanded="mapExpanded ? 'true' : 'false'"
+				aria-controls="heritage-map-panel"
+				@click="toggleMap"
+			>
+				<view>
+					<text class="map-title">非遗关系图谱</text>
+					<text class="map-desc">{{ graph ? '4 门工艺 · 24 个纹样 · 4 条已登记来源' : '正在读取目录…' }}</text>
+				</view>
+				<text class="map-action">{{ mapExpanded ? '收起' : '展开' }}</text>
+			</button>
+			<scroll-view v-if="mapExpanded" id="heritage-map-panel" class="map-panel" scroll-y>
+				<view v-if="mapError" class="map-error" role="alert">
+					<text>{{ mapError }}</text>
+					<button class="map-retry" @click="loadGraph">重试</button>
+				</view>
+				<HeritageKnowledgeMap v-else-if="graph" :graph="graph" />
+			</scroll-view>
+		</view>
+
 		<!-- 对话区域 -->
 		<scroll-view class="chat-area" scroll-y :scroll-top="scrollTop" :scroll-with-animation="true">
 			<!-- 欢迎语 -->
@@ -45,6 +68,10 @@
 				<view v-else class="msg-ai">
 					<view class="msg-bubble-ai">
 						<text class="msg-text-ai">{{ msg.content }}</text>
+						<view class="answer-meta">
+							<text class="mode-chip">{{ modeLabel(msg.retrievalMode) }}</text>
+							<text v-if="msg.generated === false" class="mode-note">结构化资料 · 未调用生成模型</text>
+						</view>
 						<!-- 引用来源 -->
 						<view v-if="msg.sources && msg.sources.length > 0" class="sources-area">
 							<view class="sources-header" @click="toggleSources(idx)">
@@ -54,11 +81,25 @@
 							<view v-if="msg.showSources" class="sources-list">
 								<view
 									v-for="(src, sIdx) in msg.sources"
-									:key="sIdx"
+									:key="src.id || sIdx"
 									class="source-item"
 								>
-									<text class="source-title">{{ src.title }}</text>
-									<text class="source-excerpt">{{ src.excerpt }}...</text>
+									<view class="source-head">
+										<text class="source-title">{{ src.title }}</text>
+										<text class="source-badge">{{ src.citationType === 'VERIFIED_SOURCE' ? '已登记来源' : '检索参考' }}</text>
+									</view>
+									<text v-if="src.organization" class="source-org">{{ src.organization }}</text>
+									<text class="source-excerpt">{{ src.excerpt }}</text>
+									<text v-if="src.relation" class="source-relation">{{ src.relation }}</text>
+									<text v-if="src.sourceVersion" class="source-version">资料版本 {{ src.sourceVersion }}</text>
+									<button
+										v-if="src.url"
+										class="source-link"
+										role="link"
+										:aria-label="'打开来源 ' + src.title"
+										@click="openSource(src)"
+									>打开已登记来源 ↗</button>
+									<text v-if="src.mediaReuse === 'NOT_GRANTED'" class="source-media">仅作背景参考，媒体不转载</text>
 								</view>
 							</view>
 						</view>
@@ -84,7 +125,7 @@
 				<input
 					v-model="inputText"
 					class="input-field"
-					placeholder="问问赣绣、剪纸、扎染..."
+					placeholder="问问夏布绣、竹编、剪纸..."
 					:disabled="loading"
 					confirm-type="send"
 					@confirm="handleAsk"
@@ -105,19 +146,62 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { request } from '../../utils/request'
+import HeritageKnowledgeMap from '../../components/HeritageKnowledgeMap.vue'
+import { buildHeritageGraph } from '../../utils/heritage-graph-layout'
 
 const inputText = ref('')
 const loading = ref(false)
 const messages = ref([])
 const scrollTop = ref(0)
+const graph = ref(null)
+const mapExpanded = ref(false)
+const mapError = ref('')
+
+const MODE_LABELS = {
+	GRAPH_VECTOR: '关系 + 向量检索',
+	STRUCTURED_GRAPH: '结构化关系检索',
+	VECTOR: '向量检索',
+	NONE: '未找到资料',
+}
+
+function modeLabel(mode) {
+	return MODE_LABELS[mode] || '检索结果'
+}
+
+async function loadGraph() {
+	mapError.value = ''
+	try {
+		const catalog = await request({ url: '/api/heritage/catalog' })
+		graph.value = buildHeritageGraph(catalog)
+	} catch (e) {
+		mapError.value = (e && e.message) || '关系图谱暂时不可用'
+	}
+}
+
+function toggleMap() {
+	mapExpanded.value = !mapExpanded.value
+}
+
+function openSource(source) {
+	if (!source || !source.url || !/^https:\/\//.test(source.url)) return
+	// #ifdef H5
+	window.open(source.url, '_blank', 'noopener,noreferrer')
+	// #endif
+	// #ifndef H5
+	uni.setClipboardData({
+		data: source.url,
+		success: () => uni.showToast({ title: '来源链接已复制，请在浏览器打开', icon: 'none' }),
+	})
+	// #endif
+}
 
 const suggestions = [
-	'赣绣有什么历史渊源？',
-	'扎染的制作流程是什么？',
-	'陶艺有什么疗愈价值？',
-	'剪纸适合初学者吗？',
+	'夏布绣的材料有哪些？',
+	'瑞昌竹编有什么特点？',
+	'剪纸的方窗纹样怎么观察？',
+	'景德镇手工制瓷的工序是什么？',
 ]
 
 function quickAsk(text) {
@@ -147,6 +231,8 @@ async function handleAsk() {
 			role: 'ai',
 			content: data.answer || '抱歉，我暂时无法回答这个问题。',
 			sources: data.sources || [],
+			retrievalMode: data.retrievalMode || 'NONE',
+			generated: data.generated === true,
 			showSources: false,
 		})
 	} catch (e) {
@@ -154,6 +240,8 @@ async function handleAsk() {
 			role: 'ai',
 			content: '非遗问答服务暂时不可用，请稍后再试。',
 			sources: [],
+			retrievalMode: 'NONE',
+			generated: false,
 			showSources: false,
 		})
 	} finally {
@@ -170,6 +258,8 @@ async function scrollToBottom() {
 	await nextTick()
 	scrollTop.value = 99999
 }
+
+onMounted(loadGraph)
 </script>
 
 <style scoped>
@@ -221,6 +311,8 @@ async function scrollToBottom() {
 /* ── 对话区域 ── */
 .chat-area {
 	flex: 1;
+	box-sizing: border-box;
+	width: 100%;
 	padding: 24rpx;
 	overflow-y: auto;
 }
@@ -378,6 +470,7 @@ async function scrollToBottom() {
 .input-bar {
 	display: flex;
 	align-items: center;
+	box-sizing: border-box;
 	gap: 16rpx;
 	padding: 16rpx 24rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
@@ -424,5 +517,51 @@ async function scrollToBottom() {
 	color: var(--zy-aid, #718478);
 	padding: 8rpx 0 12rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
+}
+
+.map-card {
+	box-sizing: border-box;
+	margin: 12rpx 24rpx 0;
+	overflow: hidden;
+	border: 1rpx solid var(--zy-border, #dfe7dc);
+	border-radius: var(--zy-radius-md, 16rpx);
+	background: var(--zy-card-bg, #ffffff);
+}
+.map-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16rpx;
+	width: 100%;
+	padding: 18rpx 20rpx;
+	text-align: left;
+	background: transparent;
+	border: 0;
+}
+.map-title { display: block; font-size: 25rpx; font-weight: 600; color: var(--zy-title, #233d34); }
+.map-desc { display: block; margin-top: 4rpx; font-size: 21rpx; color: var(--zy-aid, #718478); }
+.map-action { flex-shrink: 0; font-size: 22rpx; color: var(--zy-primary, #2f7566); }
+.map-panel { box-sizing: border-box; width: 100%; height: 52vh; padding: 0 16rpx 16rpx; }
+.map-error { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; padding: 20rpx; font-size: 23rpx; color: #9b4b4b; }
+.map-retry { padding: 8rpx 18rpx; font-size: 22rpx; color: var(--zy-primary, #2f7566); background: var(--zy-bg-tint-mint, #e8efe4); border: 0; border-radius: 999rpx; }
+.answer-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10rpx; margin-top: 12rpx; }
+.mode-chip { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #2f7566); font-size: 20rpx; }
+.mode-note { font-size: 20rpx; color: var(--zy-aid, #718478); }
+.source-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12rpx; }
+.source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 6rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-aid, #718478); font-size: 19rpx; }
+.source-org, .source-relation, .source-version, .source-media { display: block; margin-top: 4rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-aid, #718478); word-break: break-word; }
+.source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size: 21rpx; color: var(--zy-primary, #2f7566); background: transparent; border: 0; text-align: left; }
+
+@media (min-width: 900px) {
+	.map-card,
+	.chat-area {
+		width: 100%;
+		max-width: 980px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.msg-bubble-ai {
+		max-width: 760px;
+	}
 }
 </style>

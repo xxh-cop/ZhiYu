@@ -2,6 +2,7 @@ package com.zhiyu.ai;
 
 import com.zhiyu.ai.client.ChatMessage;
 import com.zhiyu.ai.client.LlmClient;
+import com.zhiyu.ai.client.MockLlmClient;
 import com.zhiyu.ai.resilience.CircuitBreakerStore;
 import com.zhiyu.ai.safety.ContentSafetyFilter;
 import com.zhiyu.ai.safety.SafetyAction;
@@ -278,32 +279,128 @@ public class AiClient {
         return result;
     }
 
+    public record ListeningResult(String text, boolean generated, boolean blocked) {
+    }
+
+    /**
+     * 独立倾听小结。只接收本人已结束会话的用户发言；高危输入不生成，
+     * 由业务层保留既有支持流程。复用非流式短文本的 llm-message 熔断 key。
+     */
+    public ListeningResult listeningSummary(Long sessionId, String prompt, String userText) {
+        SafetyResult input = contentSafetyFilter.checkInput(
+                UserContext.getUserId(), sessionId, "listening", userText);
+        if (input.getAction() == SafetyAction.BLOCK) {
+            return new ListeningResult(null, false, true);
+        }
+        // Mock 是本地降级实现，不能把它标成“已生成”，否则会掩盖未配置真实模型。
+        if (llmClient instanceof MockLlmClient) {
+            return new ListeningResult(null, false, false);
+        }
+        if (!breaker.allowRequest(KEY_MESSAGE)) {
+            return new ListeningResult(null, false, false);
+        }
+        try {
+            String result = llmClient.listeningSummary(prompt);
+            if (result == null || result.isBlank()) {
+                throw new IllegalStateException("empty listening summary");
+            }
+            breaker.recordSuccess(KEY_MESSAGE);
+            SafetyResult output = contentSafetyFilter.checkOutput(
+                    UserContext.getUserId(), "listening", result);
+            if (output.getAction() == SafetyAction.BLOCK) {
+                return new ListeningResult(null, false, false);
+            }
+            String safe = output.getAction() == SafetyAction.REWRITE
+                    && output.getRewrittenText() != null
+                    && !output.getRewrittenText().isBlank()
+                    ? output.getRewrittenText() : result;
+            return new ListeningResult(safe.trim(), true, false);
+        } catch (Exception e) {
+            breaker.recordFailure(KEY_MESSAGE);
+            log.warn("倾听小结生成失败，由业务层使用记录引导");
+            return new ListeningResult(null, false, false);
+        }
+    }
+
     /** Knowledge answers keep the same audit and isolated breaker boundary as other AI calls. */
+    public record KnowledgeResult(String text, boolean generated, boolean blocked) {
+    }
+
+    /** 结构化检索前的输入审核；不调用模型，供向量不可用的问答链路复用。 */
+    public KnowledgeResult reviewKnowledgeQuestion(String question) {
+        SafetyResult input = contentSafetyFilter.checkInput(UserContext.getUserId(), null, "rag", question);
+        if (input.getAction() == SafetyAction.BLOCK) {
+            return new KnowledgeResult(input.getCareMessage(), false, true);
+        }
+        return new KnowledgeResult("", false, false);
+    }
+
     public String knowledgeAnswer(String question, String prompt) {
-        return knowledgeAnswer(question, () -> prompt);
+        return knowledgeAnswerResult(question, () -> prompt).text();
     }
 
     public String knowledgeAnswer(String question, java.util.function.Supplier<String> promptSupplier) {
-        SafetyResult input = contentSafetyFilter.checkInput(UserContext.getUserId(), null, "rag", question);
-        if (input.getAction() == SafetyAction.BLOCK) return input.getCareMessage();
+        return knowledgeAnswerResult(question, promptSupplier).text();
+    }
+
+    public KnowledgeResult knowledgeAnswerResult(String question,
+                                                 java.util.function.Supplier<String> promptSupplier) {
+        KnowledgeResult review = reviewKnowledgeQuestion(question);
+        if (review.blocked()) return review;
+        return generateKnowledgeAnswer(promptSupplier);
+    }
+
+    /** 已由 reviewKnowledgeQuestion 审核过输入时使用，避免重复审计。 */
+    public KnowledgeResult knowledgeAnswerResultReviewed(String question,
+                                                         java.util.function.Supplier<String> promptSupplier) {
+        return generateKnowledgeAnswer(promptSupplier);
+    }
+
+    private KnowledgeResult generateKnowledgeAnswer(java.util.function.Supplier<String> promptSupplier) {
         String fallback = "非遗问答暂时不可用，请稍后再试。";
-        if (!breaker.allowRequest("llm-rag")) return fallback;
+        if (!breaker.allowRequest("llm-rag")) return new KnowledgeResult(fallback, false, false);
         String answer;
         try {
             String prompt = promptSupplier.get();
-            if (prompt == null) return "知识库暂未找到相关资料，可以换个关键词试试。";
+            if (prompt == null) {
+                return new KnowledgeResult("知识库暂未找到相关资料，可以换个关键词试试。", false, false);
+            }
             answer = llmClient.chat(prompt);
             if (answer == null || answer.isBlank()) throw new IllegalStateException("empty answer");
             breaker.recordSuccess("llm-rag");
         } catch (Exception e) {
             breaker.recordFailure("llm-rag");
             log.warn("知识问答调用失败，已使用固定降级文本");
-            return fallback;
+            return new KnowledgeResult(fallback, false, false);
         }
-        return applyOutputSafety("rag", answer);
+        return new KnowledgeResult(applyOutputSafety("rag", answer), true, false);
     }
 
     public record CreativeResponse(String text, boolean generated) {}
+
+    /**
+     * 非遗纹样共创：复用 lineart 熔断资源，输入/输出均走安全过滤。
+     * 只返回模型原始 JSON 文本；变体白名单、数量和色板由业务层校验。
+     * 输入只包含纹样结构、主题和色板，不包含对话、作品图片或心理记录。
+     */
+    public String heritageVariants(String prompt, String userText) {
+        SafetyResult input = contentSafetyFilter.checkInput(
+                UserContext.getUserId(), null, "heritage", userText);
+        if (input.getAction() == SafetyAction.BLOCK) return null;
+        if (!breaker.allowRequest("llm-lineart")) return null;
+        try {
+            String answer = llmClient.chat(prompt);
+            if (answer == null || answer.isBlank()) throw new IllegalStateException("empty heritage variants");
+            breaker.recordSuccess("llm-lineart");
+            SafetyResult output = contentSafetyFilter.checkOutput(
+                    UserContext.getUserId(), "heritage", answer);
+            return output.getAction() == SafetyAction.PASS ? answer : null;
+        } catch (Exception e) {
+            breaker.recordFailure("llm-lineart");
+            log.warn("非遗纹样共创不可用，使用内置变体");
+            return null;
+        }
+    }
 
     public CreativeResponse lineartPlan(String theme, String prompt) {
         SafetyResult input=contentSafetyFilter.checkInput(UserContext.getUserId(),null,"lineart",theme);

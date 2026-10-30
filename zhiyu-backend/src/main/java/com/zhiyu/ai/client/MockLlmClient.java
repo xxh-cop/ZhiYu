@@ -61,6 +61,11 @@ public class MockLlmClient implements LlmClient {
     }
 
     @Override
+    public String listeningSummary(String prompt) {
+        return "这段对话已经结束。愿意停下来听听自己，本身就是一种照顾。";
+    }
+
+    @Override
     public String chat(String prompt) {
         return "（降级模式）非遗知识库暂不可用，请稍后再试。";
     }

@@ -50,6 +50,24 @@
       }
     },
     {
+      "path": "pages/heritage/gallery",
+      "style": {
+        "navigationBarTitleText": "非遗纹样馆"
+      }
+    },
+    {
+      "path": "pages/heritage/detail",
+      "style": {
+        "navigationBarTitleText": "纹样详情"
+      }
+    },
+    {
+      "path": "pages/heritage/studio",
+      "style": {
+        "navigationBarTitleText": "非遗配色台"
+      }
+    },
+    {
       "path": "pages/craft/detail",
       "style": {
         "navigationBarTitleText": "项目详情"

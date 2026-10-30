@@ -24,11 +24,16 @@
 				<text class="step-card-sub">{{form.groupId?'分享给当前小组，图片与视频都受成员权限保护':'为你的作品选一种表达方式'}}</text>
 
 				<!-- 媒体类型 Tab -->
-				<view class="media-tabs">
+				<view class="media-tabs" role="tablist" aria-label="作品媒体类型">
 					<view
 						class="media-tab"
 						:class="{ 'media-tab--active': form.mediaType === 'image' }"
+						role="tab"
+						:aria-selected="form.mediaType === 'image'"
+						:tabindex="form.mediaType === 'image' ? 0 : -1"
 						@click="switchMediaTab('image')"
+						@keydown.enter.prevent="switchMediaTab('image')"
+						@keydown.space.prevent="switchMediaTab('image')"
 					>
 						<wd-icon name="image" size="36rpx" :color="form.mediaType === 'image' ? '#2f7566' : '#718478'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'image' }">图片</text>
@@ -36,7 +41,12 @@
 					<view
 						class="media-tab"
 						:class="{ 'media-tab--active': form.mediaType === 'video' }"
+						role="tab"
+						:aria-selected="form.mediaType === 'video'"
+						:tabindex="form.mediaType === 'video' ? 0 : -1"
 						@click="switchMediaTab('video')"
+						@keydown.enter.prevent="switchMediaTab('video')"
+						@keydown.space.prevent="switchMediaTab('video')"
 					>
 						<wd-icon name="video" size="36rpx" :color="form.mediaType === 'video' ? '#2f7566' : '#718478'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'video' }">视频</text>
@@ -44,7 +54,12 @@
 					<view
 						class="media-tab"
 						:class="{ 'media-tab--active': form.mediaType === 'text' }"
+						role="tab"
+						:aria-selected="form.mediaType === 'text'"
+						:tabindex="form.mediaType === 'text' ? 0 : -1"
 						@click="switchMediaTab('text')"
+						@keydown.enter.prevent="switchMediaTab('text')"
+						@keydown.space.prevent="switchMediaTab('text')"
 					>
 						<wd-icon name="edit" size="36rpx" :color="form.mediaType === 'text' ? '#2f7566' : '#718478'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'text' }">纯文字</text>
@@ -53,7 +68,7 @@
 
 				<!-- Tab 1：图片上传 -->
 				<view v-if="form.mediaType === 'image'" class="media-content">
-					<view class="image-upload-area" @click="chooseImage">
+					<view class="image-upload-area" role="button" tabindex="0" aria-label="上传作品图片" @click="chooseImage" @keydown.enter.prevent="chooseImage" @keydown.space.prevent="chooseImage">
 						<image v-if="form.coverUrl && !uploading" class="image-preview" :src="imagePreview||fullUrl(form.coverUrl)" mode="aspectFill" />
 						<view v-else-if="uploading" class="upload-loading">
 							<view class="loading-spinner"></view>
@@ -65,14 +80,14 @@
 							<text class="image-placeholder-hint">支持 jpg / jpeg / png / webp，≤5MB</text>
 						</view>
 					</view>
-					<view v-if="form.coverUrl && !uploading" class="re-upload-btn" @click="chooseImage">
+					<view v-if="form.coverUrl && !uploading" class="re-upload-btn" role="button" tabindex="0" aria-label="重新上传作品图片" @click="chooseImage" @keydown.enter.prevent="chooseImage" @keydown.space.prevent="chooseImage">
 						<text class="re-upload-text">重新上传</text>
 					</view>
 				</view>
 
 				<!-- Tab 2：视频上传 -->
 				<view v-if="form.mediaType === 'video'" class="media-content">
-					<view class="image-upload-area" @click="!form.videoUrl && chooseVideo()">
+					<view class="image-upload-area" role="button" tabindex="0" aria-label="上传作品视频" @click="!form.videoUrl && chooseVideo()" @keydown.enter.prevent="!form.videoUrl && chooseVideo()" @keydown.space.prevent="!form.videoUrl && chooseVideo()">
 						<MediaVideo v-if="form.videoUrl && !uploading" :src="form.videoUrl" caption="发布前预览"/>
 						<view v-else-if="uploading" class="upload-loading">
 							<view class="upload-progress-bar">
@@ -86,7 +101,7 @@
 							<text class="image-placeholder-hint">MP4 · ≤50MB · 建议 H.264 + AAC</text>
 						</view>
 					</view>
-					<view v-if="form.videoUrl && !uploading" class="re-upload-btn" @click="chooseVideo">
+					<view v-if="form.videoUrl && !uploading" class="re-upload-btn" role="button" tabindex="0" aria-label="重新上传作品视频" @click="chooseVideo" @keydown.enter.prevent="chooseVideo" @keydown.space.prevent="chooseVideo">
 						<text class="re-upload-text">重新上传</text>
 					</view>
 				</view>
@@ -142,19 +157,29 @@
 
 				<view class="form-item">
 					<text class="form-label">谁可以看到</text>
-					<view class="radio-group"><button v-if="form.groupId" class="radio-item" :class="{'radio-active':form.visible===2}" :aria-pressed="form.visible===2" @click="form.visible=2">仅当前小组</button>
+					<view class="radio-group" role="radiogroup" aria-label="谁可以看到作品"><button v-if="form.groupId" class="radio-item" role="radio" :class="{'radio-active':form.visible===2}" :aria-checked="form.visible===2" @click="form.visible=2">仅当前小组</button>
 						<view
 							class="radio-item"
+							role="radio"
+							tabindex="0"
+							:aria-checked="form.visible === 1"
 							:class="{ 'radio-active': form.visible === 1 }"
 							@click="form.visible = 1"
+							@keydown.enter.prevent="form.visible = 1"
+							@keydown.space.prevent="form.visible = 1"
 						>
 							<view class="radio-dot" :class="{ 'dot-active': form.visible === 1 }"></view>
 							<text class="radio-label">公开</text>
 						</view>
 						<view
 							class="radio-item"
+							role="radio"
+							tabindex="0"
+							:aria-checked="form.visible === 0"
 							:class="{ 'radio-active': form.visible === 0 }"
 							@click="form.visible = 0"
+							@keydown.enter.prevent="form.visible = 0"
+							@keydown.space.prevent="form.visible = 0"
 						>
 							<view class="radio-dot" :class="{ 'dot-active': form.visible === 0 }"></view>
 							<text class="radio-label">私密</text>
@@ -169,8 +194,14 @@
 					</view>
 					<view
 						class="switch"
+						role="switch"
+						tabindex="0"
+						aria-label="匿名发布"
+						:aria-checked="form.anonymous"
 						:class="{ 'switch-on': form.anonymous }"
 						@click="form.anonymous = !form.anonymous"
+						@keydown.enter.prevent="form.anonymous = !form.anonymous"
+						@keydown.space.prevent="form.anonymous = !form.anonymous"
 					>
 						<view class="switch-knob"></view>
 					</view>
@@ -1104,3 +1135,14 @@ function goWorkList() {
 </style>
 
 <style scoped>.upload-actions,.upload-error{padding:20rpx;font-size:25rpx;line-height:1.8}.upload-error{color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button{font-size:24rpx;color:var(--zy-primary);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice{display:block;font-size:23rpx;color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>
+
+<style scoped>
+.media-tab:focus-visible,
+.image-upload-area:focus-visible,
+.re-upload-btn:focus-visible,
+.radio-item:focus-visible,
+.switch:focus-visible {
+	outline: 3px solid var(--zy-primary, #2f7566);
+	outline-offset: 3px;
+}
+</style>

@@ -2,8 +2,8 @@
   <view class="mindful-page" :class="{sleeping:sleepMode}">
     <view class="mindful-header"><text class="eyebrow">留一点时间给自己</text><text class="title">正念片刻</text><text class="subtitle">跟随自己的节奏，轻轻地呼吸。</text></view>
     <view class="practice-card">
-      <view class="duration-row"><button v-for="value in [1, 3, 5]" :key="value" :class="{ selected: minutes === value }" :disabled="running || elapsed > 0" @click="minutes = value">{{ value }} 分钟</button></view>
-      <view class="orb-area"><view class="orb" :class="{ expanding: running && inhale }" :style="{ transitionDuration: running ? (inhale ? '4s' : '6s') : '0.3s' }"><text class="phase">{{ completed ? '练习完成' : running ? inhale ? '轻轻吸气' : '缓缓呼气' : elapsed ? '休息一下' : '准备好了' }}</text><text class="phase-detail">{{ running ? inhale ? '4 秒 · 慢慢展开' : '6 秒 · 放松下来' : '不必用力，保持舒适' }}</text></view></view>
+      <view class="duration-row"><button v-for="value in [1, 3, 5]" :key="value" :class="{ selected: minutes === value }" :aria-pressed="minutes === value" :disabled="running || elapsed > 0" @click="minutes = value">{{ value }} 分钟</button></view>
+      <view class="orb-area"><view class="orb" :class="{ expanding: running && inhale }" :style="{ transitionDuration: running ? (inhale ? '4s' : '6s') : '0.3s' }"><text class="phase" role="status" aria-live="polite">{{ completed ? '练习完成' : running ? inhale ? '轻轻吸气' : '缓缓呼气' : elapsed ? '休息一下' : '准备好了' }}</text><text class="phase-detail">{{ running ? inhale ? '4 秒 · 慢慢展开' : '6 秒 · 放松下来' : '不必用力，保持舒适' }}</text></view></view>
       <text class="time" aria-live="off">{{ remainingText }}</text><text class="caption">{{ completed ? '谢谢你，为自己留出了这一刻。' : '4 秒吸气 / 6 秒呼气' }}</text>
       <button class="primary-action" @click="togglePractice">{{ completed ? '再练习一次' : running ? '暂停练习' : elapsed ? '继续练习' : '开始呼吸' }}</button>
       <button v-if="elapsed > 0 && !completed" class="text-action" @click="reset">结束本次练习</button>
@@ -114,4 +114,6 @@ button::after { border: 0; }.orb-area { height: 410rpx; display: flex; align-ite
 /* #ifdef H5 */
 .mindful-header,.practice-card,.sound-card,.other-actions,.safety-note,.disclaimer { max-width: 560px; margin-left: auto; margin-right: auto; }
 /* #endif */
+
+.primary-action:focus-visible,.duration-row button:focus-visible,.text-action:focus-visible,.sound-toggle:focus-visible{outline:3px solid currentColor;outline-offset:3px}
 </style>

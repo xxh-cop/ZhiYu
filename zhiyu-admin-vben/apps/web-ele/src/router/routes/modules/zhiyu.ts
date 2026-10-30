@@ -86,12 +86,28 @@ const routes: RouteRecordRaw[] = [
         meta: { icon: 'lucide:scroll-text', title: 'AI审计日志', authority: ['ROLE_3'] },
       },
       {
+        name: 'ZhiyuAiGovernance',
+        path: 'ai-governance',
+        component: () => import('#/views/zhiyu/ai-governance.vue'),
+        meta: { icon: 'lucide:shield-check', title: 'AI 治理', authority: ['ROLE_3'] },
+      },
+      {
         name: 'ZhiyuInheritors',
         path: 'inheritors',
         component: () => import('#/views/zhiyu/inheritors.vue'),
         meta: {
           icon: 'lucide:award',
           title: '传承人管理',
+          authority: ['ROLE_3'],
+        },
+      },
+      {
+        name: 'ZhiyuHeritage',
+        path: 'heritage',
+        component: () => import('#/views/zhiyu/heritage.vue'),
+        meta: {
+          icon: 'lucide:library',
+          title: '非遗内容',
           authority: ['ROLE_3'],
         },
       },

@@ -5,10 +5,14 @@
 			<text class="page-title">个人设置</text>
 			<text class="page-subtitle">管理你的资料与账号安全</text>
 		</view>
+		<view v-if="loadError" class="settings-error" role="alert">
+			<text>{{ loadError }}</text>
+			<button @click="loadUserInfo">重试</button>
+		</view>
 
 		<!-- 头像区域 -->
 		<view class="avatar-section zy-slide-up zy-stagger" style="--stagger-i: 1">
-			<view class="avatar-ring" @click="chooseAvatar">
+			<view class="avatar-ring" role="button" tabindex="0" aria-label="更换头像" @click="chooseAvatar" @keydown.enter.prevent="chooseAvatar" @keydown.space.prevent="chooseAvatar">
 				<image
 					v-if="form.avatarUrl"
 					class="avatar-img"
@@ -36,6 +40,7 @@
 				<input
 					class="form-input"
 					v-model="form.nickname"
+					aria-label="昵称"
 					placeholder="请输入昵称"
 					:maxlength="50"
 				/>
@@ -46,6 +51,7 @@
 				<input
 					class="form-input form-input--disabled"
 					:value="form.username"
+					aria-label="用户名"
 					disabled
 				/>
 			</view>
@@ -62,6 +68,7 @@
 				<input
 					class="form-input"
 					v-model="form.school"
+					aria-label="学校"
 					placeholder="请输入学校名称"
 					:maxlength="100"
 				/>
@@ -72,6 +79,7 @@
 				<textarea
 					class="form-textarea"
 					v-model="form.intro"
+					aria-label="个人简介"
 					placeholder="介绍一下自己吧"
 					:maxlength="500"
 					:auto-height="true"
@@ -81,8 +89,14 @@
 
 			<view
 				class="btn-primary"
+				role="button"
+				:tabindex="savingProfile ? -1 : 0"
+				:aria-disabled="savingProfile"
+				:aria-busy="savingProfile"
 				:class="{ 'btn-primary--disabled': savingProfile }"
 				@click="handleSaveProfile"
+				@keydown.enter.prevent="handleSaveProfile"
+				@keydown.space.prevent="handleSaveProfile"
 			>
 				<text class="btn-primary-text">{{ savingProfile ? '保存中...' : '保存资料' }}</text>
 			</view>
@@ -102,6 +116,7 @@
 				<input
 					class="form-input"
 					v-model="pwdForm.oldPassword"
+					aria-label="旧密码"
 					placeholder="请输入旧密码"
 					password
 					:maxlength="32"
@@ -113,6 +128,7 @@
 				<input
 					class="form-input"
 					v-model="pwdForm.newPassword"
+					aria-label="新密码"
 					placeholder="6-32 位新密码"
 					password
 					:maxlength="32"
@@ -124,6 +140,7 @@
 				<input
 					class="form-input"
 					v-model="pwdForm.confirmPassword"
+					aria-label="确认新密码"
 					placeholder="请再次输入新密码"
 					password
 					:maxlength="32"
@@ -132,8 +149,14 @@
 
 			<view
 				class="btn-primary btn-primary--accent"
+				role="button"
+				:tabindex="savingPassword ? -1 : 0"
+				:aria-disabled="savingPassword"
+				:aria-busy="savingPassword"
 				:class="{ 'btn-primary--disabled': savingPassword }"
 				@click="handleChangePassword"
+				@keydown.enter.prevent="handleChangePassword"
+				@keydown.space.prevent="handleChangePassword"
 			>
 				<text class="btn-primary-text">{{ savingPassword ? '提交中...' : '修改密码' }}</text>
 			</view>
@@ -178,6 +201,7 @@ const pwdForm = ref({
 const savingProfile = ref(false)
 const savingPassword = ref(false)
 const loadingMe = ref(false)
+const loadError = ref('')
 
 const roleLabel = computed(() => {
 	const role = form.value.role
@@ -217,8 +241,9 @@ async function loadUserInfo() {
 			intro: data.intro || '',
 			avatarUrl: data.avatarUrl || '',
 		}
+		loadError.value = ''
 	} catch (e) {
-		uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+		loadError.value = '个人资料加载失败，请重试'
 	} finally {
 		loadingMe.value = false
 	}
@@ -561,4 +586,38 @@ async function handleChangePassword() {
 	color: var(--zy-aid, #718478);
 	text-align: center;
 }
+</style>
+
+<style scoped>
+.avatar-ring:focus-visible,
+.btn-primary:focus-visible {
+	outline: 3px solid var(--zy-primary, #2f7566);
+	outline-offset: 3px;
+}
+.settings-error {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16rpx;
+	margin-bottom: 20rpx;
+	padding: 20rpx 24rpx;
+	border: 1rpx solid var(--zy-border, #dfe7dc);
+	border-radius: var(--zy-radius-md, 24rpx);
+	background: var(--zy-card-bg, #fff);
+	color: var(--zy-content, #586e62);
+	font-size: 23rpx;
+	line-height: 1.7;
+}
+.settings-error button {
+	flex-shrink: 0;
+	min-height: 64rpx;
+	padding: 0 22rpx;
+	border: 1rpx solid var(--zy-primary, #2f7566);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-bg-tint-mint, #e8efe4);
+	color: var(--zy-primary, #2f7566);
+	font-size: 23rpx;
+	line-height: 2.5;
+}
+.settings-error button::after { border: 0; }
 </style>

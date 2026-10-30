@@ -2,6 +2,7 @@ package com.zhiyu.ai;
 
 import com.zhiyu.ai.client.ChatMessage;
 import com.zhiyu.ai.client.LlmClient;
+import com.zhiyu.ai.client.MockLlmClient;
 import com.zhiyu.ai.resilience.CircuitBreakerStore;
 import com.zhiyu.ai.safety.ContentSafetyFilter;
 import com.zhiyu.ai.safety.SafetyResult;
@@ -128,6 +129,73 @@ class AiClientTest {
         assertNull(aiClient.reflectionSummary("prompt", "文本"));
         verify(breaker).recordFailure("llm-message");
         verify(breaker, never()).recordSuccess(any());
+    }
+
+    @Test
+    @DisplayName("倾听小结：带 sessionId 审计，复用 llm-message 熔断")
+    void listeningSummaryPassesSafetyWithSessionId() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, 9L, "listening", "用户发言"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.listeningSummary("prompt")).thenReturn("你提到最近有些累。");
+        when(contentSafetyFilter.checkOutput(42L, "listening", "你提到最近有些累。"))
+                .thenReturn(SafetyResult.pass("通过"));
+
+        var result = aiClient.listeningSummary(9L, "prompt", "用户发言");
+
+        assertTrue(result.generated());
+        assertFalse(result.blocked());
+        assertEquals("你提到最近有些累。", result.text());
+        verify(breaker).recordSuccess("llm-message");
+    }
+
+    @Test
+    @DisplayName("倾听小结：输入高危时不调用模型并返回 blocked")
+    void listeningSummaryBlockedInputSkipsModel() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, 9L, "listening", "高危发言"))
+                .thenReturn(SafetyResult.block("命中高危", "请寻求支持"));
+
+        var result = aiClient.listeningSummary(9L, "prompt", "高危发言");
+
+        assertTrue(result.blocked());
+        assertFalse(result.generated());
+        verify(llmClient, never()).listeningSummary(anyString());
+        verify(breaker, never()).allowRequest(any());
+    }
+
+    @Test
+    @DisplayName("倾听小结：模型异常时返回未生成，由业务使用记录引导")
+    void listeningSummaryFailureReturnsNotGenerated() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, 9L, "listening", "用户发言"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.listeningSummary("prompt")).thenThrow(new RuntimeException("timeout"));
+
+        var result = aiClient.listeningSummary(9L, "prompt", "用户发言");
+
+        assertFalse(result.generated());
+        assertFalse(result.blocked());
+        assertNull(result.text());
+        verify(breaker).recordFailure("llm-message");
+    }
+
+    @Test
+    @DisplayName("倾听小结：Mock 实现不被标记为已生成")
+    void mockListeningSummaryIsNotMarkedGenerated() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, 9L, "listening", "用户发言"))
+                .thenReturn(SafetyResult.pass("通过"));
+        var mockAi = new AiClient(mock(MockLlmClient.class), breaker, contentSafetyFilter);
+
+        var result = mockAi.listeningSummary(9L, "prompt", "用户发言");
+
+        assertFalse(result.generated());
+        assertFalse(result.blocked());
+        assertNull(result.text());
+        verify(breaker, never()).allowRequest(any());
     }
 
     @AfterEach

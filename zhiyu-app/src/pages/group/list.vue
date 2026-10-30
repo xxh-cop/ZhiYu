@@ -23,19 +23,23 @@
 			</view>
 			<text class="empty-title">还没有小组</text>
 			<text class="empty-sub">来创建第一个吧</text>
-			<view class="empty-btn" @click="goCreate">
+			<view class="empty-btn" role="button" tabindex="0" @click="goCreate" @keydown.enter.prevent="goCreate" @keydown.space.prevent="goCreate">
 				<text class="empty-btn-text">创建小组</text>
 			</view>
 		</view>
 
 		<!-- 错误状态 -->
-		<view v-else-if="errorMsg" class="status-box">
+		<view v-else-if="errorMsg && groups.length === 0" class="status-box">
 			<text class="error-text">{{ errorMsg }}</text>
 			<wd-button type="primary" plain size="small" @click="loadData">重试</wd-button>
 		</view>
 
 		<!-- 小组卡片列表 -->
 		<view v-else class="card-list">
+			<view v-if="errorMsg" class="group-error-row" role="alert">
+				<text>{{ errorMsg }}</text>
+				<button @click="loadData">重试</button>
+			</view>
 			<view
 				v-for="(group, idx) in groups"
 				:key="group.id"
@@ -62,7 +66,7 @@
 						</view>
 					</view>
 					<!-- 右侧加入按钮 -->
-					<view v-if="group.joined" class="joined-tag" @click="openGroup(group)">
+					<view v-if="group.joined" class="joined-tag" role="button" tabindex="0" :aria-label="'进入小组 ' + group.name" @click="openGroup(group)" @keydown.enter.prevent="openGroup(group)" @keydown.space.prevent="openGroup(group)">
 						<text class="joined-text">进入小组</text>
 					</view>
 					<view v-else-if="group.memberCount >= group.maxCount" class="full-tag">
@@ -71,8 +75,13 @@
 					<view
 						v-else
 						class="join-btn"
+						role="button"
+						tabindex="0"
+						:aria-label="'加入小组 ' + group.name"
 						:class="{ 'join-btn--loading': joiningId === group.id }"
 						@click="handleJoin(group)"
+						@keydown.enter.prevent="handleJoin(group)"
+						@keydown.space.prevent="handleJoin(group)"
 					>
 						<text class="join-btn-text">{{ joiningId === group.id ? '...' : '加入' }}</text>
 					</view>
@@ -81,7 +90,7 @@
 		</view>
 
 		<!-- 悬浮创建按钮 -->
-		<view class="fab" @click="goCreate">
+		<view class="fab" role="button" tabindex="0" aria-label="创建小组" @click="goCreate" @keydown.enter.prevent="goCreate" @keydown.space.prevent="goCreate">
 			<wd-icon name="add" size="44rpx" color="#FFFFFF" />
 		</view>
 
@@ -126,7 +135,7 @@ async function loadData() {
 		const data = await http.get('/api/groups')
 		groups.value = data || []
 	} catch (e) {
-		errorMsg.value = (e && e.message) || '加载失败，请稍后重试'
+		errorMsg.value = '小组加载失败，请稍后重试'
 	} finally {
 		loading.value = false
 	}
@@ -441,4 +450,40 @@ function goCreate() {
 	color: var(--zy-aid, #718478);
 	text-align: center;
 }
+</style>
+
+<style scoped>
+.empty-btn:focus-visible,
+.joined-tag:focus-visible,
+.join-btn:focus-visible,
+.fab:focus-visible {
+	outline: 3px solid var(--zy-primary, #2f7566);
+	outline-offset: 3px;
+}
+.group-error-row {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12rpx;
+	margin-bottom: 20rpx;
+	padding: 24rpx;
+	border: 1rpx dashed var(--zy-border, #dfe7dc);
+	border-radius: var(--zy-radius-md, 24rpx);
+	background: var(--zy-card-bg, #fff);
+	color: var(--zy-content, #586e62);
+	font-size: 24rpx;
+	line-height: 1.7;
+	text-align: center;
+}
+.group-error-row button {
+	min-height: 72rpx;
+	padding: 0 26rpx;
+	border: 1rpx solid var(--zy-primary, #2f7566);
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-bg-tint-mint, #e8efe4);
+	color: var(--zy-primary, #2f7566);
+	font-size: 24rpx;
+	line-height: 2.6;
+}
+.group-error-row button::after { border: 0; }
 </style>

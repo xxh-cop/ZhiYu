@@ -55,6 +55,16 @@ public interface LlmClient {
     String reflectionSummary(String prompt);
 
     /**
+     * 生成独立倾听小结（一次性、非流式）。
+     *
+     * <p>调用方负责拼装只含本人用户发言的 prompt；本方法只负责生成文本。
+     *
+     * @param prompt 完整 prompt 文本
+     * @return LLM 生成的小结文本
+     */
+    String listeningSummary(String prompt);
+
+    /**
      * 一次性对话（非流式），用于 RAG 问答等场景（M3-3）。
      *
      * <p>调用方负责拼装完整的 prompt（含上下文 + 用户问题），

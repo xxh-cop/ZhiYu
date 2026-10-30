@@ -85,12 +85,13 @@ ai:
       asr: 提示用户改用文字输入
       tts: 静默，仅展示文字
 
-  # RAG 非遗知识库
+  # RAG 非遗知识库（当前为本地文件向量存储 + 目录关系检索，不是已部署 Chroma/Milvus）
   rag:
     enabled: true
-    vector_store: chroma             # chroma | milvus
-    collection: zhiyu_intangible
-    top_k: 4
+    vector_store: local_file
+    graph_retrieval: heritage_catalog
+    collection: zhiyu_crafts
+    top_k: 3
     rerank: keyword_overlap
 
   # 语音

@@ -57,7 +57,12 @@
 					<view
 						v-if="msg.role === 'assistant' && msg.done && idx === messages.length - 1 && showRecommendBtn"
 						class="recommend-entry"
+						role="button"
+						tabindex="0"
+						aria-label="查看为你推荐的手作"
 						@click="handleRecommend"
+						@keydown.enter.prevent="handleRecommend"
+						@keydown.space.prevent="handleRecommend"
 					>
 						<text class="recommend-text">试试一件手作，让手帮心忙起来 →</text>
 					</view>
@@ -73,11 +78,11 @@
 				</view>
 				<text class="crisis-card-text">我在这里陪着你。如果需要，可以联系专业资源。</text>
 				<view class="crisis-card-btns">
-					<view class="crisis-btn crisis-btn-primary" @click="goCrisisPage">
+					<view class="crisis-btn crisis-btn-primary" role="button" tabindex="0" aria-label="查看心理援助资源" @click="goCrisisPage" @keydown.enter.prevent="goCrisisPage" @keydown.space.prevent="goCrisisPage">
 						<wd-icon name="phone" size="28rpx" color="#FFFFFF" />
 						<text class="crisis-btn-text">查看心理援助资源</text>
 					</view>
-					<view class="crisis-btn crisis-btn-secondary" @click="dismissCrisis">
+					<view class="crisis-btn crisis-btn-secondary" role="button" tabindex="0" aria-label="继续聊聊" @click="dismissCrisis" @keydown.enter.prevent="dismissCrisis" @keydown.space.prevent="dismissCrisis">
 						<text class="crisis-btn-text-secondary">继续聊聊</text>
 					</view>
 				</view>
@@ -643,5 +648,13 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 .crisis-btn-text-secondary {
 	font-size: 28rpx;
 	color: var(--zy-aid, #6B7280);
+}
+</style>
+
+<style scoped>
+.recommend-entry:focus-visible,
+.crisis-btn:focus-visible {
+	outline: 3px solid var(--zy-primary, #2f7566);
+	outline-offset: 3px;
 }
 </style>

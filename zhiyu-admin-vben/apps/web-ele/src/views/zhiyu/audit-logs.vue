@@ -132,7 +132,7 @@ onMounted(() => {
   <div class="zy-business-page flex flex-col gap-4">
     <BusinessPageHeader title="AI 审计日志" description="追溯 AI 调用与安全过滤记录。" :loading="loading" @refresh="fetchList" />
     <p class="m-0 business-note leading-relaxed">
-      AI 调用的内容安全过滤记录。列表仅展示元数据，详情含解密后的原始输入与 AI 输出（仅管理员可查看）。
+      AI 调用的内容安全过滤记录。列表与详情只展示元数据；按隐私规则，详情不返回原始输入/输出，以固定占位文本替代。
     </p>
 
     <!-- 筛选栏 -->

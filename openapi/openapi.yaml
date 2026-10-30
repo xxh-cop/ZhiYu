@@ -433,6 +433,86 @@ components:
         nationalHotline: { type: string, description: 全国心理援助热线号码 }
         psychCenterName: { type: string, description: 学校心理中心名称 }
         nationalHotlineName: { type: string, description: 全国心理援助热线名称 }
+
+    ListeningSummaryVO:
+      type: object
+      description: 独立倾听小结；生成与保存分离，保存后加密写入 wellbeing_record
+      properties:
+        saved: { type: boolean, description: '是否已有保存记录；未保存的生成结果不落库' }
+        summary: { type: string, maxLength: 300, description: '小结文本；未保存或未生成时可为空' }
+        generated: { type: boolean, description: '是否由生成模型产出；false 时为固定记录引导或安全提示' }
+        safetyHold: { type: boolean, description: '会话是否包含需要优先照顾的安全信号；true 时不允许保存 AI 小结' }
+        savedAt: { type: string, description: '保存时间（ISO-8601）' }
+
+    InheritorProfileSelfVO:
+      type: object
+      description: 传承人自己的资料返回体
+      properties:
+        id: { type: integer, format: int64, description: inheritor_profile 主键 }
+        userId: { type: integer, format: int64, description: 关联用户 ID }
+        skill: { type: string, description: 擅长技艺 }
+        intro: { type: string, description: 个人简介 }
+        honor: { type: string, description: 荣誉头衔 }
+        verified: { type: integer, description: '0 未认证 / 1 已认证' }
+        avatarUrl: { type: string, description: '头像 URL（来自 user 表）' }
+
+    InheritorProfileSelfUpdateReq:
+      type: object
+      description: 传承人自更新资料请求体（所有字段可选，null 表示不更新）
+      properties:
+        skill: { type: string, maxLength: 100, description: 擅长技艺 }
+        intro: { type: string, maxLength: 500, description: 个人简介 }
+        honor: { type: string, maxLength: 255, description: 荣誉头衔 }
+        avatarUrl: { type: string, maxLength: 255, description: '头像 URL，非空时同步更新 user.avatar_url' }
+
+    UserStatsVO:
+      type: object
+      description: 学生端「我的」统计数据
+      properties:
+        daysSinceRegister: { type: integer, format: int64, description: '注册天数（今天注册返回 1）' }
+        workCount: { type: integer, format: int64, description: '作品数' }
+        noteCount: { type: integer, format: int64, description: '便签数' }
+
+    RagAskReq:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, maxLength: 500, description: '用户问题' }
+
+    RagAnswerVO:
+      type: object
+      description: RAG 问答返回体
+      properties:
+        answer: { type: string, description: '回答文本；generated=false 时为结构化摘录或降级提示' }
+        sources:
+          type: array
+          description: 引用的知识库来源列表
+          items: { $ref: '#/components/schemas/RagSourceVO' }
+        retrievalMode:
+          type: string
+          enum: [GRAPH_VECTOR, STRUCTURED_GRAPH, VECTOR, NONE]
+          description: '检索模式；STRUCTURED_GRAPH 表示未使用向量服务，NONE 表示未找到可引用资料'
+        generated:
+          type: boolean
+          description: '是否由生成模型产出；false 时回答为结构化摘录或降级提示'
+
+    RagSourceVO:
+      type: object
+      description: RAG 引用来源
+      properties:
+        id: { type: string, description: '稳定来源/切片 ID（字符串）' }
+        title: { type: string, description: '来源标题或文件名' }
+        excerpt: { type: string, description: '内容摘要（前 80 字）' }
+        url: { type: string, nullable: true, description: '已登记来源链接；检索参考为空' }
+        organization: { type: string, nullable: true, description: '来源机构；检索参考为空' }
+        mediaReuse: { type: string, nullable: true, description: '媒体再利用状态；NOT_GRANTED 时仅作背景参考' }
+        sourceVersion: { type: string, description: '目录版本或语料指纹' }
+        relation: { type: string, nullable: true, description: '关系链，例如 工艺 → 来源' }
+        citationType:
+          type: string
+          enum: [VERIFIED_SOURCE, REFERENCE]
+          description: 'VERIFIED_SOURCE 为已登记来源，REFERENCE 为检索参考'
+
 paths:
   /api/growth/programs/{id}/feedback:
     parameters:
@@ -839,6 +919,80 @@ paths:
         - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
       responses:
         '200': {description: 'Result'}
+  /api/emotion/sessions/{id}/summary:
+    get:
+      operationId: listeningSummaryGet
+      summary: 读取本人已保存的倾听小结
+      description: '只返回本人记录；不返回其他会话或管理员关怀视图。未保存时 data.saved=false。'
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200':
+          description: Result.data 为 ListeningSummaryVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ListeningSummaryVO' }
+        '401': {description: 未登录（code=1002）}
+        '404': {description: 会话不存在或不属于本人（code=1004）}
+    put:
+      operationId: listeningSummarySave
+      summary: 保存本人倾听小结
+      description: '只允许保存已结束会话的小结；文本 1..300 字，显式同意后加密写入 wellbeing_record 的 LISTENING_SUMMARY。包含安全信号的会话拒绝保存。'
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [summary, consent]
+              properties:
+                summary: {type: string, minLength: 1, maxLength: 300}
+                generated: {type: boolean, default: false}
+                consent: {type: boolean, description: '必须为 true'}
+      responses:
+        '200':
+          description: Result.data 为保存后的 ListeningSummaryVO
+        '400': {description: 参数校验失败或未授权（code=1001）}
+        '409':
+          description: '状态不允许（HTTP 200 + code=3001），会话未结束或包含安全信号'
+    delete:
+      operationId: listeningSummaryDelete
+      summary: 删除本人倾听小结
+      description: 只逻辑删除 LISTENING_SUMMARY 记录，不删除倾听会话与消息。
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      responses:
+        '200': {description: 'Result'}
+        '404': {description: 会话不存在或不属于本人（code=1004）}
+  /api/emotion/sessions/{id}/summary/generate:
+    post:
+      operationId: listeningSummaryGenerate
+      summary: 生成本人已结束会话的倾听小结
+      description: '只读取本人已结束会话中的用户发言，最多 12 段；不读取 AI 回复或其他会话。生成不落库；AI 失败返回固定记录引导，高危会话返回 safetyHold=true 且不生成。'
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consent]
+              properties:
+                consent: {type: boolean, description: '必须为 true'}
+      responses:
+        '200':
+          description: Result.data 为 {summary, generated, safetyHold}，不写 wellbeing_record
+        '400': {description: 未同意授权（code=1001）}
+        '409':
+          description: '会话未结束（HTTP 200 + code=3001）'
   /api/admin/operation-logs:
     get:
       operationId: adminOperationLogsGet
@@ -1001,6 +1155,141 @@ paths:
           description: 未登录，code 1002
         '403':
           description: 账号不可用，code 1003
+  /api/heritage/catalog:
+    get:
+      operationId: heritageCatalogGet
+      tags: [Heritage]
+      summary: 原创非遗纹样目录（只读）
+      description: '登录学生可读的只读目录，data 包含 version、disclaimer、sources（4 条已登记官方来源）、traditions（4 门工艺）、patterns（24 个原创教学纹样）。所有 ID 均为字符串，前端不得转为 JavaScript Number。纹样 origin 固定为 ORIGINAL_STUDY，表示原创教学再设计而非传统原作；来源仅作材料与技艺背景参考，不代表官方认可本图案。source.mediaReuse=NOT_GRANTED 表示项目页未明示媒体再利用许可，公开可读不等于允许复制图片或整篇文字。目录不连数据库、不返回用户数据，也不作医疗诊断。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 'Result.data 为目录对象，含 version、disclaimer、4 条 sources、4 门 traditions、24 个 patterns；pattern 含 id（字符串）、traditionId、name、family、variant、detail、palette（四色）、origin、sourceIds、designNote、learningFocus、minutes、level'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          version: { type: string }
+                          disclaimer: { type: string }
+                          sources:
+                            type: array
+                            items: { type: object }
+                          traditions:
+                            type: array
+                            items: { type: object }
+                          patterns:
+                            type: array
+                            items: { type: object }
+        '401':
+          description: 未登录或登录已过期，HTTP 401 + code 1002
+        '403':
+          description: 账号不可用或权限不足，HTTP 403 + code 1003
+  /api/heritage/co-create:
+    post:
+      operationId: heritageCoCreate
+      tags: [Heritage, AI]
+      summary: 受控非遗纹样共创（三变体）
+      description: '登录学生显式同意本次 AI 共创后调用。模型只能输出 JSON 中的 variant、detail（4..12）、paletteId、name（≤30 字）与 rationale（≤200 字），服务端按当前纹样 family 的白名单变体与本次提供的 4 组色板校验；任何越界、重复组合、非 JSON 或模型不可用都整组回退为内置三变体（generated=false）。不接收或执行 SVG/HTML/颜色文本，不写库、不保存作品，也不生成诊断或疗效结论。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [patternId, consent]
+              properties:
+                patternId:
+                  type: string
+                  description: 目录中的纹样 ID，按字符串传递
+                theme:
+                  type: string
+                  maxLength: 120
+                  description: 可选的共创主题，服务端去首尾空白后限 120 字
+                consent:
+                  type: boolean
+                  description: 必须为 true，表示同意本次将纹样名称与主题发送给 AI；不持久化该授权
+      responses:
+        '200':
+          description: 'Result.data 含 variants（3 个，各含 id、name、family、variant、detail、palette 四色、rationale）、generated 与 message；generated=false 表示模型不可用或输出越界后使用内置变体'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          variants:
+                            type: array
+                            items: { type: object }
+                          generated: { type: boolean }
+                          message: { type: string }
+        '400':
+          description: 未选择纹样、未同意授权或主题超过 120 字，code 1001
+        '401':
+          description: 未登录或登录已过期，HTTP 401 + code 1002
+        '403':
+          description: 账号不可用或权限不足，HTTP 403 + code 1003
+        '404':
+          description: 纹样不存在，code 1004
+  /api/admin/heritage/catalog:
+    get:
+      operationId: adminHeritageCatalogGet
+      tags: [Admin, Heritage]
+      summary: 管理员读取非遗目录与 revision
+      description: '仅 ROLE_3 可读。data 包含 catalog（version、disclaimer、sources、traditions、patterns）与 revision；没有管理端覆盖时返回内置目录、revision=0。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为 Snapshot，含 catalog 与 revision
+        '403':
+          description: 非管理员，code 1003
+    put:
+      operationId: adminHeritageCatalogSave
+      tags: [Admin, Heritage]
+      summary: 管理员保存整份非遗目录
+      description: '仅 ROLE_3 可写。提交完整 catalog 与当前 revision；服务端校验 4 来源/4 工艺/24 纹样、ID、来源引用、色板与 family/variant 白名单。revision 冲突返回 code 3001（HTTP 200）。保存写入 runtime_config 的 heritage_catalog 键并记 admin_operation_log，学生端读取立即使用该覆盖。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [revision, catalog]
+              properties:
+                revision: { type: integer, minimum: 0 }
+                catalog: { type: object }
+      responses:
+        '200':
+          description: Result.data 为保存后的 Snapshot；参数或目录校验失败为 code 1001，revision 冲突为 code 3001
+        '403':
+          description: 非管理员，code 1003
+    delete:
+      operationId: adminHeritageCatalogReset
+      tags: [Admin, Heritage]
+      summary: 管理员恢复内置非遗目录
+      description: 删除 runtime_config 中的 heritage_catalog 覆盖并记 admin_operation_log；学生端回到 classpath 内置目录。
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为内置目录 Snapshot，revision=0
+        '403':
+          description: 非管理员，code 1003
   /api/craft/session/active:
     get:
       operationId: craftSessionActiveGet
@@ -2351,13 +2640,30 @@ paths:
   /api/admin/audit-logs/{id}:
     get:
       operationId: adminAuditLogGet
-      summary: '管理员：审计日志详情（含解密后的 rawInput/aiOutput）'
+      summary: '管理员：审计日志详情（按隐私规则只返回占位文本）'
       x-required-role: admin-only
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
       responses:
         '200':
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/ai-governance/overview:
+    get:
+      operationId: adminAiGovernanceOverview
+      summary: '管理员：AI 治理脱敏聚合'
+      description: '只统计 ai_audit_log 的场景/动作/原因分类与最近事件元数据，并报告聊天、向量、语音和熔断配置状态。不返回 user_id、raw_input、ai_output、自由文本 reason 或匹配关键词；不推算调用量、成功率、延迟或疗效。'
+      x-required-role: admin-only
+      parameters:
+        - { name: days, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 90, default: 30 } }
+      responses:
+        '200':
+          description: Result.data 含 windowDays、generatedAt、totalEvents、actionCounts、sceneCounts、reasonCounts、recentEvents、config、privacyNote
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非管理员（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ── P1-B1：传承人管理（4 个接口） ──
 
@@ -3209,8 +3515,8 @@ paths:
   /api/ai/rag/ask:
     post:
       operationId: aiRagAsk
-      summary: 非遗知识库问答
-      description: '基于 RAG（检索增强生成）的非遗知识问答，学生输入问题，系统从非遗知识库检索相关内容后由 AI 生成回答'
+      summary: 非遗知识库问答（结构化关系检索 + 可选向量召回）
+      description: '登录学生提问后，先对已审核非遗目录做有界关系检索，再可选合并本地向量召回。向量服务未配置时返回 STRUCTURED_GRAPH 的结构化摘录与已登记来源，不声称已接入向量模型。生成式回答仍走 AiClient 的输入/输出安全过滤与 llm-rag 熔断；高危输入保留关怀话术，不返回资料摘录。'
       requestBody:
         required: true
         content:
@@ -3218,7 +3524,7 @@ paths:
             schema: { $ref: '#/components/schemas/RagAskReq' }
       responses:
         '200':
-          description: 问答结果
+          description: 问答结果；data.retrievalMode 标明检索模式，sources 区分已登记来源与检索参考
           content:
             application/json:
               schema:
@@ -3229,55 +3535,3 @@ paths:
                       data: { $ref: '#/components/schemas/RagAnswerVO' }
         '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-
-    InheritorProfileSelfVO:
-      type: object
-      description: 传承人自己的资料返回体
-      properties:
-        id: { type: integer, format: int64, description: inheritor_profile 主键 }
-        userId: { type: integer, format: int64, description: 关联用户 ID }
-        skill: { type: string, description: 擅长技艺 }
-        intro: { type: string, description: 个人简介 }
-        honor: { type: string, description: 荣誉头衔 }
-        verified: { type: integer, description: '0 未认证 / 1 已认证' }
-        avatarUrl: { type: string, description: '头像 URL（来自 user 表）' }
-
-    InheritorProfileSelfUpdateReq:
-      type: object
-      description: 传承人自更新资料请求体（所有字段可选，null 表示不更新）
-      properties:
-        skill: { type: string, maxLength: 100, description: 擅长技艺 }
-        intro: { type: string, maxLength: 500, description: 个人简介 }
-        honor: { type: string, maxLength: 255, description: 荣誉头衔 }
-        avatarUrl: { type: string, maxLength: 255, description: '头像 URL，非空时同步更新 user.avatar_url' }
-
-    UserStatsVO:
-      type: object
-      description: 学生端「我的」统计数据
-      properties:
-        daysSinceRegister: { type: integer, format: int64, description: '注册天数（今天注册返回 1）' }
-        workCount: { type: integer, format: int64, description: '作品数' }
-        noteCount: { type: integer, format: int64, description: '便签数' }
-
-    RagAskReq:
-      type: object
-      required: [question]
-      properties:
-        question: { type: string, maxLength: 500, description: '用户问题' }
-
-    RagAnswerVO:
-      type: object
-      description: RAG 问答返回体
-      properties:
-        answer: { type: string, description: 'AI 生成的回答文本' }
-        sources:
-          type: array
-          description: 引用的知识库来源列表
-          items: { $ref: '#/components/schemas/RagSourceVO' }
-
-    RagSourceVO:
-      type: object
-      description: RAG 引用来源
-      properties:
-        title: { type: string, description: '来源文件名' }
-        excerpt: { type: string, description: '内容摘要（前 80 字）' }
