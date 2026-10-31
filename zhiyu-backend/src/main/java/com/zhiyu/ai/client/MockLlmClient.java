@@ -69,4 +69,9 @@ public class MockLlmClient implements LlmClient {
     public String chat(String prompt) {
         return "（降级模式）非遗知识库暂不可用，请稍后再试。";
     }
+
+    @Override
+    public String modelName() {
+        return "mock";
+    }
 }

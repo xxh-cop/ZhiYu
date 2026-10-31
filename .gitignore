@@ -151,6 +151,7 @@ skills/
 .catpaw/
 
 rag-store.json
+rag-store.json.version
 
 
 # Bundled public campus directory is source code, not runtime data

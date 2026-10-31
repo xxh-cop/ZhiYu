@@ -322,6 +322,66 @@ public class AiClient {
         }
     }
 
+    /**
+     * @param text           模型原始计划 JSON；输出被安全改写时仍保留原始 JSON 供编排层解析
+     * @param generated      是否由真实模型产出；Mock/熔断/异常为 false
+     * @param blocked        是否命中高危或输出边界；true 时不得执行工具
+     * @param rewrittenReply 输出侧安全改写后的用户可读文本；非空时编排层应丢弃工具并使用该文本
+     */
+    public record CompanionResult(String text, boolean generated, boolean blocked,
+                                  String rewrittenReply, Integer inputTokens,
+                                  Integer outputTokens) {
+        public CompanionResult(String text, boolean generated, boolean blocked,
+                               String rewrittenReply) {
+            this(text, generated, blocked, rewrittenReply, null, null);
+        }
+    }
+
+    /**
+     * 受控陪伴计划：模型只能输出严格 JSON 计划，业务层再校验工具白名单并执行。
+     * 高危输入直接返回关怀话术，不读取会话或执行工具。
+     */
+    public CompanionResult companionPlan(Long practiceSessionId, String prompt, String userText) {
+        SafetyResult input = contentSafetyFilter.checkInput(
+                UserContext.getUserId(), practiceSessionId, "companion", userText);
+        if (input.getAction() == SafetyAction.BLOCK) {
+            return new CompanionResult(input.getCareMessage(), false, true, null);
+        }
+        if (llmClient instanceof MockLlmClient) {
+            return new CompanionResult(null, false, false, null);
+        }
+        if (!breaker.allowRequest(KEY_MESSAGE)) {
+            return new CompanionResult(null, false, false, null);
+        }
+        try {
+            com.zhiyu.ai.client.LlmChatResult generation = llmClient.chatWithUsage(prompt);
+            String result = generation == null ? null : generation.text();
+            if (result == null || result.isBlank()) {
+                throw new IllegalStateException("empty companion plan");
+            }
+            breaker.recordSuccess(KEY_MESSAGE);
+            SafetyResult output = contentSafetyFilter.checkOutput(
+                    UserContext.getUserId(), "companion", result);
+            if (output.getAction() == SafetyAction.BLOCK) {
+                return new CompanionResult(null, false, true, SAFE_CHAT_REPLY,
+                        generation.inputTokens(), generation.outputTokens());
+            }
+            if (output.getAction() == SafetyAction.REWRITE
+                    && output.getRewrittenText() != null
+                    && !output.getRewrittenText().isBlank()) {
+                // 保留原始 JSON 供编排层解析阶段；改写文本交给编排层替换 reply 并丢弃工具。
+                return new CompanionResult(result, true, false, output.getRewrittenText().trim(),
+                        generation.inputTokens(), generation.outputTokens());
+            }
+            return new CompanionResult(result, true, false, null,
+                    generation.inputTokens(), generation.outputTokens());
+        } catch (Exception e) {
+            breaker.recordFailure(KEY_MESSAGE);
+            log.warn("陪伴计划生成失败，由编排层使用确定性建议");
+            return new CompanionResult(null, false, false, null);
+        }
+    }
+
     /** Knowledge answers keep the same audit and isolated breaker boundary as other AI calls. */
     public record KnowledgeResult(String text, boolean generated, boolean blocked) {
     }
@@ -442,5 +502,15 @@ public class AiClient {
     /** 暴露底层 store 名（可观测） */
     public String breakerStoreName() {
         return breaker.implementationName();
+    }
+
+    /** 当前实际接入模式；Mock 不得被标记为真实模型。 */
+    public String modelMode() {
+        return llmClient instanceof MockLlmClient ? "MOCK" : "EXTERNAL";
+    }
+
+    /** 当前模型名；用于 AI 运营页版本展示与 trace。 */
+    public String modelName() {
+        return llmClient.modelName();
     }
 }

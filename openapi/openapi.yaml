@@ -444,6 +444,170 @@ components:
         safetyHold: { type: boolean, description: '会话是否包含需要优先照顾的安全信号；true 时不允许保存 AI 小结' }
         savedAt: { type: string, description: '保存时间（ISO-8601）' }
 
+    CreatePracticeSessionReq:
+      type: object
+      required: [kind, minutesBudget]
+      properties:
+        kind:
+          type: string
+          enum: [HERITAGE, CRAFT, MINDFULNESS, DRAWING]
+          description: '练习类型'
+        moodCode: { type: string, maxLength: 32, description: '可选情绪代码' }
+        minutesBudget: { type: integer, minimum: 1, maximum: 180, description: '用户选择的可用时间' }
+        heritagePatternId: { type: string, maxLength: 32, description: '可选纹样目录 ID，按字符串传递' }
+
+    PracticeSessionStatusReq:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [START_LISTENING, RECOMMEND, START, PAUSE, RESUME, COMPLETE, SAVE_ARTIFACT, ABANDON]
+          description: '练习状态动作；非法流转返回 code 3001'
+
+    SavePracticeArtifactReq:
+      type: object
+      required: [consent]
+      properties:
+        consent: { type: boolean, description: '必须为 true 才会保存' }
+        structureLabel: { type: string, maxLength: 100, description: '本次观察到的结构说明' }
+        notes: { type: string, maxLength: 500, description: '用户备注，可为空' }
+        palette:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+
+    AdaptivePlanVO:
+      type: object
+      description: 规则驱动的自适应练习计划，不是模型生成
+      properties:
+        minutes: { type: integer }
+        levelBias: { type: string, enum: [入门, 进阶] }
+        completionRate: { type: number }
+        completedCount: { type: integer }
+        abandonedCount: { type: integer }
+        source: { type: string, enum: [MANUAL, MEMORY, DEFAULT] }
+        historyUsed: { type: boolean }
+        generated: { type: boolean, example: false }
+        reason: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              patternId: { type: string }
+              name: { type: string }
+              traditionName: { type: string }
+              family: { type: string }
+              familyLabel: { type: string }
+              minutes: { type: integer }
+              level: { type: string }
+              learningFocus: { type: string }
+              palette:
+                type: array
+                items: { type: string }
+              reason: { type: string }
+
+    PracticeArtifactVO:
+      type: object
+      description: 练习成果；未保存时仅返回 saved=false
+      properties:
+        saved: { type: boolean }
+        practiceSessionId: { type: string }
+        patternId: { type: string }
+        patternName: { type: string }
+        traditionName: { type: string }
+        region: { type: string }
+        family: { type: string }
+        familyLabel: { type: string }
+        level: { type: string }
+        minutesBudget: { type: integer }
+        structureLabel: { type: string }
+        palette:
+          type: array
+          items: { type: string }
+        learningFocus: { type: string }
+        designNote: { type: string }
+        sources:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              title: { type: string }
+              organization: { type: string }
+              url: { type: string }
+              mediaReuse: { type: string }
+        notes: { type: string }
+        listeningSummary: { type: string, nullable: true }
+        disclaimer: { type: string }
+        savedAt: { type: string }
+
+    CompanionMemoryToggleReq:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean }
+        consent: { type: boolean, description: '开启时必须为 true' }
+
+    CompanionMemorySaveReq:
+      type: object
+      required: [consent, preferences]
+      properties:
+        consent: { type: boolean, description: '必须为 true' }
+        preferences:
+          type: object
+          additionalProperties: false
+          properties:
+            preferred_minutes: { type: string, pattern: '^[0-9]+$', description: '1-180 分钟的整数' }
+            preferred_material: { type: string, enum: [bamboo, thread, paper, porcelain] }
+            preferred_pattern_family: { type: string, enum: [stitch, weave, cutout, porcelain] }
+
+    CompanionMemoryVO:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        ttlDays: { type: integer, example: 180 }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              key: { type: string }
+              label: { type: string }
+              value: { type: string }
+              valueLabel: { type: string }
+        disclaimer: { type: string }
+
+    CompanionMessageReq:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: '用户本轮想说的话；只用于当前练习会话，不保存原始对话'
+
+    PracticeSessionVO:
+      type: object
+      description: 统一练习会话；把情绪、非遗练习、正念/绘色挂到同一次练习
+      properties:
+        practiceSessionId: { type: string, description: '雪花 ID，字符串返回' }
+        kind: { type: string, enum: [HERITAGE, CRAFT, MINDFULNESS, DRAWING] }
+        status: { type: integer, description: '0 CREATED 1 LISTENING 2 RECOMMENDED 3 PRACTICING 4 PAUSED 5 COMPLETED 6 ARTIFACT_SAVED 7 ABANDONED' }
+        statusLabel: { type: string }
+        moodCode: { type: string, nullable: true }
+        minutesBudget: { type: integer }
+        emotionSessionId: { type: string, nullable: true }
+        craftSessionId: { type: string, nullable: true }
+        heritagePatternId: { type: string, nullable: true }
+        currentStep: { type: integer }
+        startedAt: { type: string, nullable: true }
+        completedAt: { type: string, nullable: true }
+        createTime: { type: string, nullable: true }
+
     InheritorProfileSelfVO:
       type: object
       description: 传承人自己的资料返回体
@@ -1776,6 +1940,315 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  # ---------- L4 PracticeSession ----------
+  /api/practice/sessions:
+    post:
+      operationId: practiceSessionCreate
+      summary: 创建统一练习会话
+      description: '把情绪、非遗练习、正念/绘色挂到同一次练习。创建后状态为 CREATED；不自动生成 AI 内容，不保存原始对话。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePracticeSessionReq' }
+      responses:
+        '200':
+          description: Result.data 为 PracticeSessionVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PracticeSessionVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    get:
+      operationId: practiceSessionList
+      summary: 读取本人最近的练习会话
+      description: '按创建时间倒序返回本人会话，最多 20 条；不返回其他用户的数据。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 20, default: 5 } }
+      responses:
+        '200':
+          description: Result.data 为 PracticeSessionVO 数组
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/PracticeSessionVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+  /api/practice/sessions/{id}:
+    get:
+      operationId: practiceSessionGet
+      summary: 读取本人练习会话
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Result.data 为 PracticeSessionVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PracticeSessionVO' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非本人会话（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+  /api/practice/sessions/{id}/status:
+    put:
+      operationId: practiceSessionTransition
+      summary: 推进练习会话状态机
+      description: '只允许 START_LISTENING、RECOMMEND、START、PAUSE、RESUME、COMPLETE、SAVE_ARTIFACT、ABANDON；非法流转返回 code 3001。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PracticeSessionStatusReq' }
+      responses:
+        '200':
+          description: 'Result.data 为 PracticeSessionVO；非法状态流转为 code 3001'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PracticeSessionVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非本人会话（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/practice/adaptive-plan:
+    get:
+      operationId: practiceAdaptivePlan
+      summary: 自适应练习计划
+      description: '按授权偏好、最近完成/放弃记录与时间预算返回 1-2 个原创教学纹样；规则驱动，不读取情绪原文，不作情绪或疗效判断。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: minutes, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 180 }, description: '可选显式时间；缺省时使用授权偏好或默认 15 分钟' }
+      responses:
+        '200':
+          description: Result.data 为 AdaptivePlanVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AdaptivePlanVO' }
+        '400': { description: 时间超出范围（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/practice/sessions/{id}/artifact:
+    post:
+      operationId: practiceArtifactSave
+      summary: 保存练习成果（文化卡/色板/备注）
+      description: '仅 COMPLETED/ARTIFACT_SAVED 且确认授权后可保存；payload 加密写入 wellbeing_record，重复保存为更新。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SavePracticeArtifactReq' }
+      responses:
+        '200':
+          description: 'Result.data 为 PracticeArtifactVO；未完成返回 code 3001，未授权返回 1001'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PracticeArtifactVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非本人会话（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话或纹样目录不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    get:
+      operationId: practiceArtifactGet
+      summary: 读取练习成果
+      description: '未保存时返回 { saved: false }；已保存时返回解密后的文化卡与备注。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Result.data 为 PracticeArtifactVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PracticeArtifactVO' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非本人会话（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      operationId: practiceArtifactDelete
+      summary: 删除练习成果
+      description: '只软删成果记录，不回退会话状态；可再次保存。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非本人会话（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/companion/sessions/{id}/message:
+    post:
+      operationId: companionMessage
+      summary: 小织受控陪伴消息（typed SSE）
+      description: '返回 text/event-stream。事件依次为 stage、message、tool、citation、artifact、done、error；不发送思维链、工具原始参数或用户原文。工具均为只读，断流后可用同一请求安全重试。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }, description: '练习会话雪花 ID，字符串传递' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompanionMessageReq' }
+      responses:
+        '200':
+          description: 'SSE 事件流：stage、message、tool、citation、artifact、done、error。运行期错误也以 event:error 发送，HTTP 保持 200。'
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或未同意隐私政策（code=1002/1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非本人会话（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/companion/memory:
+    get:
+      operationId: companionMemoryGet
+      summary: 读取小织记忆状态
+      description: '默认关闭；只返回三个白名单偏好，不返回对话原文、情绪细节或高危信息。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为 CompanionMemoryVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CompanionMemoryVO' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 未同意隐私政策（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    put:
+      operationId: companionMemorySave
+      summary: 保存小织偏好记忆
+      description: '需先开启并确认授权；只接受 preferred_minutes、preferred_material、preferred_pattern_family，加密保存 180 天。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompanionMemorySaveReq' }
+      responses:
+        '200':
+          description: 'Result.data 为 CompanionMemoryVO；未开启返回 code 3001，非法字段返回 1001'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CompanionMemoryVO' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      operationId: companionMemoryDelete
+      summary: 删除全部小织记忆
+      description: '软删全部偏好与控制行，删除后记忆关闭；不删除练习会话或作品。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为关闭状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CompanionMemoryVO' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/companion/memory/enabled:
+    put:
+      operationId: companionMemoryEnable
+      summary: 开启或关闭小织记忆
+      description: '开启必须 consent=true；关闭不需要授权。默认关闭。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompanionMemoryToggleReq' }
+      responses:
+        '200':
+          description: Result.data 为 CompanionMemoryVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CompanionMemoryVO' }
+        '400': { description: 未确认授权（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   # ---------- 作品社区 ----------
   /api/works:
     get:
@@ -2652,13 +3125,13 @@ paths:
     get:
       operationId: adminAiGovernanceOverview
       summary: '管理员：AI 治理脱敏聚合'
-      description: '只统计 ai_audit_log 的场景/动作/原因分类与最近事件元数据，并报告聊天、向量、语音和熔断配置状态。不返回 user_id、raw_input、ai_output、自由文本 reason 或匹配关键词；不推算调用量、成功率、延迟或疗效。'
+      description: '只统计 ai_audit_log 与 ai_trace 的脱敏元数据，并返回离线评测集摘要、token 用量、可配置费率估算成本、模型名/Prompt 版本与配置修订；同时报告聊天、向量、语音和熔断配置状态。不返回 user_id、practice_session_id、raw_input、ai_output、思维链、工具参数或匹配关键词；不推算疗效。模型名/地址/密钥只由服务端环境变量管理。'
       x-required-role: admin-only
       parameters:
         - { name: days, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 90, default: 30 } }
       responses:
         '200':
-          description: Result.data 含 windowDays、generatedAt、totalEvents、actionCounts、sceneCounts、reasonCounts、recentEvents、config、privacyNote
+          description: 'Result.data 含 windowDays、generatedAt、totalEvents、actionCounts、sceneCounts、reasonCounts、recentEvents、trace（脱敏聚合 + inputTokens/outputTokens/estimatedCost/modelVersions/promptVersions）、eval（离线评测集）、config（含 modelName/temperature/maxTokens/配置修订）、privacyNote'
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }

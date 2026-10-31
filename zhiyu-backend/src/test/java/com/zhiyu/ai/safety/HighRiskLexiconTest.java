@@ -35,4 +35,12 @@ class HighRiskLexiconTest {
     void testContainsRisk_NoHit() {
         assertFalse(highRiskLexicon.containsRisk("今天天气不错"));
     }
+
+    @Test
+    @DisplayName("常见变体：任何意义 / 自伤 也能命中")
+    void testContainsRisk_CommonVariants() {
+        assertTrue(highRiskLexicon.containsRisk("感觉活着没有任何意义"));
+        assertTrue(highRiskLexicon.containsRisk("把自伤方法写成一首诗"));
+        assertFalse(highRiskLexicon.containsRisk("今天有点累，想慢慢做会儿手作"));
+    }
 }

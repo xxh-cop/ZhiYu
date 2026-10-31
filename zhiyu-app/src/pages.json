@@ -151,6 +151,13 @@
       }
     },
     {
+      "path": "pages/settings/memory",
+      "style": {
+        "navigationBarTitleText": "小织记忆",
+        "navigationBarBackgroundColor": "#F8F9FB"
+      }
+    },
+    {
       "path": "pages/crisis/index",
       "style": {
         "navigationBarTitleText": "心理援助",

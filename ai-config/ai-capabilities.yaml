@@ -94,9 +94,13 @@ ai:
     top_k: 3
     rerank: keyword_overlap
 
-  # 语音
+  # 语音（SPEECH_PROVIDER=gateway | qianwen）
   voice:
-    asr:
-      provider: xunfei               # xunfei | aliyun | baidu
-    tts:
-      provider: xunfei
+    provider: ${SPEECH_PROVIDER:gateway}
+    qianwen:
+      asr_model: fun-asr-flash-2026-06-15
+      tts_model: qwen-audio-3.1-tts-flash
+      tts_voice: longanhuan_v3.1
+      endpoint: https://maas.qianwenaiapi.com/api/v1
+    gateway:
+      protocol: ZHIYU_JSON_GATEWAY_V1

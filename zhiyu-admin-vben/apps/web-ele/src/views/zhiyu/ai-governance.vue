@@ -13,6 +13,7 @@ import OperationsChart from './components/OperationsChart.vue';
 
 const router = useRouter();
 const days = ref(30);
+const evalTab = ref('golden');
 const data = ref<AdminAiGovernanceApi.Overview | null>(null);
 const loading = ref(false);
 const error = ref('');
@@ -36,6 +37,20 @@ const reasonRows = computed(() =>
 const chatModeLabel = computed(() =>
   data.value?.config.chatMode === 'MOCK' ? 'Mock 降级' : '外部模型',
 );
+const traceStatusRows = computed(() =>
+  (data.value?.trace.statusCounts ?? []).map((item) => ({
+    ...item,
+    value: Number(item.value),
+  })),
+);
+const traceFailureCount = computed(() =>
+  traceStatusRows.value
+    .filter((item) => ['BLOCKED', 'ERROR', 'FALLBACK'].includes(item.name))
+    .reduce((sum, item) => sum + item.value, 0),
+);
+const evalGoldenRows = computed(() => data.value?.eval.cases ?? []);
+const evalSafetyRows = computed(() => data.value?.eval.safetyRedTeam ?? []);
+const evalE2eRows = computed(() => data.value?.eval.e2eTasks ?? []);
 
 const configRows = computed(() => {
   const config = data.value?.config;
@@ -43,9 +58,21 @@ const configRows = computed(() => {
   return [
     {
       label: '聊天模型',
-      value: config.chatMode === 'MOCK' ? 'Mock 降级' : '外部模型',
+      value: config.chatMode === 'MOCK' ? 'Mock 降级' : config.modelName,
       detail: config.chatVerified ? '已实测' : '未做连通实测',
       tone: config.chatMode === 'MOCK' ? 'warning' : 'info',
+    },
+    {
+      label: '模型参数',
+      value: `temperature ${config.temperature}`,
+      detail: `maxTokens ${config.maxTokens}`,
+      tone: 'info',
+    },
+    {
+      label: '配置修订',
+      value: `模型 ${config.modelConfigRevision} / Prompt ${config.promptConfigRevision}`,
+      detail: '保存后对新请求生效',
+      tone: 'info',
     },
     {
       label: '向量检索',
@@ -103,8 +130,30 @@ function actionTagType(action: string) {
   }
 }
 
+function statusTagType(status: string) {
+  switch (status) {
+    case 'OK':
+      return 'success';
+    case 'FALLBACK':
+      return 'warning';
+    case 'BLOCKED':
+    case 'ERROR':
+      return 'danger';
+    default:
+      return 'info';
+  }
+}
+
 function formatTime(value?: string) {
   return value ? value.replace('T', ' ').slice(0, 19) : '-';
+}
+
+function formatNumber(value?: number | string) {
+  return Number(value ?? 0).toLocaleString();
+}
+
+function formatCost(value?: number) {
+  return Number(value ?? 0).toFixed(4);
 }
 
 onMounted(load);
@@ -114,12 +163,12 @@ onMounted(load);
   <div class="zy-business-page flex flex-col gap-4">
     <BusinessPageHeader
       title="AI 治理"
-      description="安全审核事件与能力配置状态。只统计事件，不推算调用量、成功率或延迟。"
+      description="安全审核事件、陪伴 trace、token 成本与离线评测集。只做脱敏聚合，不推算疗效。"
       :loading="loading"
       @refresh="load"
     />
     <p class="m-0 business-note leading-relaxed">
-      本页不返回用户 ID、原始输入输出、自由文本原因或匹配关键词。配置存在不等于服务连通，真实模型联调需单独验收。
+      本页不返回用户 ID、会话 ID、原始输入输出、思维链或工具参数；评测集由项目编写，不是用户对话。配置存在不等于服务连通，真实模型联调需单独验收。
     </p>
 
     <el-card shadow="never">
@@ -215,6 +264,187 @@ onMounted(load);
         empty-text="暂无原因分类"
         empty-hint="产生安全审核事件后会在这里显示分类"
       />
+
+      <el-card shadow="never">
+        <div class="config-heading">
+          <div>
+            <h3>陪伴运行 trace</h3>
+            <p>只统计脱敏元数据；不展示用户 ID、会话 ID、原始输入输出、思维链或工具参数。</p>
+          </div>
+          <el-tag type="info" effect="plain">脱敏聚合</el-tag>
+        </div>
+        <div class="trace-metrics">
+          <div>
+            <span>陪伴轮次</span>
+            <strong>{{ Number(data.trace.total).toLocaleString() }}</strong>
+          </div>
+          <div>
+            <span>工具成功率</span>
+            <strong>{{ data.trace.toolSuccessRate }}%</strong>
+          </div>
+          <div>
+            <span>P95 延迟</span>
+            <strong>{{ data.trace.p95LatencyMs }} ms</strong>
+          </div>
+          <div>
+            <span>降级 / 拦截</span>
+            <strong>{{ traceFailureCount }}</strong>
+          </div>
+        </div>
+        <div class="trace-metrics trace-cost-metrics">
+          <div>
+            <span>输入 tokens</span>
+            <strong>{{ formatNumber(data.trace.inputTokens) }}</strong>
+          </div>
+          <div>
+            <span>输出 tokens</span>
+            <strong>{{ formatNumber(data.trace.outputTokens) }}</strong>
+          </div>
+          <div>
+            <span>估算成本</span>
+            <strong>
+              {{
+                data.trace.costConfigured
+                  ? `${data.trace.currency} ${formatCost(data.trace.estimatedCost)}`
+                  : '费率未配置'
+              }}
+            </strong>
+          </div>
+          <div>
+            <span>当前模型</span>
+            <strong class="trace-model">{{ data.config.modelName }}</strong>
+          </div>
+        </div>
+        <div class="version-row">
+          <div>
+            <span>模型版本（trace）</span>
+            <el-tag
+              v-for="version in data.trace.modelVersions"
+              :key="version.name"
+              size="small"
+              effect="plain"
+            >
+              {{ version.name }} · {{ Number(version.value) }}
+            </el-tag>
+            <span v-if="!data.trace.modelVersions.length" class="version-empty">暂无</span>
+          </div>
+          <div>
+            <span>Prompt 版本（trace）</span>
+            <el-tag
+              v-for="version in data.trace.promptVersions"
+              :key="version.name"
+              size="small"
+              effect="plain"
+            >
+              {{ version.name }} · {{ Number(version.value) }}
+            </el-tag>
+            <span v-if="!data.trace.promptVersions.length" class="version-empty">暂无</span>
+          </div>
+        </div>
+        <p class="config-note">
+          {{ data.trace.costNote }}
+          <el-button link type="primary" @click="router.push('/zhiyu/runtime-config')">
+            调整模型参数
+          </el-button>
+        </p>
+        <div class="trace-chart">
+          <OperationsChart
+            title="trace 结果状态"
+            subtitle="OK / FALLBACK / BLOCKED / ERROR"
+            kind="pie"
+            :rows="traceStatusRows"
+            empty-text="暂无 trace"
+            empty-hint="产生陪伴请求后会显示状态分布"
+          />
+        </div>
+        <div class="recent-heading trace-failures-heading">
+          <div>
+            <h3>最近异常样本</h3>
+            <p>只展示场景、工具名、状态、归一化原因与延迟。</p>
+          </div>
+        </div>
+        <el-table :data="data.trace.recentFailures" style="width: 100%">
+          <template #empty>
+            <DataState empty-text="暂无异常样本" empty-hint="窗口内没有降级或拦截记录" />
+          </template>
+          <el-table-column label="时间" width="180">
+            <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+          </el-table-column>
+          <el-table-column prop="sceneLabel" label="场景" width="120" />
+          <el-table-column label="工具" width="150">
+            <template #default="{ row }">{{ row.toolName || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="状态" width="110">
+            <template #default="{ row }">
+              <el-tag :type="statusTagType(row.resultStatus)" size="small">
+                {{ row.resultStatus }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="fallbackReason" label="归一化原因" min-width="140" />
+          <el-table-column label="延迟" width="100">
+            <template #default="{ row }">
+              {{ row.latencyMs === null ? '-' : `${row.latencyMs} ms` }}
+            </template>
+          </el-table-column>
+        </el-table>
+        <p class="config-note">{{ data.trace.note }}</p>
+      </el-card>
+
+      <el-card shadow="never">
+        <div class="config-heading">
+          <div>
+            <h3>离线评测集</h3>
+            <p>题目由项目编写，不是用户对话；不代表真实用户效果或疗效。</p>
+          </div>
+          <el-tag type="info" effect="plain">只读</el-tag>
+        </div>
+        <div class="eval-stats">
+          <div>
+            <span>黄金问题</span>
+            <strong>{{ data.eval.total }}</strong>
+          </div>
+          <div>
+            <span>安全红队</span>
+            <strong>{{ data.eval.safetyTotal }}</strong>
+          </div>
+          <div>
+            <span>端到端任务</span>
+            <strong>{{ data.eval.e2eTotal }}</strong>
+          </div>
+          <div>
+            <span>版本</span>
+            <strong class="eval-version">{{ data.eval.version }}</strong>
+          </div>
+        </div>
+        <el-tabs v-model="evalTab" class="eval-tabs">
+          <el-tab-pane label="黄金问题" name="golden">
+            <el-table :data="evalGoldenRows" max-height="360" style="width: 100%">
+              <el-table-column prop="id" label="ID" width="120" />
+              <el-table-column prop="type" label="类型" width="120" />
+              <el-table-column prop="question" label="题目" min-width="260" />
+              <el-table-column prop="expectation" label="期望" min-width="280" />
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="安全红队" name="safety">
+            <el-table :data="evalSafetyRows" max-height="360" style="width: 100%">
+              <el-table-column prop="id" label="ID" width="120" />
+              <el-table-column prop="type" label="类型" width="120" />
+              <el-table-column prop="question" label="题目" min-width="260" />
+              <el-table-column prop="expectation" label="期望" min-width="280" />
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="端到端" name="e2e">
+            <el-table :data="evalE2eRows" max-height="360" style="width: 100%">
+              <el-table-column prop="id" label="ID" width="120" />
+              <el-table-column prop="type" label="类型" width="120" />
+              <el-table-column prop="question" label="任务" min-width="260" />
+              <el-table-column prop="expectation" label="期望" min-width="280" />
+            </el-table>
+          </el-tab-pane>
+        </el-tabs>
+        <p class="config-note">{{ data.eval.notes }}</p>
+      </el-card>
 
       <el-card shadow="never">
         <div class="recent-heading">
@@ -363,6 +593,72 @@ onMounted(load);
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
+.trace-metrics,
+.eval-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.trace-metrics > div,
+.eval-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 12px;
+}
+.trace-metrics span,
+.eval-stats span {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+}
+.trace-metrics strong,
+.eval-stats strong {
+  font-size: 22px;
+  font-weight: 650;
+  color: var(--el-text-color-primary);
+}
+.eval-stats .eval-version {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.trace-cost-metrics {
+  margin-top: 12px;
+}
+.trace-model {
+  font-size: 16px !important;
+  overflow-wrap: anywhere;
+}
+.version-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+}
+.version-row > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.version-empty {
+  color: var(--el-text-color-secondary);
+}
+.trace-chart {
+  margin-top: 16px;
+}
+.trace-failures-heading {
+  margin-top: 18px;
+}
+.eval-tabs {
+  margin-top: 16px;
+}
 .privacy-note {
   margin: 0;
   padding: 14px 16px;
@@ -371,13 +667,17 @@ onMounted(load);
 }
 @media (max-width: 1100px) {
   .governance-metrics,
-  .config-grid {
+  .config-grid,
+  .trace-metrics,
+  .eval-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 720px) {
   .governance-metrics,
   .config-grid,
+  .trace-metrics,
+  .eval-stats,
   .governance-charts {
     grid-template-columns: minmax(0, 1fr);
   }

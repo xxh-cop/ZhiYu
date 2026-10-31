@@ -1,6 +1,7 @@
 package com.zhiyu.ai;
 
 import com.zhiyu.ai.client.ChatMessage;
+import com.zhiyu.ai.client.LlmChatResult;
 import com.zhiyu.ai.client.LlmClient;
 import com.zhiyu.ai.client.MockLlmClient;
 import com.zhiyu.ai.resilience.CircuitBreakerStore;
@@ -196,6 +197,120 @@ class AiClientTest {
         assertFalse(result.blocked());
         assertNull(result.text());
         verify(breaker, never()).allowRequest(any());
+    }
+
+    @Test
+    @DisplayName("陪伴计划：安全过滤后返回严格 JSON，复用 llm-message 熔断")
+    void companionPlanPassesSafetyAndUsesMessageBreaker() {
+        UserContext.set(new LoginUser(42L, 0));
+        String raw = "{\"reply\":\"我在。\",\"stage\":\"LISTEN\",\"tool\":null,\"toolInput\":{}}";
+        when(contentSafetyFilter.checkInput(42L, 12L, "companion", "有点累"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.chatWithUsage("prompt")).thenReturn(new LlmChatResult(raw, 12, 8));
+        when(contentSafetyFilter.checkOutput(42L, "companion", raw))
+                .thenReturn(SafetyResult.pass("通过"));
+
+        var result = aiClient.companionPlan(12L, "prompt", "有点累");
+
+        assertTrue(result.generated());
+        assertFalse(result.blocked());
+        assertEquals(raw, result.text());
+        assertNull(result.rewrittenReply());
+        assertEquals(12, result.inputTokens());
+        assertEquals(8, result.outputTokens());
+        verify(breaker).recordSuccess("llm-message");
+    }
+
+    @Test
+    @DisplayName("陪伴计划：输入高危时不调用模型并返回关怀话术")
+    void companionPlanBlockedInputSkipsModel() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, 12L, "companion", "高危发言"))
+                .thenReturn(SafetyResult.block("命中高危", "请联系学校心理中心"));
+
+        var result = aiClient.companionPlan(12L, "prompt", "高危发言");
+
+        assertTrue(result.blocked());
+        assertFalse(result.generated());
+        assertEquals("请联系学校心理中心", result.text());
+        assertNull(result.rewrittenReply());
+        verify(llmClient, never()).chatWithUsage(anyString());
+        verify(breaker, never()).allowRequest(any());
+    }
+
+    @Test
+    @DisplayName("陪伴计划：Mock 实现不被标记为已生成")
+    void mockCompanionPlanIsNotMarkedGenerated() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, 12L, "companion", "有点累"))
+                .thenReturn(SafetyResult.pass("通过"));
+        var mockAi = new AiClient(mock(MockLlmClient.class), breaker, contentSafetyFilter);
+
+        var result = mockAi.companionPlan(12L, "prompt", "有点累");
+
+        assertFalse(result.generated());
+        assertFalse(result.blocked());
+        assertNull(result.text());
+        verify(breaker, never()).allowRequest(any());
+    }
+
+    @Test
+    @DisplayName("陪伴计划：模型异常时返回未生成，由编排层使用确定性建议")
+    void companionPlanFailureReturnsNotGenerated() {
+        UserContext.set(new LoginUser(42L, 0));
+        when(contentSafetyFilter.checkInput(42L, 12L, "companion", "有点累"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.chatWithUsage("prompt")).thenThrow(new RuntimeException("timeout"));
+
+        var result = aiClient.companionPlan(12L, "prompt", "有点累");
+
+        assertFalse(result.generated());
+        assertFalse(result.blocked());
+        assertNull(result.text());
+        verify(breaker).recordFailure("llm-message");
+    }
+
+    @Test
+    @DisplayName("陪伴计划：输出越界时使用改写文本")
+    void companionPlanUsesRewrittenOutput() {
+        UserContext.set(new LoginUser(42L, 0));
+        String raw = "{\"reply\":\"你患有抑郁症\",\"stage\":\"LISTEN\",\"tool\":null,\"toolInput\":{}}";
+        when(contentSafetyFilter.checkInput(42L, 12L, "companion", "有点累"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.chatWithUsage("prompt")).thenReturn(new LlmChatResult(raw, 10, 4));
+        when(contentSafetyFilter.checkOutput(42L, "companion", raw))
+                .thenReturn(SafetyResult.rewrite("诊断性结论", "我在，我们先慢慢说。"));
+
+        var result = aiClient.companionPlan(12L, "prompt", "有点累");
+
+        assertTrue(result.generated());
+        assertFalse(result.blocked());
+        assertEquals(raw, result.text());
+        assertEquals("我在，我们先慢慢说。", result.rewrittenReply());
+        verify(breaker).recordSuccess("llm-message");
+    }
+
+    @Test
+    @DisplayName("陪伴计划：输出整体被阻断时返回安全话术并标记 blocked")
+    void companionPlanBlockedOutputReturnsSafeReply() {
+        UserContext.set(new LoginUser(42L, 0));
+        String raw = "{\"reply\":\"危险输出\",\"stage\":\"LISTEN\",\"tool\":null,\"toolInput\":{}}";
+        when(contentSafetyFilter.checkInput(42L, 12L, "companion", "有点累"))
+                .thenReturn(SafetyResult.pass("通过"));
+        when(breaker.allowRequest("llm-message")).thenReturn(true);
+        when(llmClient.chatWithUsage("prompt")).thenReturn(new LlmChatResult(raw, 9, 3));
+        when(contentSafetyFilter.checkOutput(42L, "companion", raw))
+                .thenReturn(SafetyResult.block("输出越界", "安全提示"));
+
+        var result = aiClient.companionPlan(12L, "prompt", "有点累");
+
+        assertTrue(result.blocked());
+        assertFalse(result.generated());
+        assertNull(result.text());
+        assertEquals(AiClient.SAFE_CHAT_REPLY, result.rewrittenReply());
     }
 
     @AfterEach

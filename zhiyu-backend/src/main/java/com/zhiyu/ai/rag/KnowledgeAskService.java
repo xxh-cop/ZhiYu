@@ -82,7 +82,10 @@ public class KnowledgeAskService {
                         hit.url(), hit.organization(), hit.mediaReuse(), hit.catalogVersion(),
                         hit.relationPath(), "VERIFIED_SOURCE")));
         for (RagService.VectorHit hit : vectorHits) {
-            unique.putIfAbsent(hit.id(), new RagSourceVO(hit.id(), hit.title(), hit.excerpt(),
+            // 同一文档的多个切片只保留一条引用，避免前端出现重复来源。
+            String key = hit.title() == null || hit.title().isBlank()
+                    ? hit.id() : "vector:" + hit.title();
+            unique.putIfAbsent(key, new RagSourceVO(hit.id(), hit.title(), hit.excerpt(),
                     null, null, null, hit.corpusVersion(), "检索文档", "REFERENCE"));
         }
         return unique.values().stream().limit(6).toList();
@@ -95,7 +98,11 @@ public class KnowledgeAskService {
             String label = switch (hit.nodeType()) {
                 case "SOURCE" -> "已核实来源";
                 case "TRADITION" -> "已登记工艺";
-                default -> "原创教学纹样";
+                case "PATTERN" -> "原创教学纹样";
+                case "MEDIUM" -> "纹样介质";
+                case "MATERIAL" -> "材料";
+                case "SAFETY" -> "安全提醒";
+                default -> "已审核资料";
             };
             context.append("【资料").append(index++).append("｜").append(label).append("】")
                     .append(hit.title()).append('\n')
@@ -117,6 +124,11 @@ public class KnowledgeAskService {
         graphHits.stream().filter(hit -> "PATTERN".equals(hit.nodeType())).findFirst()
                 .ifPresent(hit -> answer.append("纹样：").append(hit.title())
                         .append("——").append(hit.excerpt()).append('\n'));
+        graphHits.stream().filter(hit -> "MATERIAL".equals(hit.nodeType())).findFirst()
+                .ifPresent(hit -> answer.append("材料：").append(hit.title())
+                        .append("——").append(hit.excerpt()).append('\n'));
+        graphHits.stream().filter(hit -> "SAFETY".equals(hit.nodeType())).findFirst()
+                .ifPresent(hit -> answer.append("安全提醒：").append(hit.excerpt()).append('\n'));
         List<GraphHit> verified = graphHits.stream()
                 .filter(hit -> "SOURCE".equals(hit.nodeType())).limit(2).toList();
         if (!verified.isEmpty()) {

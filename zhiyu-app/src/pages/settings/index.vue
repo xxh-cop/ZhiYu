@@ -162,6 +162,27 @@
 			</view>
 		</view>
 
+		<!-- 小织记忆入口 -->
+		<view
+			class="section-card memory-entry zy-slide-up zy-stagger"
+			style="--stagger-i: 4"
+			role="button"
+			tabindex="0"
+			aria-label="打开小织记忆设置"
+			@click="goMemory"
+			@keydown.enter.prevent="goMemory"
+			@keydown.space.prevent="goMemory"
+		>
+			<view class="card-head">
+				<view class="card-icon-wrap card-icon-memory">
+					<wd-icon name="heart" size="32rpx" color="#FFFFFF" />
+				</view>
+				<text class="section-heading">小织记忆</text>
+				<text class="memory-entry-arrow" aria-hidden="true">›</text>
+			</view>
+			<text class="memory-entry-text">默认关闭 · 只保存练习偏好 · 180 天后失效 · 可随时删除</text>
+		</view>
+
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 	</view>
@@ -202,6 +223,10 @@ const savingProfile = ref(false)
 const savingPassword = ref(false)
 const loadingMe = ref(false)
 const loadError = ref('')
+
+function goMemory() {
+	uni.navigateTo({ url: '/pages/settings/memory' })
+}
 
 const roleLabel = computed(() => {
 	const role = form.value.role
@@ -620,4 +645,25 @@ async function handleChangePassword() {
 	line-height: 2.5;
 }
 .settings-error button::after { border: 0; }
+.card-icon-memory {
+	background: linear-gradient(135deg, var(--zy-accent, #bb914d), var(--zy-primary, #2f7566));
+}
+.memory-entry {
+	cursor: pointer;
+}
+.memory-entry .card-head {
+	margin-bottom: 10rpx;
+}
+.memory-entry-arrow {
+	margin-left: auto;
+	color: var(--zy-aid, #718478);
+	font-size: 40rpx;
+	line-height: 1;
+}
+.memory-entry-text {
+	display: block;
+	font-size: 23rpx;
+	line-height: 1.7;
+	color: var(--zy-content, #586e62);
+}
 </style>

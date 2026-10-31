@@ -74,4 +74,14 @@ public interface LlmClient {
      * @return LLM 生成的回答文本
      */
     String chat(String prompt);
+
+    /** 默认实现只返回文本；支持 usage 的实现应覆盖并返回 token 用量。 */
+    default LlmChatResult chatWithUsage(String prompt) {
+        return new LlmChatResult(chat(prompt), null, null);
+    }
+
+    /** 当前模型名；未覆盖时返回 unknown，不得把 Mock 冒充真实模型。 */
+    default String modelName() {
+        return "unknown";
+    }
 }

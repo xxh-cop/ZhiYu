@@ -41,6 +41,18 @@ class HeritageGraphIndexTest {
     }
 
     @Test
+    void expandsMaterialAndSafetyNodes() {
+        var material = HeritageGraphIndex.search("竹编 材料", catalog);
+        assertTrue(material.stream().anyMatch(hit -> hit.nodeType().equals("MATERIAL")
+                && hit.title().contains("竹")), material.toString());
+        var safety = HeritageGraphIndex.search("剪纸 安全", catalog);
+        assertTrue(safety.stream().anyMatch(hit -> hit.nodeType().equals("SAFETY")
+                && hit.title().contains("安全")), safety.toString());
+        assertTrue(safety.stream().noneMatch(hit -> hit.excerpt().contains("疗效")),
+                "安全节点不得输出疗效结论");
+    }
+
+    @Test
     void findsWindowPatternUnderPapercutTradition() {
         var hits = HeritageGraphIndex.search("剪纸 方窗", catalog);
         assertTrue(hits.stream().anyMatch(hit -> hit.nodeId().equals("970103")));

@@ -30,6 +30,11 @@ public class HeritageGraphIndex {
     private static final Set<String> STOP = Set.of(
             "什么", "怎么", "如何", "哪些", "可以", "非遗", "了解", "介绍",
             "这个", "那个", "有", "的", "和", "与", "吗", "呢");
+    private static final Map<String, String> MEDIUM_LABELS = Map.of(
+            "stitch", "针线",
+            "weave", "编织",
+            "cutout", "剪刻",
+            "porcelain", "器面");
 
     private final HeritageCatalogService catalogs;
 
@@ -107,13 +112,24 @@ public class HeritageGraphIndex {
         switch (seed.type()) {
             case "TRADITION" -> {
                 seed.sourceIds().stream().map(byId::get).filter(Objects::nonNull).forEach(out::add);
-                catalog.patterns().stream()
+                List<HeritageCatalog.Pattern> related = catalog.patterns().stream()
                         .filter(pattern -> pattern.traditionId().equals(seed.id()))
                         .sorted(Comparator.comparingDouble((HeritageCatalog.Pattern pattern) ->
                                 score(normalized, terms, byId.get(pattern.id()))).reversed())
                         .limit(2)
-                        .map(pattern -> byId.get(pattern.id()))
-                        .forEach(out::add);
+                        .toList();
+                for (HeritageCatalog.Pattern pattern : related) {
+                    Node node = byId.get(pattern.id());
+                    if (node != null) out.add(node);
+                    Node medium = byId.get("medium:" + pattern.family());
+                    if (medium != null) out.add(medium);
+                }
+                Node safety = byId.get("safety:" + seed.id());
+                if (safety != null) out.add(safety);
+                catalog.traditions().stream().filter(t -> t.id().equals(seed.id())).findFirst()
+                        .ifPresent(tradition -> tradition.materials().stream()
+                                .map(material -> byId.get("material:" + normalize(material)))
+                                .filter(Objects::nonNull).forEach(out::add));
             }
             case "PATTERN" -> catalog.patterns().stream().filter(p -> p.id().equals(seed.id())).findFirst()
                     .map(pattern -> {
@@ -121,7 +137,13 @@ public class HeritageGraphIndex {
                         pattern.sourceIds().stream().map(byId::get).filter(Objects::nonNull)
                                 .forEach(linked::add);
                         Node tradition = byId.get(pattern.traditionId());
-                        if (tradition != null) linked.add(tradition);
+                        if (tradition != null) {
+                            linked.add(tradition);
+                            Node safety = byId.get("safety:" + pattern.traditionId());
+                            if (safety != null) linked.add(safety);
+                        }
+                        Node medium = byId.get("medium:" + pattern.family());
+                        if (medium != null) linked.add(medium);
                         return linked;
                     })
                     .ifPresent(out::addAll);
@@ -130,6 +152,25 @@ public class HeritageGraphIndex {
                         .limit(2).map(t -> byId.get(t.id())).filter(Objects::nonNull).forEach(out::add);
                 catalog.patterns().stream().filter(p -> p.sourceIds().contains(seed.id()))
                         .limit(2).map(p -> byId.get(p.id())).filter(Objects::nonNull).forEach(out::add);
+            }
+            case "MEDIUM" -> {
+                String family = seed.id().substring("medium:".length());
+                seed.sourceIds().stream().map(byId::get).filter(Objects::nonNull).forEach(out::add);
+                catalog.patterns().stream().filter(p -> p.family().equals(family))
+                        .limit(3).map(p -> byId.get(p.id())).filter(Objects::nonNull).forEach(out::add);
+            }
+            case "MATERIAL" -> {
+                seed.sourceIds().stream().map(byId::get).filter(Objects::nonNull).forEach(out::add);
+                catalog.traditions().stream()
+                        .filter(t -> t.materials().stream()
+                                .anyMatch(material -> ("material:" + normalize(material)).equals(seed.id())))
+                        .limit(2).map(t -> byId.get(t.id())).filter(Objects::nonNull).forEach(out::add);
+            }
+            case "SAFETY" -> {
+                seed.sourceIds().stream().map(byId::get).filter(Objects::nonNull).forEach(out::add);
+                String traditionId = seed.id().substring("safety:".length());
+                Node tradition = byId.get(traditionId);
+                if (tradition != null) out.add(tradition);
             }
             default -> {
             }
@@ -154,6 +195,53 @@ public class HeritageGraphIndex {
                     safe(pattern.learningFocus()), safe(pattern.sourceIds()),
                     null, null, null));
         }
+        Map<String, List<HeritageCatalog.Pattern>> byMedium = new LinkedHashMap<>();
+        for (HeritageCatalog.Pattern pattern : catalog.patterns()) {
+            byMedium.computeIfAbsent(pattern.family(), key -> new ArrayList<>()).add(pattern);
+        }
+        for (Map.Entry<String, List<HeritageCatalog.Pattern>> entry : byMedium.entrySet()) {
+            String label = MEDIUM_LABELS.getOrDefault(entry.getKey(), entry.getKey());
+            String names = entry.getValue().stream().map(HeritageCatalog.Pattern::name)
+                    .limit(6).reduce((left, right) -> left + "、" + right).orElse("");
+            List<String> sourceIds = unionSources(entry.getValue().stream()
+                    .map(HeritageCatalog.Pattern::sourceIds).toList());
+            nodes.add(new Node("medium:" + entry.getKey(), "MEDIUM", label,
+                    "纹样介质：" + label + "；相关原创纹样：" + names,
+                    "纹样介质：" + label + "；" + names,
+                    sourceIds, null, null, null));
+        }
+
+        Map<String, List<HeritageCatalog.Tradition>> byMaterial = new LinkedHashMap<>();
+        for (HeritageCatalog.Tradition tradition : catalog.traditions()) {
+            for (String material : safe(tradition.materials())) {
+                if (material == null || material.isBlank()) continue;
+                byMaterial.computeIfAbsent(material, key -> new ArrayList<>()).add(tradition);
+            }
+        }
+        for (Map.Entry<String, List<HeritageCatalog.Tradition>> entry : byMaterial.entrySet()) {
+            String material = entry.getKey();
+            String id = "material:" + normalize(material);
+            if ("material:".equals(id)) continue;
+            String names = entry.getValue().stream().map(HeritageCatalog.Tradition::name)
+                    .limit(4).reduce((left, right) -> left + "、" + right).orElse("");
+            List<String> sourceIds = unionSources(entry.getValue().stream()
+                    .map(HeritageCatalog.Tradition::sourceIds).toList());
+            nodes.add(new Node(id, "MATERIAL", "材料：" + material,
+                    "材料：" + material + "；相关工艺：" + names,
+                    "材料：" + material + "；相关工艺：" + names,
+                    sourceIds, null, null, null));
+        }
+
+        for (HeritageCatalog.Tradition tradition : catalog.traditions()) {
+            List<String> safety = safe(tradition.safety());
+            if (safety.isEmpty()) continue;
+            String text = String.join(" ", safety);
+            nodes.add(new Node("safety:" + tradition.id(), "SAFETY",
+                    "安全提醒：" + tradition.name(), text,
+                    text.length() > 140 ? text.substring(0, 140) : text,
+                    safe(tradition.sourceIds()), null, null, null));
+        }
+
         for (HeritageCatalog.Source source : catalog.sources()) {
             String facts = String.join(" ", safe(source.facts()));
             nodes.add(new Node(source.id(), "SOURCE", source.title(),
@@ -212,8 +300,17 @@ public class HeritageGraphIndex {
         return switch (type) {
             case "TRADITION" -> 0;
             case "PATTERN" -> 1;
-            default -> 2;
+            case "MEDIUM" -> 2;
+            case "MATERIAL" -> 3;
+            case "SAFETY" -> 4;
+            default -> 5;
         };
+    }
+
+    private static List<String> unionSources(List<List<String>> groups) {
+        LinkedHashSet<String> values = new LinkedHashSet<>();
+        for (List<String> group : groups) values.addAll(safe(group));
+        return List.copyOf(values);
     }
 
     private static List<String> safe(List<String> values) {

@@ -3,6 +3,7 @@ package com.zhiyu.ai.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhiyu.common.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.http.*;
@@ -11,6 +12,7 @@ import java.util.*;
 
 /** JSON gateway protocol is documented in docs/speech-gateway.md; no provider is assumed. */
 @Component
+@ConditionalOnProperty(name = "zhiyu.speech.provider", havingValue = "gateway", matchIfMissing = true)
 public class GatewaySpeechClient implements SpeechClient {
     private final String endpoint,key;
     private final boolean enabled;

@@ -19,7 +19,7 @@
 /**
  * H5 端实现：fetch + ReadableStream。
  */
-function startSSEH5({ url, body, token, onMessage, onDone, onError }) {
+function startSSEH5({ url, body, token, onMessage, onDone, onError, onEvent }) {
 	const controller = new AbortController()
 	let aborted = false
 
@@ -61,7 +61,7 @@ function startSSEH5({ url, body, token, onMessage, onDone, onError }) {
 						if (done) {
 							// 流结束，处理 buffer 剩余
 							if (buffer.trim()) {
-								parseSSEChunk(buffer, onMessage, onDone, onError, aborted)
+								parseSSEChunk(buffer, onMessage, onDone, onError, aborted, onEvent)
 							}
 							return
 						}
@@ -71,7 +71,7 @@ function startSSEH5({ url, body, token, onMessage, onDone, onError }) {
 						buffer = parts.pop() // 最后一段可能不完整，保留
 						for (const part of parts) {
 							if (part.trim()) {
-								parseSSEChunk(part, onMessage, onDone, onError, aborted)
+								parseSSEChunk(part, onMessage, onDone, onError, aborted, onEvent)
 							}
 						}
 						pump()
@@ -108,7 +108,7 @@ function startSSEH5({ url, body, token, onMessage, onDone, onError }) {
  * 2. 如果 onChunkReceived 不可用，退回 enableChunked: false 一次性接收完整 SSE 再逐块解析
  * 3. 如果流式模式 success 回调里 onChunkReceived 未触发，也在 success 中处理完整响应
  */
-function startSSEMP({ url, body, token, onMessage, onDone, onError }) {
+function startSSEMP({ url, body, token, onMessage, onDone, onError, onEvent }) {
 	let aborted = false
 	let buffer = ''
 	let chunkReceived = false
@@ -129,7 +129,7 @@ function startSSEMP({ url, body, token, onMessage, onDone, onError }) {
 		const parts = fullText.split('\n\n')
 		for (const part of parts) {
 			if (part.trim()) {
-				parseSSEChunk(part, onMessage, onDone, onError, aborted)
+				parseSSEChunk(part, onMessage, onDone, onError, aborted, onEvent)
 			}
 		}
 	}
@@ -146,7 +146,7 @@ function startSSEMP({ url, body, token, onMessage, onDone, onError }) {
 			// 流式模式：onChunkReceived 已处理了大部分数据，只处理 buffer 剩余
 			if (chunkSupported && chunkReceived) {
 				if (buffer.trim()) {
-					parseSSEChunk(buffer, onMessage, onDone, onError, aborted)
+					parseSSEChunk(buffer, onMessage, onDone, onError, aborted, onEvent)
 				}
 				return
 			}
@@ -169,7 +169,7 @@ function startSSEMP({ url, body, token, onMessage, onDone, onError }) {
 			// 如果 enableChunked 模式下 success 拿不到 data，
 			// 但 buffer 有内容（onChunkReceived 触发过），处理 buffer
 			if (!fullText && buffer.trim()) {
-				parseSSEChunk(buffer, onMessage, onDone, onError, aborted)
+				parseSSEChunk(buffer, onMessage, onDone, onError, aborted, onEvent)
 				return
 			}
 
@@ -195,7 +195,7 @@ function startSSEMP({ url, body, token, onMessage, onDone, onError }) {
 				buffer = parts.pop()
 				for (const part of parts) {
 					if (part.trim()) {
-						parseSSEChunk(part, onMessage, onDone, onError, aborted)
+						parseSSEChunk(part, onMessage, onDone, onError, aborted, onEvent)
 					}
 				}
 			} catch (e) {
@@ -257,7 +257,7 @@ function arrayBufferToUtf8(buf) {
  * 或默认事件：
  *   data: 你好
  */
-function parseSSEChunk(chunk, onMessage, onDone, onError, aborted) {
+function parseSSEChunk(chunk, onMessage, onDone, onError, aborted, onEvent) {
 	if (aborted) return
 
 	let event = ''
@@ -273,26 +273,27 @@ function parseSSEChunk(chunk, onMessage, onDone, onError, aborted) {
 	}
 
 	const data = dataLines.join('\n')
+	let parsed = null
+	if (data) {
+		try {
+			parsed = JSON.parse(data)
+		} catch (e) {
+			parsed = null
+		}
+	}
+
+	// 类型化事件（companion）：把 JSON data 原样交给调用方，done/error 仍走兼容回调。
+	if (onEvent) {
+		onEvent(event || 'message', parsed !== null ? parsed : { raw: data })
+	}
 
 	if (event === 'done') {
-		try {
-			const parsed = JSON.parse(data)
-			onDone(parsed)
-		} catch (e) {
-			onDone({ sessionId: null })
-		}
+		onDone(parsed || { sessionId: null })
 	} else if (event === 'error') {
-		try {
-			const parsed = JSON.parse(data)
-			onError(parsed)
-		} catch (e) {
-			onError({ code: 5000, message: '服务暂时不可用' })
-		}
-	} else {
-		// 默认事件 → message，data 是纯文本 token
-		if (data) {
-			onMessage(data)
-		}
+		onError(parsed || { code: 5000, message: '服务暂时不可用' })
+	} else if (!onEvent && data) {
+		// 兼容旧对话：默认事件 data 是纯文本 token。
+		onMessage(data)
 	}
 }
 
@@ -306,6 +307,7 @@ function parseSSEChunk(chunk, onMessage, onDone, onError, aborted) {
  * @param {function} options.onMessage  收到 token 时回调，参数为文本
  * @param {function} options.onDone     收到 done 事件回调，参数为 { sessionId }
  * @param {function} options.onError    收到 error 事件或网络异常回调
+ * @param {function} [options.onEvent]  类型化事件回调 (eventName, data)；提供后不再调用 onMessage
  * @returns {{ abort: function }}  调用 abort() 静默关闭
  */
 export function startSSE(options) {

@@ -17,13 +17,27 @@
 				<text class="growth-eyebrow">HERITAGE COLOR STUDY</text>
 				<text class="growth-title">{{ pattern.name }} · 配色练习</text>
 				<text class="growth-subtitle">{{ pattern.traditionName }} · {{ pattern.region }} · {{ pattern.familyLabel }} · {{ pattern.level }}</text>
-				<text class="heritage-origin">原创教学再设计 · 不上传、不保存</text>
+				<text class="heritage-origin">{{ practiceSession ? '练习会话已连接 · 作品不上传，进度会保存' : '原创教学再设计 · 不上传、不保存' }}</text>
 			</view>
 
 			<view class="studio-plan-bar" role="status" aria-live="polite">
 				<text>当前结构：{{ activeStructureLabel }}</text>
 				<text v-if="aiAppliedId" class="studio-plan-applied">已应用小织建议</text>
 			</view>
+
+			<view v-if="sessionId && practiceError && !practiceSession" class="growth-card heritage-status" role="alert">
+				<text class="growth-error">{{ practiceError }}</text>
+				<text class="growth-muted">可以继续完成当前配色练习，或返回成长旅程后重试。</text>
+			</view>
+
+			<PracticeSessionBar
+				v-if="practiceSession"
+				:session="practiceSession"
+				:busy="practiceBusy"
+				:error="practiceError"
+				@pause-and-leave="pauseAndLeave"
+				@open-journey="goJourney"
+			/>
 
 			<view class="studio-layout">
 				<view class="studio-canvas-card" :data-primary="studio.primaryColor" :data-drawn="drawn ? 'true' : 'false'">
@@ -87,10 +101,16 @@
 					<view class="growth-card">
 						<text class="growth-card-title">关于这张练习</text>
 						<text class="growth-muted">{{ pattern.designNote }}</text>
-						<text class="growth-muted studio-note">本页只练习配色，不保存到账号，也不代表完成真实工艺。</text>
+						<text class="growth-muted studio-note">{{ practiceSession ? '本页只练习配色，作品不上传；练习进度会保存到成长旅程，不代表完成真实工艺。' : '本页只练习配色，不保存到账号，也不代表完成真实工艺。' }}</text>
 					</view>
 				</view>
 			</view>
+
+			<CompanionPanel
+				v-if="practiceSession"
+				:session="practiceSession"
+				:pattern-name="pattern.name"
+			/>
 
 			<view class="growth-card studio-ai-card" data-ai-card>
 				<view class="studio-step-head">
@@ -183,9 +203,59 @@
 				<button class="growth-button" data-copy-culture @click="copyCultureCard">复制文化卡文字</button>
 				<text v-if="copyStatus" class="culture-status" role="status" aria-live="polite">{{ copyStatus }}</text>
 			</view>
-			<view v-else class="growth-card culture-teaser" role="status">
+			<view v-else-if="!canSaveArtifact" class="growth-card culture-teaser" role="status">
 				<text class="growth-card-title">纹样文化卡</text>
 				<text class="growth-muted">完成 4 步后，这里会生成本次练习的文化卡，包含纹样、工艺、地区、色板与来源，可复制保存。</text>
+			</view>
+
+			<view v-if="canSaveArtifact" class="growth-card practice-artifact-card" data-practice-artifact>
+				<view class="studio-step-head">
+					<view>
+						<text class="growth-eyebrow">PRACTICE ARTIFACT</text>
+						<text class="growth-card-title">{{ artifact ? '已保存到成长旅程' : '把这次练习留下来' }}</text>
+					</view>
+					<text class="studio-ai-badge">{{ artifact ? '已加密保存' : '待保存' }}</text>
+				</view>
+				<text class="growth-muted">保存文化卡、色板与备注，不是作品图片；会加密写入你的成长旅程，可随时删除。</text>
+				<text v-if="artifactLoading" class="growth-muted">正在读取保存状态…</text>
+				<view v-else class="artifact-body">
+					<view class="artifact-summary">
+						<text class="artifact-title">{{ (artifact && artifact.patternName) || pattern.name }} · {{ (artifact && artifact.traditionName) || pattern.traditionName }}</text>
+						<text class="artifact-meta">{{ artifactStructure }} · {{ (artifact && artifact.minutesBudget) || practiceSession.minutesBudget }} 分钟</text>
+						<view class="artifact-swatches" aria-label="本次色板">
+							<view v-for="(color, index) in artifactPalette" :key="color + index" class="artifact-swatch" :style="{ backgroundColor: color }"></view>
+						</view>
+						<text class="artifact-focus">{{ (artifact && artifact.learningFocus) || pattern.learningFocus }}</text>
+						<text v-if="artifact && artifact.listeningSummary" class="artifact-summary-text">倾听小结：{{ artifact.listeningSummary }}</text>
+						<view v-if="artifactSources.length" class="artifact-sources">
+							<text v-for="source in artifactSources" :key="source.id" class="artifact-source">{{ source.title }} · {{ source.organization }}</text>
+						</view>
+					</view>
+					<text class="studio-ai-label">留给以后的一句话（可选）</text>
+					<textarea
+						v-model="artifactNotes"
+						class="studio-ai-input artifact-notes"
+						maxlength="500"
+						:disabled="artifactBusy"
+						placeholder="例如：原来慢下来，颜色会变得不一样。"
+						aria-label="练习备注，可选，最多 500 字"
+					/>
+					<button
+						class="studio-consent"
+						role="checkbox"
+						:aria-checked="artifactConsent ? 'true' : 'false'"
+						aria-label="同意把这次练习的文化卡、色板与备注加密保存到成长旅程"
+						@click="artifactConsent = !artifactConsent"
+					>
+						<view class="studio-consent-box" aria-hidden="true">{{ artifactConsent ? '✓' : '' }}</view>
+						<text>同意把这次练习的文化卡、色板与备注加密保存到成长旅程</text>
+					</button>
+					<button class="growth-button" :disabled="artifactBusy || !artifactConsent" @click="saveArtifact">{{ artifactBusy ? '正在保存…' : (artifact ? '更新这次保存' : '保存到成长旅程') }}</button>
+					<text v-if="artifactError" class="growth-error" role="alert">{{ artifactError }}</text>
+					<text v-if="artifactSavedHint" class="artifact-saved-hint" role="status">{{ artifactSavedHint }}</text>
+					<button v-if="artifact" class="growth-button secondary" :disabled="artifactBusy" @click="deleteArtifact">删除这次保存</button>
+					<text class="studio-ai-disclaimer">删除只移除成果，不删除练习会话；可再次保存。</text>
+				</view>
 			</view>
 
 			<button class="growth-button secondary" @click="back">返回纹样馆</button>
@@ -215,6 +285,9 @@ import {
 	undoPrimaryColor,
 } from '../../utils/heritage-studio'
 import { useInteraction } from '../../composables/useInteraction'
+import PracticeSessionBar from '../../components/PracticeSessionBar.vue'
+import CompanionPanel from '../../components/CompanionPanel.vue'
+import { getPracticeSession, transitionPracticeSession, getPracticeArtifact, savePracticeArtifact, deletePracticeArtifact } from '../../utils/practice-session'
 
 const { reducedMotion } = useInteraction()
 const instance = getCurrentInstance()
@@ -222,6 +295,17 @@ const loading = ref(false)
 const error = ref('')
 const notFound = ref(false)
 const patternId = ref('')
+const sessionId = ref('')
+const practiceSession = ref(null)
+const practiceBusy = ref(false)
+const practiceError = ref('')
+const artifact = ref(null)
+const artifactLoading = ref(false)
+const artifactBusy = ref(false)
+const artifactError = ref('')
+const artifactNotes = ref('')
+const artifactConsent = ref(false)
+const artifactSavedHint = ref('')
 const pattern = ref(null)
 const catalogData = ref(null)
 const activePlan = ref(null)
@@ -244,6 +328,9 @@ let drawTimer = null
 const primaryActionLabel = computed(() => {
 	if (!studio.value) return '开始练习'
 	if (studio.value.completed) return '再练一次'
+	if (practiceSession.value && [5, 6].includes(Number(practiceSession.value.status))) {
+		return '再练一次（新练习）'
+	}
 	if (studio.value.running) return '暂停练习'
 	return studio.value.started ? '继续练习' : '开始练习'
 })
@@ -251,6 +338,21 @@ const canAdvance = computed(() => !!studio.value && studio.value.running && !stu
 const activeStructureLabel = computed(() => {
 	if (!pattern.value || !activePlan.value) return ''
 	return `${pattern.value.familyLabel} · ${variantLabel(activePlan.value.family, activePlan.value.variant)} · 疏密 ${activePlan.value.detail}`
+})
+const canSaveArtifact = computed(() => !!practiceSession.value && [5, 6].includes(Number(practiceSession.value.status)))
+const artifactPalette = computed(() => {
+	if (artifact.value && Array.isArray(artifact.value.palette) && artifact.value.palette.length === 4) {
+		return artifact.value.palette
+	}
+	if (studio.value && Array.isArray(studio.value.palette)) return studio.value.palette
+	return (pattern.value && pattern.value.palette) || []
+})
+const artifactStructure = computed(() => (artifact.value && artifact.value.structureLabel) || activeStructureLabel.value)
+const artifactSources = computed(() => {
+	if (artifact.value && Array.isArray(artifact.value.sources) && artifact.value.sources.length) {
+		return artifact.value.sources
+	}
+	return cultureSources.value
 })
 const canvasLabel = computed(() => {
 	if (!pattern.value || !studio.value || !activePlan.value) return '原创教学构图'
@@ -315,18 +417,150 @@ function undoColor() {
 	studio.value = undoPrimaryColor(studio.value)
 }
 
-function toggleRunning() {
-	if (!studio.value) return
+async function toggleRunning() {
+	if (!studio.value || practiceBusy.value) return
 	if (studio.value.completed) {
+		if (practiceSession.value) {
+			uni.redirectTo({ url: '/pages/heritage/studio?id=' + encodeURIComponent(patternId.value) })
+			return
+		}
 		studio.value = startStudio(studio.value)
 		copyStatus.value = ''
-	} else if (studio.value.running) studio.value = pauseStudio(studio.value)
-	else studio.value = resumeStudio(studio.value)
+		return
+	}
+	if (practiceSession.value && [5, 6].includes(Number(practiceSession.value.status))) {
+		uni.redirectTo({ url: '/pages/heritage/studio?id=' + encodeURIComponent(patternId.value) })
+		return
+	}
+	if (studio.value.running) {
+		if (practiceSession.value && Number(practiceSession.value.status) === 3) {
+			if (!(await syncPractice('PAUSE'))) return
+		}
+		studio.value = pauseStudio(studio.value)
+		return
+	}
+	if (practiceSession.value) {
+		const status = Number(practiceSession.value.status)
+		if (status === 4) {
+			if (!(await syncPractice('RESUME'))) return
+		} else if (status !== 3) {
+			if (!(await syncPractice('START'))) return
+		}
+	}
+	studio.value = studio.value.started ? resumeStudio(studio.value) : startStudio(studio.value)
 }
 
-function nextStep() {
-	if (!studio.value || !canAdvance.value) return
+async function nextStep() {
+	if (!studio.value || !canAdvance.value || practiceBusy.value) return
+	if (studio.value.step === 4 && practiceSession.value) {
+		const status = Number(practiceSession.value.status)
+		if (status === 3) {
+			if (!(await syncPractice('COMPLETE'))) return
+			await loadArtifact()
+		} else if (status !== 5 && status !== 6) {
+			practiceError.value = '请先继续练习，再完成本次会话。'
+			return
+		}
+	}
 	studio.value = studio.value.step === 4 ? completeStudio(studio.value) : advanceStudio(studio.value)
+}
+
+async function syncPractice(action) {
+	if (!practiceSession.value) return true
+	practiceBusy.value = true
+	practiceError.value = ''
+	try {
+		practiceSession.value = await transitionPracticeSession(
+			practiceSession.value.practiceSessionId,
+			action
+		)
+		return true
+	} catch (event) {
+		practiceError.value = (event && event.message) || '练习进度暂时没有保存，请稍后重试'
+		return false
+	} finally {
+		practiceBusy.value = false
+	}
+}
+
+async function pauseAndLeave() {
+	if (practiceBusy.value) return
+	if (practiceSession.value && Number(practiceSession.value.status) === 3) {
+		if (!(await syncPractice('PAUSE'))) return
+		if (studio.value && studio.value.running) studio.value = pauseStudio(studio.value)
+	}
+	goJourney()
+}
+
+function goJourney() {
+	uni.navigateTo({ url: '/pages/journey/index' })
+}
+
+async function loadArtifact() {
+	if (!practiceSession.value || ![5, 6].includes(Number(practiceSession.value.status))) return
+	artifactLoading.value = true
+	artifactError.value = ''
+	try {
+		const data = await getPracticeArtifact(practiceSession.value.practiceSessionId)
+		artifact.value = data && data.saved ? data : null
+		artifactNotes.value = artifact.value ? (artifact.value.notes || '') : ''
+	} catch (event) {
+		artifactError.value = (event && event.message) || '保存状态暂时没有载入'
+	} finally {
+		artifactLoading.value = false
+	}
+}
+
+async function saveArtifact() {
+	if (!practiceSession.value || artifactBusy.value) return
+	if (!artifactConsent.value) {
+		artifactError.value = '请先同意保存授权'
+		return
+	}
+	artifactBusy.value = true
+	artifactError.value = ''
+	artifactSavedHint.value = ''
+	try {
+		const data = await savePracticeArtifact(practiceSession.value.practiceSessionId, {
+			consent: true,
+			structureLabel: artifactStructure.value,
+			notes: artifactNotes.value,
+			palette: artifactPalette.value,
+		})
+		artifact.value = data && data.saved ? data : null
+		artifactNotes.value = artifact.value ? (artifact.value.notes || '') : artifactNotes.value
+		artifactConsent.value = false
+		artifactSavedHint.value = '已加密保存到成长旅程。'
+		practiceSession.value = await getPracticeSession(practiceSession.value.practiceSessionId)
+	} catch (event) {
+		artifactError.value = (event && event.message) || '保存暂时没有完成，请重试'
+	} finally {
+		artifactBusy.value = false
+	}
+}
+
+function deleteArtifact() {
+	if (!practiceSession.value || artifactBusy.value) return
+	uni.showModal({
+		title: '删除这次保存',
+		content: '只删除练习成果，不删除练习会话。是否继续？',
+		success: async res => {
+			if (!res.confirm || artifactBusy.value) return
+			artifactBusy.value = true
+			artifactError.value = ''
+			try {
+				await deletePracticeArtifact(practiceSession.value.practiceSessionId)
+				artifact.value = null
+				artifactNotes.value = ''
+				artifactSavedHint.value = '已删除这次保存，可重新保存。'
+				practiceSession.value = await getPracticeSession(practiceSession.value.practiceSessionId)
+			} catch (event) {
+				artifactError.value = (event && event.message) || '删除暂时没有完成，请重试'
+			} finally {
+				artifactBusy.value = false
+			}
+		},
+	})
 }
 
 function toggleConsent() {
@@ -426,6 +660,16 @@ function back() {
 	else uni.redirectTo({ url: '/pages/heritage/gallery' })
 }
 
+async function loadPracticeSession() {
+	if (!sessionId.value) return
+	practiceError.value = ''
+	try {
+		practiceSession.value = await getPracticeSession(sessionId.value)
+	} catch (event) {
+		practiceError.value = (event && event.message) || '练习会话暂时没有载入，可以继续完成当前配色练习'
+	}
+}
+
 async function load() {
 	loading.value = true
 	error.value = ''
@@ -464,11 +708,17 @@ async function load() {
 	}
 }
 
-onLoad((query) => {
+onLoad(async (query) => {
 	patternId.value = query && query.id ? String(query.id) : ''
+	sessionId.value = query && query.sessionId ? String(query.sessionId) : ''
+	if (sessionId.value) await loadPracticeSession()
+	if (!patternId.value && practiceSession.value && practiceSession.value.heritagePatternId) {
+		patternId.value = String(practiceSession.value.heritagePatternId)
+	}
 	const info = uni.getSystemInfoSync()
 	canvasSize.value = Math.min(Math.max(240, (info.windowWidth || 375) - 72), 520)
-	load()
+	await load()
+	await loadArtifact()
 })
 onReady(() => {
 	pageReady.value = true
@@ -547,6 +797,19 @@ onMounted(() => {
 .culture-text { display: block; margin-top: 4rpx; font-size: 23rpx; line-height: 1.7; color: var(--zy-text, #586e62); word-break: break-word; }
 .culture-note { display: block; margin-top: 18rpx; padding: 12rpx 16rpx; border-radius: 12rpx; background: var(--zy-bg, #f5f7f2); font-size: 21rpx; line-height: 1.7; color: var(--zy-text, #586e62); }
 .culture-status { display: block; margin-top: 10rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-primary, #2f7566); }
+.practice-artifact-card { margin-top: 20rpx; }
+.artifact-body { margin-top: 16rpx; }
+.artifact-summary { padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); }
+.artifact-title { display: block; font-size: 27rpx; font-weight: 600; color: var(--zy-title, #233d34); }
+.artifact-meta { display: block; margin-top: 4rpx; font-size: 22rpx; color: var(--zy-text, #586e62); }
+.artifact-swatches { display: flex; gap: 10rpx; margin: 12rpx 0; }
+.artifact-swatch { width: 34rpx; height: 34rpx; border-radius: 50%; border: 1rpx solid var(--zy-border, #dfe7dc); }
+.artifact-focus { display: block; font-size: 22rpx; line-height: 1.7; color: var(--zy-text, #586e62); }
+.artifact-summary-text { display: block; margin-top: 8rpx; font-size: 22rpx; line-height: 1.7; color: var(--zy-text, #586e62); }
+.artifact-sources { margin-top: 8rpx; }
+.artifact-source { display: block; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #586e62); }
+.artifact-notes { height: 120rpx; min-height: 100rpx; }
+.artifact-saved-hint { display: block; margin-top: 10rpx; font-size: 22rpx; line-height: 1.6; color: var(--zy-primary, #2f7566); }
 @media (min-width: 900px) { .studio-ai-variants { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 820px) { .studio-layout { grid-template-columns: minmax(0, 1fr); } }
 </style>

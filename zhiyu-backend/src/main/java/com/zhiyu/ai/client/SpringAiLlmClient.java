@@ -6,7 +6,9 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,7 @@ public class SpringAiLlmClient implements LlmClient {
 
     private final ChatClient chatClient;
     private final com.zhiyu.modules.admin.service.RuntimeSettings settings;
+    private final String modelName;
     private final String workPrompt;
     private org.springframework.ai.chat.prompt.ChatOptions options(){return org.springframework.ai.chat.prompt.ChatOptions.builder().temperature(settings.number("model","temperature")).maxTokens((int)settings.number("model","maxTokens")).build();}
     private final String companionPrompt;
@@ -40,12 +43,14 @@ public class SpringAiLlmClient implements LlmClient {
     private final String ragPrompt;
 
     public SpringAiLlmClient(ChatClient.Builder builder, com.zhiyu.modules.admin.service.RuntimeSettings settings,
+                             @Value("${spring.ai.openai.chat.options.model:deepseek-chat}") String modelName,
                              @Qualifier("companionPrompt") String companionPrompt,
                              @Qualifier("safetyPrompt") String safetyPrompt,
                              @Qualifier("recommendPrompt") String recommendPrompt,
                              @Qualifier("ragPrompt") String ragPrompt) {
         this.chatClient = builder.build();
         this.settings=settings;
+        this.modelName = modelName;
         try(var in=new org.springframework.core.io.ClassPathResource("prompts/work_message.st").getInputStream()){this.workPrompt=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}catch(java.io.IOException e){throw new IllegalStateException("寄语模板读取失败",e);}
         this.companionPrompt = companionPrompt;
         this.safetyPrompt = safetyPrompt;
@@ -93,6 +98,25 @@ public class SpringAiLlmClient implements LlmClient {
     @Override
     public String chat(String prompt) {
         return chatClient.prompt().options(options()).system(safetyPrompt).user(prompt).call().content();
+    }
+
+    @Override
+    public LlmChatResult chatWithUsage(String prompt) {
+        ChatResponse response = chatClient.prompt().options(options()).system(safetyPrompt)
+                .user(prompt).call().chatResponse();
+        String text = response == null || response.getResult() == null
+                || response.getResult().getOutput() == null
+                ? "" : response.getResult().getOutput().getText();
+        var usage = response == null || response.getMetadata() == null
+                ? null : response.getMetadata().getUsage();
+        return new LlmChatResult(text,
+                usage == null ? null : usage.getPromptTokens(),
+                usage == null ? null : usage.getCompletionTokens());
+    }
+
+    @Override
+    public String modelName() {
+        return modelName;
     }
 
     /**

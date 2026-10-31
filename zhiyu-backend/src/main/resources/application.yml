@@ -77,6 +77,11 @@ zhiyu:
         dimensions: 2048
     rag:
       vector-store-path: ${ZHIYU_RAG_STORE_PATH:./rag-store.json}
+    # 成本估算费率：只用于运营页展示，实际以供应商账单为准；0 表示未配置。
+    cost:
+      input-per-million: ${AI_INPUT_COST_PER_MILLION:0}
+      output-per-million: ${AI_OUTPUT_COST_PER_MILLION:0}
+      currency: ${AI_COST_CURRENCY:CNY}
 
   # ── 字段加密密钥（T1.3a） ──
   # Base64 编码的 32 字节密钥。为空时启动失败（fail-fast）。
@@ -96,6 +101,10 @@ zhiyu:
     psych-center-name: ${PSYCH_CENTER_NAME:江西师范大学心理教育中心}
     national-hotline: ${NATIONAL_HOTLINE:12356}
     national-hotline-name: ${NATIONAL_HOTLINE_NAME:全国心理援助热线}
+
+  # ── 语音服务商（gateway=qianwen 二选一） ──
+  speech:
+    provider: ${SPEECH_PROVIDER:gateway}
 
   # ── 心流检测配置（T1.7） ──
   # store: redis（多实例共享） | memory（单机，默认）
