@@ -145,6 +145,19 @@ class EmotionServiceTest {
     }
 
     @Test
+    @DisplayName("updateSummary：100 字中文密文可落库（回归 Data too long）")
+    void testUpdateSummary_LongChineseCipherFitsColumn() {
+        Long sessionId = emotionService.createSession(1001L, "紧张");
+        String summary = "想".repeat(100);
+        emotionService.updateSummary(sessionId, summary);
+
+        String rawSummary = jdbcTemplate.queryForObject(
+                "SELECT summary FROM emotion_session WHERE id = ?",
+                String.class, sessionId);
+        assertEquals(summary, encryptor.decrypt(rawSummary));
+    }
+
+    @Test
     @DisplayName("updateSummary：不改变 status（保持 0 进行中）")
     void testUpdateSummary_DoesNotChangeStatus() {
         Long sessionId = emotionService.createSession(1001L, "疲惫");

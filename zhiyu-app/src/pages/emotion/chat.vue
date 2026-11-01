@@ -37,6 +37,16 @@
 								<text v-if="!msg.done" class="typing"></text>
 							</view>
 							<text v-if="msg.done" class="msg-time">{{ formatTime(msg) }}</text>
+							<view v-if="msg.done && speechAvailable && msg.text" class="msg-actions">
+								<button
+									class="speak-btn"
+									:class="{ speaking: speakingIndex === idx }"
+									:aria-pressed="speakingIndex === idx ? 'true' : 'false'"
+									:disabled="speechBusy === idx"
+									:aria-label="speakingIndex === idx ? '停止朗读这条回复' : '朗读这条回复'"
+									@click="toggleSpeak(msg, idx)"
+								>{{ speechBusy === idx ? '准备语音…' : speakingIndex === idx ? '停止' : '听' }}</button>
+							</view>
 						</view>
 					</view>
 
@@ -137,12 +147,16 @@ import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
 import {useVoiceInput} from '../../composables/useVoiceInput'
+import {playSpeech, stopSpeech} from '../../utils/speech-playback'
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
 const { messages, streaming, errorMsg, scrollSignal, crisisTriggered } = storeToRefs(emotionStore)
 
 const inputText = ref('')
+const speechAvailable = ref(false)
+const speakingIndex = ref(-1)
+const speechBusy = ref(-1)
 const {state:voiceState,toggle:toggleVoice}=useVoiceInput(text=>{inputText.value=text})
 const showRecommendBtn = ref(false)
 const showCrisisCard = ref(false)
@@ -161,6 +175,7 @@ async function loadHistory() {
 }
 
 onLoad(async (query) => {
+ loadSpeechStatus()
  if(query?.sessionId){emotionStore.reset();historyId.value=query.sessionId;await loadHistory();return;}
 	// 面板关闭后跳来时 preserveMessages=true，保留消息上下文
 	if (emotionStore.preserveMessages) {
@@ -172,6 +187,7 @@ onLoad(async (query) => {
 })
 
 onUnload(() => {
+	stopSpeech()
 	// 页面卸载时 abort SSE
 	emotionStore.abortSSE()
 })
@@ -215,7 +231,49 @@ function handleRecommend() {
 }
 
 function handleVoice() {
+	stopSpeech()
+	speakingIndex.value=-1
 	if(!streaming.value)toggleVoice()
+}
+
+async function loadSpeechStatus(){
+	if(!userStore.isLogin)return
+	try{
+		const status=await request({url:'/api/speech/status'})
+		speechAvailable.value=!!status?.available
+	}catch(e){
+		speechAvailable.value=false
+	}
+}
+
+async function toggleSpeak(msg,idx){
+	if(!speechAvailable.value||!msg?.text)return
+	if(speakingIndex.value===idx){
+		stopSpeech()
+		speakingIndex.value=-1
+		return
+	}
+	if(speechBusy.value!==-1)return
+	stopSpeech()
+	speakingIndex.value=-1
+	speechBusy.value=idx
+	try{
+		const data=await request({url:'/api/speech/synthesize',method:'POST',data:{text:msg.text.slice(0,2000)},timeout:30000})
+		if(!data?.audioBase64)throw new Error('语音暂时不可用')
+		speakingIndex.value=idx
+		playSpeech(data.audioBase64,'audio/mpeg',{
+			onEnd:()=>{if(speakingIndex.value===idx)speakingIndex.value=-1},
+			onError:()=>{
+				if(speakingIndex.value===idx)speakingIndex.value=-1
+				uni.showToast({title:'语音播放失败，可以继续看文字',icon:'none'})
+			}
+		})
+	}catch(e){
+		speakingIndex.value=-1
+		uni.showToast({title:e.message||'语音暂时不可用',icon:'none'})
+	}finally{
+		speechBusy.value=-1
+	}
 }
 
 function goCrisisPage() {
@@ -476,6 +534,37 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 
 .msg-time--user {
 	text-align: right;
+}
+
+.msg-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+.speak-btn {
+	min-height: 32px;
+	margin: 0;
+	padding: 0 14px;
+	border: 1px solid var(--zy-border, #dfe7dc);
+	border-radius: 999rpx;
+	background: var(--zy-bg-tint-mint, #e8efe4);
+	color: var(--zy-primary, #2f7566);
+	font-size: 12px;
+	line-height: 32px;
+}
+
+.speak-btn::after {
+	border: 0;
+}
+
+.speak-btn[aria-pressed='true'] {
+	background: var(--zy-primary, #2f7566);
+	color: #fff;
+}
+
+.speak-btn[disabled] {
+	opacity: 0.6;
 }
 
 /* ── 推荐入口 ── */

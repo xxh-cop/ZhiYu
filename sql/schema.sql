@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS emotion_session (
   id          BIGINT      NOT NULL,
   user_id     BIGINT      NOT NULL COMMENT '所属学生',
   mood        VARCHAR(32) DEFAULT NULL COMMENT '触发情绪 code，取值见 dict_mood.code',
-  summary     VARCHAR(255) DEFAULT NULL COMMENT '会话总结(加密)',
+  summary     TEXT        DEFAULT NULL COMMENT '会话总结(加密)',
   status      TINYINT     NOT NULL DEFAULT 0 COMMENT '0进行中 1已结束',
   create_time DATETIME    DEFAULT NULL,
   update_time DATETIME    DEFAULT NULL,
@@ -511,6 +511,19 @@ CREATE TABLE IF NOT EXISTS runtime_config (
  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS heritage_catalog_version (
+ id BIGINT NOT NULL,
+ version_no INT NOT NULL COMMENT '发布版本号，从 1 递增',
+ payload TEXT NOT NULL COMMENT '完整目录快照(JSON)',
+ note VARCHAR(200) DEFAULT NULL COMMENT '发布说明',
+ actor_id BIGINT NOT NULL COMMENT '发布管理员',
+ create_time DATETIME DEFAULT NULL,
+ update_time DATETIME DEFAULT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0,
+ PRIMARY KEY (id),
+ UNIQUE KEY uk_heritage_version (version_no),
+ KEY idx_heritage_version_created (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='非遗目录发布版本';
 CREATE TABLE IF NOT EXISTS file_cleanup_job (
  id BIGINT PRIMARY KEY, storage_kind VARCHAR(16) NOT NULL, storage_key VARCHAR(255) NOT NULL,
  attempts INT NOT NULL DEFAULT 0, state VARCHAR(16) NOT NULL DEFAULT 'PENDING',

@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS emotion_session (
   id          BIGINT      NOT NULL,
   user_id     BIGINT      NOT NULL,
   mood        VARCHAR(32) DEFAULT NULL,
-  summary     VARCHAR(255) DEFAULT NULL,
+  summary     TEXT        DEFAULT NULL,
   status      TINYINT     NOT NULL DEFAULT 0,
   create_time TIMESTAMP   DEFAULT NULL,
   update_time TIMESTAMP   DEFAULT NULL,
@@ -500,6 +500,19 @@ CREATE TABLE IF NOT EXISTS runtime_config (
  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS heritage_catalog_version (
+ id BIGINT NOT NULL,
+ version_no INT NOT NULL,
+ payload TEXT NOT NULL,
+ note VARCHAR(200) DEFAULT NULL,
+ actor_id BIGINT NOT NULL,
+ create_time DATETIME DEFAULT NULL,
+ update_time DATETIME DEFAULT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0,
+ PRIMARY KEY (id),
+ CONSTRAINT uk_heritage_version UNIQUE (version_no)
+);
+CREATE INDEX IF NOT EXISTS idx_heritage_version_created ON heritage_catalog_version (create_time);
 CREATE TABLE IF NOT EXISTS file_cleanup_job (
  id BIGINT PRIMARY KEY, storage_kind VARCHAR(16) NOT NULL, storage_key VARCHAR(255) NOT NULL,
  attempts INT NOT NULL DEFAULT 0, state VARCHAR(16) NOT NULL DEFAULT 'PENDING',
