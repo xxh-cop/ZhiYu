@@ -21,6 +21,9 @@ const error = ref('');
 const data = ref<null | TherapyFunnelData>(null);
 const { theme } = useChartTheme();
 const { renderEcharts } = useEcharts(chart);
+const reduceMotion =
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 let requestId = 0;
 
 const empty = computed(
@@ -38,7 +41,9 @@ async function render() {
   await nextTick();
   const c = theme.value;
   await renderEcharts({
-    animation: false,
+    animation: !reduceMotion,
+    animationDuration: 640,
+    animationEasing: 'cubicOut' as const,
     aria: {
       enabled: true,
       label: {

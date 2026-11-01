@@ -7,6 +7,7 @@ import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
 import ChartCard from '#/components/chart-card/ChartCard.vue';
 import { useChartTheme } from '#/composables/use-chart-theme';
+import { withAlpha } from '#/utils/chart-theme';
 
 const props = withDefaults(
   defineProps<{
@@ -30,6 +31,38 @@ const emit = defineEmits<{ select: [row: Record<string, any>] }>();
 const chart = ref<EchartsUIType>();
 const { theme } = useChartTheme();
 const { renderEcharts: renderChart } = useEcharts(chart);
+const reduceMotion =
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+
+/** 面积/条形渐变：canvas 只吃 rgba，色值由主题令牌换算而来 */
+function verticalFade(color: string) {
+  return {
+    type: 'linear' as const,
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 1,
+    colorStops: [
+      { offset: 0, color: withAlpha(color, 0.34) },
+      { offset: 1, color: withAlpha(color, 0.02) },
+    ],
+  };
+}
+
+function horizontalFade(color: string) {
+  return {
+    type: 'linear' as const,
+    x: 0,
+    y: 0,
+    x2: 1,
+    y2: 0,
+    colorStops: [
+      { offset: 0, color: withAlpha(color, 0.5) },
+      { offset: 1, color },
+    ],
+  };
+}
 
 async function renderEcharts(options: Parameters<typeof renderChart>[0]) {
   const instance = await renderChart(options);
@@ -47,7 +80,9 @@ async function renderEcharts(options: Parameters<typeof renderChart>[0]) {
 function baseOption() {
   const c = theme.value;
   return {
-    animation: false,
+    animation: !reduceMotion,
+    animationDuration: 720,
+    animationEasing: 'cubicOut' as const,
     aria: {
       enabled: true,
       label: { description: `${props.title}。${props.subtitle}` },
@@ -89,9 +124,16 @@ async function render() {
           avoidLabelOverlap: true,
           center: ['50%', '46%'],
           data: props.rows,
+          emphasis: {
+            scaleSize: 6,
+            itemStyle: {
+              shadowBlur: 20,
+              shadowColor: withAlpha(c.colors[0], 0.35),
+            },
+          },
           itemStyle: {
             borderColor: c.background,
-            borderRadius: 5,
+            borderRadius: 6,
             borderWidth: 3,
           },
           label: {
@@ -117,9 +159,14 @@ async function render() {
         {
           type: 'bar',
           barMaxWidth: 20,
+          backgroundStyle: {
+            borderRadius: [0, 6, 6, 0],
+            color: withAlpha(c.border, 0.22),
+          },
           data: props.rows.map((row) => row.value),
-          itemStyle: { borderRadius: [0, 5, 5, 0], color: c.colors[0] },
+          itemStyle: { borderRadius: [0, 6, 6, 0], color: horizontalFade(c.colors[0]) },
           label: { color: c.text, position: 'right', show: true },
+          showBackground: true,
         },
       ],
       xAxis: {
@@ -147,28 +194,29 @@ async function render() {
       {
         name: '开始创作',
         type: 'line',
-        smooth: false,
+        smooth: true,
         symbol: 'circle',
         symbolSize: 5,
         data: props.rows.map((row) => row.sessions),
-        areaStyle: { opacity: 0.08 },
+        areaStyle: { color: verticalFade(c.colors[0]) },
+        emphasis: { focus: 'series' },
         itemStyle: { color: c.colors[0] },
-        lineStyle: { type: 'solid' },
+        lineStyle: { type: 'solid', width: 2.4 },
       },
       {
         name: '完成创作',
         type: 'line',
-        smooth: false,
+        smooth: true,
         symbol: 'circle',
         symbolSize: 5,
         data: props.rows.map((row) => row.finished),
         itemStyle: { color: c.colors[2] },
-        lineStyle: { type: 'dashed' },
+        lineStyle: { type: 'dashed', width: 2 },
       },
       {
         name: '发布作品',
         type: 'line',
-        smooth: false,
+        smooth: true,
         symbol: 'circle',
         symbolSize: 5,
         data: props.rows.map((row) => row.works),
@@ -178,12 +226,12 @@ async function render() {
       {
         name: '新增用户',
         type: 'line',
-        smooth: false,
+        smooth: true,
         symbol: 'circle',
         symbolSize: 5,
         data: props.rows.map((row) => row.users),
         itemStyle: { color: c.colors[4] },
-        lineStyle: { type: 'dashed' },
+        lineStyle: { type: 'dashed', width: 2 },
       },
     ],
     xAxis: {

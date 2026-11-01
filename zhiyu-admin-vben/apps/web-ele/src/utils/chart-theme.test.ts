@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildChartTheme } from './chart-theme';
+import { buildChartTheme, withAlpha } from './chart-theme';
 
 const tokens: Record<string, string> = {
   '--el-bg-color': 'rgb(255, 255, 255)',
@@ -57,5 +57,28 @@ describe('buildChartTheme', () => {
     const theme = buildChartTheme(() => '');
     expect(theme.colors).toEqual(['', '', '', '', '']);
     expect(theme.background).toBe('');
+  });
+});
+
+describe('withAlpha', () => {
+  it('逗号与空格分隔的 rgb 都能换算', () => {
+    expect(withAlpha('rgb(63, 56, 183)', 0.34)).toBe('rgba(63, 56, 183, 0.34)');
+    expect(withAlpha('rgb(63 56 183)', 0.02)).toBe('rgba(63, 56, 183, 0.02)');
+    expect(withAlpha('rgba(63, 56, 183, 1)', 0.5)).toBe('rgba(63, 56, 183, 0.5)');
+  });
+
+  it('六位与三位 hex 展开为同一通道值', () => {
+    expect(withAlpha('#4F46E5', 0.25)).toBe('rgba(79, 70, 229, 0.25)');
+    expect(withAlpha('#4fe', 0.25)).toBe('rgba(68, 255, 238, 0.25)');
+  });
+
+  it('透明度越界时夹到 0~1', () => {
+    expect(withAlpha('rgb(1, 2, 3)', 1.8)).toBe('rgba(1, 2, 3, 1)');
+    expect(withAlpha('rgb(1, 2, 3)', -0.5)).toBe('rgba(1, 2, 3, 0)');
+  });
+
+  it('无法解析时原样返回，画不出渐变也不能画错色', () => {
+    expect(withAlpha('', 0.4)).toBe('');
+    expect(withAlpha('currentcolor', 0.4)).toBe('currentcolor');
   });
 });

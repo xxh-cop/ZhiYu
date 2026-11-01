@@ -7,9 +7,10 @@ import { initStores } from '@vben/stores';
 import '@vben/styles';
 import '@vben/styles/ele';
 
-// 织愈设计 Token + 动效类
+// 织愈设计 Token + 动效类 + 玻璃环境光层
 import './styles/variables.scss';
 import './styles/animations.scss';
+import './styles/theme.scss';
 
 import { useTitle } from '@vueuse/core';
 import ElementPlus from 'element-plus';

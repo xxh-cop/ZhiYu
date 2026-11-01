@@ -1,7 +1,8 @@
 export interface ChartTheme {
   background: string;
   border: string;
-  colors: string[];
+  /** 固定五个槽位：主色、警示、成功、危险、中性；渐变取色时不需要再判空 */
+  colors: [string, string, string, string, string];
   grid: string;
   text: string;
   tooltipBackground: string;
@@ -16,6 +17,41 @@ function pick(read: (name: string) => string, ...names: string[]): string {
     }
   }
   return '';
+}
+
+/**
+ * ECharts 渐变绘制在 canvas 上，不认 color-mix，只能拿到带 alpha 的 rgba。
+ * 令牌经 Element Plus 桥接后是 rgb() 或 hex，这里统一换算；无法解析时原样返回，宁可没有渐变也不能画错色。
+ */
+export function withAlpha(color: string, alpha: number): string {
+  const channels = parseChannels(color.trim());
+  if (!channels) {
+    return color;
+  }
+  const clamped = Math.max(0, Math.min(1, alpha));
+  return `rgba(${channels[0]}, ${channels[1]}, ${channels[2]}, ${clamped})`;
+}
+
+function parseChannels(value: string): [number, number, number] | null {
+  const hex = /^#([\da-f]{3}|[\da-f]{6})$/i.exec(value);
+  if (hex?.[1]) {
+    const digits =
+      hex[1].length === 3 ? hex[1].split('').map((d) => d + d).join('') : hex[1];
+    return [0, 2, 4].map((i) => Number.parseInt(digits.slice(i, i + 2), 16)) as [
+      number,
+      number,
+      number,
+    ];
+  }
+  const decimal = /([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(value);
+  if (!decimal) {
+    return null;
+  }
+  return [
+    Number(decimal[1]),
+    Number(decimal[2]),
+    Number(decimal[3]),
+  ] as [number, number, number];
 }
 
 /**

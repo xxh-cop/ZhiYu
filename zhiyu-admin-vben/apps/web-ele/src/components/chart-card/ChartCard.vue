@@ -38,7 +38,7 @@ const kind = computed(() =>
 </script>
 
 <template>
-  <section class="chart-card">
+  <section class="chart-card zy-glass zy-slide-up">
     <header class="chart-card__header">
       <div>
         <h3 class="chart-card__title">{{ title }}</h3>
@@ -79,9 +79,7 @@ const kind = computed(() =>
   flex-direction: column;
   min-width: 0;
   padding: 24px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
-  border-radius: var(--el-border-radius-base);
+  /* 表面由 .zy-glass 提供；scoped 属性选择器优先级更高，这里不能再铺底色 */
 }
 
 .chart-card__header {

@@ -8,7 +8,20 @@
 - 小织使用现有形象，在首页、开始页、音乐页以内嵌卡片提供入口，不默认以悬浮形象遮挡内容。旧全局悬浮规范不再作为默认要求。
 - 音乐不自动播放，离页暂停；上传必须展示进度、取消及失败反馈；视频提供原生控制与失败重试。减少动效偏好应受到尊重。
 - 素材必须记录作者、来源、许可证及修改；品类参考图不能冒充课程成品。
-- 学生端落点：src/styles/theme.scss、src/App.vue；管理端落点：src/styles/business.scss、src/preferences.ts。已保存的管理端个性化偏好可能覆盖默认主题。
+- 学生端落点：src/styles/theme.scss、src/App.vue；管理端落点：src/styles/business.scss、src/styles/theme.scss（玻璃与环境光层）、src/preferences.ts。已保存的管理端个性化偏好可能覆盖默认主题。
+
+### 管理端玻璃与动效层（2026-11-01）
+
+借鉴开源脚手架 `scaffold-master` 的「珍珠玻璃」视觉语言，只移植观感，不引入其代码与依赖。
+
+- 令牌：`--zy-glass-*`（表面、模糊、描边、内高光、阴影）、`--zy-ambient`（内容区环境光）、`--zy-radius-card/hero`、`--zy-accent-glow`，全部由 Vben 的 HSL 三元组令牌经 `hsl(var(--x) / a)` 派生，组件内不写品牌色值。
+- 深色基调为深墨蓝（`html.dark` 下只压表面明度，主色仍是 indigo `#4F46E5`），Element Plus 与 ECharts 经既有桥接自动跟随。
+- 用途边界：玻璃只用于卡片、hero、顶栏与侧栏；`el-table` 行与长列表保持实面，避免逐行 `backdrop-filter` 的滚动开销。
+- 登录页：右侧表单放在玻璃面板内（`layouts/auth.vue` 的 `.auth-route`），左侧故事区为漂移光斑 + 掠光 + 艺术图浮动，右上角状态点呼吸；窄屏用 `minmax(0,1fr)` 轨道，避免输入框固有宽度撑出横向溢出。
+- 珍珠输入框（`.zy-field` / `.zy-input-shell`，目前只用于登录页）：结构参考 scaffold-master 的 `Field.vue` + `TextInput.vue`——label 与控件同列、错误优先否则 hint、必填星号 `aria-hidden`、尾部清空按钮 `aria-label` 中文且清空后回焦。聚焦改用 `outline: 2px + outline-offset: 2px`（描边转透明），强制颜色模式下仍可见；`is-invalid` 时 outline 转红。超窄屏（≤360px）隐藏清空、保留密码显隐。
+- 降级：`prefers-reduced-transparency` 退回实面并关闭环境光；`prefers-reduced-motion` 关闭掠光、悬浮位移与图表入场动画；不支持 `backdrop-filter` 的浏览器自动使用实面。
+- 已知坑：Vben 运行时把 `--info` 写成逗号格式（`240, 5%, 96%`），与 `hsl(... / alpha)` 混用会让整条声明在计算期失效，环境光只使用空格分隔的令牌。
+- 图表渐变需要 canvas 可用的 rgba，统一走 `#/utils/chart-theme.ts` 的 `withAlpha()`，不要手写色值。
 
 ---
 

@@ -1,0 +1,396 @@
+/* 织愈管理端 · 玻璃与环境光层
+   只移植 scaffold-master 的「珍珠玻璃」视觉语言，不引入其代码。
+   表面一律由 Vben HSL 三元组令牌派生（hsl(var(--x) / a)），不在此写品牌色值；
+   .dark 下的字面 HSL 只描述「表面明度」，与 @core design-tokens/dark.css 同源做法。 */
+
+/* 只使用空格分隔的 HSL 三元组令牌；--info 由 Vben 运行时写成逗号格式，
+   与 hsl(... / a) 混用会让整条声明在计算期失效。 */
+:root {
+  --zy-glass-bg: hsl(var(--card) / 72%);
+  --zy-glass-bg-solid: hsl(var(--card));
+  --zy-glass-chip: hsl(var(--accent) / 55%);
+  --zy-glass-blur: 14px;
+  --zy-glass-saturate: 1.5;
+  --zy-glass-border: hsl(var(--foreground) / 8%);
+  --zy-glass-edge: hsl(var(--foreground) / 14%);
+  --zy-glass-inner: hsl(var(--background) / 70%);
+  --zy-glass-shadow: 0 18px 40px -24px hsl(var(--foreground) / 24%);
+  --zy-accent-glow: hsl(var(--primary) / 26%);
+  --zy-radius-card: calc(var(--radius) * 2.2);
+  --zy-radius-hero: calc(var(--radius) * 2.8);
+  --zy-ambient:
+    radial-gradient(58rem 30rem at 8% -8%, hsl(var(--primary) / 14%), transparent 62%),
+    radial-gradient(46rem 26rem at 97% 1%, hsl(205deg 82% 46% / 12%), transparent 60%),
+    radial-gradient(42rem 24rem at 54% 106%, hsl(var(--success) / 9%), transparent 66%);
+}
+
+/* 深墨蓝底：色相取自 indigo 主色，只压明度，不动品牌与语义色 */
+.dark {
+  --background: 228deg 30% 8%;
+  --background-deep: 230deg 34% 5%;
+  --card: 228deg 26% 11%;
+  --popover: 228deg 24% 13%;
+  --sidebar: 228deg 28% 9%;
+  --sidebar-deep: 230deg 30% 7%;
+  --header: 228deg 28% 9%;
+  --menu: var(--sidebar);
+  --border: 228deg 20% 22%;
+  --accent: 228deg 20% 17%;
+  --accent-hover: 228deg 20% 21%;
+  --accent-lighter: 228deg 22% 14%;
+  --muted: 228deg 20% 17%;
+
+  --zy-glass-bg: hsl(var(--card) / 62%);
+  --zy-glass-chip: hsl(var(--accent) / 48%);
+  --zy-glass-border: hsl(var(--foreground) / 12%);
+  --zy-glass-edge: hsl(var(--foreground) / 20%);
+  --zy-glass-inner: hsl(var(--foreground) / 8%);
+  --zy-glass-shadow: 0 22px 48px -26px hsl(230deg 60% 2% / 90%);
+  --zy-accent-glow: hsl(var(--primary) / 40%);
+  --zy-ambient:
+    radial-gradient(60rem 32rem at 6% -10%, hsl(var(--primary) / 26%), transparent 64%),
+    radial-gradient(48rem 26rem at 98% 0%, hsl(212deg 84% 52% / 18%), transparent 62%),
+    radial-gradient(44rem 26rem at 50% 108%, hsl(var(--success) / 12%), transparent 68%);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root,
+  .dark {
+    --zy-glass-bg: var(--zy-glass-bg-solid);
+    --zy-glass-blur: 0px;
+  }
+}
+
+/* 系统级「减少透明度」时退回实面，玻璃只做增强，不做依赖 */
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  .dark {
+    --zy-glass-bg: var(--zy-glass-bg-solid);
+    --zy-glass-chip: hsl(var(--accent));
+    --zy-glass-blur: 0px;
+    --zy-ambient: none;
+  }
+}
+
+/* ── 玻璃表面 ── */
+.zy-glass {
+  background: var(--zy-glass-bg);
+  backdrop-filter: blur(var(--zy-glass-blur)) saturate(var(--zy-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--zy-glass-blur)) saturate(var(--zy-glass-saturate));
+  border: 1px solid var(--zy-glass-border);
+  border-radius: var(--zy-radius-card);
+  box-shadow: var(--zy-glass-shadow), inset 0 1px 0 var(--zy-glass-inner);
+}
+
+.zy-glass-chip {
+  background: var(--zy-glass-chip);
+  border: 1px solid var(--zy-glass-border);
+  border-radius: calc(var(--radius) * 1.6);
+}
+
+/* ── 悬浮提升：仅用于卡片，绝不铺到表格行（backdrop-filter 在滚动列表上是性能负债） ── */
+.zy-elevate {
+  transition:
+    transform var(--zy-duration-base) var(--zy-ease-smooth),
+    box-shadow var(--zy-duration-base) var(--zy-ease-smooth),
+    border-color var(--zy-duration-base) var(--zy-ease-out);
+}
+
+.zy-elevate:hover {
+  transform: translateY(-3px);
+  border-color: var(--zy-glass-edge);
+  box-shadow:
+    var(--zy-glass-shadow),
+    0 26px 54px -28px var(--zy-accent-glow),
+    inset 0 1px 0 var(--zy-glass-inner);
+}
+
+/* ── 主视觉掠光 ── */
+.zy-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.zy-sheen::after {
+  content: '';
+  position: absolute;
+  inset: -40% -10% auto -55%;
+  height: 180%;
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    hsl(var(--background) / 45%) 50%,
+    transparent 62%
+  );
+  transform: translate3d(-28%, 0, 0) rotate(6deg);
+  animation: zySheen 7.5s var(--zy-ease-in-out) infinite;
+  pointer-events: none;
+}
+
+.dark .zy-sheen::after {
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    hsl(var(--foreground) / 7%) 50%,
+    transparent 62%
+  );
+}
+
+@keyframes zySheen {
+  0%,
+  62% {
+    transform: translate3d(-34%, 0, 0) rotate(6deg);
+  }
+  100% {
+    transform: translate3d(120%, 0, 0) rotate(6deg);
+  }
+}
+
+/* ── 光晕角标：KPI 图标与状态指示 ── */
+.zy-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--radius) * 1.8);
+  box-shadow: 0 0 0 1px var(--zy-glass-border), 0 8px 20px -12px var(--zy-accent-glow);
+}
+
+.zy-orb::before {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  z-index: -1;
+  background: radial-gradient(circle, var(--zy-accent-glow), transparent 68%);
+}
+
+/* ── 数字：等宽避免滚动动画时抖动 ── */
+.zy-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+/* ── 珍珠输入面：内面 + 顶高光，参考 scaffold-master 的 --input-bg / --edge 组合 ── */
+:root {
+  --zy-pearl-bg: hsl(var(--card) / 78%);
+  --zy-pearl-bg-hover: hsl(var(--card) / 92%);
+  --zy-pearl-inset: inset 0 1px 0 hsl(var(--background) / 85%);
+  --zy-pearl-line: hsl(var(--foreground) / 14%);
+  --zy-pearl-line-hover: hsl(var(--foreground) / 26%);
+  --zy-pearl-shadow: 0 12px 26px -22px hsl(var(--foreground) / 45%);
+  --zy-pearl-ring: 0 0 0 1px hsl(var(--primary) / 9%);
+  --zy-pearl-radius: calc(var(--radius) * 1.8);
+}
+
+.dark {
+  --zy-pearl-bg: hsl(var(--foreground) / 6%);
+  --zy-pearl-bg-hover: hsl(var(--foreground) / 9%);
+  --zy-pearl-inset: inset 0 1px 0 hsl(var(--foreground) / 10%);
+  --zy-pearl-line: hsl(var(--foreground) / 16%);
+  --zy-pearl-line-hover: hsl(var(--foreground) / 30%);
+  --zy-pearl-shadow: 0 14px 28px -24px hsl(230deg 60% 2% / 90%);
+  --zy-pearl-ring: 0 0 0 1px hsl(var(--primary) / 18%);
+}
+
+.zy-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.zy-field-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+}
+
+.zy-field-label .req {
+  font-weight: 700;
+  color: var(--el-color-danger);
+}
+
+.zy-field-hint,
+.zy-field-error {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+.zy-field-hint {
+  color: var(--el-text-color-regular);
+}
+
+.zy-field-error {
+  color: var(--el-color-danger);
+}
+
+.zy-input-shell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  height: 52px;
+  padding: 0 14px;
+  background: var(--zy-pearl-bg);
+  border: 1px solid var(--zy-pearl-line);
+  border-radius: var(--zy-pearl-radius);
+  box-shadow: var(--zy-pearl-inset), var(--zy-pearl-shadow), var(--zy-pearl-ring);
+  transition:
+    background var(--zy-duration-base) var(--zy-ease-out),
+    border-color var(--zy-duration-base) var(--zy-ease-out),
+    box-shadow var(--zy-duration-base) var(--zy-ease-out);
+}
+
+.zy-input-shell:hover {
+  background: var(--zy-pearl-bg-hover);
+  border-color: var(--zy-pearl-line-hover);
+}
+
+/* 聚焦改用 outline 而不是光晕：强制颜色模式下依然可见，与参考仓库一致 */
+.zy-input-shell:focus-within {
+  border-color: transparent;
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+
+.zy-input-shell.is-invalid {
+  border-color: var(--el-color-danger);
+}
+
+.zy-input-shell.is-invalid:focus-within {
+  outline-color: var(--el-color-danger);
+}
+
+.zy-input-shell.is-disabled {
+  opacity: 0.6;
+}
+
+.zy-input-shell > input {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  font-size: 16px;
+  color: var(--el-text-color-primary);
+  caret-color: var(--el-color-primary);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.zy-input-shell > input::placeholder {
+  color: var(--el-text-color-placeholder);
+}
+
+.zy-input-lead {
+  display: grid;
+  width: 20px;
+  place-items: center;
+  color: var(--el-text-color-placeholder);
+  transition:
+    color var(--zy-duration-base) var(--zy-ease-out),
+    transform var(--zy-duration-fast) var(--zy-ease-elastic);
+}
+
+.zy-input-lead svg {
+  width: 18px;
+  height: 18px;
+}
+
+.zy-input-shell:focus-within .zy-input-lead {
+  color: var(--el-color-primary);
+  transform: scale(1.1);
+}
+
+.zy-input-action {
+  display: grid;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+  place-items: center;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius) * 1.2);
+  transition:
+    color var(--zy-duration-fast) var(--zy-ease-out),
+    background var(--zy-duration-fast) var(--zy-ease-out);
+}
+
+.zy-input-action svg {
+  width: 17px;
+  height: 17px;
+}
+
+.zy-input-action:hover:not(:disabled) {
+  color: var(--el-color-primary);
+  background: color-mix(in oklab, currentColor 10%, transparent);
+}
+
+.zy-input-action:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: -4px;
+}
+
+.zy-input-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── 布局壳层：内容区环境光 + 顶栏侧栏玻璃；类名若随 Vben 升级失效，退回复用底色 ── */
+#__vben_main_content {
+  background-color: hsl(var(--background-deep));
+  background-image: var(--zy-ambient);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.bg-header {
+  background: hsl(var(--header) / 78%);
+  backdrop-filter: blur(calc(var(--zy-glass-blur) + 2px)) saturate(var(--zy-glass-saturate));
+  -webkit-backdrop-filter: blur(calc(var(--zy-glass-blur) + 2px)) saturate(var(--zy-glass-saturate));
+}
+
+.bg-sidebar,
+.bg-sidebar-deep {
+  background: hsl(var(--sidebar) / 82%);
+  backdrop-filter: blur(var(--zy-glass-blur)) saturate(var(--zy-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--zy-glass-blur)) saturate(var(--zy-glass-saturate));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zy-elevate {
+    transition: none;
+  }
+  .zy-elevate:hover {
+    transform: none;
+  }
+  .zy-sheen::after {
+    animation: none;
+    opacity: 0;
+  }
+  .zy-input-shell,
+  .zy-input-lead,
+  .zy-input-action {
+    transition: none;
+  }
+  .zy-input-shell:focus-within .zy-input-lead {
+    transform: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .bg-sidebar,
+  .bg-sidebar-deep {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: hsl(var(--sidebar));
+  }
+}
