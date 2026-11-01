@@ -3,10 +3,13 @@ package com.zhiyu.modules.inheritor.controller;
 import com.zhiyu.common.dto.PageVO;
 import com.zhiyu.common.result.Result;
 import com.zhiyu.modules.inheritor.service.InheritorPublicService;
+import com.zhiyu.modules.inheritor.service.InheritorStoryService;
 import com.zhiyu.modules.inheritor.vo.InheritorPublicDetailVO;
 import com.zhiyu.modules.inheritor.vo.InheritorPublicItemVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 传承人公开查询 Controller（M2 批 6A）。
@@ -22,6 +25,19 @@ import org.springframework.web.bind.annotation.*;
 public class InheritorPublicController {
 
     private final InheritorPublicService inheritorPublicService;
+    private final InheritorStoryService inheritorStoryService;
+
+    /** 合成教学故事列表；明确标注非真实人物访谈。 */
+    @GetMapping("/stories")
+    public Result<List<InheritorStoryService.Summary>> stories() {
+        return Result.success(inheritorStoryService.list());
+    }
+
+    /** 单篇故事详情，附工艺背景来源。 */
+    @GetMapping("/stories/{id}")
+    public Result<InheritorStoryService.Detail> story(@PathVariable String id) {
+        return Result.success(inheritorStoryService.get(id));
+    }
 
     /**
      * 接口 1：分页查询已认证传承人列表。

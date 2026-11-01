@@ -176,4 +176,38 @@ class InheritorPublicControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(1004));
     }
+
+    // ── 接口 3：传承人故事内容包 ──
+
+    @Test
+    @DisplayName("学生读取故事列表 → 返回 3 条合成故事")
+    void testStudent_ListStories_ReturnsThree() throws Exception {
+        mockMvc.perform(get("/api/inheritors/stories")
+                        .header("Authorization", "Bearer " + token(studentUserId, 0)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data[0].synthetic").value(true));
+    }
+
+    @Test
+    @DisplayName("学生读取故事详情 → 包含来源与小节")
+    void testStudent_StoryDetail_ReturnsSources() throws Exception {
+        mockMvc.perform(get("/api/inheritors/stories/{id}", "xiabu-first-leaf")
+                        .header("Authorization", "Bearer " + token(studentUserId, 0)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.traditionName").value("夏布绣"))
+                .andExpect(jsonPath("$.data.sources[0].organization").value("中国非物质文化遗产网·中国非物质文化遗产数字博物馆"))
+                .andExpect(jsonPath("$.data.boundary").value(org.hamcrest.Matchers.containsString("合成")));
+    }
+
+    @Test
+    @DisplayName("不存在的故事 → 1004")
+    void testStudent_MissingStory_Returns1004() throws Exception {
+        mockMvc.perform(get("/api/inheritors/stories/{id}", "not-exists")
+                        .header("Authorization", "Bearer " + token(studentUserId, 0)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(1004));
+    }
 }

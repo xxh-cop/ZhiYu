@@ -71,11 +71,19 @@ type Catalog = {
   traditions: Tradition[];
   version: string;
 };
-type Snapshot = { catalog: Catalog; revision: number };
+type DraftSnapshot = { catalog: Catalog; persisted: boolean; revision: number };
+type PublishedSnapshot = { catalog: Catalog; revision: number; version: number };
+type Workflow = { changed: boolean; draft: DraftSnapshot; published: PublishedSnapshot };
+type VersionSummary = { actorName: string; createdAt: string; note: string; version: number };
+type VersionDetail = VersionSummary & { catalog: Catalog };
 type EditKind = 'pattern' | 'source' | 'tradition';
 
 const catalog = ref<Catalog | null>(null);
-const revision = ref(0);
+const draftRevision = ref(0);
+const draftPersisted = ref(false);
+const publishedCatalog = ref<Catalog | null>(null);
+const publishedRevision = ref(0);
+const publishedVersion = ref(0);
 const loading = ref(false);
 const error = ref('');
 const activeTab = ref<'patterns' | 'sources' | 'traditions'>('patterns');
@@ -85,6 +93,16 @@ const editId = ref('');
 const editError = ref('');
 const saving = ref(false);
 const form = reactive<any>({ palette: ['#ffffff', '#111111', '#2f7566', '#bb914d'] });
+
+const versions = ref<VersionSummary[]>([]);
+const versionsLoading = ref(false);
+const versionVisible = ref(false);
+const previewVisible = ref(false);
+const previewLoading = ref(false);
+const preview = ref<VersionDetail | null>(null);
+const publishVisible = ref(false);
+const publishNote = ref('');
+const publishing = ref(false);
 
 const families: Record<string, string[]> = {
   stitch: ['sprig', 'petals', 'arcs', 'grid', 'seed', 'ribbon'],
@@ -115,15 +133,60 @@ const patternRows = computed(() =>
   })),
 );
 
+function changedCount(current: any[] | undefined, baseline: any[] | undefined) {
+  const currentList = current || [];
+  const baselineMap = new Map((baseline || []).map(item => [item.id, JSON.stringify(item)]));
+  return currentList.filter(item => baselineMap.get(item.id) !== JSON.stringify(item)).length
+    + Math.max(0, (baseline?.length || 0) - currentList.length);
+}
+
+const diffStats = computed(() => ({
+  patterns: changedCount(catalog.value?.patterns, publishedCatalog.value?.patterns),
+  sources: changedCount(catalog.value?.sources, publishedCatalog.value?.sources),
+  traditions: changedCount(catalog.value?.traditions, publishedCatalog.value?.traditions),
+}));
+const diffTotal = computed(() => diffStats.value.patterns + diffStats.value.traditions + diffStats.value.sources);
+const diffSummary = computed(
+  () => `${diffStats.value.patterns} 个纹样 · ${diffStats.value.traditions} 门工艺 · ${diffStats.value.sources} 条来源`,
+);
+const hasDraftChanges = computed(() => draftPersisted.value && diffTotal.value > 0);
+const previewPatternRows = computed(() => {
+  const source = preview.value?.catalog;
+  return (source?.patterns || []).slice(0, 12).map(pattern => ({
+    ...pattern,
+    traditionName: source?.traditions.find(item => item.id === pattern.traditionId)?.shortName || pattern.traditionId,
+  }));
+});
+
+function applyWorkflow(result: Workflow) {
+  catalog.value = result.draft.catalog;
+  draftRevision.value = result.draft.revision;
+  draftPersisted.value = result.draft.persisted;
+  publishedCatalog.value = result.published.catalog;
+  publishedRevision.value = result.published.revision;
+  publishedVersion.value = result.published.version;
+}
+
+async function loadVersions() {
+  versionsLoading.value = true;
+  try {
+    versions.value = await requestClient.get<VersionSummary[]>('/admin/heritage/workflow/versions');
+  } catch (event: any) {
+    if (versionVisible.value) ElMessage.error(event?.message || '版本历史加载失败');
+  } finally {
+    versionsLoading.value = false;
+  }
+}
+
 async function load() {
   loading.value = true;
   error.value = '';
   try {
-    const result = await requestClient.get<Snapshot>('/admin/heritage/catalog');
-    catalog.value = result.catalog;
-    revision.value = result.revision;
+    const result = await requestClient.get<Workflow>('/admin/heritage/workflow');
+    applyWorkflow(result);
+    await loadVersions();
   } catch (event: any) {
-    error.value = event?.message || '非遗目录加载失败，请重试。';
+    error.value = event?.message || '非遗内容加载失败，请重试。';
   } finally {
     loading.value = false;
   }
@@ -271,19 +334,18 @@ async function save() {
   }
   saving.value = true;
   try {
-    const result = await requestClient.put<Snapshot>('/admin/heritage/catalog', {
-      revision: revision.value,
+    const result = await requestClient.put<Workflow>('/admin/heritage/workflow/draft', {
+      revision: draftRevision.value,
       catalog: next,
     });
-    catalog.value = result.catalog;
-    revision.value = result.revision;
+    applyWorkflow(result);
     editVisible.value = false;
-    ElMessage.success('已保存，学生端将使用新内容');
+    ElMessage.success('已保存到草稿，发布后学生端才会更新');
   } catch (event: any) {
     if (event?.code === 3001) {
       editVisible.value = false;
       await load();
-      ElMessage.error('目录已被其他管理员更新，已刷新，请重新编辑');
+      ElMessage.error('草稿已被其他管理员更新，已刷新，请重新编辑');
     } else {
       editError.value = event?.message || '保存失败，请检查内容后重试';
     }
@@ -292,18 +354,124 @@ async function save() {
   }
 }
 
+function openPublish() {
+  publishNote.value = '';
+  publishVisible.value = true;
+}
+
+async function publish() {
+  if (publishing.value || !hasDraftChanges.value) return;
+  publishing.value = true;
+  try {
+    const result = await requestClient.post<Workflow>('/admin/heritage/workflow/publish', {
+      revision: draftRevision.value,
+      note: publishNote.value.trim() || null,
+    });
+    applyWorkflow(result);
+    publishVisible.value = false;
+    await loadVersions();
+    ElMessage.success(`已发布 v${result.published.version}，学生端已生效`);
+  } catch (event: any) {
+    if (event?.code === 3001) {
+      publishVisible.value = false;
+      await load();
+      ElMessage.error('草稿已变化或被其他管理员处理，已刷新');
+    } else {
+      ElMessage.error(event?.message || '发布失败，请重试');
+    }
+  } finally {
+    publishing.value = false;
+  }
+}
+
+async function discardDraft() {
+  try {
+    await ElMessageBox.confirm('将删除未发布的草稿，学生端已发布内容不受影响。', '放弃草稿', {
+      type: 'warning',
+      confirmButtonText: '放弃草稿',
+    });
+    const result = await requestClient.delete<Workflow>('/admin/heritage/workflow/draft');
+    applyWorkflow(result);
+    ElMessage.success('草稿已放弃');
+  } catch (event: any) {
+    if (event !== 'cancel' && event !== 'close') ElMessage.error(event?.message || '操作失败');
+  }
+}
+
+async function unpublish() {
+  try {
+    await ElMessageBox.confirm(
+      `学生端将立即回到内置目录，当前草稿也会清空；已发布版本会保留在版本历史中。`,
+      '下架非遗目录',
+      { type: 'warning', confirmButtonText: '确认下架' },
+    );
+    const result = await requestClient.post<Workflow>('/admin/heritage/workflow/unpublish', {
+      note: '管理端下架',
+    });
+    applyWorkflow(result);
+    await loadVersions();
+    ElMessage.success('已下架，学生端回到内置目录');
+  } catch (event: any) {
+    if (event !== 'cancel' && event !== 'close') ElMessage.error(event?.message || '下架失败');
+  }
+}
+
 async function reset() {
   try {
-    await ElMessageBox.confirm('将删除管理端保存的覆盖，恢复内置 24 份原创教学构图。此操作会立即影响学生端。', '恢复内置目录', {
+    await ElMessageBox.confirm('将清空草稿与已发布覆盖，恢复内置 24 份原创教学构图。历史版本仍保留。', '恢复内置目录', {
       type: 'warning',
       confirmButtonText: '恢复内置',
     });
-    const result = await requestClient.delete<Snapshot>('/admin/heritage/catalog');
-    catalog.value = result.catalog;
-    revision.value = result.revision;
+    const result = await requestClient.delete<Workflow>('/admin/heritage/workflow/published');
+    applyWorkflow(result);
     ElMessage.success('已恢复内置目录');
   } catch (event: any) {
     if (event !== 'cancel' && event !== 'close') ElMessage.error(event?.message || '恢复失败');
+  }
+}
+
+async function openVersions() {
+  versionVisible.value = true;
+  await loadVersions();
+}
+
+async function previewVersion(row: any) {
+  previewLoading.value = true;
+  previewVisible.value = true;
+  preview.value = null;
+  try {
+    preview.value = await requestClient.get<VersionDetail>(
+      `/admin/heritage/workflow/versions/${row.version}`,
+    );
+  } catch (event: any) {
+    previewVisible.value = false;
+    ElMessage.error(event?.message || '版本内容加载失败');
+  } finally {
+    previewLoading.value = false;
+  }
+}
+
+async function rollback(row: any) {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      `将把 v${row.version} 的内容重新发布为新版本，学生端立即生效并清空当前草稿。历史版本不会被改写。`,
+      '回滚到历史版本',
+      {
+        confirmButtonText: '确认回滚',
+        inputPlaceholder: '可选：填写回滚原因',
+        inputValidator: (input: string) => !input || input.length <= 200 || '原因不能超过 200 字',
+      },
+    );
+    const result = await requestClient.post<Workflow>('/admin/heritage/workflow/rollback', {
+      version: row.version,
+      note: value?.trim() || null,
+    });
+    applyWorkflow(result);
+    previewVisible.value = false;
+    await loadVersions();
+    ElMessage.success(`已回滚，生成新版本 v${result.published.version}`);
+  } catch (event: any) {
+    if (event !== 'cancel' && event !== 'close') ElMessage.error(event?.message || '回滚失败');
   }
 }
 
@@ -314,30 +482,61 @@ onMounted(load);
   <div class="zy-business-page heritage-admin-page flex flex-col gap-4">
     <BusinessPageHeader
       title="非遗内容"
-      description="维护工艺、纹样与来源说明；保存后立即对已登录学生生效。"
+      description="维护工艺、纹样与来源；先保存草稿，发布后学生端才会生效。"
       :loading="loading"
       @refresh="load"
     >
       <div class="flex flex-wrap gap-2">
         <el-button :loading="loading" @click="load">刷新</el-button>
-        <el-button type="danger" plain :disabled="!catalog || revision === 0" @click="reset">恢复内置目录</el-button>
+        <el-button @click="openVersions">版本历史</el-button>
+        <el-button type="danger" plain :disabled="publishedVersion === 0" @click="unpublish">下架</el-button>
+        <el-button type="danger" plain :disabled="publishedVersion === 0 && !draftPersisted" @click="reset">恢复内置目录</el-button>
       </div>
     </BusinessPageHeader>
 
     <el-alert
-      title="当前维护方案：整份目录保存到 runtime_config，带 revision 冲突保护与管理员操作记录；不新增数据库表。"
+      title="草稿不会影响学生端；发布时生成不可变版本，可随时查看历史或回滚，下架后学生端回到内置目录。"
       type="info"
       :closable="false"
       show-icon
     />
     <DataErrorBanner v-if="error && catalog" :error="error" :retrying="loading" @retry="load" />
+
+    <div class="workflow-strip">
+      <div class="workflow-metric">
+        <span class="workflow-label">学生端当前</span>
+        <strong>{{ publishedVersion > 0 ? `已发布 v${publishedVersion}` : '内置目录' }}</strong>
+        <small>{{ publishedVersion > 0 ? `发布配置 revision ${publishedRevision}` : '尚未发布管理端内容' }}</small>
+      </div>
+      <div class="workflow-metric">
+        <span class="workflow-label">编辑草稿</span>
+        <strong>{{ draftPersisted ? `草稿 v${draftRevision}` : '未保存草稿' }}</strong>
+        <small>{{ hasDraftChanges ? '与已发布内容有差异，待发布' : draftPersisted ? '与已发布内容一致' : '编辑后会先保存为草稿' }}</small>
+      </div>
+      <div class="workflow-metric">
+        <span class="workflow-label">待发布差异</span>
+        <strong>{{ hasDraftChanges ? diffSummary : '无变化' }}</strong>
+        <small>{{ publishedCatalog?.patterns.length || 0 }} 份原创教学构图作为对比基线</small>
+      </div>
+      <div class="workflow-actions">
+        <el-button v-if="draftPersisted" plain @click="discardDraft">放弃草稿</el-button>
+        <el-button type="primary" :disabled="!hasDraftChanges" @click="openPublish">发布草稿</el-button>
+      </div>
+    </div>
+
     <el-card shadow="never">
       <div class="heritage-summary">
         <div>
           <strong>{{ catalog?.patterns.length || 0 }} 份原创教学构图</strong>
           <span>{{ catalog?.traditions.length || 0 }} 门工艺 · {{ catalog?.sources.length || 0 }} 条来源</span>
         </div>
-        <el-tag type="success">当前版本 v{{ revision }} · 保存即生效</el-tag>
+        <div class="heritage-tags">
+          <el-tag :type="publishedVersion > 0 ? 'success' : 'info'">
+            {{ publishedVersion > 0 ? `已发布 v${publishedVersion}` : '内置目录' }}
+          </el-tag>
+          <el-tag v-if="draftPersisted" type="warning">草稿 v{{ draftRevision }}</el-tag>
+          <el-tag v-if="hasDraftChanges" type="danger" effect="plain">未发布修改</el-tag>
+        </div>
       </div>
       <el-tabs v-model="activeTab">
         <el-tab-pane label="纹样" name="patterns">
@@ -472,7 +671,82 @@ onMounted(load);
       </el-form>
       <template #footer>
         <el-button :disabled="saving" @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="save">保存并生效</el-button>
+        <el-button type="primary" :loading="saving" @click="save">保存到草稿</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="publishVisible" title="发布非遗目录草稿" width="min(620px, 94vw)" destroy-on-close>
+      <el-alert
+        :title="`发布会生成 v${publishedVersion + 1}，学生端立即使用新内容。`"
+        type="warning"
+        :closable="false"
+        show-icon
+      />
+      <div class="publish-diff">
+        <span>本次变更</span>
+        <strong>{{ diffSummary }}</strong>
+      </div>
+      <el-input
+        v-model="publishNote"
+        type="textarea"
+        :rows="3"
+        maxlength="200"
+        show-word-limit
+        placeholder="可选：填写本次发布说明，便于回滚时识别"
+      />
+      <template #footer>
+        <el-button :disabled="publishing" @click="publishVisible = false">取消</el-button>
+        <el-button type="primary" :loading="publishing" @click="publish">确认发布</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="versionVisible" title="发布版本" width="min(860px, 94vw)">
+      <el-table v-loading="versionsLoading" :data="versions">
+        <el-table-column label="版本" width="90">
+          <template #default="{ row }">
+            <el-tag :type="row.version === publishedVersion ? 'success' : 'info'" effect="plain">
+              v{{ row.version }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="note" label="发布说明" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="actorName" label="操作人" width="110" />
+        <el-table-column prop="createdAt" label="发布时间" width="150" />
+        <el-table-column label="操作" width="150" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="previewVersion(row)">查看</el-button>
+            <el-button link type="warning" @click="rollback(row)">回滚</el-button>
+          </template>
+        </el-table-column>
+        <template #empty>
+          <DataState :loading="versionsLoading" error="" empty-text="暂无发布版本" />
+        </template>
+      </el-table>
+      <p class="business-note">回滚会生成新的发布版本，不删除或改写历史记录。</p>
+    </el-dialog>
+
+    <el-dialog
+      v-model="previewVisible"
+      :title="preview ? `版本 v${preview.version}` : '版本内容'"
+      width="min(920px, 94vw)"
+    >
+      <div v-loading="previewLoading" class="version-preview">
+        <div v-if="preview" class="version-meta">
+          <span>{{ preview.note || '无发布说明' }}</span>
+          <span>{{ preview.actorName }} · {{ preview.createdAt }}</span>
+        </div>
+        <el-table :data="previewPatternRows" max-height="380">
+          <el-table-column prop="name" label="纹样" min-width="130" />
+          <el-table-column prop="traditionName" label="工艺" width="100" />
+          <el-table-column prop="level" label="等级" width="80" />
+          <el-table-column prop="minutes" label="分钟" width="80" />
+          <el-table-column prop="learningFocus" label="学习观察点" min-width="260" show-overflow-tooltip />
+        </el-table>
+        <p class="business-note">预览展示前 12 个纹样；回滚会发布该版本的完整内容。</p>
+      </div>
+      <template #footer>
+        <el-button @click="previewVisible = false">关闭</el-button>
+        <el-button v-if="preview" type="warning" @click="rollback(preview)">回滚到此版本</el-button>
       </template>
     </el-dialog>
   </div>
@@ -482,12 +756,37 @@ onMounted(load);
 .heritage-admin-page { max-width: 1280px; margin: 0 auto; }
 .heritage-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
 .heritage-summary strong { display: block; font-size: 17px; color: var(--el-text-color-primary); }
-.heritage-summary span { display: block; margin-top: 5px; font-size: 13px; color: var(--el-text-color-regular); }
+.heritage-summary > div > span { display: block; margin-top: 5px; font-size: 13px; color: var(--el-text-color-regular); }
+.heritage-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.workflow-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 12px;
+  background: var(--el-bg-color);
+}
+.workflow-metric { min-width: 0; }
+.workflow-label { display: block; font-size: 12px; letter-spacing: 0.04em; color: var(--el-text-color-secondary); }
+.workflow-metric strong { display: block; margin-top: 5px; font-size: 16px; color: var(--el-text-color-primary); }
+.workflow-metric small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.6; color: var(--el-text-color-regular); }
+.workflow-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.publish-diff { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0; padding: 12px 14px; border-radius: 8px; background: var(--el-fill-color-light); }
+.publish-diff span { font-size: 13px; color: var(--el-text-color-regular); }
+.publish-diff strong { font-size: 14px; color: var(--el-text-color-primary); }
+.version-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 13px; color: var(--el-text-color-regular); flex-wrap: wrap; }
 .heritage-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }
 .palette-row { display: flex; gap: 14px; flex-wrap: wrap; }
 .heritage-form :deep(.el-select) { width: 100%; }
+@media (max-width: 960px) {
+  .workflow-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workflow-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
 @media (max-width: 640px) {
   .heritage-form-grid { grid-template-columns: minmax(0, 1fr); }
   .heritage-summary { align-items: flex-start; }
+  .workflow-strip { grid-template-columns: minmax(0, 1fr); }
 }
 </style>

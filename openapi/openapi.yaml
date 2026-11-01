@@ -678,6 +678,30 @@ components:
           description: 'VERIFIED_SOURCE 为已登记来源，REFERENCE 为检索参考'
 
 paths:
+  /api/growth/material-kits:
+    get:
+      operationId: growthMaterialKits
+      summary: 读取 3 份工作坊材料包
+      description: '登录用户可读。返回与 3 个工作坊模板对应的材料、工具、准备步骤、安全提示与无材料替代方案；不含采购链接或价格，数量需按实际人数调整。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为 MaterialKitCatalog，含 disclaimer 与 3 份材料包
+        '401':
+          description: 未登录，HTTP 401 + code 1002
+  /api/growth/workshop-templates:
+    get:
+      operationId: growthWorkshopTemplates
+      summary: 读取 3 个团体工作坊模板
+      description: '仅活动带领者（ROLE 1/2/3）可读。返回模板标题、流程、材料、安全提示与来源说明；模板只用于预填活动，创建时仍走活动字段校验。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为 WorkshopTemplateCatalog，含 disclaimer 与 3 条模板
+        '403':
+          description: 非活动带领者，code 1003
   /api/growth/programs/{id}/feedback:
     parameters:
       - {in: path, name: id, required: true, schema: {type: string}}
@@ -1407,24 +1431,62 @@ paths:
           description: 账号不可用或权限不足，HTTP 403 + code 1003
         '404':
           description: 纹样不存在，code 1004
-  /api/admin/heritage/catalog:
+  /api/admin/ops/health:
     get:
-      operationId: adminHeritageCatalogGet
-      tags: [Admin, Heritage]
-      summary: 管理员读取非遗目录与 revision
-      description: '仅 ROLE_3 可读。data 包含 catalog（version、disclaimer、sources、traditions、patterns）与 revision；没有管理端覆盖时返回内置目录、revision=0。'
+      operationId: adminOpsHealth
+      summary: 管理端只读运行健康检查
+      description: '仅 ROLE_3。检查 MySQL、关键表结构、Redis（可选）、媒体目录、RAG 本地存储、AI 配置与 JVM；只读，不执行备份、恢复或外部 AI 调用。Redis 不可达或 AI 未配置时整体为 DEGRADED。'
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Result.data 为 Snapshot，含 catalog 与 revision
+          description: Result.data 为 overall、components、counts 与 jvm
         '403':
           description: 非管理员，code 1003
-    put:
-      operationId: adminHeritageCatalogSave
+  /api/admin/ops/backup-manifest:
+    get:
+      operationId: adminOpsBackupManifest
+      summary: 管理端备份自检清单
+      description: '仅 ROLE_3。返回关键表是否存在及行数，用于备份/恢复演练前后核对；只读，不读取业务内容、不生成或下载备份文件。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为 totalTables、presentTables、tables 与 missingTables
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/catalog:
+    get:
+      operationId: adminHeritageCatalogGet
       tags: [Admin, Heritage]
-      summary: 管理员保存整份非遗目录
-      description: '仅 ROLE_3 可写。提交完整 catalog 与当前 revision；服务端校验 4 来源/4 工艺/24 纹样、ID、来源引用、色板与 family/variant 白名单。revision 冲突返回 code 3001（HTTP 200）。保存写入 runtime_config 的 heritage_catalog 键并记 admin_operation_log，学生端读取立即使用该覆盖。'
+      summary: 管理员读取已发布非遗目录（兼容入口）
+      description: '仅 ROLE_3 可读。返回学生端当前使用的已发布 catalog 与 revision；没有已发布覆盖时返回内置目录、revision=0。管理端编辑请使用 /api/admin/heritage/workflow。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为已发布 Snapshot，含 catalog、revision 与 version
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow:
+    get:
+      operationId: adminHeritageWorkflowGet
+      tags: [Admin, Heritage]
+      summary: 读取内容工作流快照
+      description: '仅 ROLE_3。返回 draft（草稿 catalog、revision、persisted）、published（学生端当前使用的 catalog、revision、version）与 changed（草稿是否与已发布不同）。没有草稿时 draft 回退到已发布内容或内置目录，revision=0。'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为 WorkflowSnapshot
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow/draft:
+    put:
+      operationId: adminHeritageDraftSave
+      tags: [Admin, Heritage]
+      summary: 保存非遗目录草稿
+      description: '仅 ROLE_3。提交完整 catalog 与当前草稿 revision；服务端校验 4 来源/4 工艺/24 纹样、ID、来源引用、色板与 family/variant 白名单后写入 runtime_config 的 heritage_catalog_draft 键。草稿不会改变学生端内容；revision 冲突返回 code 3001。'
       security:
         - bearerAuth: []
       requestBody:
@@ -1439,19 +1501,134 @@ paths:
                 catalog: { type: object }
       responses:
         '200':
-          description: Result.data 为保存后的 Snapshot；参数或目录校验失败为 code 1001，revision 冲突为 code 3001
+          description: Result.data 为更新后的 WorkflowSnapshot；校验失败 code 1001，revision 冲突 code 3001
         '403':
           description: 非管理员，code 1003
     delete:
-      operationId: adminHeritageCatalogReset
+      operationId: adminHeritageDraftDiscard
       tags: [Admin, Heritage]
-      summary: 管理员恢复内置非遗目录
-      description: 删除 runtime_config 中的 heritage_catalog 覆盖并记 admin_operation_log；学生端回到 classpath 内置目录。
+      summary: 放弃非遗目录草稿
+      description: 删除 heritage_catalog_draft，学生端已发布内容不受影响；写入管理员操作记录。
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Result.data 为内置目录 Snapshot，revision=0
+          description: Result.data 为草稿回退到已发布内容后的 WorkflowSnapshot
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow/publish:
+    post:
+      operationId: adminHeritagePublish
+      tags: [Admin, Heritage]
+      summary: 发布非遗目录草稿
+      description: '仅 ROLE_3。校验草稿 revision 后将草稿写入已发布目录，学生端立即生效；同时写入 heritage_catalog_version 新版本并清空草稿。没有草稿或 revision 过期返回 code 3001，内容校验失败 code 1001。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [revision]
+              properties:
+                revision: { type: integer, minimum: 1 }
+                note: { type: string, maxLength: 200, description: 发布说明，可空 }
+      responses:
+        '200':
+          description: Result.data 为发布后的 WorkflowSnapshot
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow/rollback:
+    post:
+      operationId: adminHeritageRollback
+      tags: [Admin, Heritage]
+      summary: 回滚到历史版本
+      description: '仅 ROLE_3。将指定历史版本内容作为新的发布版本写入已发布目录，学生端立即生效；会生成新的版本号而不是改写历史，并清空当前草稿。版本不存在返回 code 1004。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version]
+              properties:
+                version: { type: integer, minimum: 1 }
+                note: { type: string, maxLength: 200 }
+      responses:
+        '200':
+          description: Result.data 为回滚后的 WorkflowSnapshot
+        '404':
+          description: 版本不存在，code 1004
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow/unpublish:
+    post:
+      operationId: adminHeritageUnpublish
+      tags: [Admin, Heritage]
+      summary: 下架非遗目录
+      description: '仅 ROLE_3。删除已发布覆盖与草稿，学生端回退到内置目录；历史版本保留用于追溯。没有已发布内容返回 code 3001。'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 200 }
+      responses:
+        '200':
+          description: Result.data 为下架后的 WorkflowSnapshot
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow/published:
+    delete:
+      operationId: adminHeritageReset
+      tags: [Admin, Heritage]
+      summary: 恢复内置非遗目录
+      description: 仅 ROLE_3。清空草稿与已发布覆盖，学生端回到内置目录；历史版本保留用于追溯。
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为恢复后的 WorkflowSnapshot
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow/versions:
+    get:
+      operationId: adminHeritageVersions
+      tags: [Admin, Heritage]
+      summary: 列出版本历史
+      description: 仅 ROLE_3。按版本号倒序返回最近 50 个发布版本，含发布说明、操作者与发布时间。
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Result.data 为 VersionSummary 数组
+        '403':
+          description: 非管理员，code 1003
+  /api/admin/heritage/workflow/versions/{version}:
+    get:
+      operationId: adminHeritageVersionDetail
+      tags: [Admin, Heritage]
+      summary: 读取历史版本快照
+      description: 仅 ROLE_3。返回指定版本的完整 catalog 与发布信息；版本不存在返回 code 1004。
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: version
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Result.data 为 VersionDetail
+        '404':
+          description: 版本不存在，code 1004
         '403':
           description: 非管理员，code 1003
   /api/craft/session/active:
@@ -1941,6 +2118,40 @@ paths:
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- L4 PracticeSession ----------
+  /api/practice/short-practices:
+    get:
+      operationId: practiceShortPracticeList
+      summary: 短练习目录与推荐排序
+      description: '登录用户可读。返回 8 条 1–10 分钟短练习；可传 minutes、mood、kind 进行排序过滤，第一条为最接近当前条件的练习。内容只用于陪伴与注意力安放，不作诊断、疗效或情绪好坏判断。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: minutes, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 60 } }
+        - { name: mood, in: query, required: false, schema: { type: string, maxLength: 16 } }
+        - { name: kind, in: query, required: false, schema: { type: string, enum: [HERITAGE, MINDFULNESS, DRAWING] } }
+      responses:
+        '200':
+          description: Result.data 为按匹配度排序的短练习数组
+        '400':
+          description: 分钟数或类型不合法，code 1001
+        '401':
+          description: 未登录，HTTP 401 + code 1002
+  /api/practice/short-practices/{id}:
+    get:
+      operationId: practiceShortPracticeGet
+      summary: 读取单条短练习
+      description: 登录用户可读；按 ID 返回完整步骤与安全提示。不存在返回 code 1004。
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Result.data 为短练习
+        '404':
+          description: 短练习不存在，code 1004
+        '401':
+          description: 未登录，HTTP 401 + code 1002
   /api/practice/sessions:
     post:
       operationId: practiceSessionCreate
@@ -3465,6 +3676,29 @@ paths:
         '404': { description: 资源不存在（code=1004，传承人不存在或未认证）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/inheritors/stories:
+    get:
+      operationId: inheritorStoriesList
+      summary: 读取传承人故事内容包
+      description: '登录用户可读。返回 3 条合成教学故事摘要，明确标注非真实人物访谈；工艺背景引用项目已登记公开来源，不构成传承人履历、资质或口述史。'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Result.data 为故事摘要数组，含标题、工艺、阅读时长与 synthetic 标记
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+  /api/inheritors/stories/{id}:
+    get:
+      operationId: inheritorStoryDetail
+      summary: 读取单篇传承人故事
+      description: '登录用户可读。返回故事小节、观察提示、边界说明与工艺背景来源；不存在返回 code 1004。'
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 故事详情，含 sections、sources 与合成叙事声明
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 故事不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
   /api/inheritors/{id}/projects:
     get:
       operationId: inheritorProjectPublicList

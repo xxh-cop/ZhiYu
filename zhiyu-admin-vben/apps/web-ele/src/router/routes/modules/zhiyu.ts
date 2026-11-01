@@ -2,6 +2,7 @@ import type { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
  {name:'ZhiyuRuntimeConfig',path:'/zhiyu/runtime-config',component:()=>import('#/views/zhiyu/runtime-config.vue'),meta:{title:'推荐与陪伴配置',icon:'lucide:sliders-horizontal',order:7,authority:['ROLE_3']}},
+ {name:'ZhiyuSystemHealth',path:'/zhiyu/system-health',component:()=>import('#/views/zhiyu/system-health.vue'),meta:{title:'运行健康',icon:'lucide:activity',order:8,authority:['ROLE_3']}},
  {name:'ZhiyuComments',path:'/zhiyu/comments',component:()=>import('#/views/zhiyu/comments.vue'),meta:{title:'评论审核',icon:'lucide:message-square-check',order:5,authority:['ROLE_3']}},
  {name:'ZhiyuSpeechConfig',path:'/zhiyu/speech-config',component:()=>import('#/views/zhiyu/speech-config.vue'),meta:{title:'语音服务',icon:'lucide:mic',order:7,authority:['ROLE_3']}},
  {name:'ZhiyuCampus',path:'/zhiyu/campus',component:()=>import('#/views/zhiyu/campus.vue'),meta:{title:'校园身份审核',icon:'lucide:graduation-cap',order:5,authority:['ROLE_3']}},

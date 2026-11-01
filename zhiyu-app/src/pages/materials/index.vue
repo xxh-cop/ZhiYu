@@ -1,5 +1,6 @@
 <template><view class="growth-page" :class="{'motion-reduced':reducedMotion}">
  <view class="growth-hero"><text class="growth-eyebrow">MATERIAL ATLAS · 材料探索</text><text class="growth-title">从一种材料，认识一门手艺</text><text class="growth-subtitle">沿着材料、项目与安全说明探索。关联来自已发布项目的人工标注。</text></view>
+ <button class="growth-card kit-entry" @click="openKits"><view class="kit-entry-copy"><text class="growth-card-title">工作坊材料包</text><text class="growth-muted">竹编 · 夏布绣 · 剪纸 / 3 份准备清单</text></view><text class="kit-entry-arrow">→</text></button>
  <view class="growth-card"><input v-model="query" class="growth-input" maxlength="60" placeholder="搜索项目、品类或材料"/><view class="growth-row categories"><button v-for="m in ['全部','染','塑','织绣','纸','香','雕','未标注']" :key="m" :class="['growth-tag',{selected:medium===m}]" :aria-pressed="medium===m" @click="medium=m">{{m}}</button></view></view>
  <view v-if="loading" class="growth-card" aria-busy="true"><view class="growth-skeleton"/><view class="growth-skeleton short"/><text class="growth-muted">正在整理材料关系…</text></view>
  <view v-else-if="error" class="growth-error" role="alert">{{error}}<button class="growth-button secondary" @click="load">重新加载</button></view>
@@ -11,5 +12,14 @@
 import{ref,computed}from'vue';import{onLoad}from'@dcloudio/uni-app';import{request}from'../../utils/request';import{useInteraction}from'../../composables/useInteraction'
 const{reducedMotion}=useInteraction();const rows=ref([]),loading=ref(false),error=ref(''),truncated=ref(false),query=ref(''),medium=ref('全部'),expanded=ref('');const levels={LOW:'常规注意',GUIDED:'需在指导下操作',HIGH:'高风险工具 / 材料',UNKNOWN:'安全信息未核验'}
 const visible=computed(()=>rows.value.filter(p=>(medium.value==='全部'||(medium.value==='未标注'?!p.medium:p.medium===medium.value))&&`${p.title} ${p.category} ${p.medium}`.toLowerCase().includes(query.value.trim().toLowerCase())))
-async function load(){loading.value=true;error.value='';try{const data=await request({url:'/api/growth/material-map'});rows.value=data.items;truncated.value=data.truncated}catch(e){error.value=e.message}finally{loading.value=false}}function detail(id){uni.navigateTo({url:'/pages/craft/detail?id='+id})}onLoad(load)
+async function load(){loading.value=true;error.value='';try{const data=await request({url:'/api/growth/material-map'});rows.value=data.items;truncated.value=data.truncated}catch(e){error.value=e.message}finally{loading.value=false}}function detail(id){uni.navigateTo({url:'/pages/craft/detail?id='+id})}function openKits(){uni.navigateTo({url:'/pages/materials/kits'})}onLoad(load)
 </script><style src="../../styles/growth.css"></style><style scoped>.categories{gap:12rpx}.categories button{margin:0;border:0;line-height:2}.categories button::after{border:0}.categories .selected{background:#2f7566;color:#fff}.relationship{display:flex;align-items:center;justify-content:center;gap:8rpx;margin:26rpx 0}.node{padding:14rpx 16rpx;border:1rpx solid var(--zy-border,#dce6df);border-radius:14rpx;background:var(--zy-card-bg,#fff);font-size:23rpx}.connection{color:#85a197}.project-title{display:block;font-size:32rpx;font-weight:600;margin:22rpx 0 14rpx}.safety-level{font-size:24rpx;color:#94602c}.details-toggle{background:transparent;font-size:25rpx;color:#2f7566;text-align:left;padding:0;margin-top:16rpx}.details-toggle::after{border:0}.details{padding:20rpx;background:var(--zy-bg,#f5f7f8);border-radius:14rpx;animation:detail-in .2s ease-out}.details text{display:block;margin-bottom:12rpx}.source{font-size:23rpx;color:var(--zy-sub,#718379);line-height:1.8}@keyframes detail-in{from{opacity:.4;transform:translateY(-4px)}to{opacity:1;transform:none}}</style>
+
+<style scoped>
+.kit-entry { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; width: 100%; text-align: left; border-color: var(--zy-primary, #2f7566); background: var(--zy-bg-tint-mint, #eaf5ef); }
+.kit-entry-copy { flex: 1; min-width: 0; }
+.kit-entry-copy .growth-card-title { display: block; margin-bottom: 6rpx; color: var(--zy-title, #233d34); font-size: 28rpx; }
+.kit-entry-copy .growth-muted { display: block; font-size: 21rpx; line-height: 1.6; }
+.kit-entry-arrow { flex-shrink: 0; color: var(--zy-primary, #2f7566); font-size: 34rpx; }
+.kit-entry::after { border: 0; }
+</style>

@@ -155,15 +155,25 @@
 
 维持 Spring Boot 模块化单体、MySQL、现有 JWT。新文化内容放入 `modules/heritage`，不复制现有项目、传承人、作品业务。
 
-### 6.0 管理端内容维护 MVP（2026-10-29 实施）
+### 6.0 管理端内容维护（2026-10-29 MVP，2026-10-31 升级为内容工作流）
 
-在 4 门工艺/24 份纹样规模下，管理端维护先采用**整份目录 JSON 文档**方案，避免为此新增关系表：
+在 4 门工艺/24 份纹样规模下，目录仍以**整份 JSON 文档**维护；2026-10-31 已补齐草稿、发布、下架与版本回滚：
 
-- `GET/PUT/DELETE /api/admin/heritage/catalog` 仅 ROLE_3；读取返回 `{catalog, revision}`。
-- 保存复用 `runtime_config` 的 `heritage_catalog` 键，带 revision 乐观锁（冲突 3001）、服务端目录校验（1001）和 `admin_operation_log`。
-- 学生端 `GET /api/heritage/catalog` 优先读取该覆盖；无覆盖或覆盖损坏时回退 classpath 内置目录。
-- 管理端页面支持编辑 4 门工艺、24 份纹样和 4 条来源，保存后学生端立即生效；“恢复内置目录”删除覆盖。
-- 本 MVP **不含**新增/删除条目、草稿/发布/下架状态和关系表；这些在内容规模扩大后再迁移到规范化模型。不要把它描述成完整 CMS。
+- 草稿：`PUT /api/admin/heritage/workflow/draft`，写入 `runtime_config` 的 `heritage_catalog_draft` 键，带 revision 乐观锁（冲突 3001）与服务端目录校验（1001）；草稿不改变学生端。
+- 发布：`POST /api/admin/heritage/workflow/publish`，将草稿写入 `heritage_catalog`，学生端立即生效，并向 `heritage_catalog_version` 追加不可变版本快照。
+- 版本：`GET /api/admin/heritage/workflow/versions` 与 `/versions/{version}`；`POST /api/admin/heritage/workflow/rollback` 将历史版本作为新版本发布，不改写历史。
+- 下架：`POST /api/admin/heritage/workflow/unpublish` 删除已发布覆盖与草稿，学生端回退内置目录；版本历史保留。
+- 放弃草稿与恢复内置：`DELETE /api/admin/heritage/workflow/draft`、`DELETE /api/admin/heritage/workflow/published`。
+- 以上接口仅 ROLE_3；`GET /api/admin/heritage/catalog` 保留为已发布快照兼容入口；所有写操作记 `admin_operation_log`。
+- 学生端 `GET /api/heritage/catalog` 仍只读取已发布覆盖；无覆盖或覆盖损坏时回退 classpath 内置目录。
+- 管理端页面支持编辑 4 门工艺、24 份纹样和 4 条来源，展示已发布版本、草稿差异、版本历史与回滚。
+- 本工作流仍**不含**新增/删除条目；条目级增删与规范化关系模型在内容规模扩大后再迁移。
+
+### 6.0.1 传承人故事内容包（2026-10-31）
+
+- 首批 3 条故事（夏布绣、瑞昌竹编、瑞昌剪纸）为**合成教学叙事**，用于理解材料与工艺；明确标注“非真实人物访谈”，不构成传承人履历、资质或口述史。
+- `GET /api/inheritors/stories` 返回摘要，`GET /api/inheritors/stories/{id}` 返回小节、观察提示、边界说明与已登记公开来源；学生端在传承人列表展示故事卡片，并提供独立阅读页。
+- 故事不包含真实姓名、从艺年限、大师/代表性传承人等资质描述；来源链接沿用非遗目录的 4 条官方来源，媒体再利用状态仍为未授予。
 
 ### 6.1 最小内容模型
 

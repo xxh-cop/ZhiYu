@@ -50,6 +50,12 @@
       }
     },
     {
+      "path": "pages/inheritor/story",
+      "style": {
+        "navigationBarTitleText": "手艺人的故事"
+      }
+    },
+    {
       "path": "pages/heritage/gallery",
       "style": {
         "navigationBarTitleText": "非遗纹样馆"
@@ -191,6 +197,12 @@
       }
     },
     {
+      "path": "pages/practice/short",
+      "style": {
+        "navigationBarTitleText": "短练习"
+      }
+    },
+    {
       "path": "pages/start/index",
       "style": {
         "navigationBarTitleText": "开始"
@@ -236,6 +248,12 @@
       "path": "pages/materials/index",
       "style": {
         "navigationBarTitleText": "材料探索"
+      }
+    },
+    {
+      "path": "pages/materials/kits",
+      "style": {
+        "navigationBarTitleText": "工作坊材料包"
       }
     },
     {

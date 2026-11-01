@@ -5,8 +5,38 @@
 			<text class="page-title">非遗传承人</text>
 		</view>
 
+		<!-- 手艺人的故事 -->
+		<view v-if="storyLoading || storyList.length || storyError" class="story-section zy-slide-up zy-stagger" style="--stagger-i: 1">
+			<view class="story-head">
+				<view>
+					<text class="story-eyebrow">手艺人的故事</text>
+					<text class="story-note">合成教学叙事 · 非真实访谈</text>
+				</view>
+			</view>
+			<view v-if="storyLoading" class="story-skeleton zy-skeleton" aria-hidden="true"></view>
+			<view v-else-if="storyError" class="story-error" role="alert">{{ storyError }}</view>
+			<scroll-view v-else scroll-x class="story-scroll" :show-scrollbar="false">
+				<view
+					v-for="(story, idx) in storyList"
+					:key="story.id"
+					class="story-card"
+					role="button"
+					tabindex="0"
+					@click="goStory(story)"
+					@keydown.enter.prevent="goStory(story)"
+				>
+					<text class="story-index">0{{ idx + 1 }}</text>
+					<text class="story-title">{{ story.title }}</text>
+					<text class="story-meta">{{ story.traditionName }} · {{ story.readingMinutes }} 分钟</text>
+					<text class="story-synopsis">{{ story.synopsis }}</text>
+					<text class="story-link">读这个故事 →</text>
+				</view>
+			</scroll-view>
+			<text class="story-boundary">故事用于理解材料与工艺，不构成传承人履历、资质或口述史。</text>
+		</view>
+
 		<!-- 搜索框 -->
-		<view class="search-bar zy-slide-up zy-stagger" style="--stagger-i: 1">
+		<view class="search-bar zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="search-input-wrap">
 				<wd-icon name="search" size="32rpx" color="#718478" />
 				<input
@@ -124,6 +154,9 @@ const page = ref(1)
 const total = ref(0)
 const size = 10
 const keyword = ref('')
+const storyList = ref([])
+const storyLoading = ref(false)
+const storyError = ref('')
 
 const hasMore = computed(() => page.value * size < total.value)
 
@@ -206,8 +239,29 @@ function goDetail(item) {
 	})
 }
 
+async function loadStories() {
+	storyLoading.value = true
+	storyError.value = ''
+	try {
+		const data = await http.get('/api/inheritors/stories')
+		storyList.value = data || []
+	} catch (e) {
+		storyList.value = []
+		storyError.value = (e && e.message) || '故事暂时无法读取'
+	} finally {
+		storyLoading.value = false
+	}
+}
+
+function goStory(story) {
+	uni.navigateTo({
+		url: `/pages/inheritor/story?id=${encodeURIComponent(story.id)}`,
+	})
+}
+
 // 初始加载
 loadData(1)
+loadStories()
 </script>
 
 <style lang="scss" scoped>
@@ -520,5 +574,27 @@ loadData(1)
 	font-size: 22rpx;
 	color: var(--zy-aid, #718478);
 	text-align: center;
+}
+</style>
+
+<style scoped>
+.story-section { margin-bottom: 26rpx; }
+.story-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12rpx; margin-bottom: 14rpx; }
+.story-eyebrow { display: block; font-family: var(--zy-serif); font-size: 30rpx; font-weight: 600; color: var(--zy-title, #233d34); }
+.story-note { display: block; margin-top: 6rpx; font-size: 19rpx; letter-spacing: 1rpx; color: var(--zy-sub, #718478); }
+.story-skeleton { height: 260rpx; border-radius: 20rpx; }
+.story-error { padding: 22rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-card-bg, #fff); font-size: 22rpx; line-height: 1.7; color: var(--zy-content, #586e62); }
+.story-scroll { width: 100%; white-space: nowrap; }
+.story-card { display: inline-flex; flex-direction: column; width: 300rpx; margin-right: 16rpx; padding: 22rpx 22rpx 20rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 20rpx; background: linear-gradient(145deg, var(--zy-card-bg, #fff), var(--zy-bg-tint-mint, #eef5ef)); vertical-align: top; white-space: normal; box-sizing: border-box; }
+.story-card:last-child { margin-right: 0; }
+.story-index { font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #bb914d); }
+.story-title { display: block; margin-top: 8rpx; font-family: var(--zy-serif); font-size: 28rpx; font-weight: 600; line-height: 1.45; color: var(--zy-title, #233d34); }
+.story-meta { display: block; margin-top: 6rpx; font-size: 19rpx; color: var(--zy-primary, #2f7566); }
+.story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size: 21rpx; line-height: 1.7; color: var(--zy-content, #586e62); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.story-link { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-primary, #2f7566); }
+.story-boundary { display: block; margin-top: 12rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-sub, #718478); }
+.story-card:focus-visible { outline: 3px solid var(--zy-primary, #2f7566); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .story-card { transition: none; }
 }
 </style>

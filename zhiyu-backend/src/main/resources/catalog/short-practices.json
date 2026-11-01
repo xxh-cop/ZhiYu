@@ -1,0 +1,304 @@
+{
+  "version": "2026-10-31",
+  "disclaimer": "短练习用于安放注意力与陪伴自己，不作诊断、疗效或情绪好坏判断，也不能替代专业心理咨询。",
+  "practices": [
+    {
+      "id": "settle-60",
+      "title": "先停一小会儿",
+      "subtitle": "把脚放回地面，给呼吸留一点空间",
+      "kind": "MINDFULNESS",
+      "minutes": 1,
+      "moodTags": ["tired", "low", "ok", "good", "calm"],
+      "patternId": null,
+      "materials": [],
+      "steps": [
+        {
+          "order": 1,
+          "title": "安顿",
+          "cue": "双脚踩实地面，肩膀轻轻放下来。不用马上变好，先在这里停一下。",
+          "seconds": 20
+        },
+        {
+          "order": 2,
+          "title": "呼吸",
+          "cue": "按自己的幅度吸气和呼气。可以试着让呼气稍稍长一点，不必用力。",
+          "seconds": 20
+        },
+        {
+          "order": 3,
+          "title": "收束",
+          "cue": "对自己说一句：我先照顾这一刻的自己。然后决定接下来想做什么。",
+          "seconds": 20
+        }
+      ],
+      "safety": "保持自然呼吸；如感到不适，随时停下来。",
+      "closing": "你为自己留出了一分钟，这已经是一小步。"
+    },
+    {
+      "id": "window-180",
+      "title": "看看窗外",
+      "subtitle": "让眼睛和耳朵先休息一会儿",
+      "kind": "MINDFULNESS",
+      "minutes": 3,
+      "moodTags": ["tired", "calm", "ok", "low"],
+      "patternId": null,
+      "materials": [],
+      "steps": [
+        {
+          "order": 1,
+          "title": "远看",
+          "cue": "把视线放到最远的地方，找三个不同的形状。不评价它们。",
+          "seconds": 45
+        },
+        {
+          "order": 2,
+          "title": "听声",
+          "cue": "听一听周围的声音，分辨出三种来源。近处的、远处的，都可以。",
+          "seconds": 45
+        },
+        {
+          "order": 3,
+          "title": "手心",
+          "cue": "双手轻轻相贴，感受掌心的温度。让肩膀自然下沉。",
+          "seconds": 45
+        },
+        {
+          "order": 4,
+          "title": "回来",
+          "cue": "做三次自然的呼吸，然后回到你原本要做的下一件小事。",
+          "seconds": 45
+        }
+      ],
+      "safety": "不需要屏息或强迫自己放松；不舒服时随时停下。",
+      "closing": "注意力回来过，就已经足够。"
+    },
+    {
+      "id": "leaf-300",
+      "title": "看一片叶子",
+      "subtitle": "夏布绣 · 细叶留白",
+      "kind": "HERITAGE",
+      "minutes": 5,
+      "moodTags": ["calm", "ok", "good", "tired"],
+      "patternId": "971101",
+      "materials": ["纸与铅笔（可选）"],
+      "steps": [
+        {
+          "order": 1,
+          "title": "先看留白",
+          "cue": "把画面当成一张纸，先找出面积最大的空白。它不一定在中间。",
+          "seconds": 75
+        },
+        {
+          "order": 2,
+          "title": "再看叶线",
+          "cue": "沿着叶子的方向看短线，注意它们之间的疏密变化。",
+          "seconds": 75
+        },
+        {
+          "order": 3,
+          "title": "想一针",
+          "cue": "如果只能落一针，你会放在哪里？不必真的画，先在脑海里放一下。",
+          "seconds": 75
+        },
+        {
+          "order": 4,
+          "title": "收束",
+          "cue": "把视线移开，眨眨眼。记住刚才最舒服的那个位置。",
+          "seconds": 75
+        }
+      ],
+      "safety": "只做观察与想象，不接触针线；需要实物练习时请在成人陪同下准备材料。",
+      "closing": "你刚刚练习的是观看，不是完成一件作品。"
+    },
+    {
+      "id": "weave-300",
+      "title": "找一次经纬",
+      "subtitle": "瑞昌竹编 · 经纬初见",
+      "kind": "HERITAGE",
+      "minutes": 5,
+      "moodTags": ["ok", "good", "calm", "stressed"],
+      "patternId": "971201",
+      "materials": ["两根纸条（可选）"],
+      "steps": [
+        {
+          "order": 1,
+          "title": "分方向",
+          "cue": "先分辨横向和纵向的带。用手指在屏幕上慢慢划一次。",
+          "seconds": 75
+        },
+        {
+          "order": 2,
+          "title": "数交点",
+          "cue": "选一小块区域，数一数横带和纵带在哪里相遇。数错也没关系。",
+          "seconds": 75
+        },
+        {
+          "order": 3,
+          "title": "选一色",
+          "cue": "如果只给一条带换颜色，你会选哪一条？为什么？",
+          "seconds": 75
+        },
+        {
+          "order": 4,
+          "title": "收束",
+          "cue": "把注意力放回呼吸，感受手指现在的状态。",
+          "seconds": 75
+        }
+      ],
+      "safety": "使用纸条时避免用力拉扯；不要使用有毛刺的竹篾。",
+      "closing": "经纬可以先在眼里成立，再慢慢去到手上。"
+    },
+    {
+      "id": "paper-420",
+      "title": "点几颗小星",
+      "subtitle": "瑞昌剪纸 · 纸上星点",
+      "kind": "HERITAGE",
+      "minutes": 7,
+      "moodTags": ["low", "tired", "ok"],
+      "patternId": "971305",
+      "materials": ["纸与铅笔（可选）", "剪刀（可选）"],
+      "steps": [
+        {
+          "order": 1,
+          "title": "看点距",
+          "cue": "观察星点之间的远近，找出一处最疏和一处最密的地方。",
+          "seconds": 105
+        },
+        {
+          "order": 2,
+          "title": "排一排",
+          "cue": "在纸上点三到五个点，间距由你自己决定。没有标准答案。",
+          "seconds": 105
+        },
+        {
+          "order": 3,
+          "title": "留一点空",
+          "cue": "故意留出一块不点的区域，看看它让画面发生了什么变化。",
+          "seconds": 105
+        },
+        {
+          "order": 4,
+          "title": "收束",
+          "cue": "放下笔或剪刀，看看纸面。只描述你看到的，不评价好不好。",
+          "seconds": 105
+        }
+      ],
+      "safety": "使用剪刀时注意手指，也可以只用手撕纸；儿童需成人陪同。",
+      "closing": "留白也是画面的一部分，就像休息也是生活的一部分。"
+    },
+    {
+      "id": "color-480",
+      "title": "给今天配四种颜色",
+      "subtitle": "不需要画得像，只选此刻顺眼的颜色",
+      "kind": "DRAWING",
+      "minutes": 8,
+      "moodTags": ["low", "ok", "good", "calm", "anxious"],
+      "patternId": null,
+      "materials": ["纸与四种颜色的笔（可选）"],
+      "steps": [
+        {
+          "order": 1,
+          "title": "选四色",
+          "cue": "凭第一感觉挑四种颜色：一种打底，一种最深，两种你愿意放在一起的。",
+          "seconds": 120
+        },
+        {
+          "order": 2,
+          "title": "铺底",
+          "cue": "让打底色占最大的面积，不急着画具体的东西。",
+          "seconds": 120
+        },
+        {
+          "order": 3,
+          "title": "放主色",
+          "cue": "选一处放上主色，再在另一边放一点辅助色。让画面有轻有重。",
+          "seconds": 120
+        },
+        {
+          "order": 4,
+          "title": "留白",
+          "cue": "停笔，留出一块什么都不画的地方。看看现在的颜色关系。",
+          "seconds": 120
+        }
+      ],
+      "safety": "对颜色或材料不适时随时停止；不需要完成一幅作品。",
+      "closing": "颜色没有对错，它只是此刻的一种记录。"
+    },
+    {
+      "id": "bowl-600",
+      "title": "画一个不着急的圆",
+      "subtitle": "景德镇制瓷 · 器心一圈",
+      "kind": "HERITAGE",
+      "minutes": 10,
+      "moodTags": ["calm", "ok", "good", "tired"],
+      "patternId": "971401",
+      "materials": ["纸与铅笔（可选）"],
+      "steps": [
+        {
+          "order": 1,
+          "title": "看圆心",
+          "cue": "先看画面中心的圆，注意它和边缘之间的距离。",
+          "seconds": 150
+        },
+        {
+          "order": 2,
+          "title": "画第一圈",
+          "cue": "在纸上慢慢画一个圆，不必很圆。感受手腕的移动。",
+          "seconds": 150
+        },
+        {
+          "order": 3,
+          "title": "再画一圈",
+          "cue": "在第一个圆外面再画一圈，让两圈之间留一点空隙。",
+          "seconds": 150
+        },
+        {
+          "order": 4,
+          "title": "收束",
+          "cue": "把笔放下，看看这两圈。它们不需要变得更好。",
+          "seconds": 150
+        }
+      ],
+      "safety": "画线时保持手腕放松；如感到酸累，停下来活动一下。",
+      "closing": "重复的线条可以成为一种节奏，慢一点也没关系。"
+    },
+    {
+      "id": "night-120",
+      "title": "睡前把灯调暗",
+      "subtitle": "把今晚解决不了的事留到明天",
+      "kind": "MINDFULNESS",
+      "minutes": 2,
+      "moodTags": ["tired", "low", "anxious", "stressed"],
+      "patternId": null,
+      "materials": [],
+      "steps": [
+        {
+          "order": 1,
+          "title": "调暗",
+          "cue": "把屏幕亮度调低，或者先放下手机，让眼睛适应一会儿暗光。",
+          "seconds": 30
+        },
+        {
+          "order": 2,
+          "title": "放松",
+          "cue": "松开额头和下颌，让舌头自然放平。不用刻意保持什么表情。",
+          "seconds": 30
+        },
+        {
+          "order": 3,
+          "title": "听一听",
+          "cue": "听房间里最远的声音，再听最近的声音。不需要判断它们。",
+          "seconds": 30
+        },
+        {
+          "order": 4,
+          "title": "收束",
+          "cue": "对自己说：今晚先到这里，剩下的事明天再处理。",
+          "seconds": 30
+        }
+      ],
+      "safety": "不强迫自己入睡；如果持续失眠或情绪困扰，请联系可信任的人或专业支持。",
+      "closing": "今天可以结束了，休息不需要先完成任务。"
+    }
+  ]
+}
