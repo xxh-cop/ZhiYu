@@ -45,6 +45,18 @@ ai:
       enabled: true
       purpose: 生成个性化推荐理由与引导语，不决定选品
       prompt: prompts/recommend.st
+    # AM2（2026-11-04）反馈回灌加权：确定性规则，接在规则层之后；数值以 application.yml
+    # zhiyu.recommend.feedback.* 为运行承载（enabled/window-days/min-events/click-weight/
+    # dismiss-weight/decay-per-day/cap）。稀疏（<min-events）或关闭时排序与规则层逐条一致。
+    feedback_boost:
+      enabled: true
+      note: 仅用本人 craft_recommend_event（CLICK 正 / DISMISS 负），不使用便签/对话等敏感内容
+
+  # AM1（2026-11-04）情绪基线偏离提醒：只做提醒不做判断；口径与默认值以
+  # application.yml zhiyu.emotion.baseline.* 为运行承载（依据见 EmotionBaselineService javadoc）。
+  emotion_baseline:
+    enabled: true
+    note: 低落类占比位移（近期 3 天 vs 基线 28 天）≥0.30 且样本达标才提示；冷却 72h；用户可关
 
   # 作品寄语
   work_message:
@@ -77,13 +89,78 @@ ai:
       - llm-chat
       - llm-recommend
       - llm-message
+      - llm-strong        # strong 档（倾听小结等）独立熔断，2026-11-04 B2 注册
+      - llm-summary       # 上下文滚动摘要（P1b，standard 档）独立熔断，2026-11-04 注册
       - asr
       - tts
     fallback:
       llm-chat: 缓存图文陪伴话术
       llm-recommend: 纯规则推荐
+      llm-strong: 回落 standard 档（见 routing.fallback_chain）
+      llm-summary: 本轮不做摘要，保留原文窗口（不阻断对话，记 ai_trace）
       asr: 提示用户改用文字输入
       tts: 静默，仅展示文字
+
+  # 任务分档模型路由（2026-11-04，B2：最小静态映射，不做动态打分路由）
+  routing:
+    policy: task_tier
+    tiers:
+      standard:
+        provider: deepseek
+        model: deepseek-chat       # 日常对话、推荐、寄语、RAG、陪伴编排
+      strong:
+        provider: deepseek
+        model: deepseek-reasoner   # 倾听小结、（预留）内容审核辅助；同 endpoint/key
+      qwen:
+        provider: qwen
+        model: qwen-plus
+        available: false           # QWEN_BASE_URL/QWEN_API_KEY 未配置（.env 无此变量），显式不可用
+      embedding:
+        provider: doubao           # 独立于对话档位
+    tasks:
+      crisis: none                 # 红线：危机干预不走 LLM，直接返回预置干预话术
+      chat: standard               # 日常情绪对话（含 SSE live）
+      companion: standard          # 陪伴编排计划
+      recommend: standard          # 推荐理由
+      message: standard            # 作品寄语 / 创作回顾
+      listening_summary: strong    # 倾听小结走强档
+      moderation: strong           # 内容审核辅助（预留，当前无 LLM 调用点）
+      rag: standard                # 非遗问答
+    fallback_chain:
+      # 每档失败显式回落并记 WARN 日志，不静默降级
+      strong: [standard, cached_template]
+      standard: [cached_template]
+
+  # 双对话收敛（dialogue-unification-20261104；P0 骨架，全部默认关闭，纯增量无运行时行为变化）
+  # 数值与文档 §2.3/§2.4/§3 一致；各期开关由 zhiyu.dialogue.*（application.yml）承载默认值。
+  dialogue:
+    commander:
+      enabled: false           # C1 端点 /api/dialogue/chat 注册（物理入口；application.yml zhiyu.dialogue.commander）
+    listening_via_commander:
+      enabled: false           # AK1 灰度：倾听链委托调度层（zhiyu.dialogue.listening-via-commander）；与端点注册解耦，可只放倾听
+      note: 危机路径永久直连、无开关——两路径都先过内容安检、零 LLM（用户拍板 2026-11-04）
+    companion_adapter:
+      enabled: false           # P3 companion 薄适配器开关（/api/companion/sessions/{id}/message 转调度层；预留未接线）
+    rolling_summary:
+      enabled: false           # P1b 滚动摘要开关（仅倾听链）
+      trigger_turn: 11         # 第 11 轮起触发
+      increment_turns: 5       # 每新增 5 轮，把滑出原文窗口的最旧 5 轮增量压缩进摘要
+      ttl_days: 90             # 摘要滚动过期
+    routing_rules:
+      enabled: false           # 规则路由总开关（可热改）；模型分类器不进上线路径（决策②）
+      rules:
+        - { priority: 0, when: input_safety_blocked, route: CRISIS, note: 预置干预话术，不进 LLM；记 care_reminder + ai_audit_log + trace(ROUTE_CRISIS) }
+        - { priority: 1, when: entry_context=PRACTICE_PAGE && practice_session_active, route: PRACTICE_COMPANION, note: 现 CompanionOrchestrator 逻辑原样迁入 }
+        - { priority: 2, when: entry_context=KNOWLEDGE_PAGE, route: KNOWLEDGE, note: 现 RagService/KnowledgeAskService 链 }
+        - { priority: 3, when: explicit_intent_hint, route: HINTED_CAPABILITY, note: 前端随请求带 intentHint 的显式快捷动作 }
+        - { priority: 4, when: default, route: LISTENING, note: 最安全默认——无工具、无执行副作用；规则引擎异常同样回落 LISTENING 并记 trace(ROUTE_FALLBACK) }
+    guards:
+      max_route_depth: 1       # 闸①深度上限：路由 1 次 + 子能力执行 1 次，子能力返回值不进二次路由
+      repeat_intent_times: 3   # 闸②重复意图：规范化文本哈希同哈希 ≥N 次/窗口 ⇒ 锁定当前子能力
+      repeat_window_seconds: 600
+      oscillation_lock: true   # 3 轮内 A→B→A 振荡 ⇒ 本轮强制留在 A（trace: REPEAT_INTENT_LOCK）
+      session_turn_budget: 30  # 闸③每会话 LLM 轮次预算（trace: BUDGET_EXHAUSTED）
+      turn_wall_clock_ms: 30000  # 单轮调度层墙钟预算（SSE 总超时 120s 内；trace: TURN_TIMEOUT）
 
   # RAG 非遗知识库（当前为本地文件向量存储 + 目录关系检索，不是已部署 Chroma/Milvus）
   rag:

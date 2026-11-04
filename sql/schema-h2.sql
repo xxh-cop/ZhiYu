@@ -80,7 +80,10 @@ CREATE TABLE IF NOT EXISTS user (
   school            VARCHAR(100) DEFAULT NULL,
   craft_preferences VARCHAR(255) DEFAULT NULL,
 can_contact       TINYINT      NOT NULL DEFAULT 0,
-privacy_agreed    TINYINT      NOT NULL DEFAULT 0,
+privacy_agreed    TINYINT      NOT NULL DEFAULT 0,  baseline_nudge_enabled TINYINT NOT NULL DEFAULT 1,
+  baseline_nudge_last_at DATETIME DEFAULT NULL,
+  baseline_nudge_last_level VARCHAR(16) DEFAULT NULL,
+
 role              TINYINT      NOT NULL DEFAULT 0,
   status            TINYINT      NOT NULL DEFAULT 1,
   create_time       TIMESTAMP    DEFAULT NULL,
@@ -153,6 +156,7 @@ CREATE TABLE IF NOT EXISTS craft_project (
     video_url VARCHAR(255) DEFAULT NULL,
   cover_url    VARCHAR(255),
   status       TINYINT      NOT NULL DEFAULT 0,
+  audit_reason VARCHAR(300)  DEFAULT NULL,
   create_time  TIMESTAMP    DEFAULT NULL,
   update_time  TIMESTAMP    DEFAULT NULL,
   deleted      TINYINT      NOT NULL DEFAULT 0,
@@ -252,6 +256,7 @@ CREATE TABLE IF NOT EXISTS work (
   anonymous   TINYINT      NOT NULL DEFAULT 1,
   like_count  INT          NOT NULL DEFAULT 0,
   status      TINYINT      NOT NULL DEFAULT 1,
+  audit_reason VARCHAR(255) DEFAULT NULL,
   create_time TIMESTAMP    DEFAULT NULL,
   update_time TIMESTAMP    DEFAULT NULL,
   deleted     TINYINT      NOT NULL DEFAULT 0,
@@ -264,6 +269,7 @@ CREATE TABLE IF NOT EXISTS work_comment (
   user_id     BIGINT       NOT NULL,
   content     VARCHAR(255) NOT NULL,
   status      TINYINT      NOT NULL DEFAULT 1,
+  audit_reason VARCHAR(255) DEFAULT NULL,
   create_time TIMESTAMP    DEFAULT NULL,
   update_time TIMESTAMP    DEFAULT NULL,
   deleted     TINYINT      NOT NULL DEFAULT 0,
@@ -332,6 +338,8 @@ CREATE TABLE IF NOT EXISTS ai_audit_log (
   ai_output   CLOB,
   action      VARCHAR(20) NOT NULL,
   reason      VARCHAR(255),
+  ref_type    VARCHAR(30) DEFAULT NULL,
+  ref_id      BIGINT      DEFAULT NULL,
   create_time TIMESTAMP   DEFAULT NULL,
   PRIMARY KEY (id)
 );
@@ -339,6 +347,7 @@ CREATE TABLE IF NOT EXISTS ai_audit_log (
 -- ============================================================
 -- 索引（与 schema.sql 一一对应，仅名称加表名前缀以规避 H2 的 schema 级命名空间）
 -- ============================================================
+CREATE INDEX IF NOT EXISTS idx_audit_ref                         ON ai_audit_log (ref_type,ref_id);
 CREATE INDEX IF NOT EXISTS idx_emotion_session_user          ON emotion_session (user_id);
 CREATE INDEX IF NOT EXISTS idx_emotion_message_session       ON emotion_message (session_id);
 CREATE INDEX IF NOT EXISTS idx_emotion_note_user             ON emotion_note (user_id);
@@ -443,4 +452,56 @@ CREATE TABLE IF NOT EXISTS file_cleanup_job (
  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
  UNIQUE KEY uk_cleanup_key (storage_kind,storage_key)
+);
+
+CREATE TABLE IF NOT EXISTS notification (
+ id BIGINT PRIMARY KEY, user_id BIGINT NOT NULL, type VARCHAR(30) NOT NULL, title VARCHAR(120) NOT NULL,
+ content VARCHAR(500) DEFAULT NULL, ref_type VARCHAR(30) DEFAULT NULL, ref_id BIGINT DEFAULT NULL, sub_ref_id BIGINT DEFAULT NULL,
+ dedupe_key VARCHAR(80) NOT NULL, read_flag TINYINT NOT NULL DEFAULT 0,
+ create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted TINYINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_notification_dedupe (user_id,type,ref_type,ref_id,dedupe_key)
+);
+CREATE INDEX IF NOT EXISTS idx_notification_user_read ON notification(user_id,read_flag,id);
+CREATE INDEX IF NOT EXISTS idx_notification_user_type ON notification(user_id,type,id);
+
+CREATE TABLE IF NOT EXISTS admin_export_log (
+ id BIGINT PRIMARY KEY, actor_id BIGINT NOT NULL, actor_role TINYINT NOT NULL,
+ target_type VARCHAR(20) NOT NULL, filter_summary VARCHAR(500) DEFAULT NULL,
+ field_list VARCHAR(500) NOT NULL, record_count INT NOT NULL DEFAULT 0,
+ purpose VARCHAR(200) NOT NULL, batch_no VARCHAR(32) NOT NULL,
+ alert_flag TINYINT NOT NULL DEFAULT 0,
+ create_time TIMESTAMP DEFAULT NULL,
+ UNIQUE KEY uk_export_batch (batch_no)
+);
+
+CREATE TABLE IF NOT EXISTS dialogue_context_summary (
+ id BIGINT NOT NULL PRIMARY KEY,
+ user_id BIGINT NOT NULL,
+ session_id BIGINT NOT NULL,
+ covered_start_turn INT NOT NULL,
+ covered_end_turn INT NOT NULL,
+ summary_cipher TEXT NOT NULL,
+ model VARCHAR(80) DEFAULT NULL,
+ prompt_version VARCHAR(40) DEFAULT NULL,
+ create_time DATETIME DEFAULT NULL,
+ update_time DATETIME DEFAULT NULL,
+ deleted TINYINT NOT NULL DEFAULT 0,
+ KEY idx_dcs_user_session (user_id, session_id, deleted)
+);
+
+-- ---------- 危机路径留存（AJ 2026-11-04：只存脱敏摘要与危机等级，绝不存原文） ----------
+CREATE TABLE IF NOT EXISTS crisis_session_log (
+  id             BIGINT       NOT NULL,
+  user_id        BIGINT       NOT NULL,
+  session_id     BIGINT       DEFAULT NULL,
+  scene          VARCHAR(30)  NOT NULL,
+  risk_level     TINYINT      NOT NULL DEFAULT 2,
+  summary_cipher TEXT         NOT NULL,
+  create_time    DATETIME     NOT NULL,
+  update_time    DATETIME     NOT NULL,
+  deleted        TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_crisis_user (user_id, deleted),
+  KEY idx_crisis_created (create_time)
 );

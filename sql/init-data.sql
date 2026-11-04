@@ -15,6 +15,9 @@ USE zhiyu;
 -- mood 统一英文 code；中文只在前端展示层映射。
 -- therapy_tags = 该情绪优先推荐的「疗愈效果标签」，词表见 sql/dict-therapy-tags.sql，
 -- 与 craft_project.therapy_tags 同一套词汇，供规则推荐匹配。
+-- 注（AU1 2026-11-04）：care_reminder.risk_level / crisis_session_log.risk_level 的
+-- 风险等级语义（1关注 2高危 3紧急）不是数据库字典行，载体是 schema.sql 列注释 +
+-- 管理端 status-dict.ts 常量；已有库的注释升级见 sql/migrations/20261104_care_risk_labels.sql。
 INSERT INTO dict_mood (id, code, label, therapy_tags, sort_no, create_time, update_time, deleted) VALUES
 (1, 'anxious',   '焦虑', '静心,专注,安抚',         1, NOW(), NOW(), 0),
 (2, 'stressed',  '压力', '放空,释放,触觉安抚',     2, NOW(), NOW(), 0),

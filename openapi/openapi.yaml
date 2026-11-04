@@ -10,6 +10,8 @@ info:
     约定：
     - 除 SSE 接口外，所有接口的响应 body 统一包 Result。
     - SSE 接口（/api/emotion/chat）不使用 HTTP 层错误码，失败通过 `event: error` 推送，由前端降级。
+    - 类型口径（S3 2026-11-04 统一）：雪花 ID 一律为字符串；列表接口的分页元数据（total/page/size/pageNum/pageSize）与列表内嵌计数（如 journey 的 completed/works、mine 的 counts、programs 的 booked）一律为 JSON number。
+    - 例外（保持字符串，属只读展示统计指标而非列表分页元数据）：/api/admin/dashboard/stats、/api/admin/dashboard/operations、/api/admin/dashboard/therapy-funnel、/api/admin/ops/health、/api/admin/ai-governance/overview 中的聚合计数按字符串返回（全局 Long→String 序列化策略）。前端展示可直接渲染；如需计算请先 Number() 转换。
 servers:
   - url: http://localhost:8080
     description: 本地开发
@@ -59,6 +61,33 @@ components:
         password: { type: string, format: password }
         nickname: { type: string }
         school: { type: string, maxLength: 100, nullable: true, description: 所在学校，可选 }
+
+    PasswordForgotReq:
+      type: object
+      required: [username]
+      properties:
+        username: { type: string, example: student01 }
+
+    PasswordResetReq:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token: { type: string, description: 一次性重置令牌，明文只出现在发送通道中 }
+        newPassword: { type: string, format: password, minLength: 6, maxLength: 32 }
+
+    NotificationVO:
+      type: object
+      description: '通知条目；正文为脱敏内容，id 以字符串传递（雪花 ID）'
+      properties:
+        id: { type: string, description: 通知 ID（雪花，字符串） }
+        type: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT] }
+        title: { type: string }
+        content: { type: string, nullable: true, description: '脱敏正文；关怀类只含引导语，不含敏感内容' }
+        refType: { type: string, nullable: true, description: '关联对象类型：work/comment/booking/group/care_reminder/campus_verification/project/inheritor_profile（project：AY1 起下架/删除、BE 起审核结果；inheritor_profile：BG1 起传承人入驻核验结果，类型复用 CAMPUS_AUDIT）' }
+        refId: { type: string, nullable: true, description: '跳转目标 ID（雪花，字符串）。COMMENT_AUDIT 自 2026-11-04（S2）起为评论所属作品 ID（此前历史数据经迁移回填；评论已物理缺失的极个别历史行可能仍为评论 ID，前端按 subRefId 是否存在判断可跳转性）' }
+        subRefId: { type: string, nullable: true, description: '二级关联对象 ID（2026-11-04 S2 新增）。COMMENT_AUDIT 为评论 ID 锚点，学生端存在 subRefId 即可直达作品并锚定评论；其他类型为 null' }
+        read: { type: boolean, description: 'true 已读 / false 未读' }
+        createTime: { type: string, format: date-time }
 
     LoginVO:
       type: object
@@ -119,6 +148,11 @@ components:
         sessionId: { type: integer, nullable: true }
         mood: { type: string, nullable: true }
         content: { type: string, example: 今天考试周压力很大 }
+        mode:
+          type: string
+          nullable: true
+          enum: [live]
+          description: '传 live 启用句级真流式事件协议（chunk/revoke/done）；缺省保持旧版整段单事件格式（兼容期一个迭代周期）'
 
     NoteCreateDTO:
       type: object
@@ -225,7 +259,7 @@ components:
         stepNo: { type: integer, description: 步骤序号 }
         title: { type: string, description: 步骤标题 }
         guide: { type: string, description: 引导语 }
-        audioUrl: { type: string, nullable: true, description: 引导语音频 URL }
+        audioUrl: { type: string, nullable: true, description: '引导语音频：私有媒体引用在下发时换为 1h 签名播放地址（/api/media/{id}/content?uid=&expires=&signature=）；http(s) 外链与 /static/ 前端包静态资源原样透传；null 表示无音频' }
 
     CraftProject:
       type: object
@@ -259,6 +293,8 @@ components:
         liked: { type: boolean, description: 详情接口返回当前用户是否已点赞 }
         favorited: { type: boolean, description: 详情接口返回当前用户是否已收藏 }
         shareable: { type: boolean, description: 仅审核通过且公开的作品可分享，接收者仍需登录且重新校验访问权限 }
+        status: { type: integer, enum: [0, 1, 2], description: '审核状态（N1 先审后发）：0 待审（仅作者可见）/ 1 已公开 / 2 已下架；他人访问非 1 的作品返回 1004（不泄露存在性），与 auditReason 可见性口径一致' }
+        auditReason: { type: string, nullable: true, description: '审核理由（AE2 2026-11-04）：仅 GET /api/works/{id} 对作者本人下发；他人不下发（非公开作品对他人为 1004）；未审核/已通过为 null' }
         likeCount: { type: integer }
         commentCount: { type: integer }
         createTime: { type: string, format: date-time }
@@ -266,7 +302,7 @@ components:
     WorkPageVO:
       type: object
       properties:
-        total: { type: integer, format: int64 }
+        total: { type: integer, description: '总数为 JSON number（AE3 2026-11-04，与 PageVO 口径一致）；records 内 id 仍为字符串雪花' }
         page: { type: integer }
         size: { type: integer }
         records:
@@ -351,6 +387,7 @@ components:
         recommendationId: { type: string, pattern: '^[0-9]+$' }
         projectId: { type: string, pattern: '^[0-9]+$' }
         source: { type: string, enum: [HOME, RECOMMEND], description: 首页或推荐页入口 }
+        eventType: { type: string, enum: [CLICK, DISMISS], default: CLICK, description: '事件类型（AM2 2026-11-04）：缺省 CLICK 正反馈；DISMISS 负反馈，参与回灌加权' }
 
     TherapyFunnelStageVO:
       type: object
@@ -729,7 +766,7 @@ paths:
                 consent: {type: boolean, enum: [true]}
       responses:
         '200': {description: Result}
-        '403': {description: 未授权保存个人记录}
+        '403': {description: '未同意隐私政策（code=1003「请先阅读并同意隐私政策」，S1 2026-11-04 起全站统一文案）'}
     delete:
       operationId: growthProgramsByIdFeedbackDelete
       summary: 删除本人反馈正文并停止计入汇总
@@ -772,14 +809,28 @@ paths:
   /api/admin/comments:
     get:
       operationId: adminCommentsGet
-      summary: 管理员分页查看评论审核队列
+      summary: 管理员分页查看评论审核队列（可按作品过滤）
       security: [{bearerAuth: []}]
       parameters:
         - {in: query, name: page, schema: {type: integer, minimum: 1, default: 1}}
         - {in: query, name: status, schema: {type: integer, enum: [0, 1, 2], default: 0}}
+        - {in: query, name: workId, required: false, schema: {type: string, pattern: '^[0-9]+$'}, description: '可选（2026-11-04 O2 新增）；按所属作品过滤，管理端视角不受学生端 WorkAudience 限制'}
       responses:
-        '200': {description: 'Result.data 包含 records、total；状态 0 待审核、1 公开、2 隐藏'}
+        '200': {description: 'Result.data 包含 records、total（JSON number）；状态 0 待审核、1 公开、2 隐藏'}
         '403': {description: 仅管理员可访问}
+  /api/admin/comments/{id}:
+    get:
+      operationId: adminCommentDetail
+      summary: '管理端评论详情（脱敏摘要，2026-11-04 O2）'
+      description: '返回评论所属 workId、当前状态、作者昵称与内容截断摘要（≤50 字，不返回全文），供审核工作台与通知跳转定位。权限 role∈{2,3}；评论不存在或已删除返回 1004。id 与 workId 以字符串返回（雪花）。'
+      security: [{bearerAuth: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string, pattern: '^[0-9]+$'}}
+      responses:
+        '200': {description: 'code=0；data 含 id/workId/status/authorName/contentExcerpt/createTime'}
+        '401': {description: 未登录（code=1002）}
+        '403': {description: 仅管理员/咨询师可访问（code=1003）}
+        '404': {description: 评论不存在或已删除（code=1004）}
   /api/admin/comments/{id}/review:
     post:
       operationId: adminCommentsByIdReviewPost
@@ -797,8 +848,9 @@ paths:
               properties:
                 status: {type: integer, enum: [1, 2]}
                 expectedStatus: {type: integer, enum: [0, 1, 2]}
+                reason: {type: string, maxLength: 255, description: '审核理由；status=2（隐藏/驳回）时必填，缺失返回 1001；status=1 可空。落库到 work_comment.audit_reason 并随通知正文送达评论作者'}
       responses:
-        '200': {description: 'Result，0 成功，3001 状态已变化；已删除或下架作品不可通过评论'}
+        '200': {description: 'Result，0 成功，3001 状态已变化，1001 驳回缺少理由；已删除或下架作品不可通过评论'}
         '403': {description: 仅管理员可访问}
   /api/works/{id}/comments/{commentId}:
     delete:
@@ -1029,18 +1081,44 @@ paths:
                 realName: {type: string, maxLength: 40}
       responses:
         '200': {description: 'Result，PENDING；已批准申请不能重提'}
+  /api/admin/crisis-logs:
+    get:
+      operationId: adminCrisisLogsGet
+      summary: 危机路径留存列表（AJ 2026-11-04，仅元数据；AQ1 统一 camelCase）
+      description: '危机路径「留存但降级」：列表只返回元数据（camelCase：id/userId/sessionId/scene/riskLevel/createTime），不含摘要。riskLevel 分级（AQ2）：1 关注 / 2 高危 / 3 紧急，按词表分组标记（# @level:N），未知命中保守取 3。仅 role 2/3；咨询师仅能看其认领关怀个案关联用户的记录（叠加 care_case 归属过滤）。学生端无入口。'
+      parameters:
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+      responses:
+        '200': {description: 'Result，data 含 records（元数据）与 total（JSON number）；每页 20 条'}
+        '403': {description: 无权限（code=1003）, content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResult'}}}}
+  /api/admin/crisis-logs/{id}:
+    get:
+      operationId: adminCrisisLogsByIdGet
+      summary: 危机留存详情（含脱敏摘要 + 用户标识；每次查看落操作审计）
+      description: '返回服务端解密后的规则式脱敏摘要（不含对话原文）。字段 camelCase：id/userId/sessionId/scene/riskLevel/summary/createTime。用户标识为 userId（雪花字符串）——按个案归属定位已足够，昵称/姓名属多余暴露（AQ1 最小权限）。仅 role 2/3 且叠加关怀范围过滤；越权或不存在返回 1004（不泄露存在性）。每次查看写 admin_operation_log（crisis_log.view）。'
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}, description: '记录 ID（雪花，字符串）'}
+      responses:
+        '200': {description: 'Result，data 含 id/sessionId/scene/riskLevel/summary/createTime'}
+        '403': {description: 无权限（code=1003）, content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResult'}}}}
+        '404': {description: 不存在或无权查看（code=1004）, content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResult'}}}}
+
   /api/admin/campus-verifications:
     get:
       operationId: adminCampusVerificationsGet
       summary: 管理员分页查看校园身份申请
+      description: 'AG1（2026-11-04）新增可选 status 过滤：不传或空白时返回全状态混排（与旧行为完全一致）；非法值返回 400 + code=1001。排序固定 update_time DESC,id DESC，每页 20 条，total 为 JSON number'
       parameters:
         - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+        - {name: status, in: query, required: false, schema: {type: string, enum: [PENDING, APPROVED, REJECTED]}, description: '核验状态过滤（大小写不敏感）；不传返回全部状态'}
       responses:
         '200': {description: 'Result，data 包含 records、total；仅 role 3'}
+        '400': {description: 'status 非法或页码越界（code=1001）', content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResult'}}}}
   /api/admin/campus-verifications/{id}/review:
     post:
       operationId: adminCampusVerificationsByIdReviewPost
       summary: 管理员审核待处理申请，重复审核被拒绝并记录操作审计
+      description: '审核成功后向申请人写入 CAMPUS_AUDIT 通知（AH3 2026-11-04；驳回正文附审核理由；通知写入失败不阻断审核主流程）'
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer, format: int64}}
       requestBody:
@@ -1207,6 +1285,31 @@ paths:
         '200': {description: 'Result 包装，data.url 为 /api/media/{id}/content 稳定引用，不是公开文件地址'}
         '400': {description: 文件扩展名、大小、MP4 文件头或配额不符合要求}
         '401': {description: 未登录}
+  /api/files/upload/audio:
+    post:
+      operationId: filesUploadAudioPost
+      summary: 上传步骤引导音频到私有存储（仅传承人/管理员）
+      description: |
+        AU3（2026-11-04）。仅 role ∈ {1,3}；学生是播放受众而非上传者。
+        魔数嗅探（不认扩展名）：MP3（ID3/帧同步）/WAV（RIFF+WAVE）/M4A（ftyp）/OGG（OggS）；
+        单文件 ≤10MB；每日最多 20 次。返回 `/api/media/{id}/content` 稳定引用，
+        供 craft_step.audio_url 使用；学生侧经授权播放（签名地址）收听。
+        失败语义：落库失败自动清理已写对象，不留半成品，客户端可直接重试。
+        参数/权限错误经 GlobalExceptionHandler，HTTP 400（1001）/403（1003）。
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200': { description: 'Result 包装，data.url 为 /api/media/{id}/content 稳定引用' }
+        '400': { description: '内容嗅探不通过、超大小或超配额（code=1001）' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: '学生角色不可上传（code=1003）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
   /api/files/upload/image:
     post:
       operationId: filesUploadImagePost
@@ -1757,7 +1860,7 @@ paths:
             schema: { $ref: '#/components/schemas/LoginReq' }
       responses:
         '200':
-          description: '成功返回 token（后续请求以 "Authorization: Bearer <token>" 携带）；失败 code=2001'
+          description: '成功返回 token（后续请求以 "Authorization: Bearer <token>" 携带）；失败 code=2001（不区分用户不存在与密码错误；同一账号连续失败 5 次锁定 15 分钟，锁定期间返回同码、提示「尝试次数过多，请稍后再试」，不泄露账号是否存在）'
           content:
             application/json:
               schema:
@@ -1793,19 +1896,243 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/auth/password/forgot:
+    post:
+      operationId: authPasswordForgot
+      summary: 申请密码重置令牌（忘记密码）
+      description: '按账号申请一次性重置令牌（30 分钟有效、用后失效，服务端只存令牌哈希）。无论账号是否存在都返回相同文案（code=0），不泄露账号是否存在；发送通道可配置（log=打印到服务端日志，仅供开发）；未配置通道时返回 code=3001「该功能暂未开放」，不静默成功。'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordForgotReq' }
+      responses:
+        '200': { description: 'code=0 已受理（不区分账号是否存在）；code=3001 该功能暂未开放（未配置发送通道）', content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/auth/password/reset:
+    post:
+      operationId: authPasswordReset
+      summary: 用重置令牌设置新密码
+      description: '校验一次性重置令牌；成功后旧密码立即失效、该账号登录失败计数与锁定清零。令牌无效、过期或已使用返回 code=3001。已签发的旧 JWT 在其自身有效期内仍有效（JWT 无状态，未做版本吊销），介意时可重新登录以获取新 token。'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordResetReq' }
+      responses:
+        '200': { description: 'code=0 重置成功；code=3001 重置令牌无效或已过期；code=1003 账号不可用', content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  # ---------- 通知 ----------
+  /api/notifications/unread-count:
+    get:
+      operationId: notificationUnreadCount
+      summary: 未读通知数（本人，首页高频轮询点，服务端短 TTL 缓存）
+      description: '只统计当前登录用户本人未读（read_flag=0 且未逻辑删除）。服务端按用户做 5 秒短 TTL 进程内缓存以支撑首页轮询；不暴露任何他人维度信息。'
+      tags: [Notification]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 'code=0；data.unread 为未读数'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          unread: { type: integer, format: int64, example: 3 }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/notifications:
+    get:
+      operationId: notificationList
+      summary: 通知列表（分页 + 按类型筛选，仅本人）
+      description: '按 create_time 倒序返回当前用户本人的通知。type 可选，取值 WORK_AUDIT（作品审核结果）/ COMMENT_AUDIT（评论审核结果）/ BOOKING_REPLY（预约回复）/ GROUP_JOIN（小组新成员动态）/ CARE_REMINDER（关怀跟进提醒，仅授权角色）/ CAMPUS_AUDIT（校园身份核验结果，2026-11-04 AH3，驳回正文含审核理由）。id 以字符串返回（雪花 ID 不得转 Number）。正文为脱敏内容，不含他人隐私。'
+      tags: [Notification]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }
+        - { in: query, name: size, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - in: query
+          name: type
+          schema: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT] }
+      responses:
+        '200':
+          description: 'code=0；data.records 为通知数组，data.total 为总数'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          records:
+                            type: array
+                            items: { $ref: '#/components/schemas/NotificationVO' }
+                          total: { type: integer, format: int64 }
+                          page: { type: integer }
+                          size: { type: integer }
+        '400': { description: 参数校验失败（code=1001，如非法 type）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+    delete:
+      operationId: notificationClearAll
+      summary: 批量清空本人通知（AQ4 2026-11-04）
+      description: '逻辑删除当前用户的通知；type 为空清空全部，否则只清该类型（非法 type 返回 1001）。不动他人数据；未读数缓存同步失效。'
+      tags: [Notification]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: type, schema: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT] } }
+      responses:
+        '200': { description: 'code=0；data.deleted 为实际删除条数（JSON number）' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/notifications/{id}:
+    delete:
+      operationId: notificationDelete
+      summary: 删除单条本人通知（AQ4 2026-11-04，逻辑删除）
+      description: '仅限本人：不存在返回 1004，属于他人返回 1003；删除即从列表与未读数中移除。'
+      tags: [Notification]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, pattern: '^[0-9]+$' } }
+      responses:
+        '200': { description: 'code=0' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 他人通知（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/notifications/{id}/read:
+    post:
+      operationId: notificationMarkRead
+      summary: 标记单条通知已读（幂等）
+      description: '只能标记本人的通知：通知不存在或已逻辑删除返回 1004；属于他人返回 1003。重复标记返回 code=0（幂等，不产生副作用）。'
+      tags: [Notification]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, pattern: '^[0-9]+$' } }
+      responses:
+        '200': { description: 'code=0（含重复标记的幂等成功）；code=1003 越权；code=1004 不存在', content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/notifications/read-all:
+    post:
+      operationId: notificationReadAll
+      summary: 全部标记已读（幂等）
+      description: '把当前用户本人的全部未读通知标记为已读，返回实际更新条数；重复调用返回 code=0 且 updated=0。'
+      tags: [Notification]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 'code=0；data.updated 为本次实际标记条数（幂等）'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          updated: { type: integer, format: int64, example: 5 }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   # ---------- 情绪 ----------
+  /api/dialogue/chat:
+    post:
+      operationId: dialogueChat
+      x-status: 'implemented (gated)'
+      summary: '统一对话入口（AA 批 2026-11-04 已实现，开关 zhiyu.dialogue.commander 默认关闭）'
+      description: |
+        双对话收敛（dialogue-unification-20261104 §C1）统一入口。**已实现但由开关
+        `zhiyu.dialogue.commander`（环境变量 ZHIYU_DIALOGUE_COMMANDER）门控，默认关闭。**
+        关闭时控制器不注册（@ConditionalOnProperty），已认证用户访问按未注册路径返回 1004、
+        匿名访问返回 1002；开启时经调度层（入口安检 → 规则路由 → 子能力 → 三道闸）执行。
+
+        请求体：`{ sessionId?, text, entryContext, practiceSessionId?, intentHint? }`
+        - entryContext：LISTENING_PAGE / PRACTICE_PAGE / KNOWLEDGE_PAGE（路由规则输入之一）
+        - intentHint：前端快捷动作显式意图（如 recommend_craft / breathing），命中规则③
+        - practiceSessionId：entryContext=PRACTICE_PAGE 时关联的练习会话
+
+        返回 text/event-stream。P2 实现外发的事件：
+        - chunk / revoke：句级流式与安全撤回（语义同 /api/emotion/chat mode=live）；
+          陪伴/知识能力的整段回复以单 chunk 下发
+        - done：`{ sessionId, capability, crisis, revoked, toolUsed }`（capability 为
+          LISTENING / PRACTICE_COMPANION / KNOWLEDGE / CRISIS）
+        - error：`{ code, message }`（SSE 故障不使用 HTTP 层错误码，AGENTS §3 注）
+        stage / message / tool / citation 富事件在 P2 协议中不外发，仍由
+        /api/companion/sessions/{id}/message 与 /api/heritage/** 原端点承载（P3 适配器处理）。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                sessionId: { type: string, nullable: true, description: 会话雪花 ID，字符串 }
+                text: { type: string, description: 用户输入文本 }
+                entryContext: { type: string, enum: [LISTENING_PAGE, PRACTICE_PAGE, KNOWLEDGE_PAGE], default: LISTENING_PAGE }
+                practiceSessionId: { type: string, nullable: true, description: 练习会话雪花 ID，字符串 }
+                intentHint: { type: string, nullable: true, description: 显式意图提示（快捷动作） }
+      responses:
+        '200': { description: 'SSE 流（开关开启时；关闭时本路径未注册，走 1004/1002 语义）', content: { text/event-stream: { schema: { type: string } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 未同意隐私政策（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+      deprecated: false
+
   /api/emotion/chat:
     post:
       operationId: emotionChat
+      deprecated: true
       summary: AI 情绪对话（SSE 流式）
       description: |
+        **deprecated（2026-11-04 P0 契约登记，双对话收敛 C2）**：本端点进入兼容期，
+        内部将转调度层（/api/dialogue/chat，见 C1）作为薄适配器，**协议不变，现有客户端无需改动**；
+        删除前至少保留一个迭代周期并配合前端发版。
+        AA 批（2026-11-04）：开关 `zhiyu.dialogue.commander=true` 时本端点已委托调度层执行
+        （事件形状不变：live 走 chunk/revoke/done，legacy 走 data/done）；默认关闭走原实现。
+
         身份、隐私同意和会话归属校验通过后返回 text/event-stream。
         前置校验失败使用标准 HTTP 错误；开始流后失败使用 error 事件。
-        AI 回复完整检查后再展示，可能比原始逐 token 输出有更长的等待时间。
-        事件：
-        - message: { "delta": "你好" }
-        - done: { "sessionId": 123, "crisis": false }
-        - error: 失败（熔断/超时），不使用 HTTP 层错误码，前端降级为缓存图文陪伴话术
+
+        两种协议由请求体 mode 决定：
+        - mode=live（句级真流式，推荐）：模型输出按句切分（。！？；换行，首句 40 字、单句 80 字强制切段），
+          每句通过句级安全检查后立即推送；全文终检命中时撤回已推内容并整体替换。
+          事件：
+          - chunk: { "text": "我在这里陪着你。" }
+          - revoke: { "text": "安全替换文本", "reason": "safety" }（仅终检/句级命中时出现，整体替换最后一条回复）
+          - done: { "sessionId": 123, "crisis": false, "revoked": false }
+          - error: { "code": 5000, "message": "服务暂时不可用" }
+          句级命中高危：立即中断生成，revoke 为关怀话术，done 的 crisis=true；危机干预与审计照常触发。
+          输入侧命中高危时不调模型，直接以 chunk（关怀话术）+ done(crisis=true) 结束。
+        - 缺省（旧版整段，兼容期一个迭代周期）：安全检查完成后以单个 data 事件下发全文，
+          再发 done: { "sessionId": 123, "crisis": false }。旧前端无需改动，但应按 live 协议升级。
+        幂等：客户端断线重发同一 content 时，若会话末条用户消息相同则不重复落库。
       requestBody:
         required: true
         content:
@@ -1820,6 +2147,29 @@ paths:
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/emotion/baseline-nudge:
+    get:
+      operationId: emotionBaselineNudgeGet
+      summary: 情绪基线偏离提醒查询（AM1 2026-11-04；只做提醒不做判断）
+      description: '按本人情绪会话/便签历史计算低落类占比位移（近期 3 天 vs 基线 28 天，阈值 0.30，样本下限 3/8，冷却 72h，均可配置 zhiyu.emotion.baseline.*）。只返回 {enabled, nudge, level, actionType}，不含任何原始记录；提示文案与「本系统不能替代专业心理咨询」声明由前端按 level 渲染。数据敏感：挂隐私同意门。'
+      tags: [Emotion]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 'code=0；data={enabled, nudge, level, actionType}（无提示时 level/actionType 为空串）' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 未同意隐私政策（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+  /api/emotion/baseline-nudge/setting:
+    put:
+      operationId: emotionBaselineNudgeSettingPut
+      summary: 基线提醒开关（用户级，AM1）
+      description: '{ enabled: true|false }，关闭后查询恒返回 nudge=false；登录即可调用（非隐私撤回路径）。'
+      tags: [Emotion]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 设置成功 }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   /api/emotion/notes:
     post:
@@ -1989,7 +2339,7 @@ paths:
       operationId: craftRecommendClick
       tags: [Craft]
       summary: 记录一次推荐点击
-      description: '记录首页或推荐页的推荐卡片点击；同一用户、推荐、项目、事件只记一次。点击失败不影响客户端跳转。'
+      description: '记录首页或推荐页的推荐卡片点击；同一用户、推荐、项目、事件只记一次。点击失败不影响客户端跳转。AM2（2026-11-04）：eventType 支持 CLICK（正反馈）/DISMISS（负反馈），参与本人反馈回灌加权（zhiyu.recommend.feedback.*）。'
       security:
         - bearerAuth: []
       requestBody:
@@ -2347,8 +2697,9 @@ paths:
   /api/companion/sessions/{id}/message:
     post:
       operationId: companionMessage
+      deprecated: true
       summary: 小织受控陪伴消息（typed SSE）
-      description: '返回 text/event-stream。事件依次为 stage、message、tool、citation、artifact、done、error；不发送思维链、工具原始参数或用户原文。工具均为只读，断流后可用同一请求安全重试。'
+      description: '**deprecated（2026-11-04 P0 契约登记，双对话收敛 C3）**：兼容期内作为薄适配器转统一入口（/api/dialogue/chat，P3 落地，协议与事件序列不变）。返回 text/event-stream。事件依次为 stage、message、tool、citation、artifact、done、error；不发送思维链、工具原始参数或用户原文。工具均为只读，断流后可用同一请求安全重试。'
       security:
         - bearerAuth: []
       parameters:
@@ -2487,7 +2838,8 @@ paths:
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
     post:
       operationId: workCreate
-      summary: 发布作品
+      summary: 发布作品（先审后发）
+      description: '2026-11-04 起（N1 过渡方案）：text/image/video 新发布作品一律 status=0（待审），仅作者本人可见；管理员审核通过（status=1）后转公开。2026-11-04 前已公开（status=1）的历史内容不回滚。返回的 WorkVO.status=0 表示「审核中」。'
       requestBody:
         required: true
         content:
@@ -2495,7 +2847,7 @@ paths:
             schema: { $ref: '#/components/schemas/WorkPublishReq' }
       responses:
         '200':
-          description: 发布结果
+          description: 发布结果（status=0 待审，仅作者可见；审核通过通知送达作者）
           content:
             application/json:
               schema:
@@ -2539,9 +2891,10 @@ paths:
       summary: 作品详情
       description: |
         返回单条作品详情。权限规则：
-        - visible=1（公开）：登录用户可看
-        - visible=2（历史仅小组标记）：暂限作者本人查看，不能分享
-        - visible=0（私密）：只有作者能看，其他人返回 1004
+        - status=1（已公开）按 visible 判定：visible=1 登录用户可看；visible=2（历史仅小组标记）暂限作者本人；visible=0（私密）只有作者能看
+        - status=0（待审，2026-11-04 起新发布一律先审后发）：**仅作者本人可见**；他人访问返回 1004（不泄露作品存在性）
+        - status=2（已下架）：仅作者可见，他人 1004
+        未公开作品（status≠1）不允许他人互动（评论/点赞/收藏返回 1004）；作者对本人待审作品互动返回 3001（审核中提示）。
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
       responses:
@@ -3049,10 +3402,52 @@ paths:
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ---------- 管理端 ----------
+  /api/admin/export-logs:
+    post:
+      operationId: adminExportLogCreate
+      summary: '管理员：登记一次数据导出（留痕，返回导出批次号）'
+      description: '导出审计（2026-11-04，docs/export-audit-20261104.md）：前端在生成导出文件前调用本接口登记「谁、何时、何筛选、多少条、导出什么字段、用途」，服务端返回 batchNo（雪花，字符串）与建议文件名（含批次，替代不可行的 CSV 水印）。targetType=users/works 开放登记；targetType=comments 当前不开放（返回 3001「评论导出暂未开放」），开放条件见设计文档权限矩阵。单次导出 recordCount 超过阈值（默认 5000）时 alert=true 并记 WARN 日志（批量告警）。'
+      x-required-role: admin-only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetType, fieldList, recordCount, purpose]
+              properties:
+                targetType: { type: string, enum: [users, works, comments] }
+                filterSummary: { type: string, maxLength: 500, description: '筛选条件脱敏摘要（不得包含用户输入原文以外的敏感内容）' }
+                fieldList: { type: string, maxLength: 500, description: '导出字段列表（逗号分隔，不得含密码/密钥/加密列）' }
+                recordCount: { type: integer, minimum: 0 }
+                purpose: { type: string, maxLength: 200, description: '导出用途说明' }
+      responses:
+        '200':
+          description: 'code=0；data 含 batchNo（字符串）、fileName、alert；code=1001 参数错误；code=3001 评论导出暂未开放'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    get:
+      operationId: adminExportLogList
+      summary: '管理员：导出留痕分页查询（审计自查）'
+      description: '只读分页查询导出审计记录（含 actor/target/filterSummary/fieldList/recordCount/batchNo/alertFlag/createTime），不返回任何业务数据原文。'
+      x-required-role: admin-only
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: targetType, in: query, schema: { type: string, enum: [users, works, comments] } }
+      responses:
+        '200': { description: 'code=0；data.records 为留痕数组，data.total 为总数', content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   /api/admin/audit-queue:
     get:
       operationId: adminAuditQueue
       summary: 管理员：待审核内容队列（项目/作品/评论）
+      description: 'type=project 返回待审手作项目（既有结构）；type=work 返回 status=0 待审作品，type=comment 返回 status=0 待审评论。work/comment 的 records 为通用结构：id/type/title/excerpt/authorId/refId/createTime/aiAudits/auditHint。aiAudits 为对象级 AI 审计摘要（scene/action/reason/createTime，不含原文）；ai_audit_log 在 2026-11-04 前未记录 ref_type/ref_id（历史数据为空数组，auditHint 说明，不伪造关联）。'
       x-required-role: admin
       parameters:
         - { name: type, in: query, schema: { type: string, enum: [project, work, comment], default: project } }
@@ -3098,6 +3493,78 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/admin/projects/{id}/takedown:
+    put:
+      operationId: adminProjectTakedown
+      summary: '管理员：下架已上架的手作项目（AY1，2026-11-05）'
+      description: |
+        状态机：仅 status=1（上架）→ 2（下架，DDL 既有口径「0待审 1上架 2下架」，不新增状态值）。
+        理由必填（≤300 字），落 craft_project.audit_reason（AY1 新列），随 WORK_AUDIT 通知
+        （refType=project）送达传承人；操作落 admin_operation_log（project.takedown）。
+        下架后学生端与传承人端访问该项目内容一律 1004（不泄露存在性），步骤音频等
+        私有媒体授权即时失效（授权条件含项目上架态）；下架为终态——审核接口只受理
+        status=0，已下架项目不能再被「审核通过」复活（现状无重新提交流程，重新上线
+        只能新建项目送审）。
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '项目 ID（雪花，字符串）' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 1, maxLength: 300, description: 下架理由（必填，通知传承人） }
+      responses:
+        '200': { description: 'Result；非法状态流转时 HTTP 仍为 200、body code=3001（仅上架中项目可下架）' }
+        '400': { description: '理由缺失或超长（code=1001）' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 项目不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/projects/{id}:
+    get:
+      operationId: adminProjectDetail
+      summary: '管理员：项目问责详情（AY 理由下发 + 动作来源，BC1）'
+      description: |
+        BC1（2026-11-05）。回答「这条项目最近一次是评审驳回还是事后下架」。
+        返回 camelCase：id/title/status/inheritorId/category/createTime/updateTime/auditReason
+        + lastAction（APPROVE/REJECT/TAKEDOWN/DELETE/null，取自 admin_operation_log 该项目
+        最近一条 project.* 动作；AY 起审核/下架/删除均落操作日志）+ lastActionTime/lastActorId
+        + statusOrigin（仅 status=2 时推导：lastAction=TAKEDOWN → TAKEDOWN（事后下架）；
+        否则 REJECT（评审驳回——下架能力 2026-11-05 才存在，无日志的历史 status=2 必为驳回））。
+        雪花 ID 字符串。已逻辑删除项目 → 1004（删除动作经 /api/admin/operation-logs 追溯）。
+        仅 role=3。学生端不下发理由（1004 不泄露存在性）。
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '项目 ID（雪花，字符串）' } }
+      responses:
+        '200': { description: 'Result，data 为项目问责详情' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 项目不存在或已删除（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    delete:
+      operationId: adminProjectDelete
+      summary: '管理员：逻辑删除手作项目（AY2，2026-11-05）'
+      description: |
+        逻辑删除（deleted=1，保留审计痕迹），任意未删除状态可删；理由经 query 参数
+        reason 必填（≤300 字，落 audit_reason）。级联逻辑删除其步骤与材料；
+        步骤音频、项目视频/封面若是本站私有媒体引用且不再被任何未删除对象引用，
+        自动退役（media_asset 逻辑注销 + file_cleanup_job 异步物理清理，复用 AU3 机制）。
+        通知传承人（WORK_AUDIT / refType=project）；操作落 admin_operation_log（project.delete）。
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '项目 ID（雪花，字符串）' } }
+        - { name: reason, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 300 }, description: 删除理由（必填） }
+      responses:
+        '200': { description: 'Result' }
+        '400': { description: '理由缺失或超长（code=1001）' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 项目不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   /api/admin/care-reminders:
     get:
       operationId: adminCareReminderList
@@ -3106,6 +3573,7 @@ paths:
         管理员（role=3）返回全部提醒。
         咨询师（role=2）只返回未领取任务与本人已领取任务；未领取任务的
         summary、userId、sessionId 为 null（领取后可见），避免横向泄露。
+        riskLevel 三档语义（AU1 对齐 AQ2）：1 关注 / 2 高危 / 3 紧急。
       x-required-role: admin
       parameters:
         - { name: status, in: query, required: false, schema: { type: integer, enum: [0, 1] }, description: '0待处理 1已跟进' }
@@ -3121,6 +3589,26 @@ paths:
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/bookings/{id}:
+    get:
+      operationId: adminBookingDetail
+      summary: '管理员：按预约 ID 反查预约详情与所属节目摘要'
+      description: |
+        AU2（2026-11-04）。反查场景起点只有 bookingId（如 BOOKING_REPLY 通知 refId、
+        运营排查），所属 program 未知，故不采用 program 作用域的既有 URL。
+        返回 camelCase：id/programId/userId/status/createTime/updateTime + program
+        摘要（id/title/kind/startTime/endTime/status/ownerId；节目已被逻辑删除时
+        program 为 null）。雪花 ID 一律字符串。用户标识只给 userId 供关联定位，
+        昵称属多余暴露不下发（最小权限）。仅 role=3。
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '预约 ID（雪花，字符串）' } }
+      responses:
+        '200': { description: 'Result，data 为预约详情 + program 摘要' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003，非管理员）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 预约不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   /api/admin/dashboard/stats:
     get:
@@ -3416,6 +3904,7 @@ paths:
     put:
       operationId: adminInheritorVerify
       summary: '管理员：认证/取消认证传承人'
+      description: 'BG1（2026-11-05）起，认证状态变更后向传承人本人推送 CAMPUS_AUDIT 通知（refType=inheritor_profile），失败不阻断。当前流程无理由字段，驳回只通知状态。'
       x-required-role: admin-only
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -3508,12 +3997,14 @@ paths:
               required: [status]
               properties:
                 status: { type: integer, enum: [1, 2], description: '1发布 2下架' }
+                reason: { type: string, maxLength: 255, description: '审核理由；status=2（下架/驳回）时必填，缺失返回 1001；status=1 可空。落库到 work.audit_reason 并随通知正文送达作者' }
       responses:
         '200':
           description: 状态变更成功
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 参数校验失败（code=1001，含驳回缺少理由）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -3575,6 +4066,7 @@ paths:
     put:
       operationId: adminGroupStatus
       summary: '管理员：变更小组状态（开放/关闭）'
+      description: 'BG2（2026-11-05）起，状态真实变化时向组长推送 GROUP_JOIN 通知（refType=group；同状态重复操作不通知；dedupe 含小时窗口）。当前流程无理由字段，停用只通知状态。'
       x-required-role: admin-only
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }

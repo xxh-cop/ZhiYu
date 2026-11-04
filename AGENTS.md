@@ -57,7 +57,13 @@ com.zhiyu
 │   ├── care/       # 授权关怀跟进
 │   ├── growth/     # 自评、成长、课程、预约与反馈
 │   ├── file/       # 媒体授权、存储、清理重试
-│   └── speech/     # 语音接入与配置状态
+│   ├── speech/     # 语音接入与配置状态
+│   ├── companion/  # 陪伴编排（记忆、工具、消息、评估）
+│   ├── crisis/     # 危机干预热线与流程
+│   ├── practice/   # 短练习、专注会话与创作产物
+│   ├── heritage/   # 非遗目录、知识图谱与共创
+│   ├── notification/ # 通知（审核/预约/小组/关怀事件触达，未读数短缓存）
+│   └── user/       # 个人资料、账号设置与密码修改
 ```
 
 ## 3. 错误码（全局唯一，不要新造）
@@ -148,10 +154,14 @@ com.zhiyu
 - 对话接口 `POST /api/emotion/chat` 返回 `text/event-stream`（SSE）；学生端使用 `src/utils/sse.js` 自研适配（H5 fetch/ReadableStream，小程序 wx.request 分块），不要误写为已引入 uni-sse 插件。
 - 接口契约以 `openapi/openapi.yaml` 为准，改接口先改 YAML 再改代码。
 
-## 7. 心流判定（已固化，不要拍脑袋改）
+## 7. 心流判定（阈值已配置化，默认值不要拍脑袋改）
 
-- **心流**：连续 5 分钟无步骤切换且无主动退出 → 减少打扰。
-- **焦躁**：同一步骤反复停留 > 3 次且呼吸提醒未响应 → 弹出 4s 吸 / 6s 呼呼吸引导。
+- **心流**：连续无步骤切换且无主动退出超过 `zhiyu.flow.focus-idle-seconds`（默认 300 秒）→ 减少打扰。
+- **焦躁**：同一步骤反复停留次数超过 `zhiyu.flow.stuck-repeat-times`（默认 3 次）且呼吸提醒未响应
+  → 弹出 4s 吸 / 6s 呼呼吸引导（呼吸参数见 `ai-config/ai-capabilities.yaml` 的 `flow.breathing` 段）。
+- 阈值与存储（`zhiyu.flow.store`: memory|redis）均已配置化，默认值与
+  `ai-config/ai-capabilities.yaml` 的 `flow` 段一一对应；改默认值必须两边同步，
+  且属产品级决策，不得在单次任务里顺手调参。
 
 ## 8. 提交前自检（DoD）
 

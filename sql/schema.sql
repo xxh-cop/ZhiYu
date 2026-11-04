@@ -76,7 +76,10 @@ CREATE TABLE IF NOT EXISTS user (
   intro       TEXT         DEFAULT NULL COMMENT '个人简介',
   craft_preferences VARCHAR(255) DEFAULT NULL COMMENT '手作偏好标签,逗号分隔',
   can_contact TINYINT      NOT NULL DEFAULT 0 COMMENT '0不允许 1允许心理咨询师联系；默认 0，需用户单独授权',
-  privacy_agreed TINYINT   NOT NULL DEFAULT 0 COMMENT '隐私政策是否同意：0未同意 1已同意',
+  privacy_agreed TINYINT   NOT NULL DEFAULT 0 COMMENT '隐私政策是否同意：0未同意 1已同意',  baseline_nudge_enabled TINYINT NOT NULL DEFAULT 1 COMMENT '情绪基线偏离提醒开关（1 开 0 关，AM1）',
+  baseline_nudge_last_at DATETIME DEFAULT NULL COMMENT '基线提醒上次提示时间（冷却用）',
+  baseline_nudge_last_level VARCHAR(16) DEFAULT NULL COMMENT '基线提醒上次提示档位',
+
   role        TINYINT      NOT NULL DEFAULT 0 COMMENT '0学生 1传承人 2咨询师 3管理员',
   status      TINYINT      NOT NULL DEFAULT 1 COMMENT '0禁用 1正常',
   create_time DATETIME     DEFAULT NULL,
@@ -130,7 +133,7 @@ CREATE TABLE IF NOT EXISTS care_reminder (
   id          BIGINT      NOT NULL,
   user_id     BIGINT      NOT NULL,
   session_id  BIGINT      DEFAULT NULL,
-  risk_level  TINYINT     NOT NULL COMMENT '1一般 2高危',
+  risk_level  TINYINT     NOT NULL COMMENT '1关注 2高危 3紧急',
   summary     TEXT        COMMENT '脱敏摘要(不加密，供授权角色查看；原始对话在 emotion_message 中加密)',
   status      TINYINT     NOT NULL DEFAULT 0 COMMENT '0待处理 1已跟进',
   create_time DATETIME    DEFAULT NULL,
@@ -155,6 +158,7 @@ CREATE TABLE IF NOT EXISTS craft_project (
     video_url VARCHAR(255) DEFAULT NULL,
   cover_url    VARCHAR(255),
   status       TINYINT      NOT NULL DEFAULT 0 COMMENT '0待审 1上架 2下架',
+  audit_reason VARCHAR(300)  DEFAULT NULL COMMENT '审核/下架/删除理由（AY1 2026-11-05；驳回理由同列落库）',
   create_time  DATETIME     DEFAULT NULL,
   update_time  DATETIME     DEFAULT NULL,
   deleted      TINYINT      NOT NULL DEFAULT 0,
@@ -266,6 +270,7 @@ message     TEXT         COMMENT 'AI 寄语',
   anonymous   TINYINT      NOT NULL DEFAULT 1 COMMENT '0显示昵称 1匿名展示；默认匿名',
   like_count  INT          NOT NULL DEFAULT 0,
   status      TINYINT      NOT NULL DEFAULT 1 COMMENT '0待审 1已发布 2下架',
+  audit_reason VARCHAR(255) DEFAULT NULL COMMENT '审核理由；驳回必填，通过可空',
   create_time DATETIME     DEFAULT NULL,
   update_time DATETIME     DEFAULT NULL,
   deleted     TINYINT      NOT NULL DEFAULT 0,
@@ -280,6 +285,7 @@ CREATE TABLE IF NOT EXISTS work_comment (
   user_id     BIGINT       NOT NULL,
   content     VARCHAR(255) NOT NULL,
   status      TINYINT      NOT NULL DEFAULT 1 COMMENT '1展示 0隐藏',
+  audit_reason VARCHAR(255) DEFAULT NULL COMMENT '审核理由；驳回必填，通过可空',
   create_time DATETIME     DEFAULT NULL,
   update_time DATETIME     DEFAULT NULL,
   deleted     TINYINT      NOT NULL DEFAULT 0,
@@ -350,10 +356,13 @@ CREATE TABLE IF NOT EXISTS ai_audit_log (
   ai_output   TEXT        COMMENT '输出(加密)',
   action      VARCHAR(20) NOT NULL COMMENT 'pass/review/block',
   reason      VARCHAR(255),
+  ref_type    VARCHAR(30) DEFAULT NULL COMMENT '关联对象类型：work/comment 等（2026-11-04 起新写入携带）',
+  ref_id      BIGINT      DEFAULT NULL COMMENT '关联对象 id（雪花）',
   create_time DATETIME    DEFAULT NULL,
   PRIMARY KEY (id),
   KEY idx_scene (scene),
-  KEY idx_audit_user (user_id)
+  KEY idx_audit_user (user_id),
+  KEY idx_audit_ref (ref_type,ref_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI审核日志表';
 
 -- ============================================================
@@ -595,3 +604,76 @@ CREATE TABLE IF NOT EXISTS ai_trace (
   KEY idx_ai_trace_session (practice_session_id,create_time),
   KEY idx_ai_trace_scene (scene,create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI运行元数据（脱敏）';
+
+-- ---------- 通知（2026-11-04：审核/预约/小组/关怀事件触达） ----------
+CREATE TABLE IF NOT EXISTS notification (
+  id            BIGINT       NOT NULL,
+  user_id       BIGINT       NOT NULL COMMENT '接收者（本人数据隔离）',
+  type          VARCHAR(30)  NOT NULL COMMENT 'WORK_AUDIT/COMMENT_AUDIT/BOOKING_REPLY/GROUP_JOIN/CARE_REMINDER',
+  title         VARCHAR(120) NOT NULL,
+  content       VARCHAR(500) DEFAULT NULL COMMENT '脱敏正文；关怀类只含引导语，不含敏感内容',
+  ref_type      VARCHAR(30)  DEFAULT NULL COMMENT '关联对象类型：work/comment/booking/group/care_reminder',
+  ref_id        BIGINT       DEFAULT NULL COMMENT '跳转目标 id（雪花，前端按字符串处理）；COMMENT_AUDIT 为评论所属作品 id',
+  sub_ref_id    BIGINT       DEFAULT NULL COMMENT '二级关联对象 id（如评论 id 锚点，2026-11-04 S2 新增）',
+  dedupe_key    VARCHAR(80)  NOT NULL COMMENT '幂等去重键：同类同对象同结果不重复刷屏',
+  read_flag     TINYINT      NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
+  create_time   DATETIME     DEFAULT NULL,
+  update_time   DATETIME     DEFAULT NULL,
+  deleted       TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_notification_dedupe (user_id,type,ref_type,ref_id,dedupe_key),
+  KEY idx_notification_user_read (user_id,read_flag,id),
+  KEY idx_notification_user_type (user_id,type,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户通知表';
+
+-- ---------- 导出审计（2026-11-04 N2：只追加，审计语义同 ai_audit_log） ----------
+CREATE TABLE IF NOT EXISTS admin_export_log (
+  id            BIGINT       NOT NULL,
+  actor_id      BIGINT       NOT NULL COMMENT '导出人（管理员）',
+  actor_role    TINYINT      NOT NULL COMMENT '导出时角色',
+  target_type   VARCHAR(20)  NOT NULL COMMENT 'users/works/comments',
+  filter_summary VARCHAR(500) DEFAULT NULL COMMENT '筛选条件脱敏摘要',
+  field_list    VARCHAR(500) NOT NULL COMMENT '导出字段（黑名单校验后）',
+  record_count  INT          NOT NULL DEFAULT 0,
+  purpose       VARCHAR(200) NOT NULL COMMENT '导出用途（必填）',
+  batch_no      VARCHAR(32)  NOT NULL COMMENT '导出批次号（文件名/文件头引用）',
+  alert_flag    TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1超阈值告警',
+  create_time   DATETIME     DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_export_batch (batch_no),
+  KEY idx_export_actor (actor_id,create_time),
+  KEY idx_export_target (target_type,create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='导出审计留痕（只追加）';
+
+-- ---------- 对话上下文滚动摘要（P1b 2026-11-04，rolling-summary 默认关闭） ----------
+CREATE TABLE IF NOT EXISTS dialogue_context_summary (
+  id                 BIGINT       NOT NULL,
+  user_id            BIGINT       NOT NULL COMMENT '归属用户（本人数据隔离）',
+  session_id         BIGINT       NOT NULL COMMENT '情绪会话 id',
+  covered_start_turn INT          NOT NULL COMMENT '摘要覆盖的起始轮次（按消息序，从 1 计）',
+  covered_end_turn   INT          NOT NULL COMMENT '摘要覆盖的截止轮次（含）',
+  summary_cipher     TEXT         NOT NULL COMMENT '摘要密文（应用层加密，AesEncryptor）',
+  model              VARCHAR(80)  DEFAULT NULL COMMENT '生成模型（standard 档）',
+  prompt_version     VARCHAR(40)  DEFAULT NULL COMMENT 'prompt 模板版本（context-summary.st）',
+  create_time        DATETIME     DEFAULT NULL,
+  update_time        DATETIME     DEFAULT NULL,
+  deleted            TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_dcs_user_session (user_id, session_id, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对话上下文滚动摘要（P1b，rolling-summary 默认关闭）';
+
+-- ---------- 危机路径留存（AJ 2026-11-04：只存脱敏摘要与危机等级，绝不存原文） ----------
+CREATE TABLE IF NOT EXISTS crisis_session_log (
+  id             BIGINT       NOT NULL COMMENT '雪花 id（应用侧 ASSIGN_ID，不设 AUTO_INCREMENT）',
+  user_id        BIGINT       NOT NULL COMMENT '触发用户',
+  session_id     BIGINT       DEFAULT NULL COMMENT '关联会话/来源标识（情绪会话或练习会话，可空）',
+  scene          VARCHAR(30)  NOT NULL COMMENT '触发场景（chat/companion/asr 等）',
+  risk_level     TINYINT      NOT NULL DEFAULT 2 COMMENT '危机等级（1关注 2高危 3紧急，与 care_reminder 口径一致）',
+  summary_cipher TEXT         NOT NULL COMMENT '脱敏摘要密文（应用层 AES；规则式概括，绝不含用户/AI 原文）',
+  create_time    DATETIME     NOT NULL,
+  update_time    DATETIME     NOT NULL,
+  deleted        TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_crisis_user (user_id, deleted),
+  KEY idx_crisis_created (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='危机路径留存（降级：只存脱敏摘要，不存原文；仅授权关怀角色可见）';
