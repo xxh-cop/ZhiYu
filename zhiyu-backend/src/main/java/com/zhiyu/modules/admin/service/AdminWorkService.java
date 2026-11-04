@@ -15,5 +15,8 @@ public interface AdminWorkService {
 
     void updateWorkStatus(Long id, Integer status);
 
+    /** 带审核理由的状态变更（I1，2026-11-04）：下架/驳回必须携带 reason。 */
+    void updateWorkStatus(Long id, Integer status, String reason);
+
     void deleteWork(Long id);
 }

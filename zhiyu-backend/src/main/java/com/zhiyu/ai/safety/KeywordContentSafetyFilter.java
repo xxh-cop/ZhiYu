@@ -35,6 +35,7 @@ public class KeywordContentSafetyFilter implements ContentSafetyFilter {
     private final HighRiskLexicon highRiskLexicon;
     private final CareReminderService careReminderService;
     private final AiAuditLogService aiAuditLogService;
+    private final com.zhiyu.modules.crisis.CrisisSessionLogService crisisSessionLogService;
 
     /**
      * 输出侧越界词正则数组。
@@ -76,10 +77,18 @@ public class KeywordContentSafetyFilter implements ContentSafetyFilter {
 
             // 写 care_reminder（脱敏 summary，不加密）
             String summary = buildSummary(sessionId, matchedKeyword);
-            careReminderService.trigger(userId, sessionId, 2, summary);
+            // AQ2（2026-11-04）：真实分级——按词表分组定级；词表外命中保守取高档（3 紧急）
+            Integer lexLevel = highRiskLexicon.levelOf(matchedKeyword);
+            int riskLevel = lexLevel == null ? 3 : lexLevel;
+            careReminderService.trigger(userId, sessionId, riskLevel, summary);
 
             // 写 ai_audit_log（raw_input 加密）
             aiAuditLogService.log(userId, scene, text, null, "BLOCK", reason);
+
+            // AJ（2026-11-04）：危机路径「留存但降级」——旁路异步记脱敏摘要（无原文），
+            // 不阻塞、不改变危机响应语义；失败在服务内消化
+            crisisSessionLogService.recordAsync(userId, sessionId, scene, matchedKeyword,
+                    text.length(), riskLevel);
 
             log.warn("输入侧高危命中: userId={}, sessionId={}, scene={}, keyword={}, action=BLOCK",
                     userId, sessionId, scene, matchedKeyword);
@@ -112,6 +121,32 @@ public class KeywordContentSafetyFilter implements ContentSafetyFilter {
         // 3. 正常 → PASS + 写审计
         aiAuditLogService.log(userId, scene, null, text, "PASS", "输出检查通过");
         return SafetyResult.pass("输出检查通过");
+    }
+
+    @Override
+    public SafetyResult scanStreamSentence(Long userId, Long sessionId, String text) {
+        if (text == null || text.isBlank()) {
+            return SafetyResult.pass("空输入");
+        }
+        // 高危词库命中 → BLOCK + 触发关怀提醒（不写审计，终检统一写）
+        if (highRiskLexicon.containsRisk(text)) {
+            String matchedKeyword = highRiskLexicon.firstMatch(text);
+            String summary = buildSummary(sessionId, matchedKeyword);
+            // AU1（2026-11-04）：与 checkInput 同口径——按词表分组定级，未知保守取 3 紧急
+            Integer lexLevel = highRiskLexicon.levelOf(matchedKeyword);
+            careReminderService.trigger(userId, sessionId, lexLevel == null ? 3 : lexLevel, summary);
+            log.warn("流式句级高危命中: userId={}, sessionId={}, keyword={}, 立即中断生成",
+                    userId, sessionId, matchedKeyword);
+            return SafetyResult.block("句级关键词命中: " + matchedKeyword, buildCareMessage());
+        }
+        // 越界词命中 → REWRITE 信号（调用方中断并走终检撤回）
+        for (Pattern p : BOUNDARY_PATTERNS) {
+            if (p.matcher(text).find()) {
+                log.warn("流式句级越界命中: userId={}, pattern={}", userId, p.pattern());
+                return SafetyResult.rewrite("句级越界词命中: " + p.pattern(), null);
+            }
+        }
+        return SafetyResult.pass("句级检查通过");
     }
 
     /**

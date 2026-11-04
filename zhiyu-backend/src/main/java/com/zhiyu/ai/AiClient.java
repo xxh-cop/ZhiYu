@@ -50,6 +50,7 @@ public class AiClient {
     private final LlmClient llmClient;
     private final CircuitBreakerStore breaker;
     private final ContentSafetyFilter contentSafetyFilter;
+    private final com.zhiyu.ai.routing.ModelRouter modelRouter;
     private com.zhiyu.ai.client.SpeechClient speechClient;
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -81,12 +82,32 @@ public class AiClient {
         if(!breaker.allowRequest(resource))throw new com.zhiyu.common.exception.BusinessException(4001,"语音服务暂时繁忙，请稍后重试");
     }
 
+    /**
+     * Spring 生产装配（4 参）：注入任务分档路由。
+     * strong 档是否启用由 {@code zhiyu.ai.routing.strong-enabled} 决定。
+     */
+    @org.springframework.beans.factory.annotation.Autowired
     public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
-                    ContentSafetyFilter contentSafetyFilter) {
+                    ContentSafetyFilter contentSafetyFilter,
+                    com.zhiyu.ai.routing.ModelRouter modelRouter) {
         this.llmClient = llmClient;
         this.breaker = breaker;
         this.contentSafetyFilter = contentSafetyFilter;
-        log.info("AiClient 初始化完成，breaker store={}", breaker.implementationName());
+        // Mockito @InjectMocks 等场景可能传 null：按 strong 档关闭处理（与分档前行为一致）
+        this.modelRouter = modelRouter != null ? modelRouter
+                : new com.zhiyu.ai.routing.ModelRouter("deepseek-chat", "deepseek-reasoner", false);
+        log.info("AiClient 初始化完成，breaker store={}，routing: {}",
+                breaker.implementationName(), this.modelRouter.describe());
+    }
+
+    /**
+     * 测试便捷装配（3 参）：strong 档关闭，倾听小结行为与分档前完全一致，
+     * 不改变既有单测语义。
+     */
+    public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
+                    ContentSafetyFilter contentSafetyFilter) {
+        this(llmClient, breaker, contentSafetyFilter,
+                new com.zhiyu.ai.routing.ModelRouter("deepseek-chat", "deepseek-reasoner", false));
     }
 
     // ── 流式对话：不走降级 fallback，但走熔断 + 输入前置过滤 + 输出终检 ──
@@ -140,8 +161,20 @@ public class AiClient {
      */
     public StreamChatResult streamChat(Long sessionId, String userInput,
                                        List<ChatMessage> history, Consumer<String> onToken) {
+        return streamChat(sessionId, userInput, history, onToken, null);
+    }
+
+    /**
+     * 带预检输入的变体（P2 调度层，2026-11-04）：precheckedInput 非 null 时跳过门面内部
+     * 输入检查——commander 已在路由前完成入口安检（审计+关怀落库），此处复用其结果，
+     * 避免同一输入双写审计与双发 care_reminder。
+     */
+    public StreamChatResult streamChat(Long sessionId, String userInput,
+                                       List<ChatMessage> history, Consumer<String> onToken,
+                                       SafetyResult precheckedInput) {
         Long userId = UserContext.getUserId();
-        SafetyResult input = contentSafetyFilter.checkInput(userId, sessionId, "chat", userInput);
+        SafetyResult input = precheckedInput != null ? precheckedInput
+                : contentSafetyFilter.checkInput(userId, sessionId, "chat", userInput);
         if (input.getAction() == SafetyAction.BLOCK) {
             log.warn("流式对话输入侧拦截: userId={}, sessionId={}, 不调 LLM", userId, sessionId);
             return new StreamChatResult(input, null, input.getCareMessage());
@@ -168,6 +201,129 @@ public class AiClient {
         }
         onToken.accept(reply);
         return new StreamChatResult(input, output, reply);
+    }
+
+    // ── 句级真流式对话（SSE A 方案，2026-11-02 拍板，docs/project-plan-20261102.md §2.1） ──
+
+    /**
+     * 句级真流式的返回结果。
+     *
+     * @param blocked 输入侧命中高危（未调 LLM）
+     * @param crisis  done 事件的危机标志（输入/输出/句级任一侧命中高危）
+     * @param revoked 是否需要前端撤回已推送内容并整体替换
+     * @param reply   最终安全文本（revoked=true 时即替换文本；revoked=false 时等于已流出的全文）
+     */
+    public record LiveChatResult(SafetyResult input, SafetyResult output, String reply,
+                                 boolean blocked, boolean crisis, boolean revoked) {
+    }
+
+    /** 句级安全检命中时用于中断 LLM 流的内部信号。 */
+    private static final class SentenceSafetyInterrupt extends RuntimeException {
+        private SentenceSafetyInterrupt() {
+            super(null, null, false, false);
+        }
+    }
+
+    /**
+     * 句级真流式情绪对话。
+     *
+     * <p>时序：
+     * <ol>
+     *   <li>输入前置过滤（写一条审计；BLOCK 时不调 LLM、直接返回关怀话术）</li>
+     *   <li>熔断检查 → 流式调 LLM，token 经 {@link SentenceSplitter} 分句；
+     *       每句过 {@code scanStreamSentence}（不写审计）后立即回调 {@code onSentence}</li>
+     *   <li>句级命中高危（BLOCK）→ 立即中断 LLM 流，终检写一条审计（scene=chat-revoked），
+     *       返回关怀话术 + revoked=true + crisis=true</li>
+     *   <li>流正常结束 → flush 尾句（同样过句级检）→ 全文终检（写一条审计）；
+     *       终检非 PASS 时返回替换文本 + revoked=true</li>
+     * </ol>
+     * 输出审计整轮只写一条（在终检，revoked 时 scene 标记为 chat-revoked）。
+     */
+    public LiveChatResult streamChatLive(Long sessionId, String userInput,
+                                         List<ChatMessage> history, Consumer<String> onSentence) {
+        return streamChatLive(sessionId, userInput, history, onSentence, null);
+    }
+
+    /**
+     * 带预检输入的句级真流式变体（P2 调度层，2026-11-04）：precheckedInput 非 null 时
+     * 跳过门面内部输入检查（commander 入口安检结果复用），杜绝双审计/双关怀触发。
+     */
+    public LiveChatResult streamChatLive(Long sessionId, String userInput,
+                                         List<ChatMessage> history, Consumer<String> onSentence,
+                                         SafetyResult precheckedInput) {
+        Long userId = UserContext.getUserId();
+        SafetyResult input = precheckedInput != null ? precheckedInput
+                : contentSafetyFilter.checkInput(userId, sessionId, "chat", userInput);
+        if (input.getAction() == SafetyAction.BLOCK) {
+            log.warn("流式对话输入侧拦截(live): userId={}, sessionId={}, 不调 LLM", userId, sessionId);
+            return new LiveChatResult(input, null, input.getCareMessage(), true, true, true);
+        }
+
+        if (!breaker.allowRequest("llm-chat")) {
+            throw new com.zhiyu.common.exception.BusinessException(4001, "对话服务暂时不可用");
+        }
+
+        StringBuilder full = new StringBuilder();
+        SentenceSplitter splitter = new SentenceSplitter();
+        final SafetyResult[] interruptScan = new SafetyResult[1];
+        try {
+            llmClient.streamChat(history, token -> {
+                full.append(token);
+                for (String sentence : splitter.feed(token)) {
+                    SafetyResult scan = contentSafetyFilter.scanStreamSentence(userId, sessionId, sentence);
+                    if (scan.getAction() != SafetyAction.PASS) {
+                        interruptScan[0] = scan;
+                        throw new SentenceSafetyInterrupt();
+                    }
+                    onSentence.accept(sentence);
+                }
+            });
+            breaker.recordSuccess("llm-chat");
+        } catch (SentenceSafetyInterrupt e) {
+            // 模型本身未失败，不计熔断；中断原因在 interruptScan
+            breaker.recordSuccess("llm-chat");
+        } catch (RuntimeException e) {
+            breaker.recordFailure("llm-chat");
+            throw e;
+        }
+
+        // 流正常结束：尾句同样过句级检
+        if (interruptScan[0] == null) {
+            String tail = splitter.flush();
+            if (tail != null) {
+                SafetyResult scan = contentSafetyFilter.scanStreamSentence(userId, sessionId, tail);
+                if (scan.getAction() != SafetyAction.PASS) {
+                    interruptScan[0] = scan;
+                } else {
+                    onSentence.accept(tail);
+                }
+            }
+        }
+
+        boolean interrupted = interruptScan[0] != null;
+        boolean blocked = interrupted && interruptScan[0].getAction() == SafetyAction.BLOCK;
+
+        if (blocked) {
+            // 句级高危：终检写一条 revoked 审计，返回关怀话术，不再发任何正文
+            SafetyResult blockedOutput = contentSafetyFilter.checkOutput(userId, "chat-revoked", full.toString());
+            return new LiveChatResult(input, blockedOutput, interruptScan[0].getCareMessage(), false, true, true);
+        }
+
+        SafetyResult output = contentSafetyFilter.checkOutput(
+                userId, interrupted ? "chat-revoked" : "chat", full.toString());
+        boolean crisis = input.isHighRisk() || output.isHighRisk();
+        String reply;
+        boolean revoked;
+        if (output.getAction() != SafetyAction.PASS) {
+            String rewritten = output.getRewrittenText();
+            reply = (rewritten == null || rewritten.isBlank()) ? SAFE_CHAT_REPLY : rewritten;
+            revoked = true;
+        } else {
+            reply = full.toString();
+            // 句级中断（越界词）但终检 PASS：已流出内容不完整，仍需整体替换
+            revoked = interrupted;
+        }
+        return new LiveChatResult(input, output, reply, false, crisis, revoked);
     }
 
     // ── 推荐理由：走熔断 ──
@@ -282,9 +438,16 @@ public class AiClient {
     public record ListeningResult(String text, boolean generated, boolean blocked) {
     }
 
+    /** strong 档独立熔断资源 key（ai-config/ai-capabilities.yaml resilience.resources 已注册）。 */
+    private static final String KEY_STRONG = "llm-strong";
+
     /**
      * 独立倾听小结。只接收本人已结束会话的用户发言；高危输入不生成，
-     * 由业务层保留既有支持流程。复用非流式短文本的 llm-message 熔断 key。
+     * 由业务层保留既有支持流程。
+     *
+     * <p>失败回落链（B2，2026-11-04）：strong 档（{@code llm-strong} 熔断隔离）
+     * → standard 档（{@code llm-message} 熔断隔离）→ 返回 {@code generated=false}
+     * 由业务层使用固定模板。每一档失败都记 WARN 日志与熔断计数，<b>不静默降级</b>。
      */
     public ListeningResult listeningSummary(Long sessionId, String prompt, String userText) {
         SafetyResult input = contentSafetyFilter.checkInput(
@@ -296,6 +459,33 @@ public class AiClient {
         if (llmClient instanceof MockLlmClient) {
             return new ListeningResult(null, false, false);
         }
+
+        // ── 第一档：strong（倾听小结的声明档位） ──
+        var route = modelRouter.resolve("listening_summary");
+        if (route.llmAllowed() && route.available()) {
+            if (breaker.allowRequest(KEY_STRONG)) {
+                try {
+                    var generation = llmClient.chatWithUsage(prompt, route.model());
+                    String result = generation == null ? null : generation.text();
+                    if (result == null || result.isBlank()) {
+                        throw new IllegalStateException("empty listening summary");
+                    }
+                    breaker.recordSuccess(KEY_STRONG);
+                    log.info("倾听小结由 strong 档生成: model={}", route.model());
+                    return finishListening(result);
+                } catch (Exception e) {
+                    breaker.recordFailure(KEY_STRONG);
+                    log.warn("倾听小结 strong 档失败（已记熔断），显式回落 standard 档: model={}, err={}",
+                            route.model(), e.getMessage());
+                }
+            } else {
+                log.warn("倾听小结 strong 档熔断中，显式回落 standard 档");
+            }
+        } else if (!route.available()) {
+            log.info("倾听小结 strong 档未启用/未配置，直接使用 standard 档");
+        }
+
+        // ── 第二档：standard（分档前的原路径） ──
         if (!breaker.allowRequest(KEY_MESSAGE)) {
             return new ListeningResult(null, false, false);
         }
@@ -305,20 +495,74 @@ public class AiClient {
                 throw new IllegalStateException("empty listening summary");
             }
             breaker.recordSuccess(KEY_MESSAGE);
-            SafetyResult output = contentSafetyFilter.checkOutput(
-                    UserContext.getUserId(), "listening", result);
-            if (output.getAction() == SafetyAction.BLOCK) {
-                return new ListeningResult(null, false, false);
-            }
-            String safe = output.getAction() == SafetyAction.REWRITE
-                    && output.getRewrittenText() != null
-                    && !output.getRewrittenText().isBlank()
-                    ? output.getRewrittenText() : result;
-            return new ListeningResult(safe.trim(), true, false);
+            return finishListening(result);
         } catch (Exception e) {
             breaker.recordFailure(KEY_MESSAGE);
-            log.warn("倾听小结生成失败，由业务层使用记录引导");
+            log.warn("倾听小结 standard 档也失败，由业务层使用固定模板（不静默）: {}", e.getMessage());
             return new ListeningResult(null, false, false);
+        }
+    }
+
+    /** 输出安全过滤后封装倾听小结结果（strong/standard 两档共用）。 */
+    private ListeningResult finishListening(String result) {
+        SafetyResult output = contentSafetyFilter.checkOutput(
+                UserContext.getUserId(), "listening", result);
+        if (output.getAction() == SafetyAction.BLOCK) {
+            return new ListeningResult(null, false, false);
+        }
+        String safe = output.getAction() == SafetyAction.REWRITE
+                && output.getRewrittenText() != null
+                && !output.getRewrittenText().isBlank()
+                ? output.getRewrittenText() : result;
+        return new ListeningResult(safe.trim(), true, false);
+    }
+
+    // ── 对话上下文滚动摘要（P1b 2026-11-04） ──
+
+    /** 上下文摘要独立熔断资源 key（ai-config/ai-capabilities.yaml resilience.resources 已注册）。 */
+    private static final String KEY_SUMMARY = "llm-summary";
+
+    /**
+     * 生成对话上下文滚动摘要（P1b，仅倾听链）。
+     *
+     * <p>刻意走 <b>standard 档</b>（{@code llmClient.chat} 默认配置）：摘要属于后台增量任务，
+     * 不得占用 strong 档（deepseek-reasoner）造成成本与延迟失控。
+     * 失败语义一律「返回 null」——熔断中、Mock 未配置真实模型、调用异常、输出空、
+     * 输出安全未 PASS——由调用方（DialogueContextService）降级为「本轮不做摘要，
+     * 保留原文窗口」，绝不让对话主链路因摘要失败而失败。
+     * 输出经 {@link ContentSafetyFilter#checkOutput} 过滤并落审计（AGENTS.md §4）。
+     *
+     * @param prompt 渲染后的摘要请求（context-summary.st，含旧摘要与滑出轮次原文）
+     * @return 摘要文本；任何失败返回 null
+     */
+    public String contextSummary(String prompt) {
+        // Mock 是本地降级实现，不能把它产出的模板句当成"已生成摘要"落库（同 listeningSummary 判定）
+        if (llmClient instanceof MockLlmClient) {
+            return null;
+        }
+        if (!breaker.allowRequest(KEY_SUMMARY)) {
+            log.warn("上下文摘要熔断中，本轮跳过（降级保留原文窗口）: key={}", KEY_SUMMARY);
+            return null;
+        }
+        try {
+            String result = llmClient.chat(prompt);
+            if (result == null || result.isBlank()) {
+                throw new IllegalStateException("empty context summary");
+            }
+            SafetyResult output = contentSafetyFilter.checkOutput(
+                    UserContext.getUserId(), "summary", result);
+            if (output.getAction() != SafetyAction.PASS) {
+                log.warn("上下文摘要输出未过终检（降级保留原文窗口）: action={}, reason={}",
+                        output.getAction(), output.getReason());
+                breaker.recordSuccess(KEY_SUMMARY);
+                return null;
+            }
+            breaker.recordSuccess(KEY_SUMMARY);
+            return result.trim();
+        } catch (Exception e) {
+            breaker.recordFailure(KEY_SUMMARY);
+            log.warn("上下文摘要生成失败（已记熔断，降级保留原文窗口）: err={}", e.getMessage());
+            return null;
         }
     }
 

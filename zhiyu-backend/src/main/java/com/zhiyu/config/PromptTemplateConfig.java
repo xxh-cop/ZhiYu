@@ -40,6 +40,9 @@ public class PromptTemplateConfig {
     @Value("classpath:prompts/rag.st")
     private Resource ragPromptResource;
 
+    @Value("classpath:prompts/context-summary.st")
+    private Resource contextSummaryPromptResource;
+
     /**
      * 陪伴者系统提示词（companion.st 内容原文）。
      * 由 SpringAiLlmClient 在 streamChat 时作为第一条 system message 注入。
@@ -74,6 +77,16 @@ public class PromptTemplateConfig {
     @Bean("ragPrompt")
     public String ragPrompt() {
         return loadPrompt(ragPromptResource, "prompts/rag.st");
+    }
+
+    /**
+     * 对话上下文滚动摘要 Prompt 模板（context-summary.st 内容原文，P1b 2026-11-04 引入）。
+     * 由 DialogueContextService 使用，占位符 {previousSummaryBlock} / {startTurn} / {endTurn} / {turnsBlock} 渲染。
+     * 模板约束：只压缩事实与情绪线索、不做诊断结论、不虚构、保留轮次范围。
+     */
+    @Bean("contextSummaryPrompt")
+    public String contextSummaryPrompt() {
+        return loadPrompt(contextSummaryPromptResource, "prompts/context-summary.st");
     }
 
     private String loadPrompt(Resource resource, String desc) {

@@ -3,6 +3,7 @@ package com.zhiyu.modules.practice;
 import com.zhiyu.modules.practice.controller.AdaptivePracticeController;
 import com.zhiyu.modules.practice.service.AdaptivePracticeService;
 import com.zhiyu.modules.practice.vo.AdaptivePlanVO;
+import com.zhiyu.security.BusinessAccess;
 import com.zhiyu.security.LoginUser;
 import com.zhiyu.security.UserContext;
 import org.junit.jupiter.api.AfterEach;
@@ -27,7 +28,9 @@ class AdaptivePracticeControllerTest {
     @BeforeEach
     void setUp() {
         service = mock(AdaptivePracticeService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new AdaptivePracticeController(service)).build();
+        BusinessAccess access = mock(BusinessAccess.class);
+        when(access.consentedUser()).thenReturn(7L);
+        mockMvc = MockMvcBuilders.standaloneSetup(new AdaptivePracticeController(service, access)).build();
         UserContext.set(new LoginUser(7L, 0));
     }
 

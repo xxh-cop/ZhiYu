@@ -43,6 +43,14 @@ class CraftRecommendServiceLlmTest {
     EmotionSessionMapper emotionSessionMapper;
     @Mock
     AiClient aiClient;
+    @Mock
+    com.zhiyu.modules.craft.service.RecommendFeedbackBoost feedbackBoost;
+
+    @org.junit.jupiter.api.BeforeEach
+    void stubBoost() {
+        // AM2：本类聚焦 LLM 契约，回灌加权桩为空表（零变化）
+        lenient().when(feedbackBoost.boosts(any())).thenReturn(java.util.Map.of());
+    }
 
     @InjectMocks
     CraftRecommendServiceImpl service;

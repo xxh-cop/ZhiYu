@@ -37,6 +37,7 @@ public class AdminInheritorServiceImpl implements AdminInheritorService {
 
     private final InheritorProfileMapper inheritorProfileMapper;
     private final UserMapper userMapper;
+    private final com.zhiyu.modules.notification.service.NotificationService notificationService;
 
     @Override
     public PageVO<InheritorListItemVO> listInheritors(Integer page, Integer pageSize, Integer verified, String keyword) {
@@ -104,6 +105,12 @@ public class AdminInheritorServiceImpl implements AdminInheritorService {
         profile.setVerified(verified);
         inheritorProfileMapper.updateById(profile);
         log.info("管理员认证传承人: inheritorId={}, verified={}, operator={}", id, verified, UserContext.getUserId());
+        // BG1（2026-11-05）：核验结果触达传承人本人；失败不阻断核验动作
+        try {
+            notificationService.notifyInheritorVerify(profile.getUserId(), id, verified == 1);
+        } catch (Exception e) {
+            log.warn("传承人核验通知写入失败（不阻断核验）: inheritorId={}, err={}", id, e.getMessage());
+        }
     }
 
     @Override

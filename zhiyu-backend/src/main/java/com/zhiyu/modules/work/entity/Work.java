@@ -52,4 +52,7 @@ public class Work extends BaseEntity {
 
     /** 0待审 1已发布 2下架 */
     private Integer status;
+
+    /** 审核理由（I1，2026-11-04）：下架/驳回必填，通过可空；历史数据为 NULL（读取兼容）。 */
+    private String auditReason;
 }

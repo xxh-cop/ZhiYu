@@ -40,6 +40,7 @@ public class CraftProjectPublicServiceImpl implements CraftProjectPublicService 
     private final CraftMaterialMapper craftMaterialMapper;
     private final InheritorProfileMapper inheritorProfileMapper;
     private final UserMapper userMapper;
+    private final com.zhiyu.modules.file.MediaService mediaService;
 
     @Override
     public PageVO<CraftProjectItemVO> listProjectsByInheritor(Long inheritorProfileId, int page, int pageSize) {
@@ -110,7 +111,9 @@ public class CraftProjectPublicServiceImpl implements CraftProjectPublicService 
             vo.setStepNo(s.getStepNo());
             vo.setTitle(s.getTitle());
             vo.setGuide(s.getGuide());
-            vo.setAudioUrl(s.getAudioUrl());
+            // AU3：私有媒体引用换 1h 签名播放地址（受众授权）；外链/静态资源原样下发
+            vo.setAudioUrl(mediaService.playbackIfMediaRef(
+                    com.zhiyu.security.UserContext.getUserId(), s.getAudioUrl()));
             return vo;
         }).collect(Collectors.toList());
 

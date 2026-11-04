@@ -12,7 +12,7 @@ public interface CareReminderService {
      *
      * @param userId     用户 ID
      * @param sessionId  会话 ID（可空）
-     * @param riskLevel  风险等级：1 一般 / 2 高危
+     * @param riskLevel  风险等级：1 关注 / 2 高危 / 3 紧急（AQ2 起按词表分组真实分级，AU1 对齐字典语义）
      * @param summary    脱敏摘要（不含原始对话原文）
      */
     void trigger(Long userId, Long sessionId, Integer riskLevel, String summary);

@@ -12,3 +12,7 @@ zhiyu:
   crypto:
     # 开发用密钥（base64 编码的 32 字节），生产环境用 FIELD_ENCRYPT_SECRET 覆盖
     secret: ${FIELD_ENCRYPT_SECRET:dGhpcy1pcy1hLWRldi1vbmx5LWtleS0zMmJ5dGVzISE=}
+  auth:
+    password-reset:
+      # 本地开发默认把重置令牌打印到服务端日志；生产必须关闭（none）或接入真实通道
+      channel: ${ZHIYU_PASSWORD_RESET_CHANNEL:log}

@@ -55,11 +55,14 @@ public class RecommendEventService {
             throw new BusinessException(1004, "推荐项目不存在");
         }
 
+        // AM2（2026-11-04）：事件类型扩展 DISMISS（负反馈），缺省 CLICK；幂等按类型各自独立
+        String eventType = dto.getEventType() == null ? CLICK : dto.getEventType();
+
         Long existing = eventMapper.selectCount(new LambdaQueryWrapper<CraftRecommendEvent>()
                 .eq(CraftRecommendEvent::getUserId, userId)
                 .eq(CraftRecommendEvent::getRecommendationId, recommendationId)
                 .eq(CraftRecommendEvent::getProjectId, projectId)
-                .eq(CraftRecommendEvent::getEventType, CLICK));
+                .eq(CraftRecommendEvent::getEventType, eventType));
         if (existing != null && existing > 0) {
             return;
         }
@@ -68,7 +71,7 @@ public class RecommendEventService {
         event.setUserId(userId);
         event.setRecommendationId(recommendationId);
         event.setProjectId(projectId);
-        event.setEventType(CLICK);
+        event.setEventType(eventType);
         event.setSource(dto.getSource());
         try {
             eventMapper.insert(event);

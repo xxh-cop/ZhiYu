@@ -28,6 +28,7 @@ public class CraftProjectServiceImpl implements CraftProjectService {
 
     private final CraftProjectMapper craftProjectMapper;
     private final CraftStepMapper craftStepMapper;
+    private final com.zhiyu.modules.file.MediaService mediaService;
 
     @Override
     public List<CraftStepVO> listSteps(Long projectId) {
@@ -53,7 +54,9 @@ public class CraftProjectServiceImpl implements CraftProjectService {
         vo.setStepNo(step.getStepNo());
         vo.setTitle(step.getTitle());
         vo.setGuide(step.getGuide());
-        vo.setAudioUrl(step.getAudioUrl());
+        // AU3：私有媒体引用换 1h 签名播放地址（受众授权）；外链/静态资源原样下发
+        vo.setAudioUrl(mediaService.playbackIfMediaRef(
+                com.zhiyu.security.UserContext.getUserId(), step.getAudioUrl()));
         return vo;
     }
 }

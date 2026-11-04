@@ -83,6 +83,13 @@ zhiyu:
       output-per-million: ${AI_OUTPUT_COST_PER_MILLION:0}
       currency: ${AI_COST_CURRENCY:CNY}
 
+    # ── 任务分档模型路由（2026-11-04，B2） ──
+    # strong 档用于倾听小结等声明任务；与 standard 同 endpoint/key，仅切模型名。
+    # 危机干预不路由（crisis=none，见 ai-config/ai-capabilities.yaml routing 段）。
+    routing:
+      strong-model: ${DEEPSEEK_STRONG_MODEL:deepseek-reasoner}
+      strong-enabled: ${ZHIYU_STRONG_TIER_ENABLED:true}
+
   # ── 字段加密密钥（T1.3a） ──
   # Base64 编码的 32 字节密钥。为空时启动失败（fail-fast）。
   # 生产/演示环境必须通过环境变量 FIELD_ENCRYPT_SECRET 覆盖。
@@ -92,6 +99,55 @@ zhiyu:
   # ── 情绪对话配置（T1.3a） ──
   emotion:
     max-history-turns: 10
+    # AM1（2026-11-04）情绪基线偏离提醒（只做提醒不做判断；依据见 EmotionBaselineService javadoc）
+    baseline:
+      enabled: ${ZHIYU_EMOTION_BASELINE:true}   # 全局开关；用户级 user.baseline_nudge_enabled 可单独关
+      short-window-days: 3       # 近期窗口
+      long-window-days: 28       # 基线窗口（不含近期窗口）
+      min-history-records: 8     # 冷启动防误报：历史+近期总样本下限
+      min-recent-records: 3      # 近期样本下限
+      share-uplift: 0.30         # 低落类占比位移阈值（0.30 ≈ 占比上移三分之一）
+      cooldown-hours: 72         # 同档位冷却
+      heavy-moods: depressed     # 低落类情绪 code（逗号分隔，词表见 dict_mood）
+
+  # ── 推荐反馈回灌（AM2 2026-11-04；确定性加权，接在规则层之后） ──
+  recommend:
+    feedback:
+      enabled: ${ZHIYU_RECOMMEND_FEEDBACK:true}  # 回滚：置 false 后排序与规则层逐条一致
+      window-days: 90            # 反馈窗口
+      min-events: 3              # 稀疏保护：本人反馈少于此数不加权
+      click-weight: 0.15         # 正反馈权重（CLICK）
+      dismiss-weight: 0.15       # 负反馈权重（DISMISS）
+      decay-per-day: 0.98        # 按事件年龄（天）衰减
+      cap: 0.6                   # 单项目加权上限（防一条反馈翻掉整个列表）
+
+  # ── 账号安全（2026-11-03：登录失败锁定 + 忘记密码） ──
+  # 登录失败锁定：按账号维度计数（不存在的账号同样计数，避免探测注册状态），
+  # 窗口内连续失败 max-failures 次锁定 lock-minutes 分钟；主存储 Redis，异常降级内存。
+  auth:
+    login-attempt:
+      # store: redis（多实例共享，默认） | memory（单机/单测）
+      store: ${ZHIYU_LOGIN_ATTEMPT_STORE:redis}
+      max-failures: 5
+      window-minutes: 15
+      lock-minutes: 15
+    password-reset:
+      # store: redis（默认） | memory（单机/单测）
+      store: ${ZHIYU_PASSWORD_RESET_STORE:redis}
+      # 发送通道：none=未配置（申请时返回「该功能暂未开放」）；
+      # log=令牌打印到服务端日志（仅供本地开发，生产禁止）。
+      channel: ${ZHIYU_PASSWORD_RESET_CHANNEL:none}
+      # 一次性重置令牌有效期（秒），默认 30 分钟
+      token-expire-seconds: 1800
+
+  # ── SSE 流式对话线程池（2026-11-03 压测修复） ──
+  # core=max=16：让 max 真正生效（Spring 线程池「core 满→入队→队列满才扩」，
+  # 大队列会让 max 永远用不上）；queue=32 仅作超过 16 并发时的短突发缓冲。
+  sse:
+    executor:
+      core-size: ${ZHIYU_SSE_CORE_SIZE:16}
+      max-size: ${ZHIYU_SSE_MAX_SIZE:16}
+      queue-capacity: ${ZHIYU_SSE_QUEUE_CAPACITY:32}
 
   # ── 危机干预配置（T1.3b） ──
   # 高危命中后返回给用户的关怀话术中包含的热线号码。
@@ -122,6 +178,25 @@ zhiyu:
     video-extensions: mp4,mov
     image-max-size: 5242880       # 5MB
     video-max-size: 52428800      # 50MB
+
+  # ── 双对话收敛开关（P0 2026-11-04；AK 批细粒度化，全部默认关闭） ──
+  # 数值见 ai-config/ai-capabilities.yaml dialogue 段；危机路径永久直连（无开关，两路径都先过安检、零 LLM）
+  dialogue:
+    commander: ${ZHIYU_DIALOGUE_COMMANDER:false}             # C1 端点 /api/dialogue/chat 注册（物理入口）
+    listening-via-commander: ${ZHIYU_DIALOGUE_LISTENING_COMMANDER:false}  # AK1 灰度：倾听链 /api/emotion/chat 委托调度层
+    companion-adapter: ${ZHIYU_DIALOGUE_COMPANION_ADAPTER:false}  # P3 companion 薄适配器（预留，当前未接线）
+    rolling-summary: ${ZHIYU_DIALOGUE_ROLLING_SUMMARY:false}      # P1b 滚动摘要（仅倾听链）
+    # P1b 滚动摘要参数（与 ai-config/ai-capabilities.yaml dialogue.rolling_summary 段一致）
+    summary-trigger-turn: 11      # 第 N 条消息起允许触发
+    summary-increment-turns: 5    # 每滑出 N 条增量压缩一次
+    summary-ttl-days: 90          # 摘要滚动过期天数（到期视为无摘要）
+    # P2 调度层三道闸（AA 批 2026-11-04；数值与 ai-config/ai-capabilities.yaml dialogue.guards 段一致）
+    guard-store: ${ZHIYU_DIALOGUE_GUARD_STORE:redis}   # redis|memory；Redis 连续失败 3 次冷却 30s 降级内存
+    repeat-intent-times: 3         # 重复意图锁定阈值（同哈希次数）
+    repeat-window-seconds: 600     # 重复意图窗口（秒）
+    oscillation-lock: true         # A→B→A 振荡锁定
+    session-turn-budget: 30        # 会话轮次预算（超出给收尾文案）
+    turn-wall-clock-ms: 30000      # 单轮墙钟预算（超出记 TURN_TIMEOUT，不阻断回包）
 
 mybatis-plus:
   configuration:

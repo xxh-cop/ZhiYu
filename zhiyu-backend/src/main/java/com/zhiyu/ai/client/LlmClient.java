@@ -80,6 +80,20 @@ public interface LlmClient {
         return new LlmChatResult(chat(prompt), null, null);
     }
 
+    /**
+     * 带模型覆盖的一次性对话（B2 任务分档，2026-11-04）。
+     *
+     * <p>默认实现忽略 {@code model} 参数回退到默认模型——
+     * 不支持多模型的实现（如 Mock）无需改动；调用方据此不得假定模型已切换，
+     * 需要确认时应检查返回或实现类的能力说明。
+     *
+     * @param prompt 完整 prompt 文本
+     * @param model  目标模型名（如 deepseek-reasoner）
+     */
+    default LlmChatResult chatWithUsage(String prompt, String model) {
+        return chatWithUsage(prompt);
+    }
+
     /** 当前模型名；未覆盖时返回 unknown，不得把 Mock 冒充真实模型。 */
     default String modelName() {
         return "unknown";

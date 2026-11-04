@@ -23,4 +23,8 @@ public class RecommendClickDTO {
     @NotBlank(message = "来源不能为空")
     @Pattern(regexp = "HOME|RECOMMEND", message = "来源只能是 HOME 或 RECOMMEND")
     private String source;
+
+    /** 事件类型（AM2 2026-11-04）：缺省 CLICK；DISMISS 为负反馈（前端另派接入）。 */
+    @Pattern(regexp = "CLICK|DISMISS", message = "事件类型只能是 CLICK 或 DISMISS")
+    private String eventType;
 }

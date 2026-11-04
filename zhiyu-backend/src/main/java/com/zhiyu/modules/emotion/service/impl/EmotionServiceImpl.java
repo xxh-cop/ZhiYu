@@ -60,12 +60,33 @@ public class EmotionServiceImpl implements EmotionService {
     @org.springframework.transaction.annotation.Transactional
     public void appendMessage(Long sessionId, String role, String content) {
         lockSession(sessionId);
+        // 幂等（SSE A 方案）：断线重发同一 content 时，若末条同角色消息明文相同则跳过。
+        // 仅对用户消息去重——assistant 回复内容可能恰好重复（如降级固定话术），不应去重。
+        if ("user".equals(role)) {
+            EmotionMessage last = messageMapper.selectOne(new LambdaQueryWrapper<EmotionMessage>()
+                    .eq(EmotionMessage::getSessionId, sessionId)
+                    .eq(EmotionMessage::getRole, "user")
+                    .orderByDesc(EmotionMessage::getId)
+                    .last("LIMIT 1"));
+            if (last != null && content.equals(safeDecrypt(last.getContent()))) {
+                log.info("幂等跳过重复用户消息: sessionId={}", sessionId);
+                return;
+            }
+        }
         EmotionMessage msg = new EmotionMessage();
         msg.setSessionId(sessionId);
         msg.setRole(role);
         msg.setContent(encryptor.encrypt(content));
         messageMapper.insert(msg);
         log.debug("追加消息: sessionId={}, role={}", sessionId, role);
+    }
+
+    private String safeDecrypt(String encrypted) {
+        try {
+            return encryptor.decrypt(encrypted);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override

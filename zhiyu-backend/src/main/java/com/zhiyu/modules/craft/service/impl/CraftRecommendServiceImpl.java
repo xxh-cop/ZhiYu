@@ -42,6 +42,7 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
     private final CraftRecommendationItemMapper craftRecommendationItemMapper;
     private final EmotionSessionMapper emotionSessionMapper;
     private final AiClient aiClient;
+    private final com.zhiyu.modules.craft.service.RecommendFeedbackBoost feedbackBoost;
 
     /** 兜底文案：项目表为空时 */
     private static final String EMPTY_REASON = "暂无符合材料安全范围的推荐项目，请稍后查看或咨询带领者";
@@ -59,7 +60,7 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
 
         // ── 2. 规则层选品 ──
         List<String> preferTags = RecommendRuleConfig.get(mood);
-        List<CraftProject> candidates = selectCandidates(preferTags, skillLevel, minutes);
+        List<CraftProject> candidates = selectCandidates(preferTags, skillLevel, minutes, userId);
 
         // ── 3. LLM 生成整体理由 ──
         String reason;
@@ -136,9 +137,13 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
 
     /**
      * 规则层选品：过滤 + 打分 + 排序 + 三层兜底。
+     *
+     * <p>AM2（2026-11-04）：反馈回灌加权接在规则分之后、排序之前
+     * （{@link com.zhiyu.modules.craft.service.RecommendFeedbackBoost}）；
+     * 开关关闭或反馈不足时 boost 为空表，每个项目 +0.0，排序与原规则逐条一致。
      */
     private List<CraftProject> selectCandidates(List<String> preferTags,
-                                                 Integer skillLevel, Integer minutes) {
+                                                 Integer skillLevel, Integer minutes, Long userId) {
         // 查所有上架项目
         LambdaQueryWrapper<CraftProject> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CraftProject::getStatus, 1);
@@ -151,6 +156,9 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
             return Collections.emptyList();
         }
 
+        // AM2：本人反馈回灌加权（空表 = 零变化）
+        Map<Long, Double> boost = feedbackBoost.boosts(userId);
+
         // 过滤：level <= skillLevel + 1 且 estMinutes <= minutes
         int maxLevel = skillLevel + 1;
         List<CraftProject> filtered = allProjects.stream()
@@ -158,9 +166,9 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
                 .filter(p -> p.getEstMinutes() != null && p.getEstMinutes() <= minutes)
                 .collect(Collectors.toList());
 
-        // 打分 + 排序
+        // 打分 + 排序（规则分 + 反馈增量；增量为 0 时稳定排序保持原序）
         List<ScoredProject> scored = filtered.stream()
-                .map(p -> new ScoredProject(p, scoreProject(p, preferTags)))
+                .map(p -> new ScoredProject(p, scoreProject(p, preferTags) + boost.getOrDefault(p.getId(), 0.0)))
                 .sorted(Comparator.comparingDouble(ScoredProject::getScore).reversed())
                 .collect(Collectors.toList());
 
@@ -168,7 +176,7 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
         if (scored.isEmpty()) {
             log.info("规则层过滤后为空，放松条件重匹配（只按标签）");
             scored = allProjects.stream()
-                    .map(p -> new ScoredProject(p, scoreProject(p, preferTags)))
+                    .map(p -> new ScoredProject(p, scoreProject(p, preferTags) + boost.getOrDefault(p.getId(), 0.0)))
                     .sorted(Comparator.comparingDouble(ScoredProject::getScore).reversed())
                     .collect(Collectors.toList());
         }

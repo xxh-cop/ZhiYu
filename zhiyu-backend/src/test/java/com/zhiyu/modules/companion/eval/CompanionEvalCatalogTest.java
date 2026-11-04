@@ -21,8 +21,11 @@ class CompanionEvalCatalogTest {
 
         Map<String, Object> summary = catalog.summary();
 
-        assertEquals(20, summary.get("total"));
-        assertEquals(10, summary.get("safetyTotal"));
+        // 2026-11-03 五层扩充 + 2026-11-04 SUMMARY×2：L2 24 + L3 17 + L5 8 + L4 10 = 59；
+        // 2026-11-04 Z 批：+L6 摘要忠实性 13 + P2 调度层登记 7 → 79；L1 15；e2e 8
+        // 2026-11-04 AA 批：P2 七条 cmd-* 转 COMMANDER_GATE 激活（去 SKIPPED 状态，总条数不变）
+        assertEquals(79, summary.get("total"));
+        assertEquals(15, summary.get("safetyTotal"));
         assertEquals(8, summary.get("e2eTotal"));
         assertFalse(summary.toString().contains("rawInput"));
         assertFalse(summary.toString().contains("userId"));

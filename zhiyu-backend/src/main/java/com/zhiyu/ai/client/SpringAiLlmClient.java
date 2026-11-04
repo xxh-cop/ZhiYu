@@ -114,6 +114,32 @@ public class SpringAiLlmClient implements LlmClient {
                 usage == null ? null : usage.getCompletionTokens());
     }
 
+    /**
+     * 带模型覆盖的一次性对话（B2 任务分档）。
+     *
+     * <p>与 {@link #chatWithUsage(String)} 的唯一区别是 {@link ChatOptions#getModel()}
+     * 由参数指定；温度与 maxTokens 沿用运行配置（DeepSeek 同一 endpoint/key，
+     * 仅切换模型名）。deepseek-reasoner 对 temperature 不敏感的差异由调用方评测记录。
+     */
+    @Override
+    public LlmChatResult chatWithUsage(String prompt, String model) {
+        var modelOptions = org.springframework.ai.chat.prompt.ChatOptions.builder()
+                .temperature(settings.number("model", "temperature"))
+                .maxTokens((int) settings.number("model", "maxTokens"))
+                .model(model)
+                .build();
+        ChatResponse response = chatClient.prompt().options(modelOptions).system(safetyPrompt)
+                .user(prompt).call().chatResponse();
+        String text = response == null || response.getResult() == null
+                || response.getResult().getOutput() == null
+                ? "" : response.getResult().getOutput().getText();
+        var usage = response == null || response.getMetadata() == null
+                ? null : response.getMetadata().getUsage();
+        return new LlmChatResult(text,
+                usage == null ? null : usage.getPromptTokens(),
+                usage == null ? null : usage.getCompletionTokens());
+    }
+
     @Override
     public String modelName() {
         return modelName;

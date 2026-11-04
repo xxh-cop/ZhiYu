@@ -21,6 +21,7 @@ public class CampusService {
     private final AesEncryptor crypto;
     private final ObjectMapper json;
     private final OperationLog audit;
+    private final com.zhiyu.modules.notification.service.NotificationService notificationService;
     public record Application(@NotBlank @Size(max=100) String school, @NotBlank @Size(max=100) String college,
         @NotBlank @Size(max=40) String studentNumber, @NotBlank @Size(max=40) String realName) {}
     public record Review(@Pattern(regexp="APPROVED|REJECTED") @NotNull String decision, @NotBlank @Size(max=300) String reason) {}
@@ -41,16 +42,43 @@ public class CampusService {
         if(rows.isEmpty()) jdbc.update("INSERT INTO campus_verification(id,user_id,school,college,identity_cipher,status,create_time,update_time,deleted) VALUES(?,?,?,?,?,'PENDING',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,0)",IdWorker.getId(),uid,r.school().trim(),r.college().trim(),cipher);
         else jdbc.update("UPDATE campus_verification SET school=?,college=?,identity_cipher=?,status='PENDING',review_reason='',reviewer_id=NULL,deleted=0,update_time=CURRENT_TIMESTAMP WHERE user_id=?",r.school().trim(),r.college().trim(),cipher,uid);
     }
-    public Map<String,Object> list(int page) {
+    /** 核验状态合法取值（与库中定义一致：apply 写 PENDING，review 写 APPROVED/REJECTED）。 */
+    private static final Set<String> ALLOWED_STATUS = Set.of("PENDING","APPROVED","REJECTED");
+
+    /**
+     * AG1（2026-11-04）：可选 status 过滤。不传/空白 → 行为与原实现完全一致；
+     * 非法值 → 1001（与本类 offset() 的校验风格一致，走 GlobalExceptionHandler 400）。
+     */
+    public Map<String,Object> list(int page, String status) {
         access.role(3);
-        return Map.of("records",jdbc.queryForList("SELECT * FROM campus_verification WHERE deleted=0 ORDER BY update_time DESC,id DESC LIMIT 20 OFFSET ?",offset(page)).stream().map(this::present).toList(),"total",jdbc.queryForObject("SELECT COUNT(*) FROM campus_verification WHERE deleted=0",Long.class));
+        String filter = normalizeStatus(status);
+        String where = filter == null ? "WHERE deleted=0" : "WHERE deleted=0 AND status=?";
+        Object[] filterArgs = filter == null ? new Object[]{} : new Object[]{filter};
+        Long total=jdbc.queryForObject("SELECT COUNT(*) FROM campus_verification " + where, Long.class, filterArgs);
+        Object[] pageArgs = filter == null ? new Object[]{offset(page)} : new Object[]{filter, offset(page)};
+        var rows = jdbc.queryForList("SELECT * FROM campus_verification " + where
+                + " ORDER BY update_time DESC,id DESC LIMIT 20 OFFSET ?", pageArgs);
+        return Map.of("records",rows.stream().map(this::present).toList(),"total",total==null?0:total.intValue());
+    }
+
+    private static String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) return null;
+        String s = status.trim().toUpperCase();
+        if (!ALLOWED_STATUS.contains(s)) throw new BusinessException(1001,"status 取值仅支持 PENDING/APPROVED/REJECTED");
+        return s;
     }
     @Transactional
     public void review(Long id,Review r) {
         Long actor=access.role(3);
+        var owner=jdbc.queryForList("SELECT user_id FROM campus_verification WHERE id=? AND deleted=0",Long.class,id);
         int changed=jdbc.update("UPDATE campus_verification SET status=?,review_reason=?,reviewer_id=?,update_time=CURRENT_TIMESTAMP WHERE id=? AND status='PENDING' AND deleted=0",r.decision(),r.reason().trim(),actor,id);
         if(changed!=1) throw new BusinessException(3001,"申请已被处理，请刷新列表");
         audit.record("campus."+r.decision(),id);
+        // AH3（2026-11-04）：审核结果触达申请人（驳回带理由）；通知失败不阻断审核主流程
+        if(!owner.isEmpty()){
+            try{notificationService.notifyCampusAudit(owner.get(0),id,"APPROVED".equals(r.decision()),r.reason());}
+            catch(Exception e){org.slf4j.LoggerFactory.getLogger(CampusService.class).warn("核验结果通知写入失败（不阻断审核）: id={}, err={}",id,e.getMessage());}
+        }
     }
     private Map<String,Object> present(Map<String,Object> row) {
         var result=new LinkedHashMap<String,Object>();

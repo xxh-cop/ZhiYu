@@ -36,6 +36,8 @@ import java.util.List;
  *     <ul>
  *       <li>关怀任务 {@code /api/admin/care-reminders/**} —— role ∈ {2,3}
  *           （咨询师可领取/跟进，服务层再做 case 归属校验）</li>
+ *       <li>评论详情 {@code GET /api/admin/comments/{id}} —— role ∈ {2,3}
+ *           （O2 2026-11-04：通知跳转用脱敏摘要，不含评论全文；列表与审核仍仅 role=3）</li>
  *       <li>其余管理端接口（用户/审核/日志/配置/作品/小组/传承人管理）—— 仅 role=3</li>
  *     </ul>
  *     传承人自己的项目/步骤/材料维护在 {@code /api/inheritor/**}，仍仅 role=1。
@@ -87,7 +89,8 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                         // CORS 预检请求不带 Authorization，必须放行，否则浏览器直接拿到 401
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login",
+                                "/api/auth/password/forgot", "/api/auth/password/reset").permitAll()
                         // 静态资源（上传的图片/视频）：公开访问，不需要鉴权
                         .requestMatchers("/uploads/**", "/library/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/media/*/content").permitAll()
@@ -114,8 +117,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/groups/*").hasAuthority("ROLE_3")
                         // 传承人端接口：仅传承人（role=1）可访问（项目/步骤/材料/课程维护）
                         .requestMatchers("/api/inheritor/**").hasAuthority("ROLE_1")
-                        // 唯一放宽到咨询师的 /api/admin 接口：关怀任务（服务层再校验 case 归属）
+                        // 放宽到咨询师的 /api/admin 接口之一：关怀任务（服务层再校验 case 归属）
                         .requestMatchers("/api/admin/care-reminders", "/api/admin/care-reminders/**").hasAnyAuthority("ROLE_2", "ROLE_3")
+                        // AJ（2026-11-04）：危机留存查询放宽到咨询师（服务层叠加认领个案范围过滤 + 查看审计）
+                        .requestMatchers("/api/admin/crisis-logs", "/api/admin/crisis-logs/**").hasAnyAuthority("ROLE_2", "ROLE_3")
+                        // O2（2026-11-04）：评论详情（通知跳转用脱敏摘要，不含全文）放宽到咨询师；
+                        // 仅 GET /api/admin/comments/{id} 单段路径，列表与审核操作仍仅管理员
+                        .requestMatchers(HttpMethod.GET, "/api/admin/comments/*").hasAnyAuthority("ROLE_2", "ROLE_3")
                         // 其余管理端接口一律仅管理员（role=3）
                         .requestMatchers("/api/admin/campus-verifications/**", "/api/admin/campus-verifications", "/api/admin/operation-logs", "/api/admin/users/**", "/api/admin/users", "/api/admin/audit-logs", "/api/admin/config/**").hasAuthority("ROLE_3")
                         .requestMatchers("/api/admin/comments", "/api/admin/comments/**").hasAuthority("ROLE_3")

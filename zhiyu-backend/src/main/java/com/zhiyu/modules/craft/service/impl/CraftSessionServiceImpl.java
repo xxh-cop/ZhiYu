@@ -52,7 +52,8 @@ public class CraftSessionServiceImpl implements CraftSessionService {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
         if (project.getStatus() == null || project.getStatus() != 1) {
-            throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "项目未上架");
+            // AY1（2026-11-05）：非上架（待审/下架）统一 1004，不向学生泄露项目状态
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
 
         // 2. 检查是否已有未完成的同项目会话

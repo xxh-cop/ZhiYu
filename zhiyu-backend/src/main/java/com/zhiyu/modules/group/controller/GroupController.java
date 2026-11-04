@@ -4,6 +4,7 @@ import com.zhiyu.common.result.Result;
 import com.zhiyu.modules.group.dto.GroupCreateReq;
 import com.zhiyu.modules.group.service.GroupService;
 import com.zhiyu.modules.group.vo.GroupVO;
+import com.zhiyu.security.BusinessAccess;
 import com.zhiyu.security.UserContext;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import java.util.List;
 public class GroupController {
 
     private final GroupService groupService;
+    private final BusinessAccess access;
 
     @GetMapping
     public Result<List<GroupVO>> listGroups() {
@@ -35,13 +37,15 @@ public class GroupController {
 
     @PostMapping
     public Result<GroupVO> createGroup(@Valid @RequestBody GroupCreateReq req) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：创建互助小组写入心理支持社区的成员关系，挂隐私同意门
+        Long userId = access.consentedUser();
         return Result.success(groupService.createGroup(userId, req));
     }
 
     @PostMapping("/{id}/join")
     public Result<GroupVO> joinGroup(@PathVariable Long id) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：加入互助小组写入成员关系，挂隐私同意门
+        Long userId = access.consentedUser();
         return Result.success(groupService.joinGroup(userId, id));
     }
 }

@@ -2,6 +2,8 @@ package com.zhiyu.modules.auth.controller;
 
 import com.zhiyu.common.result.Result;
 import com.zhiyu.modules.auth.dto.LoginDTO;
+import com.zhiyu.modules.auth.dto.PasswordForgotDTO;
+import com.zhiyu.modules.auth.dto.PasswordResetDTO;
 import com.zhiyu.modules.auth.dto.RegisterDTO;
 import com.zhiyu.modules.auth.service.AuthService;
 import com.zhiyu.modules.auth.vo.LoginVO;
@@ -40,6 +42,23 @@ public class AuthController {
     @PostMapping("/login")
     public Result<LoginVO> login(@Valid @RequestBody LoginDTO dto) {
         return Result.success(authService.login(dto));
+    }
+
+    /**
+     * 申请密码重置令牌，对应 {@code POST /api/auth/password/forgot}。
+     * 无论账号是否存在都返回相同响应；未配置发送通道时返回 3001「该功能暂未开放」。
+     */
+    @PostMapping("/password/forgot")
+    public Result<Void> forgotPassword(@Valid @RequestBody PasswordForgotDTO dto) {
+        authService.requestPasswordReset(dto);
+        return Result.success();
+    }
+
+    /** 用重置令牌设置新密码，对应 {@code POST /api/auth/password/reset}。 */
+    @PostMapping("/password/reset")
+    public Result<Void> resetPassword(@Valid @RequestBody PasswordResetDTO dto) {
+        authService.resetPassword(dto);
+        return Result.success();
     }
 
     /** 当前登录用户，对应 {@code GET /api/auth/me}。 */

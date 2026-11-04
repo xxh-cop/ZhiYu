@@ -23,7 +23,8 @@ public class PersonalWorkService {
         Long total=db.queryForObject("SELECT COUNT(*)"+from,Long.class,uid,uid,uid);
         var records=db.queryForList("SELECT TRIM(CAST(w.id AS CHAR(20))) id,w.title,w.cover_url coverUrl,w.media_type mediaType,w.message,w.visible,w.create_time createTime,l.update_time savedAt"+from+" ORDER BY l.update_time DESC,l.id DESC LIMIT 12 OFFSET ?",uid,uid,uid,(page-1)*12);
         for(var r:records)r.put("coverUrl",media.imageUrl(uid,(String)r.get("coverUrl")));
-        return Map.of("records",records,"total",total);
+        // S3（2026-11-04）：分页元数据与列表内嵌计数统一为 JSON number
+        return Map.of("records",records,"total",total==null?0:total.intValue());
     }
     public Map<String,Object> mine(int page,Integer status){
         long uid=access.user();
@@ -33,9 +34,9 @@ public class PersonalWorkService {
         Long total=db.queryForObject("SELECT COUNT(*) FROM work"+where,Long.class,args.toArray());
         args.add((page-1)*12);
         var records=db.queryForList("SELECT TRIM(CAST(id AS CHAR(20))) id,title,cover_url coverUrl,media_type mediaType,video_url videoUrl,message,visible,status,anonymous,like_count likeCount,create_time createTime FROM work"+where+" ORDER BY create_time DESC,id DESC LIMIT 12 OFFSET ?",args.toArray());
-        Map<String,Long> counts=new LinkedHashMap<>();counts.put("all",0L);for(var row:db.queryForList("SELECT status,COUNT(*) amount FROM work WHERE user_id=? AND deleted=0 GROUP BY status",uid)){long count=((Number)row.get("amount")).longValue();counts.put(row.get("status").toString(),count);counts.put("all",counts.get("all")+count);}
+        Map<String,Integer> counts=new LinkedHashMap<>();counts.put("all",0);for(var row:db.queryForList("SELECT status,COUNT(*) amount FROM work WHERE user_id=? AND deleted=0 GROUP BY status",uid)){int count=((Number)row.get("amount")).intValue();counts.put(row.get("status").toString(),count);counts.put("all",counts.get("all")+count);}
         for(var r:records)r.put("coverUrl",media.imageUrl(uid,(String)r.get("coverUrl")));
-        return Map.of("records",records,"total",total,"counts",counts);
+        return Map.of("records",records,"total",total==null?0:total.intValue(),"counts",counts);
     }
     @Transactional public void withdraw(long id){
         long uid=access.user();

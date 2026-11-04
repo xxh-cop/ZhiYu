@@ -23,4 +23,16 @@ public interface AiAuditLogService {
      */
     void log(Long userId, String scene, String rawInput, String aiOutput,
              String action, String reason);
+
+    /**
+     * 带对象级关联的审计日志（2026-11-04 I2）。
+     *
+     * <p>供审核工作台按 {@code refType + refId} 聚合对象级 AI 审计摘要。
+     * 2026-11-04 前的历史数据没有 ref 列；新写入点应携带。
+     *
+     * @param refType 关联对象类型（如 work / comment）
+     * @param refId   关联对象 ID（雪花）
+     */
+    void log(Long userId, String scene, String rawInput, String aiOutput,
+             String action, String reason, String refType, Long refId);
 }

@@ -24,7 +24,8 @@ class GrowthServiceTest {
         var source=new DriverManagerDataSource("jdbc:h2:mem:growth"+UUID.randomUUID()+";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER","sa","");
         try(var connection=source.getConnection()){ScriptUtils.executeSqlScript(connection,new FileSystemResource("src/test/resources/schema-h2.sql"));}
         db=new JdbcTemplate(source);tx=new TransactionTemplate(new DataSourceTransactionManager(source));
-        service=new GrowthService(db,new ObjectMapper().findAndRegisterModules(),new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32])),scales);
+        service=new GrowthService(db,new ObjectMapper().findAndRegisterModules(),new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32])),scales,
+                org.mockito.Mockito.mock(com.zhiyu.modules.notification.service.NotificationService.class));
         for(long id=1;id<=4;id++) db.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) VALUES(?,?,?,?,?,1,1,0)",id,"u"+id,"hash","测试"+id,id==1?1:0);
         login(2);
     }
@@ -112,7 +113,7 @@ class GrowthServiceTest {
         assertThrows(BusinessException.class,()->tx.executeWithoutResult(s->service.reviewBooking(id,booking,"CONFIRM")));
         login(3);assertThrows(BusinessException.class,()->tx.executeWithoutResult(s->service.book(id,false)));
         login(1);tx.executeWithoutResult(s->service.reviewBooking(id,booking,"REJECT"));
-        assertEquals(0L,service.programs(true).get(0).get("booked"));
+        assertEquals(0,service.programs(true).get(0).get("booked"));
         assertThrows(BusinessException.class,()->tx.executeWithoutResult(s->service.reviewBooking(id,booking,"CONFIRM")));
         login(3);tx.executeWithoutResult(s->service.book(id,false));
         long next=db.queryForObject("SELECT id FROM program_booking WHERE program_id=? AND user_id=3",Long.class,id);
@@ -133,5 +134,43 @@ class GrowthServiceTest {
         assertThrows(BusinessException.class,()->service.checkin(id,booking));
         db.update("UPDATE learning_program SET start_time=?,end_time=? WHERE id=?",LocalDateTime.now().minusMinutes(5),LocalDateTime.now().plusHours(1),id);
         tx.executeWithoutResult(s->service.checkin(id,booking));assertEquals("CHECKED_IN",service.attendees(id).get(0).get("status"));
+    }
+
+    // ── AU2（2026-11-04）：管理端按预约 ID 反查 ──
+
+    @Test void adminBookingDetailReturnsProgramSummary(){
+        long pid=create(10);
+        tx.executeWithoutResult(s->service.book(pid,false));
+        Long bookingId=db.queryForObject("SELECT id FROM program_booking WHERE program_id=? AND user_id=2",Long.class,pid);
+        assertNotNull(bookingId);
+        db.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) VALUES(9,'admin9','hash','管理员',3,1,1,0)");
+        login(9);
+        var detail=service.adminBookingDetail(bookingId);
+        assertEquals(String.valueOf(bookingId),detail.get("id"),"雪花 ID 按字符串返回");
+        assertEquals(String.valueOf(pid),detail.get("programId"));
+        assertEquals("2",detail.get("userId"));
+        assertEquals("BOOKED",detail.get("status"));
+        var program=(Map<String,Object>)detail.get("program");
+        assertNotNull(program,"反查必须带节目摘要");
+        assertEquals("测试工作坊",program.get("title"));
+        assertEquals("WORKSHOP",program.get("kind"));
+        assertEquals("PUBLISHED",program.get("status"));
+        assertEquals(String.valueOf(pid),program.get("id"));
+    }
+
+    @Test void adminBookingDetailMissingAndForbidden(){
+        db.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) VALUES(9,'admin9','hash','管理员',3,1,1,0)");
+        login(9);
+        var notFound=assertThrows(BusinessException.class,()->service.adminBookingDetail(424242L));
+        assertEquals(1004,notFound.getCode(),"不存在的预约应 1004");
+        long pid=create(10);
+        tx.executeWithoutResult(s->service.book(pid,false));
+        Long bookingId=db.queryForObject("SELECT id FROM program_booking WHERE program_id=? AND user_id=2",Long.class,pid);
+        login(2);
+        var forbidden=assertThrows(BusinessException.class,()->service.adminBookingDetail(bookingId));
+        assertEquals(1003,forbidden.getCode(),"学生/非管理员反查应 1003");
+        db.update("UPDATE user SET role=1 WHERE id=2");
+        var inheritor=assertThrows(BusinessException.class,()->service.adminBookingDetail(bookingId));
+        assertEquals(1003,inheritor.getCode(),"传承人也不得有管理端反查权限");
     }
 }

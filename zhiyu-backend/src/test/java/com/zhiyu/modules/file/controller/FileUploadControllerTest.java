@@ -48,7 +48,7 @@ class FileUploadControllerTest {
 
     @BeforeEach
     void setUp() {
-        db.update("MERGE INTO user(id,username,password,nickname,role,status,deleted) KEY(id) VALUES(8401,'upload_test','test','上传测试',0,1,0)");
+        db.update("MERGE INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) KEY(id) VALUES(8401,'upload_test','test','上传测试',0,1,1,0)");
         db.update("DELETE FROM media_asset WHERE user_id=8401");
         token = jwtUtil.createToken(8401L, 0);
     }
@@ -169,5 +169,52 @@ class FileUploadControllerTest {
         mockMvc.perform(multipart("/api/files/upload/image")
                         .file(file))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // ── AU3：步骤音频上传（仅传承人/管理员；私有媒体引用） ──
+
+    private byte[] mp3Header() {
+        byte[] b = new byte[64];
+        b[0] = 'I'; b[1] = 'D'; b[2] = '3';
+        return b;
+    }
+
+    private String inheritorToken() {
+        db.update("MERGE INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) KEY(id)"
+                + " VALUES(8402,'upload_inh','test','上传传承人',1,1,1,0)");
+        db.update("DELETE FROM media_asset WHERE user_id=8402");
+        return jwtUtil.createToken(8402L, 1);
+    }
+
+    @Test
+    @DisplayName("AU3：传承人上传音频成功 → 返回私有媒体引用")
+    void testUploadAudio_Success() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "guide.mp3", "audio/mpeg", mp3Header());
+        MvcResult result = mockMvc.perform(multipart("/api/files/upload/audio")
+                        .file(file)
+                        .header("Authorization", "Bearer " + inheritorToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andReturn();
+        String url = objectMapper.readTree(result.getResponse().getContentAsString()).at("/data/url").asText();
+        assertTrue(url.matches("/api/media/\\d+/content"), "应返回私有媒体引用: " + url);
+    }
+
+    @Test
+    @DisplayName("AU3：学生上传音频 → 403/1003；伪装内容 → 400/1001")
+    void testUploadAudio_RoleAndSniff() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "guide.mp3", "audio/mpeg", mp3Header());
+        mockMvc.perform(multipart("/api/files/upload/audio")
+                        .file(file)
+                        .header("Authorization", "Bearer " + token)) // 8401 学生
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
+
+        MockMultipartFile fake = new MockMultipartFile("file", "fake.mp3", "audio/mpeg", new byte[64]);
+        mockMvc.perform(multipart("/api/files/upload/audio")
+                        .file(fake)
+                        .header("Authorization", "Bearer " + inheritorToken()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
     }
 }

@@ -71,6 +71,7 @@ class GroupControllerTest {
         student.setRole(0);
         student.setStatus(1);
         student.setCanContact(0);
+        student.setPrivacyAgreed(1);
         userMapper.insert(student);
         studentUserId = student.getId();
 
@@ -183,6 +184,7 @@ class GroupControllerTest {
         student2.setRole(0);
         student2.setStatus(1);
         student2.setCanContact(0);
+        student2.setPrivacyAgreed(1);
         userMapper.insert(student2);
 
         mockMvc.perform(post("/api/groups/{id}/join", groupId)

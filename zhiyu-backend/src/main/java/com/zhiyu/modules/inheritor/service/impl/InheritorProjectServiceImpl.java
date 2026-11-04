@@ -98,6 +98,11 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
     @Override
     public InheritorProjectDetailVO getProjectDetail(Long userId, Long projectId) {
         CraftProject project = checkOwnership(userId, projectId);
+        // AY1（2026-11-05）：已下架（status=2）项目内容对传承人也不可见——1004 不泄露存在性；
+        // 下架理由经 WORK_AUDIT 通知送达，列表仍可见状态标记。
+        if (project.getStatus() != null && project.getStatus() == 2) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
 
         InheritorProjectDetailVO vo = new InheritorProjectDetailVO();
         vo.setId(project.getId());
@@ -125,7 +130,8 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
             svo.setStepNo(s.getStepNo());
             svo.setTitle(s.getTitle());
             svo.setGuide(s.getGuide());
-            svo.setAudioUrl(s.getAudioUrl());
+            // AU3：私有媒体引用换签名播放地址（本人上传，owner 授权分支放行）
+            svo.setAudioUrl(media.playbackIfMediaRef(userId, s.getAudioUrl()));
             return svo;
         }).collect(Collectors.toList()));
 
@@ -173,8 +179,14 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         // 逻辑删除关联步骤
         List<CraftStep> steps = craftStepMapper.selectList(
                 new LambdaQueryWrapper<CraftStep>().eq(CraftStep::getProjectId, projectId));
+        List<String> stepAudios = steps.stream().map(CraftStep::getAudioUrl)
+                .filter(java.util.Objects::nonNull).collect(Collectors.toList());
         for (CraftStep step : steps) {
             craftStepMapper.deleteById(step.getId());
+        }
+        // AU3：项目删除后退役不再被引用的步骤音频（须在全部步骤删除后执行，避免同项目共享引用误判）
+        for (String audio : stepAudios) {
+            media.retireOrphanedMedia(audio);
         }
 
         // 逻辑删除关联材料
@@ -189,6 +201,28 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
 
     // ── 步骤 CRUD ──
 
+    /**
+     * AU3（2026-11-04）：步骤音频引用校验。允许：null/空白（不下发播放入口）、
+     * 本站私有媒体引用（须为本人上传，防横向引用他人音频）、http(s) 外链（运营自管资源）、
+     * /static/ 前端包静态资源（存量种子数据约定）。显式拒绝 /uploads/ 公开路径（§5.1 红线）。
+     */
+    private String validateStepAudio(Long userId, String audioUrl) {
+        if (audioUrl == null || audioUrl.isBlank()) {
+            return null;
+        }
+        String ref = audioUrl.trim();
+        if (ref.startsWith("/uploads/")) {
+            throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "步骤音频请通过音频上传接口获取私有媒体地址，不支持公开 uploads 路径");
+        }
+        if (ref.startsWith("/api/media/")) {
+            return media.requireOwned(userId, ref);
+        }
+        if (ref.matches("(?i)^https?://.*") || ref.startsWith("/static/")) {
+            return ref;
+        }
+        throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "音频地址格式不支持：请上传音频或使用 http(s) 外链");
+    }
+
     @Override
     public Long addStep(Long userId, Long projectId, StepCreateDTO dto) {
         checkOwnershipAndStatus(userId, projectId);
@@ -198,7 +232,7 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         step.setStepNo(dto.getStepNo());
         step.setTitle(dto.getTitle());
         step.setGuide(dto.getGuide());
-        step.setAudioUrl(dto.getAudioUrl());
+        step.setAudioUrl(validateStepAudio(userId, dto.getAudioUrl()));
         craftStepMapper.insert(step);
         log.info("传承人添加步骤: stepId={}, projectId={}", step.getId(), projectId);
         return step.getId();
@@ -216,8 +250,13 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         step.setStepNo(dto.getStepNo());
         step.setTitle(dto.getTitle());
         if (dto.getGuide() != null) step.setGuide(dto.getGuide());
-        if (dto.getAudioUrl() != null) step.setAudioUrl(dto.getAudioUrl());
+        String oldAudio = step.getAudioUrl();
+        if (dto.getAudioUrl() != null) step.setAudioUrl(validateStepAudio(userId, dto.getAudioUrl()));
         craftStepMapper.updateById(step);
+        // AU3：替换旧音频不留孤儿文件——旧引用不再被任何步骤使用时退役（逻辑注销 + 登记清理）
+        if (dto.getAudioUrl() != null && !java.util.Objects.equals(oldAudio, step.getAudioUrl())) {
+            media.retireOrphanedMedia(oldAudio);
+        }
         log.info("传承人编辑步骤: stepId={}, projectId={}", stepId, projectId);
     }
 
@@ -231,6 +270,8 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         }
 
         craftStepMapper.deleteById(stepId);
+        // AU3：删除步骤后退役孤儿音频（仍被其他步骤引用时内部自动跳过）
+        media.retireOrphanedMedia(step.getAudioUrl());
         log.info("传承人删除步骤: stepId={}, projectId={}", stepId, projectId);
     }
 

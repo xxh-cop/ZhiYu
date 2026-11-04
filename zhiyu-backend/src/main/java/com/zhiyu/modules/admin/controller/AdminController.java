@@ -85,4 +85,34 @@ public class AdminController {
     public Result<DashboardStatsVO> dashboardStats() {
         return Result.success(adminService.getDashboardStats());
     }
+
+    /**
+     * AY1（2026-11-05）：下架已上架项目（status 1→2），理由必填。
+     * 仅管理员（/api/admin/** 兜底 role=3）；落 admin_operation_log + 通知传承人。
+     */
+    @PutMapping("/projects/{id}/takedown")
+    public Result<Void> takedownProject(@PathVariable Long id,
+                                        @Valid @RequestBody com.zhiyu.modules.admin.dto.ProjectTakedownDTO req) {
+        adminService.takedownProject(id, req.getReason());
+        return Result.success();
+    }
+
+    /**
+     * BC1（2026-11-05）：项目问责详情——auditReason + 动作来源（评审驳回 vs 事后下架）。
+     */
+    @GetMapping("/projects/{id}")
+    public Result<java.util.Map<String, Object>> projectDetail(@PathVariable Long id) {
+        return Result.success(adminService.projectDetail(id));
+    }
+
+    /**
+     * AY2（2026-11-05）：逻辑删除项目（任意未删除状态），理由经 query 参数必填。
+     * 级联逻辑删除步骤/材料并退役孤儿媒体；落 admin_operation_log + 通知传承人。
+     */
+    @DeleteMapping("/projects/{id}")
+    public Result<Void> deleteProject(@PathVariable Long id,
+                                      @RequestParam(required = false) String reason) {
+        adminService.deleteProject(id, reason);
+        return Result.success();
+    }
 }

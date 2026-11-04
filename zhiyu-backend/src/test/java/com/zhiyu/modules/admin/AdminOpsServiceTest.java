@@ -50,7 +50,13 @@ class AdminOpsServiceTest {
         var env = new MockEnvironment();
         env.setProperty("zhiyu.file.upload-dir", temp.resolve("uploads").toString());
         env.setProperty("zhiyu.rag.vector-store-path", temp.resolve("rag-store.json").toString());
-        service = new AdminOpsService(db, ds, new BusinessAccess(db), env, null);
+        var executor = new org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(16);
+        executor.setMaxPoolSize(16);
+        executor.setQueueCapacity(32);
+        executor.setThreadNamePrefix("sse-test-");
+        executor.initialize();
+        service = new AdminOpsService(db, ds, new BusinessAccess(db), env, null, executor);
         UserContext.set(new LoginUser(1L, 3));
     }
 
@@ -76,6 +82,20 @@ class AdminOpsServiceTest {
         assertEquals("WARN", redis.status());
         assertEquals(0, health.counts().aiAudit24h());
         assertTrue(health.jvm().heapMaxMb() >= 1);
+    }
+
+    @Test
+    @DisplayName("健康检查暴露 SSE 线程池活跃/池大小/排队计数且不含敏感信息")
+    void healthReportsSsePoolMetrics() {
+        var health = service.health();
+        var ssePool = health.components().stream().filter(c -> "ssePool".equals(c.key())).findFirst().orElseThrow();
+        assertEquals("UP", ssePool.status());
+        String detail = ssePool.detail();
+        assertTrue(detail.contains("活跃 0"), detail);
+        assertTrue(detail.contains("池大小"), detail);
+        assertTrue(detail.contains("上限 16"), detail);
+        assertTrue(detail.contains("排队 0"), detail);
+        assertFalse(detail.contains("token"));
     }
 
     @Test

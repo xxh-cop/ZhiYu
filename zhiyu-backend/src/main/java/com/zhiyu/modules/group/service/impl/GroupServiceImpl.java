@@ -28,6 +28,7 @@ public class GroupServiceImpl implements GroupService {
 
     private final SupportGroupMapper supportGroupMapper;
     private final GroupMemberMapper groupMemberMapper;
+    private final com.zhiyu.modules.notification.service.NotificationService notificationService;
 
     private static final int DEFAULT_MAX_COUNT = 50;
 
@@ -136,10 +137,24 @@ public class GroupServiceImpl implements GroupService {
         if(groupMemberMapper.restore(groupId,userId)==0)groupMemberMapper.insert(member);
         log.info("加入小组: groupId={}, userId={}", groupId, userId);
 
-        // 6. 重新查小组获取最新 memberCount
+        // 6. 通知系统（2026-11-04）：新成员动态触达组长（不含新成员本人）；
+        //    通知失败不阻断加入主流程
+        try {
+            LambdaQueryWrapper<GroupMember> leaderWrapper = new LambdaQueryWrapper<>();
+            leaderWrapper.eq(GroupMember::getGroupId, groupId)
+                    .eq(GroupMember::getRole, "组长")
+                    .ne(GroupMember::getUserId, userId);
+            for (GroupMember leader : groupMemberMapper.selectList(leaderWrapper)) {
+                notificationService.notifyGroupJoin(leader.getUserId(), groupId, group.getName(), userId);
+            }
+        } catch (Exception e) {
+            log.warn("小组新成员通知写入失败（不阻断加入）: groupId={}, err={}", groupId, e.getMessage());
+        }
+
+        // 7. 重新查小组获取最新 memberCount
         group = supportGroupMapper.selectById(groupId);
 
-        // 7. 返回 VO
+        // 8. 返回 VO
         GroupVO vo = buildVO(group);
         vo.setJoined(true);
         vo.setMyRole("成员");

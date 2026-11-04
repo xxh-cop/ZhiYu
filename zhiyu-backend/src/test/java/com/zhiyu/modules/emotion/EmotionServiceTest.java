@@ -1,6 +1,7 @@
 package com.zhiyu.modules.emotion;
 
 import com.zhiyu.ai.client.ChatMessage;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhiyu.modules.emotion.entity.EmotionMessage;
 import com.zhiyu.modules.emotion.entity.EmotionSession;
 import com.zhiyu.modules.emotion.mapper.EmotionMessageMapper;
@@ -59,6 +60,20 @@ class EmotionServiceTest {
         assertEquals(1001L, session.getUserId());
         assertEquals("焦虑", session.getMood());
         assertEquals(0, session.getStatus());
+    }
+
+    @Test
+    @DisplayName("appendMessage 幂等：同一用户消息重复发送不重复落库（SSE A 方案断线重发）")
+    void testAppendMessage_IdempotentForUserRetry() {
+        Long sessionId = emotionService.createSession(1001L, "焦虑");
+        emotionService.appendMessage(sessionId, "user", "断线前的同一句话");
+        emotionService.appendMessage(sessionId, "user", "断线前的同一句话");
+        emotionService.appendMessage(sessionId, "user", "不同的话");
+
+        LambdaQueryWrapper<EmotionMessage> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(EmotionMessage::getSessionId, sessionId);
+        List<EmotionMessage> messages = messageMapper.selectList(wrapper);
+        assertEquals(2, messages.size(), "重复用户消息应被幂等跳过，不同内容不受影响");
     }
 
     @Test

@@ -88,11 +88,11 @@ class CraftSessionServiceTest {
     }
 
     @Test
-    @DisplayName("创建失败：项目未上架 → 1001")
+    @DisplayName("创建失败：项目未上架 → 1004（AY1：不泄露项目状态）")
     void testCreate_ProjectNotPublished() {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> craftSessionService.create(USER_ID, UNPUBLISHED_PROJECT_ID, null));
-        assertEquals(1001, ex.getCode());
+        assertEquals(1004, ex.getCode());
     }
 
     @Test

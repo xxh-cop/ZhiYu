@@ -91,7 +91,9 @@ public class WorkServiceImpl implements WorkService {
         work.setVisible(req.getVisible() != null ? req.getVisible() : 1);
         work.setAnonymous(Boolean.FALSE.equals(req.getAnonymous()) ? 0 : 1);
         work.setLikeCount(0);
-        work.setStatus("video".equals(mediaType)?0:1);
+        // N1（2026-11-04 过渡方案）：先审后发——text/image/video 一律 status=0 待审，
+        // 仅作者本人可见，管理员审核通过（status=1）后转公开；历史已公开内容不回滚。
+        work.setStatus(0);
         work.setMediaType(mediaType);
 
         // 设置封面图和视频 URL
@@ -180,7 +182,7 @@ public class WorkServiceImpl implements WorkService {
                 .collect(Collectors.toList());
 
         WorkPageVO result = new WorkPageVO();
-        result.setTotal(pageResult.getTotal());
+        result.setTotal(Math.toIntExact(pageResult.getTotal())); // AE3：JSON number 口径
         result.setPage(pageNum);
         result.setSize(pageSize);
         result.setRecords(voList);
@@ -191,14 +193,18 @@ public class WorkServiceImpl implements WorkService {
 
     @Override
     public WorkVO getWork(Long userId, Long workId) {
-        // 1. 查作品
+        // 1. 查作品：status≠1（待审/下架）仅作者本人可见；他人 1004（不泄露存在性）
         Work work = workMapper.selectById(workId);
-        if (work == null || work.getStatus() == null || work.getStatus() != 1) {
+        if (work == null) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+        boolean isAuthor = Objects.equals(work.getUserId(), userId);
+        if (!Objects.equals(work.getStatus(), 1) && !isAuthor) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
 
         // 2. 权限校验：visible=0（私密）只有作者能看
-        if (!audience.canRead(work,userId)) {
+        if (!audience.canRead(work, userId) && !isAuthor) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
         // 历史小组可见标记在成员授权接入前仅允许作者访问。
@@ -206,6 +212,8 @@ public class WorkServiceImpl implements WorkService {
         // 3. 组装 VO
         String nickname = getNickname(work.getUserId());
         WorkVO vo = buildVO(work, nickname);
+        // AE2（2026-11-04）：审核理由仅作者本人可见；他人不下发（未审核/已通过天然为 null）
+        vo.setAuditReason(isAuthor ? work.getAuditReason() : null);
 
         // 4. 查 commentCount
         LambdaQueryWrapper<WorkComment> commentWrapper = new LambdaQueryWrapper<>();
@@ -266,6 +274,7 @@ public class WorkServiceImpl implements WorkService {
         vo.setAnonymous(work.getAnonymous() != null && work.getAnonymous() == 1);
         vo.setAuthorName(vo.getAnonymous() ? ANONYMOUS_NAME : (nickname != null ? nickname : ANONYMOUS_NAME));
         vo.setVisible(work.getVisible());
+        vo.setStatus(work.getStatus());
         vo.setShareable(Objects.equals(work.getVisible(), 1) && Objects.equals(work.getStatus(), 1));
         vo.setLikeCount(work.getLikeCount());
         vo.setCommentCount(0); // 默认 0，由调用方覆盖

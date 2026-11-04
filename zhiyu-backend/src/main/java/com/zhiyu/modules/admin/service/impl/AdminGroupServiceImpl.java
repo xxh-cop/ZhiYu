@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 public class AdminGroupServiceImpl implements AdminGroupService {
 
     private final SupportGroupMapper supportGroupMapper;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
+    private final com.zhiyu.modules.notification.service.NotificationService notificationService;
 
     @Override
     public PageVO<GroupListItemVO> listGroups(Integer page, Integer pageSize, Integer status, String keyword) {
@@ -70,9 +72,23 @@ public class AdminGroupServiceImpl implements AdminGroupService {
         if (status == null || (status != 0 && status != 1)) {
             throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "status 只能为 0 或 1");
         }
+        Integer oldStatus = group.getStatus();
         group.setStatus(status);
         supportGroupMapper.updateById(group);
         log.info("管理员变更小组状态: groupId={}, status={}, operator={}", id, status, UserContext.getUserId());
+        // BG2（2026-11-05）：状态真实变化才通知组长（同状态重复操作不打扰）；失败不阻断
+        if (!status.equals(oldStatus)) {
+            try {
+                var leaders = jdbc.queryForList(
+                        "SELECT user_id FROM group_member WHERE group_id=? AND role='组长' AND deleted=0 LIMIT 1",
+                        Long.class, id);
+                if (!leaders.isEmpty()) {
+                    notificationService.notifyGroupStatus(leaders.get(0), id, group.getName(), status == 1);
+                }
+            } catch (Exception e) {
+                log.warn("小组状态通知写入失败（不阻断状态变更）: groupId={}, err={}", id, e.getMessage());
+            }
+        }
     }
 
     @Override

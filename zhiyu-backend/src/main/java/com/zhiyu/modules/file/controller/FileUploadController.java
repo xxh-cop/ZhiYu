@@ -41,6 +41,7 @@ public class FileUploadController {
     private String uploadDir;
 
     private final com.zhiyu.modules.file.MediaService media;
+    private final com.zhiyu.security.BusinessAccess access;
 
     @Value("${zhiyu.file.access-prefix:/uploads}")
     private String accessPrefix;
@@ -61,10 +62,12 @@ public class FileUploadController {
      * @return { url: "/uploads/images/yyyy/MM/dd/xxx.jpg" }
      */
     @PostMapping("/upload/private-image")
-    public Result<java.util.Map<String,String>> privateImage(@RequestParam("file") MultipartFile file){return Result.success(java.util.Map.of("url",media.uploadImage(com.zhiyu.security.UserContext.getUserId(),file)));}
+    public Result<java.util.Map<String,String>> privateImage(@RequestParam("file") MultipartFile file){return Result.success(java.util.Map.of("url",media.uploadImage(access.consentedUser(),file)));}
 
     @PostMapping("/upload/image")
     public Result<java.util.Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+        // S1（2026-11-04）：媒体上传落库个人文件，挂隐私同意门
+        access.consentedUser();
         return doUpload(file, "images", IMAGE_EXTENSIONS, IMAGE_MAX_SIZE);
     }
 
@@ -76,7 +79,17 @@ public class FileUploadController {
      */
     @PostMapping("/upload/video")
     public Result<java.util.Map<String, String>> uploadVideo(@RequestParam("file") MultipartFile file) {
-        return Result.success(java.util.Map.of("url",media.upload(com.zhiyu.security.UserContext.getUserId(),file)));
+        return Result.success(java.util.Map.of("url",media.upload(access.consentedUser(),file)));
+    }
+
+    /**
+     * AU3（2026-11-04）：上传步骤引导音频（MP3/WAV/M4A/OGG，≤10MB，每日 20 次）。
+     * 仅传承人（role=1）与管理员（role=3）；走私有媒体机制，返回 {@code /api/media/{id}/content} 引用，
+     * 供 craft_step.audio_url 使用；学生侧经授权播放（签名地址）收听。
+     */
+    @PostMapping("/upload/audio")
+    public Result<java.util.Map<String, String>> uploadAudio(@RequestParam("file") MultipartFile file) {
+        return Result.success(java.util.Map.of("url", media.uploadAudio(access.consentedUser(), file)));
     }
 
     // ──────────────────────────────────────────────────────

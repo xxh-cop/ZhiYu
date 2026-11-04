@@ -51,6 +51,15 @@ public class AiAuditLog {
     /** 命中原因。 */
     private String reason;
 
+    /**
+     * 关联对象类型（2026-11-04 I2）：work / comment 等。
+     * 2026-11-04 前的历史数据为 {@code null}——聚合查询对不上必须返回空，不伪造关联。
+     */
+    private String refType;
+
+    /** 关联对象 ID（雪花）。 */
+    private Long refId;
+
     /** 创建时间，插入时自动填充。 */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

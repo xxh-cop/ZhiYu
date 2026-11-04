@@ -49,11 +49,8 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LikeVO toggleLike(Long userId, Long workId, Integer type) {
-        // 1. 校验作品存在且已发布
-        Work work = workMapper.lockById(workId);
-        if (!audience.canRead(work,userId)) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
-        }
+        // 1. 校验作品可读；未公开（待审/下架）作品不允许互动（N1，2026-11-04）
+        Work work = requireInteract(workId, userId, true);
 
         int likeType = (type != null) ? type : 1;
 
@@ -92,11 +89,8 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
     public CommentVO comment(Long userId, Long workId, String content) {
-        // 1. 校验作品存在且已发布
-        Work work = workMapper.lockById(workId);
-        if (!audience.canRead(work,userId)) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
-        }
+        // 1. 校验作品可读；未公开（待审/下架）作品不允许互动（N1，2026-11-04）
+        Work work = requireInteract(workId, userId, true);
 
         // 2. 内容安全过滤
         SafetyResult sr = contentSafetyFilter.checkInput(userId, null, "comment", content);
@@ -125,11 +119,8 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
 
     @Override
     public CommentPageVO listComments(Long workId, Integer page, Integer size) {
-        // 1. 校验作品存在
-        Work work = workMapper.selectById(workId);
-        if (!audience.canRead(work,com.zhiyu.security.UserContext.getUserId())) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
-        }
+        // 1. 校验作品可读（读操作：作者可见本人待审作品的评论，配合详情作者可见语义）
+        Work work = requireInteract(workId, com.zhiyu.security.UserContext.getUserId(), false);
 
         int pageNum = (page == null || page < 1) ? 1 : page;
         int pageSize = (size == null || size < 1) ? 10 : Math.min(size, 50);
@@ -164,6 +155,32 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     // ──────────────────────────────────────────────────────
     //  内部方法
     // ──────────────────────────────────────────────────────
+
+    /**
+     * 互动权限（N1，2026-11-04 先审后发）。
+     *
+     * <p>已公开（status=1）按 {@code audience.canRead} 判定。
+     * 未公开（待审/下架，status≠1）：他人一律 1004（不泄露存在性）；
+     * 作者本人读操作（write=false，如评论列表）放行，写操作（评论/点赞/收藏）
+     * 返回 3001「作品还在审核中，暂时不能互动」。
+     */
+    private Work requireInteract(Long workId, Long userId, boolean write) {
+        Work work = workMapper.lockById(workId);
+        if (audience.canRead(work, userId)) {
+            return work;
+        }
+        if (work == null) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+        boolean author = java.util.Objects.equals(work.getUserId(), userId);
+        if (author && write) {
+            throw new BusinessException(ResultCode.BAD_STATE.getCode(), "作品还在审核中，暂时不能互动");
+        }
+        if (author) {
+            return work;
+        }
+        throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+    }
 
     private String getNickname(Long userId) {
         User user = userMapper.selectById(userId);

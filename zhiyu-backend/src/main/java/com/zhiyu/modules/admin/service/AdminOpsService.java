@@ -1,11 +1,13 @@
 package com.zhiyu.modules.admin.service;
 
 import com.zhiyu.security.BusinessAccess;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.Nullable;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -36,14 +38,17 @@ public class AdminOpsService {
     private final Environment env;
     @Nullable
     private final StringRedisTemplate redisTemplate;
+    private final ThreadPoolTaskExecutor sseExecutor;
 
     public AdminOpsService(JdbcTemplate db, DataSource dataSource, BusinessAccess access,
-                           Environment env, @Nullable StringRedisTemplate redisTemplate) {
+                           Environment env, @Nullable StringRedisTemplate redisTemplate,
+                           @Qualifier("sseExecutor") ThreadPoolTaskExecutor sseExecutor) {
         this.db = db;
         this.dataSource = dataSource;
         this.access = access;
         this.env = env;
         this.redisTemplate = redisTemplate;
+        this.sseExecutor = sseExecutor;
     }
 
     public record Component(String key, String label, String status, String detail, Long latencyMs) {
@@ -92,6 +97,7 @@ public class AdminOpsService {
         components.add(uploadComponent());
         components.add(ragComponent());
         components.add(aiComponent());
+        components.add(ssePoolComponent());
         components.add(jvmComponent());
 
         boolean down = components.stream().anyMatch(c -> "DOWN".equals(c.status()));
@@ -173,6 +179,25 @@ public class AdminOpsService {
                 + "；向量 " + (embedding ? "已配置" : "未配置")
                 + "；未发起外部调用";
         return new Component("ai", "AI 服务配置", chatExternal ? "UP" : "WARN", detail, null);
+    }
+
+    /** SSE 线程池排队可观测（2026-11-03）：只暴露计数，不含任何用户与密钥信息。 */
+    private Component ssePoolComponent() {
+        try {
+            java.util.concurrent.ThreadPoolExecutor pool = sseExecutor.getThreadPoolExecutor();
+            int active = pool.getActiveCount();
+            int poolSize = pool.getPoolSize();
+            int max = pool.getMaximumPoolSize();
+            int queueSize = pool.getQueue().size();
+            int queueRemaining = pool.getQueue().remainingCapacity();
+            boolean saturated = active >= max;
+            String detail = "活跃 " + active + " / 池大小 " + poolSize + "（上限 " + max + "）"
+                    + "；排队 " + queueSize + "（余量 " + queueRemaining + "）"
+                    + (saturated ? "；线程已打满，新请求将排队" : "");
+            return new Component("ssePool", "SSE 线程池", saturated ? "WARN" : "UP", detail, null);
+        } catch (Exception e) {
+            return new Component("ssePool", "SSE 线程池", "WARN", "线程池状态读取失败", null);
+        }
     }
 
     private Component jvmComponent() {

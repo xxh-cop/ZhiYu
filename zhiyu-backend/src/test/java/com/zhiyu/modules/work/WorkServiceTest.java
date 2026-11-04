@@ -184,6 +184,9 @@ class WorkServiceTest {
         req.setTitle("评论测试");
         req.setMediaType("text");
         WorkVO work = workService.publish(USER_ID, req);
+        // N1（2026-11-04 先审后发）：新发布为待审，模拟审核通过转公开后进入作品流
+        workMapper.update(null, com.baomidou.mybatisplus.core.toolkit.Wrappers.<Work>lambdaUpdate()
+                .eq(Work::getId, work.getId()).set(Work::getStatus, 1));
         insertComment(work.getId(), USER_ID, "评论1");
         insertComment(work.getId(), USER_ID, "评论2");
 
@@ -252,6 +255,63 @@ class WorkServiceTest {
                 () -> workService.getWork(USER_ID, privateWork.getId())
         );
         assertEquals(1004, ex.getCode());
+    }
+
+    // ── AE2（2026-11-04）：getWork 的 auditReason 可见性 ──
+
+    @Test
+    @DisplayName("getWork：作者本人查看被下架作品 → auditReason 下发")
+    void testGetWork_AuditReasonVisibleToAuthor() {
+        insertWork(USER_ID, "被下架作品", 0, 1, 2);
+        Work w = workMapper.selectList(null).stream()
+                .filter(x -> "被下架作品".equals(x.getTitle())).findFirst().orElseThrow();
+        w.setAuditReason("封面不符合社区规范");
+        workMapper.updateById(w);
+
+        WorkVO vo = workService.getWork(USER_ID, w.getId());
+
+        assertEquals("封面不符合社区规范", vo.getAuditReason());
+    }
+
+    @Test
+    @DisplayName("getWork：他人查看被下架作品 → 1004（auditReason 不下发的前提）")
+    void testGetWork_RejectedWorkInvisibleToOthers() {
+        Long otherUserId = 8003L;
+        insertUser(otherUserId, "他人");
+        insertWork(otherUserId, "他人下架作品", 0, 1, 2);
+        Work w = workMapper.selectList(null).stream()
+                .filter(x -> "他人下架作品".equals(x.getTitle())).findFirst().orElseThrow();
+        w.setAuditReason("违规内容");
+        workMapper.updateById(w);
+
+        Work target = w;
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> workService.getWork(USER_ID, target.getId()));
+        assertEquals(1004, ex.getCode());
+    }
+
+    @Test
+    @DisplayName("getWork：作者查看已通过作品 → auditReason 为 null")
+    void testGetWork_AuditReasonNullWhenApproved() {
+        insertWork(USER_ID, "已通过作品", 0, 1, 1);
+        Work w = workMapper.selectList(null).stream()
+                .filter(x -> "已通过作品".equals(x.getTitle())).findFirst().orElseThrow();
+
+        WorkVO vo = workService.getWork(USER_ID, w.getId());
+
+        assertEquals(1, vo.getStatus());
+        assertNull(vo.getAuditReason());
+    }
+
+    // ── AE3（2026-11-04）：listWorks 的 total 口径 ──
+
+    @Test
+    @DisplayName("listWorks：total 为 Integer（序列化 JSON number，与 PageVO 口径一致）")
+    void testListWorks_TotalIsInteger() {
+        insertWork(USER_ID, "计数口径作品", 0, 1, 1);
+        WorkPageVO result = workService.listWorks(1, 10);
+        // 编译期类型即 Integer；运行期再防一次意外改回 Long（JacksonConfig 会把它序列化成字符串）
+        assertEquals(Integer.class, ((Object) result.getTotal()).getClass());
     }
 
     // ──────────────────────────────────────────────────────

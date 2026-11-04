@@ -107,6 +107,54 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.code").value(1004));
     }
 
+    // ── AY（2026-11-05）：下架/删除端点的权限闸（服务逻辑见 AdminProjectTakedownTest） ──
+
+    @Test
+    @DisplayName("AY：学生下架项目 → 403；咨询师删除项目 → 403（仅管理员）")
+    void testNonAdmin_TakedownDelete_Returns403() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("reason", "内容复核"));
+        mockMvc.perform(put("/api/admin/projects/999/takedown")
+                        .header("Authorization", "Bearer " + token(4L, 0))
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
+        mockMvc.perform(delete("/api/admin/projects/999?reason=清理")
+                        .header("Authorization", "Bearer " + token(3L, 2)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
+    }
+
+    @Test
+    @DisplayName("AY：下架理由为空 → 400/1001；删除缺 reason 参数 → 400/1001")
+    void testTakedownDelete_ReasonRequired() throws Exception {
+        mockMvc.perform(put("/api/admin/projects/999/takedown")
+                        .header("Authorization", "Bearer " + token(1L, 3))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("reason", "  "))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+        mockMvc.perform(delete("/api/admin/projects/999")
+                        .header("Authorization", "Bearer " + token(1L, 3)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+    }
+
+    @Test
+    @DisplayName("BC1：学生/咨询师访问项目问责详情 → 403（仅管理员可见理由与动作来源）")
+    void testProjectDetail_NonAdmin403() throws Exception {
+        mockMvc.perform(get("/api/admin/projects/999")
+                        .header("Authorization", "Bearer " + token(4L, 0)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
+        mockMvc.perform(get("/api/admin/projects/999")
+                        .header("Authorization", "Bearer " + token(3L, 2)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/projects/99999")
+                        .header("Authorization", "Bearer " + token(1L, 3)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(1004));
+    }
+
     // ── 接口 3：GET /api/admin/care-reminders ──
 
     @Test

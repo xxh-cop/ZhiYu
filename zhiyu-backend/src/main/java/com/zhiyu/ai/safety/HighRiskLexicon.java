@@ -10,7 +10,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,25 +38,48 @@ public class HighRiskLexicon {
 
     private Set<String> keywords = Collections.emptySet();
 
+    /** AQ2（2026-11-04）：关键词 → 危机等级（来自词表 {@code # @level:N} 组标记）。 */
+    private Map<String, Integer> levels = Collections.emptyMap();
+
     @PostConstruct
     public void init() {
         Set<String> loaded = new HashSet<>();
+        Map<String, Integer> lv = new HashMap<>();
+        int currentLevel = 2; // 标记前的默认档（高危，与历史 care_reminder 口径一致）
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(lexiconResource.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String trimmed = line.trim();
-                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                if (trimmed.isEmpty()) {
                     continue;
                 }
-                // 归一化：去全部空白 + 小写（中文无大小写问题，但保留以兼容英文 / 混排）
-                loaded.add(normalize(trimmed));
+                // AQ2：组级标记行 `# @level:N`（写在分组注释上方，语义沿用词表既有分组，不自造）
+                if (trimmed.startsWith("#")) {
+                    var m = java.util.regex.Pattern.compile("@level:(\\d)").matcher(trimmed);
+                    if (m.find()) {
+                        currentLevel = Integer.parseInt(m.group(1));
+                    }
+                    continue;
+                }
+                String kw = normalize(trimmed);
+                loaded.add(kw);
+                lv.put(kw, currentLevel);
             }
         } catch (Exception e) {
             throw new IllegalStateException("加载 lexicon/high-risk.txt 失败", e);
         }
         this.keywords = Collections.unmodifiableSet(loaded);
+        this.levels = Collections.unmodifiableMap(lv);
         log.info("high-risk.txt 加载完成：{} 条关键词", keywords.size());
+    }
+
+    /**
+     * 关键词的危机等级（AQ2）：1 关注 / 2 高危 / 3 紧急（语义沿词表分组注释）。
+     * 词表外/未知返回 {@code null}——调用方按「无法确定时保守取高档」处理。
+     */
+    public Integer levelOf(String keyword) {
+        return keyword == null ? null : levels.get(keyword);
     }
 
     /**

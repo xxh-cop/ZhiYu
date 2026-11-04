@@ -41,14 +41,35 @@ public class AccountLifecycle {
         db.update("DELETE FROM wellbeing_record WHERE user_id=?",uid);
         db.update("UPDATE guidance_message SET content='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=? OR booking_id IN (SELECT id FROM program_booking WHERE user_id=?)",uid,uid);
         db.update("UPDATE group_message SET content='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
-        db.update("UPDATE campus_verification SET identity_cipher='',review_reason=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // AH1（2026-11-04）：review_reason 为 NOT NULL DEFAULT '' 列，置 NULL 会被 MySQL 拒绝
+        // （500/5000，真实实例复现确认）；置空串同样达到清除审核意见的目的
+        db.update("UPDATE campus_verification SET identity_cipher='',review_reason='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         db.update("UPDATE work_comment SET content='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=? OR work_id IN (SELECT id FROM work WHERE user_id=?)",uid,uid);
         db.update("UPDATE work_like SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=? OR work_id IN (SELECT id FROM work WHERE user_id=?)",uid,uid);
         db.update("UPDATE work SET title='已移除作品',message=NULL,cover_url=NULL,video_url=NULL,status=0,visible=0,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         db.update("UPDATE care_followup SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE reminder_id IN (SELECT id FROM care_reminder WHERE user_id=?)",uid);
         db.update("UPDATE care_case SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE reminder_id IN (SELECT id FROM care_reminder WHERE user_id=?)",uid);
         db.update("UPDATE care_reminder SET summary='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
-        for(String table:List.of("craft_session","craft_recommendation","lesson_progress","program_booking","inheritor_profile"))db.update("UPDATE "+table+" SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // O1（2026-11-04 注销清理补齐，盘点见交付报告）：
+        // 陪伴偏好记忆与统一练习会话——清空加密列（value_cipher/context_cipher）+ 逻辑删除，不只是置 deleted
+        db.update("UPDATE user_ai_memory SET value_cipher='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        db.update("UPDATE practice_session SET context_cipher=NULL,mood_code=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // 通知（接收者维度）——清正文+逻辑删除；发给咨询师的关怀通知不含学生信息且接收者非本人，不在此范围
+        db.update("UPDATE notification SET title='',content=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // 推荐行为事件、小组作品关联——逻辑删除（严格按本人范围）
+        db.update("UPDATE craft_recommend_event SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        db.update("UPDATE group_work SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE work_id IN (SELECT id FROM work WHERE user_id=?)",uid);
+        // 推荐记录的敏感情绪标签（mood）与理由清空后再逻辑删除
+        db.update("UPDATE craft_recommendation SET mood=NULL,reason=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // 推荐明细（无 user_id，随主单级联逻辑删除；明细内为系统生成的项目快照，不含用户输入）
+        db.update("UPDATE craft_recommendation_item SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE recommendation_id IN (SELECT id FROM craft_recommendation WHERE user_id=?)",uid);
+        // 传承人资料内容列清空（skill/intro/honor 为用户主动填写）
+        db.update("UPDATE inheritor_profile SET skill='',intro=NULL,honor=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // AJ（2026-11-04）危机路径留存——清密文列 + 逻辑删除
+        db.update("UPDATE crisis_session_log SET summary_cipher='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // P1b（2026-11-04）对话上下文滚动摘要——清空密文列 + 逻辑删除
+        db.update("UPDATE dialogue_context_summary SET summary_cipher='',deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        for(String table:List.of("craft_session","lesson_progress","program_booking"))db.update("UPDATE "+table+" SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         db.update("UPDATE craft_project SET status=0,cover_url=NULL,video_url=NULL,update_time=CURRENT_TIMESTAMP WHERE inheritor_id=?",uid);
         db.update("UPDATE user SET username=?,password='',nickname='已注销用户',avatar_url=NULL,school=NULL,intro=NULL,craft_preferences=NULL,can_contact=0,privacy_agreed=0,status=0,update_time=CURRENT_TIMESTAMP WHERE id=?","deleted_"+uid,uid);
     }

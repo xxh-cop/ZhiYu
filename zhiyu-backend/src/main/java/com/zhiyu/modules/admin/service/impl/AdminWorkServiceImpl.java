@@ -34,6 +34,7 @@ public class AdminWorkServiceImpl implements AdminWorkService {
     private final com.zhiyu.modules.file.MediaService media;
     private final WorkMapper workMapper;
     private final UserMapper userMapper;
+    private final com.zhiyu.modules.notification.service.NotificationService notificationService;
 
     @Override
     public PageVO<WorkListItemVO> listWorks(Integer page, Integer pageSize, Integer status, Integer visible, String keyword) {
@@ -99,6 +100,11 @@ public class AdminWorkServiceImpl implements AdminWorkService {
 
     @Override
     public void updateWorkStatus(Long id, Integer status) {
+        updateWorkStatus(id, status, null);
+    }
+
+    @Override
+    public void updateWorkStatus(Long id, Integer status, String reason) {
         Work work = workMapper.selectById(id);
         if (work == null) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
@@ -106,9 +112,20 @@ public class AdminWorkServiceImpl implements AdminWorkService {
         if (status == null || (status != 1 && status != 2)) {
             throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "status 只能为 1 或 2");
         }
+        // I1（2026-11-04）：下架/驳回必须携带理由（落库并随通知送达作者）
+        if (status == 2 && (reason == null || reason.isBlank())) {
+            throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "下架作品必须填写理由");
+        }
         work.setStatus(status);
+        work.setAuditReason(reason);
         workMapper.updateById(work);
         log.info("管理员变更作品状态: workId={}, status={}, operator={}", id, status, UserContext.getUserId());
+        // 通知系统（2026-11-04）：审核结果（含理由）触达作品归属者；通知失败不阻断审核主流程
+        try {
+            notificationService.notifyWorkAudit(work.getUserId(), work.getId(), work.getTitle(), status, reason);
+        } catch (Exception e) {
+            log.warn("作品审核通知写入失败（不阻断审核）: workId={}, err={}", id, e.getMessage());
+        }
     }
 
     @Override
@@ -133,6 +150,7 @@ public class AdminWorkServiceImpl implements AdminWorkService {
         vo.setAnonymous(work.getAnonymous());
         vo.setLikeCount(work.getLikeCount());
         vo.setStatus(work.getStatus());
+        vo.setAuditReason(work.getAuditReason());
         vo.setCreateTime(work.getCreateTime());
         vo.setMessage(work.getMessage());
         vo.setProjectId(work.getProjectId());

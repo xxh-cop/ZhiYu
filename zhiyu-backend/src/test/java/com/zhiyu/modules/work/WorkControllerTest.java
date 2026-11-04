@@ -61,6 +61,7 @@ class WorkControllerTest {
         user.setRole(0);
         user.setStatus(1);
         user.setCanContact(0);
+        user.setPrivacyAgreed(1);
         userMapper.insert(user);
         userId = user.getId();
 
@@ -191,9 +192,9 @@ class WorkControllerTest {
     }
 
     @Test
-    @DisplayName("查未发布作品详情（status=0）→ 404 + 1004")
+    @DisplayName("待审作品（status=0）：作者可见详情；他人 404 + 1004（不泄露存在性）")
     void testGetWork_Unpublished_Returns1004() throws Exception {
-        // 插入一个未发布作品（status=0）
+        // N1（2026-11-04 先审后发）：status=0 仅作者本人可见
         Work unpublished = new Work();
         unpublished.setUserId(userId);
         unpublished.setTitle("未发布作品");
@@ -204,8 +205,26 @@ class WorkControllerTest {
         unpublished.setStatus(0); // 待审
         workMapper.insert(unpublished);
 
+        // 作者本人可见（200，VO.status=0 表示审核中）
         mockMvc.perform(get("/api/works/{id}", unpublished.getId())
                         .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.status").value(0));
+
+        // 他人访问 → 1004
+        User other = new User();
+        other.setUsername("work_test_other");
+        other.setPassword("$2a$10$dummyhash");
+        other.setNickname("他人");
+        other.setRole(0);
+        other.setStatus(1);
+        other.setCanContact(0);
+        other.setPrivacyAgreed(1);
+        userMapper.insert(other);
+        String otherToken = jwtUtil.createToken(other.getId(), 0);
+        mockMvc.perform(get("/api/works/{id}", unpublished.getId())
+                        .header("Authorization", "Bearer " + otherToken))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(1004));
     }

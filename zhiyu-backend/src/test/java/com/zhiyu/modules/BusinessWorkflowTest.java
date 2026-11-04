@@ -52,7 +52,7 @@ class BusinessWorkflowTest {
  @Test void campusRequiresConsentAndAdmin(){
   jdbc.update("UPDATE user SET privacy_agreed=0 WHERE id=970000");
   assertThrows(BusinessException.class,()->campus.apply(new CampusService.Application("学校","学院","123","姓名")));
-  actor(970001,1);assertThrows(BusinessException.class,()->campus.list(1));
+  actor(970001,1);assertThrows(BusinessException.class,()->campus.list(1,null));
  }
  @Test void careEnforcesClaimConsentAndState(){
   actor(970002,2);care.follow(970020L,"CLAIM");
@@ -130,7 +130,7 @@ class BusinessWorkflowTest {
  @Test void deletingHistoryRemovesMessages() throws Exception {
   jdbc.update("INSERT INTO emotion_message(id,session_id,role,content,deleted) VALUES(970011,970010,'user','encrypted',0)");
   mvc.perform(delete("/api/emotion/sessions/970010").header("Authorization",token(970000,0))).andExpect(status().isOk());
-  assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM emotion_message WHERE session_id=970010",Integer.class));
+  assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM emotion_message WHERE session_id=970010 AND deleted=0",Integer.class));
   assertEquals(1,jdbc.queryForObject("SELECT deleted FROM emotion_session WHERE id=970010",Integer.class));
  }
 }

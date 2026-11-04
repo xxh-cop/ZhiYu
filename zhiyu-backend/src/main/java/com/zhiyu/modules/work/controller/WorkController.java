@@ -35,6 +35,7 @@ public class WorkController {
 
     private final WorkService workService;
     private final WorkInteractionService workInteractionService;
+    private final com.zhiyu.security.BusinessAccess access;
 
     @GetMapping
     public Result<WorkPageVO> listWorks(
@@ -45,7 +46,8 @@ public class WorkController {
 
     @PostMapping
     public Result<WorkVO> publish(@Valid @RequestBody WorkPublishReq req) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：发布产生 UGC 并触发 AI 寄语生成，挂隐私同意门
+        Long userId = access.consentedUser();
         return Result.success(workService.publish(userId, req));
     }
 
@@ -60,7 +62,8 @@ public class WorkController {
     public Result<LikeVO> toggleLike(
             @PathVariable Long id,
             @Valid @RequestBody(required = false) LikeReq req) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：点赞/收藏是个人行为记录落库，挂同意门
+        Long userId = access.consentedUser();
         Integer type = (req != null) ? req.getType() : null;
         return Result.success(workInteractionService.toggleLike(userId, id, type));
     }
@@ -69,7 +72,8 @@ public class WorkController {
     public Result<CommentVO> comment(
             @PathVariable Long id,
             @Valid @RequestBody CommentReq req) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：评论写入落库并经安全过滤，挂同意门
+        Long userId = access.consentedUser();
         return Result.success(workInteractionService.comment(userId, id, req.getContent()));
     }
 

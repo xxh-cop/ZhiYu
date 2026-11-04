@@ -3,6 +3,7 @@ package com.zhiyu.modules.practice;
 import com.zhiyu.modules.practice.controller.PracticeSessionController;
 import com.zhiyu.modules.practice.service.PracticeSessionService;
 import com.zhiyu.modules.practice.vo.PracticeSessionVO;
+import com.zhiyu.security.BusinessAccess;
 import com.zhiyu.security.LoginUser;
 import com.zhiyu.security.UserContext;
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +33,9 @@ class PracticeSessionControllerTest {
     @BeforeEach
     void setUp() {
         service = mock(PracticeSessionService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new PracticeSessionController(service)).build();
+        BusinessAccess access = mock(BusinessAccess.class);
+        when(access.consentedUser()).thenReturn(7L);
+        mockMvc = MockMvcBuilders.standaloneSetup(new PracticeSessionController(service, access)).build();
         UserContext.set(new LoginUser(7L, 0));
     }
 

@@ -65,3 +65,19 @@ zhiyu:
     secret: dGhpcy1pcy1hLXRlc3Qtb25seS1rZXktMzJieXRlcyE=
   emotion:
     max-history-turns: 10
+  auth:
+    # 单测强制内存存储：即使本机跑着 Redis，也不把失败计数/重置令牌写进真实 Redis，
+    # 避免跨测试运行残留状态导致偶发锁定
+    login-attempt:
+      store: memory
+    password-reset:
+      store: memory
+  # 双对话收敛开关（P0 2026-11-04）：测试环境显式默认关闭，防止被外部变量意外打开
+  dialogue:
+    commander: false
+    listening-via-commander: false
+    companion-adapter: false
+    rolling-summary: false
+    # AA 批（P2 调度层）：闸口存储强制内存——即使本机跑着 Redis 也不写真实 Redis，
+    # 避免跨测试运行残留锁定/计数状态
+    guard-store: memory

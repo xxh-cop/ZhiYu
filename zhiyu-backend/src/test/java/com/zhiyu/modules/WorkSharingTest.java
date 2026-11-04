@@ -39,16 +39,16 @@ class WorkSharingTest {
  @Test void favoritesFilterVisibilityAndOtherUsersAndRemovalIsIdempotent(){
   for(int i=0;i<4;i++)db.update("INSERT INTO work_like(id,user_id,work_id,type,deleted) VALUES(?,997001,?,0,0)",997100+i,997010+i);
   db.update("INSERT INTO work_like(id,user_id,work_id,type,deleted) VALUES(997200,997000,997010,0,0)");
-  assertEquals(1L,personal.favorites(1).get("total"));
+  assertEquals(1,personal.favorites(1).get("total"));
   personal.unfavorite(997010);personal.unfavorite(997010);
-  assertEquals(0L,personal.favorites(1).get("total"));
+  assertEquals(0,personal.favorites(1).get("total"));
   assertEquals(0,db.queryForObject("SELECT deleted FROM work_like WHERE id=997200",Integer.class));
   personal.unfavorite(997013);assertEquals(1,db.queryForObject("SELECT deleted FROM work_like WHERE id=997103",Integer.class));
  }
  @Test void withdrawnWorkDisappearsFromFavoritesAndOldLink(){
   interactions.toggleLike(997001L,997010L,0);UserContext.set(new LoginUser(997000L,0));personal.withdraw(997010);
   sqlSession.clearCache();UserContext.set(new LoginUser(997001L,0));
-  assertEquals(0L,personal.favorites(1).get("total"));assertThrows(BusinessException.class,()->works.getWork(997001L,997010L));
+  assertEquals(0,personal.favorites(1).get("total"));assertThrows(BusinessException.class,()->works.getWork(997001L,997010L));
  }
  @Test void favoritesPaginationAndInvalidPage(){
   for(int i=0;i<13;i++){db.update("INSERT INTO work(id,user_id,title,media_type,visible,anonymous,like_count,status,deleted) VALUES(?,997000,'分页作品','text',1,1,0,1,0)",997300+i);db.update("INSERT INTO work_like(id,user_id,work_id,type,deleted) VALUES(?,997001,?,0,0)",997400+i,997300+i);}

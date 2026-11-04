@@ -11,7 +11,7 @@ import com.zhiyu.modules.craft.vo.CraftSessionVO;
 import com.zhiyu.modules.craft.vo.CraftStepVO;
 import com.zhiyu.modules.craft.vo.HeartbeatResult;
 import com.zhiyu.modules.craft.vo.RecommendVO;
-import com.zhiyu.security.UserContext;
+import com.zhiyu.security.BusinessAccess;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +41,7 @@ public class CraftController {
     private final CraftRecommendService craftRecommendService;
     private final CraftSessionService craftSessionService;
     private final CraftProjectService craftProjectService;
+    private final BusinessAccess access;
 
     /**
      * 根据当前心情推荐手作。
@@ -55,7 +56,8 @@ public class CraftController {
             @RequestParam(required = false) Long sessionId,
             @RequestParam(defaultValue = "1") Integer skillLevel,
             @RequestParam(defaultValue = "60") Integer minutes) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：推荐落库含情绪标签，属敏感处理，需已同意隐私政策
+        Long userId = access.consentedUser();
         return Result.success(craftRecommendService.recommend(userId, sessionId, skillLevel, minutes));
     }
 
@@ -76,7 +78,8 @@ public class CraftController {
 
     @PostMapping("/session")
     public Result<CraftSessionVO> createSession(@Valid @RequestBody CreateSessionDTO dto) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：创作会话可关联情绪会话并产生心流数据，挂同意门
+        Long userId = access.consentedUser();
         return Result.success(craftSessionService.create(userId, dto.getProjectId(), dto.getEmotionSessionId()));
     }
 
@@ -84,13 +87,13 @@ public class CraftController {
     public Result<CraftSessionVO> changeStatus(
             @PathVariable Long id,
             @Valid @RequestBody SessionStatusDTO dto) {
-        Long userId = UserContext.getUserId();
+        Long userId = access.consentedUser();
         return Result.success(craftSessionService.changeStatus(userId, id, dto.getAction()));
     }
 
     @GetMapping("/session/{id}")
     public Result<CraftSessionVO> getProgress(@PathVariable Long id) {
-        Long userId = UserContext.getUserId();
+        Long userId = access.consentedUser();
         return Result.success(craftSessionService.getProgress(userId, id));
     }
 
@@ -100,7 +103,8 @@ public class CraftController {
     public Result<HeartbeatResult> heartbeat(
             @PathVariable Long id,
             @Valid @RequestBody HeartbeatReq req) {
-        Long userId = UserContext.getUserId();
+        // S1（2026-11-04）：心跳写入停留/焦躁等行为信号，挂同意门
+        Long userId = access.consentedUser();
         return Result.success(craftSessionService.heartbeat(userId, id, req));
     }
 }

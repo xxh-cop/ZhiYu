@@ -135,4 +135,67 @@ class EmotionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(request().asyncStarted());
     }
+
+    // ── AE1（2026-11-04）隐私门 × Accept: text/event-stream 回归 ──
+    // 学生端实测：未同意隐私政策的请求带 SSE Accept 头时被错写成 401/1002
+    // （GlobalExceptionHandler 内容协商失败 → /error → EntryPoint），修复后必须恒为 403/1003。
+
+    @Test
+    @DisplayName("AE1 回归：未同意隐私 + Accept: text/event-stream → 403 + code 1003（不得错写成 401/1002）")
+    void testPrivacyGateWithSseAcceptHeader_Returns403() throws Exception {
+        com.zhiyu.support.AuthenticatedTestUser.ensure(authFixtureDb, 9010L, 0, 0);
+        String token = jwtUtil.createToken(9010L, 0);
+
+        mockMvc.perform(post("/api/emotion/chat")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.TEXT_EVENT_STREAM)   // 关键：正是这个头触发了 AE1
+                        .content("{\"content\":\"你好\",\"mode\":\"live\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
+    }
+
+    @Test
+    @DisplayName("AE1 对照：未同意隐私 + 无 Accept 头 → 403 + code 1003（两种请求头语义一致）")
+    void testPrivacyGateWithoutAcceptHeader_Returns403() throws Exception {
+        com.zhiyu.support.AuthenticatedTestUser.ensure(authFixtureDb, 9011L, 0, 0);
+        String token = jwtUtil.createToken(9011L, 0);
+
+        mockMvc.perform(post("/api/emotion/chat")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"你好\",\"mode\":\"live\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
+    }
+
+    @Test
+    @DisplayName("AE1 不变式：无 token + Accept: text/event-stream → 401 + code 1002（语义不变）")
+    void testNoTokenWithSseAcceptHeader_Returns401() throws Exception {
+        mockMvc.perform(post("/api/emotion/chat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .content("{\"content\":\"你好\",\"mode\":\"live\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(1002));
+    }
+
+    @Test
+    @DisplayName("AK1 关闭态零变化：默认配置（全开关关闭）下不产生 dialogue-route 调度记账")
+    void testSwitchOffNoCommanderTrace() throws Exception {
+        String token = validToken(9004L, 0);
+        // 测试 profile 显式全关（application-test.yml dialogue.*=false）
+        mockMvc.perform(post("/api/emotion/chat")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .content("{\"content\":\"今天有点累\",\"mode\":\"live\"}"))
+                .andExpect(status().isOk());
+        // 调度层未参与：不得出现 scene=dialogue-route 的 ai_trace 记账
+        // （同事务内可见；委托路径每一轮都会记账，见 AA 批）
+        Integer routeTraces = authFixtureDb.queryForObject(
+                "SELECT COUNT(*) FROM ai_trace WHERE scene='dialogue-route'", Integer.class);
+        org.junit.jupiter.api.Assertions.assertEquals(0, routeTraces,
+                "关闭态不得产生调度层记账（零行为变化）");
+    }
 }

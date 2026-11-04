@@ -139,7 +139,8 @@ class AdminWorkControllerTest {
     @Test
     @DisplayName("管理员下架作品 → 200")
     void testAdmin_UpdateWorkStatus_Returns200() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("status", 2));
+        // I1（2026-11-04）：下架/驳回必须携带理由
+        String body = objectMapper.writeValueAsString(Map.of("status", 2, "reason", "内容不适合公开展示"));
 
         mockMvc.perform(put("/api/admin/works/{id}/status", workId)
                         .header("Authorization", "Bearer " + token(adminUserId, 3))

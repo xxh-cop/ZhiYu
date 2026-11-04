@@ -68,7 +68,8 @@ class AdminAiGovernanceServiceTest {
         assertFalse(result.toString().contains("rawInput"));
         assertEquals("MOCK", ((Map<?, ?>) result.get("config")).get("chatMode"));
         assertEquals("deepseek-chat", ((Map<?, ?>) result.get("config")).get("modelName"));
-        assertEquals(20, ((Map<?, ?>) result.get("eval")).get("total"));
+        // 2026-11-03 五层扩充 + 2026-11-04 SUMMARY×2 后的用例总数
+        assertEquals(79, ((Map<?, ?>) result.get("eval")).get("total"));
         assertTrue(((Map<?, ?>) result.get("trace")).containsKey("toolSuccessRate"));
         assertTrue(((Map<?, ?>) result.get("trace")).containsKey("inputTokens"));
         assertEquals(false, ((Map<?, ?>) result.get("trace")).get("costConfigured"));

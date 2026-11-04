@@ -47,4 +47,7 @@ public class CraftProject extends BaseEntity {
 
     /** 0 待审 / 1 上架 / 2 下架 */
     private Integer status;
+
+    /** 审核/下架/删除理由（AY1 2026-11-05；驳回理由同列落库） */
+    private String auditReason;
 }

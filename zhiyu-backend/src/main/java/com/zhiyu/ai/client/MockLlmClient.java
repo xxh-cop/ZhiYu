@@ -33,8 +33,24 @@ public class MockLlmClient implements LlmClient {
         log.info("MockLlmClient 初始化完成（降级模式：未配置 DEEPSEEK_API_KEY）");
     }
 
+    /**
+     * 流式对话调用计数（P2 调度层「危机零 LLM 调用」断言用，2026-11-04 AA 批）。
+     * 仅观测用途，不影响任何返回值。
+     */
+    private final java.util.concurrent.atomic.AtomicInteger streamChatCalls =
+            new java.util.concurrent.atomic.AtomicInteger();
+
+    public int streamChatCallCount() {
+        return streamChatCalls.get();
+    }
+
+    public void resetStreamChatCallCount() {
+        streamChatCalls.set(0);
+    }
+
     @Override
     public void streamChat(List<ChatMessage> history, Consumer<String> onToken) {
+        streamChatCalls.incrementAndGet();
         String reply = "我在这里陪着你。每一步都是你与自己对话的方式，慢慢来就好。";
         // 模拟逐字输出
         for (char ch : reply.toCharArray()) {

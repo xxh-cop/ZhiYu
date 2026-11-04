@@ -2,6 +2,7 @@ package com.zhiyu.modules.practice;
 
 import com.zhiyu.modules.practice.controller.PracticeArtifactController;
 import com.zhiyu.modules.practice.service.PracticeArtifactService;
+import com.zhiyu.security.BusinessAccess;
 import com.zhiyu.security.LoginUser;
 import com.zhiyu.security.UserContext;
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +33,10 @@ class PracticeArtifactControllerTest {
     @BeforeEach
     void setUp() {
         service = mock(PracticeArtifactService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new PracticeArtifactController(service)).build();
+        BusinessAccess access = mock(BusinessAccess.class);
+        when(access.consentedUser()).thenReturn(7L);
+        when(access.user()).thenReturn(7L);
+        mockMvc = MockMvcBuilders.standaloneSetup(new PracticeArtifactController(service, access)).build();
         UserContext.set(new LoginUser(7L, 0));
     }
 

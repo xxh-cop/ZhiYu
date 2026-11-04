@@ -3,7 +3,7 @@ package com.zhiyu.modules.craft.controller;
 import com.zhiyu.common.result.Result;
 import com.zhiyu.modules.craft.dto.RecommendClickDTO;
 import com.zhiyu.modules.craft.service.RecommendEventService;
-import com.zhiyu.security.UserContext;
+import com.zhiyu.security.BusinessAccess;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,10 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class CraftRecommendEventController {
 
     private final RecommendEventService service;
+    private final BusinessAccess access;
 
     @PostMapping("/click")
     public Result<Void> click(@Valid @RequestBody RecommendClickDTO dto) {
-        service.click(UserContext.getUserId(), dto);
+        // S1（2026-11-04）：推荐点击是行为事件落库，挂隐私同意门
+        service.click(access.consentedUser(), dto);
         return Result.success();
     }
 }

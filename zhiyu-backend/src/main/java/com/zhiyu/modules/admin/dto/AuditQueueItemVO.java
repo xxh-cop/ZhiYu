@@ -45,4 +45,27 @@ public class AuditQueueItemVO {
 
     /** 创建时间 */
     private LocalDateTime createTime;
+
+    // ── 2026-11-04（I2）：work / comment 通用队列字段（project 类型保持既有字段） ──
+
+    /** 队列类型：project / work / comment。 */
+    private String type;
+
+    /** 作者（归属者）ID；project 类型同 inheritorId。 */
+    private Long authorId;
+
+    /** 关联对象 ID（comment 类型为所属作品 id）。 */
+    private Long refId;
+
+    /** 内容摘要（work 为媒体类型说明，comment 为评论正文）。 */
+    private String excerpt;
+
+    /**
+     * 对象级 AI 审计摘要（脱敏：scene/action/reason/createTime，不含原文）。
+     * 关联不上的对象返回空数组，不伪造（见 auditHint）。
+     */
+    private java.util.List<java.util.Map<String, Object>> aiAudits;
+
+    /** aiAudits 为空时的说明（历史数据未记录 ref 关联）。 */
+    private String auditHint;
 }

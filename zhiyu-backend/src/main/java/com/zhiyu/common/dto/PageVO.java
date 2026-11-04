@@ -15,8 +15,12 @@ import java.util.List;
 @Data
 public class PageVO<T> {
 
-    /** 总记录数 */
-    private long total;
+    /**
+     * 总记录数（S3 2026-11-04：分页元数据统一为 JSON number）。
+     * 计数不可能超过 2^31；构造器仍收 long 并由 {@link Math#toIntExact(long)} 收窄，
+     * 避免全局 Long→String 序列化策略把分页元数据变成字符串。
+     */
+    private int total;
 
     /** 当前页码（从 1 开始） */
     private int pageNum;
@@ -28,7 +32,7 @@ public class PageVO<T> {
     private List<T> records;
 
     public PageVO(long total, int pageNum, int pageSize, List<T> records) {
-        this.total = total;
+        this.total = Math.toIntExact(total);
         this.pageNum = pageNum;
         this.pageSize = pageSize;
         this.records = records;

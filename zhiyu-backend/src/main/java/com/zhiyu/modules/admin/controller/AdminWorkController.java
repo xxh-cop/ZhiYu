@@ -49,7 +49,7 @@ public class AdminWorkController {
     public Result<Void> updateWorkStatus(
             @PathVariable Long id,
             @Valid @RequestBody WorkStatusDTO dto) {
-        adminWorkService.updateWorkStatus(id, dto.getStatus());
+        adminWorkService.updateWorkStatus(id, dto.getStatus(), dto.getReason());
         return Result.success();
     }
 

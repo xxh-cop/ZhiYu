@@ -21,6 +21,13 @@ public class CompanionTraceService {
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Shanghai");
 
+    /**
+     * P2 调度层路由记账场景值（U2 2026-11-04 登记，当前未接线）。
+     * ai_trace.scene VARCHAR(30) 容量足够（本值 14 字符），表结构无需变更；
+     * 路由命中/回落/闸口触发的 reason 走 fallback_reason（VARCHAR(120)）。
+     */
+    public static final String SCENE_DIALOGUE_ROUTE = "dialogue-route";
+
     private final JdbcTemplate db;
 
     public void record(Long userId, Long practiceSessionId, String scene, String model,

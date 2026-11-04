@@ -1,11 +1,13 @@
 package com.zhiyu.common.exception;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhiyu.common.result.Result;
 import com.zhiyu.common.result.ResultCode;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -16,6 +18,8 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -31,32 +35,57 @@ import java.util.Objects;
  * `1005 请求方法不支持 | 405`（见 AGENTS.md §3），<b>不再用 5000 兜底</b>。
  * 这样客户端的路径/方法失误不会混进 5xx 监控告警，也不会被记成 ERROR 级系统异常
  * 与完整堆栈，只留一条 WARN。
+ *
+ * <p><b>AE1（2026-11-04）直接写响应、不走内容协商</b>：SSE 端点的请求带
+ * {@code Accept: text/event-stream}，若用 {@code ResponseEntity} 返回 JSON，
+ * HttpMessageConverter 无法把 Result 写成 text/event-stream，抛
+ * {@code HttpMediaTypeNotAcceptableException} → 容器兜底 /error → ERROR 分发无
+ * SecurityContext → RestAuthenticationEntryPoint 把 403/1003 错写成 401/1002
+ * （学生端实测复现）。改为向 {@link HttpServletResponse} 直接写 JSON 并提交，
+ * 协商不再参与，错误语义（HTTP 状态 + code）与之前逐项一致。
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final ObjectMapper objectMapper;
+
+    public GlobalExceptionHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    /** 直接向响应写统一错误体（提交响应，绕开 Accept 内容协商——AE1）。 */
+    private void writeResult(HttpServletResponse response, HttpStatus status, Result<Void> body)
+            throws IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write(objectMapper.writeValueAsString(body));
+        response.getWriter().flush();
+    }
+
     /** 业务异常：用异常自带的 code 反查 HTTP 状态，再原样返回 code/message。 */
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Result<Void>> handleBusinessException(BusinessException e) {
+    public void handleBusinessException(BusinessException e, HttpServletResponse response) throws IOException {
         ResultCode matched = ResultCode.fromCode(e.getCode());
         // code 不在 AGENTS.md §3 的表里时兜底为 200
         HttpStatus status = (matched == null) ? HttpStatus.OK : matched.getHttpStatus();
         log.warn("业务异常 code={}, httpStatus={}, message={}", e.getCode(), status.value(), e.getMessage());
-        return ResponseEntity.status(status).body(Result.error(e.getCode(), e.getMessage()));
+        writeResult(response, status, Result.error(e.getCode(), e.getMessage()));
     }
 
     /** 请求体校验失败（@Valid @RequestBody，抛的是 MethodArgumentNotValidException）：固定 HTTP 400。 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Result<Void>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+    public void handleMethodArgumentNotValid(MethodArgumentNotValidException e, HttpServletResponse response)
+            throws IOException {
         FieldError fieldError = e.getBindingResult().getFieldError();
         String message = (fieldError == null)
                 ? ResultCode.PARAM_ERROR.getMessage()
                 : fieldError.getDefaultMessage();
         log.warn("请求体校验失败 field={}, message={}",
                 fieldError == null ? "-" : fieldError.getField(), message);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Result.error(ResultCode.PARAM_ERROR.getCode(), message));
+        writeResult(response, HttpStatus.BAD_REQUEST,
+                Result.error(ResultCode.PARAM_ERROR.getCode(), message));
     }
 
     /**
@@ -67,7 +96,8 @@ public class GlobalExceptionHandler {
      * {@code ConstraintViolationException}，所以必须单独接。
      */
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<Result<Void>> handleHandlerMethodValidation(HandlerMethodValidationException e) {
+    public void handleHandlerMethodValidation(HandlerMethodValidationException e, HttpServletResponse response)
+            throws IOException {
         String message = e.getAllValidationResults().stream()
                 .flatMap(result -> result.getResolvableErrors().stream())
                 .map(MessageSourceResolvable::getDefaultMessage)
@@ -75,8 +105,8 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse(ResultCode.PARAM_ERROR.getMessage());
         log.warn("方法参数校验失败 message={}", message);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Result.error(ResultCode.PARAM_ERROR.getCode(), message));
+        writeResult(response, HttpStatus.BAD_REQUEST,
+                Result.error(ResultCode.PARAM_ERROR.getCode(), message));
     }
 
     /**
@@ -86,10 +116,11 @@ public class GlobalExceptionHandler {
      * （避免把解析器内部细节或用户输入原样抛回去）。
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Result<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+    public void handleHttpMessageNotReadable(HttpMessageNotReadableException e, HttpServletResponse response)
+            throws IOException {
         log.warn("请求体不可读：{}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Result.error(ResultCode.PARAM_ERROR.getCode(), "请求体格式错误或缺失"));
+        writeResult(response, HttpStatus.BAD_REQUEST,
+                Result.error(ResultCode.PARAM_ERROR.getCode(), "请求体格式错误或缺失"));
     }
 
     /**
@@ -100,10 +131,10 @@ public class GlobalExceptionHandler {
      * 本 handler 是为显式开启该开关的场景保留的。
      */
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<Result<Void>> handleNoHandlerFound(NoHandlerFoundException e) {
+    public void handleNoHandlerFound(NoHandlerFoundException e, HttpServletResponse response) throws IOException {
         log.warn("路径不存在：{} {}", e.getHttpMethod(), e.getRequestURL());
-        return ResponseEntity.status(ResultCode.RESOURCE_NOT_FOUND.getHttpStatus())
-                .body(Result.error(ResultCode.RESOURCE_NOT_FOUND));
+        writeResult(response, ResultCode.RESOURCE_NOT_FOUND.getHttpStatus(),
+                Result.error(ResultCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -114,25 +145,26 @@ public class GlobalExceptionHandler {
      * （不泄露「哪些路径存在」，见 AGENTS.md §3 的 1002 说明）。
      */
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<Result<Void>> handleNoResourceFound(NoResourceFoundException e) {
+    public void handleNoResourceFound(NoResourceFoundException e, HttpServletResponse response) throws IOException {
         log.warn("资源不存在：{}", e.getResourcePath());
-        return ResponseEntity.status(ResultCode.RESOURCE_NOT_FOUND.getHttpStatus())
-                .body(Result.error(ResultCode.RESOURCE_NOT_FOUND));
+        writeResult(response, ResultCode.RESOURCE_NOT_FOUND.getHttpStatus(),
+                Result.error(ResultCode.RESOURCE_NOT_FOUND));
     }
 
     /** HTTP 方法不支持（如对 POST 接口发 GET）：1005 / HTTP 405。 */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<Result<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
+    public void handleMethodNotSupported(HttpRequestMethodNotSupportedException e, HttpServletResponse response)
+            throws IOException {
         log.warn("请求方法不支持：method={}, supported={}", e.getMethod(), e.getSupportedHttpMethods());
-        return ResponseEntity.status(ResultCode.METHOD_NOT_ALLOWED.getHttpStatus())
-                .body(Result.error(ResultCode.METHOD_NOT_ALLOWED));
+        writeResult(response, ResultCode.METHOD_NOT_ALLOWED.getHttpStatus(),
+                Result.error(ResultCode.METHOD_NOT_ALLOWED));
     }
 
     /** 兜底：记录完整堆栈，只向调用方暴露通用提示，固定 HTTP 500，不泄漏内部细节。 */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Result<Void>> handleException(Exception e) {
+    public void handleException(Exception e, HttpServletResponse response) throws IOException {
         log.error("系统异常", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Result.error(ResultCode.SYSTEM_ERROR));
+        writeResult(response, HttpStatus.INTERNAL_SERVER_ERROR,
+                Result.error(ResultCode.SYSTEM_ERROR));
     }
 }

@@ -20,4 +20,10 @@ public class ChatDTO {
     /** 用户消息内容，不能为空 */
     @NotBlank(message = "content 不能为空")
     private String content;
+
+    /**
+     * 协议模式：传 {@code "live"} 启用句级真流式（chunk/revoke/done 事件）；
+     * 缺省保持旧版整段单事件格式（兼容期一个迭代周期，见 openapi.yaml）。
+     */
+    private String mode;
 }
