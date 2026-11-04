@@ -107,7 +107,7 @@ class AuditReasonQueueTest {
         actor(AUTHOR);
         @SuppressWarnings("unchecked")
         List<NotificationVO> records = (List<NotificationVO>)
-                notificationService.list(1, 10, "COMMENT_AUDIT").get("records");
+                notificationService.list(1, 10, "COMMENT_AUDIT", null).get("records");
         assertThat(records).hasSize(1);
         assertThat(records.get(0).getContent()).contains("原因：含未经证实的疗效宣传");
         assertThat(records.get(0).getContent()).doesNotContain("很好的教程");

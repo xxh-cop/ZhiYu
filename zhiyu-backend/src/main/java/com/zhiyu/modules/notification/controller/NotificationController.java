@@ -33,12 +33,13 @@ public class NotificationController {
         return Result.success(Map.of("unread", (int) Math.min(notificationService.unreadCount(), Integer.MAX_VALUE)));
     }
 
-    /** 分页列表（可选按类型筛选），对应 {@code GET /api/notifications}。 */
+    /** 分页列表（可选按类型 + refType 筛选，BJ），对应 {@code GET /api/notifications}。 */
     @GetMapping
     public Result<Map<String, Object>> list(@RequestParam(defaultValue = "1") int page,
                                             @RequestParam(defaultValue = "20") int size,
-                                            @RequestParam(required = false) String type) {
-        return Result.success(notificationService.list(page, size, type));
+                                            @RequestParam(required = false) String type,
+                                            @RequestParam(required = false) String refType) {
+        return Result.success(notificationService.list(page, size, type, refType));
     }
 
     /** 标记单条已读（幂等），对应 {@code POST /api/notifications/{id}/read}。 */

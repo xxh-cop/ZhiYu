@@ -1959,8 +1959,8 @@ paths:
   /api/notifications:
     get:
       operationId: notificationList
-      summary: 通知列表（分页 + 按类型筛选，仅本人）
-      description: '按 create_time 倒序返回当前用户本人的通知。type 可选，取值 WORK_AUDIT（作品审核结果）/ COMMENT_AUDIT（评论审核结果）/ BOOKING_REPLY（预约回复）/ GROUP_JOIN（小组新成员动态）/ CARE_REMINDER（关怀跟进提醒，仅授权角色）/ CAMPUS_AUDIT（校园身份核验结果，2026-11-04 AH3，驳回正文含审核理由）。id 以字符串返回（雪花 ID 不得转 Number）。正文为脱敏内容，不含他人隐私。'
+      summary: 通知列表（分页 + 按类型/refType 筛选，仅本人）
+      description: '按 create_time 倒序返回当前用户本人的通知。type 可选，取值 WORK_AUDIT（作品审核结果）/ COMMENT_AUDIT（评论审核结果）/ BOOKING_REPLY（预约回复）/ GROUP_JOIN（小组新成员动态）/ CARE_REMINDER（关怀跟进提醒，仅授权角色）/ CAMPUS_AUDIT（校园身份核验结果，2026-11-04 AH3，驳回正文含审核理由）。refType 可选（BJ 2026-11-05），在 type 之上按关联对象细分（如 type=WORK_AUDIT&refType=project 只看项目类审核通知），total 与全部筛选条件一致；非法 refType 返回 1001；不传行为与旧版一致。id 以字符串返回（雪花 ID 不得转 Number）。正文为脱敏内容，不含他人隐私。'
       tags: [Notification]
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1969,6 +1969,10 @@ paths:
         - in: query
           name: type
           schema: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT] }
+        - in: query
+          name: refType
+          schema: { type: string, enum: [work, comment, booking, group, care_reminder, campus_verification, project, inheritor_profile] }
+          description: 'BJ：按关联对象类型细分（取自事件侧真实写入集合）；空值/不传=不筛选'
       responses:
         '200':
           description: 'code=0；data.records 为通知数组，data.total 为总数'

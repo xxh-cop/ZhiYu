@@ -46,6 +46,14 @@ public class NotificationService {
             "WORK_AUDIT", "COMMENT_AUDIT", "BOOKING_REPLY", "GROUP_JOIN", "CARE_REMINDER",
             "CAMPUS_AUDIT");
 
+    /**
+     * 合法 refType 筛选值（BJ，2026-11-05）——取自全部 notify* 事件侧真实写入值，
+     * 新增事件源时必须同步登记。非法值列表接口返回 1001（不静默忽略）。
+     */
+    public static final Set<String> REF_TYPES = Set.of(
+            "work", "comment", "booking", "group", "care_reminder", "campus_verification",
+            "project", "inheritor_profile");
+
     /** 未读数缓存 TTL（毫秒）：首页轮询高频，5 秒内复用计数。 */
     private static final long UNREAD_CACHE_TTL_MS = 5_000L;
 
@@ -72,8 +80,8 @@ public class NotificationService {
         return value;
     }
 
-    /** 分页列表（可选按类型筛选），只返回本人通知。 */
-    public Map<String, Object> list(int page, int size, String type) {
+    /** 分页列表（可选按类型 + refType 筛选，BJ 2026-11-05），只返回本人通知。total 与全部筛选条件一致。 */
+    public Map<String, Object> list(int page, int size, String type, String refType) {
         long uid = requireUser();
         if (page < 1 || size < 1 || size > 50) {
             throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "分页参数无效");
@@ -81,9 +89,13 @@ public class NotificationService {
         if (type != null && !type.isBlank() && !TYPES.contains(type)) {
             throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "通知类型无效");
         }
+        if (refType != null && !refType.isBlank() && !REF_TYPES.contains(refType)) {
+            throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "通知关联类型无效");
+        }
         var query = Wrappers.<Notification>lambdaQuery()
                 .eq(Notification::getUserId, uid)
                 .eq(type != null && !type.isBlank(), Notification::getType, type)
+                .eq(refType != null && !refType.isBlank(), Notification::getRefType, refType)
                 .orderByDesc(Notification::getCreateTime)
                 .orderByDesc(Notification::getId);
         Page<Notification> result = notificationMapper.selectPage(new Page<>(page, size), query);

@@ -62,7 +62,7 @@ class NotificationDeleteTest {
         assertEquals(1, service.unreadCount());
         service.deleteOne(id);
         assertEquals(0, service.unreadCount(), "删除后未读数必须同步失效");
-        assertEquals(0, ((Number) service.list(1, 10, null).get("total")).intValue());
+        assertEquals(0, ((Number) service.list(1, 10, null, null).get("total")).intValue());
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE id=? AND deleted=1",
                 Integer.class, id), "逻辑删除（行保留 deleted=1）");
     }
@@ -87,7 +87,7 @@ class NotificationDeleteTest {
 
         int cleared = service.clearAll("WORK_AUDIT");
         assertEquals(1, cleared, "按类型清空只清本人该类型");
-        assertEquals(1, ((Number) service.list(1, 10, null).get("total")).intValue(), "剩评论通知");
+        assertEquals(1, ((Number) service.list(1, 10, null, null).get("total")).intValue(), "剩评论通知");
         assertEquals(1, jdbc.queryForObject(
                 "SELECT COUNT(*) FROM notification WHERE user_id=? AND deleted=0", Integer.class, OTHER),
                 "他人通知不受影响");

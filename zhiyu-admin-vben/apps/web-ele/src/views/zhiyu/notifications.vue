@@ -16,7 +16,11 @@ import ZyListPage from '#/components/zy-list-page/ZyListPage.vue';
 import { useListPage } from '#/components/zy-list-page/useListPage';
 import DataState from '#/components/data-state/DataState.vue';
 import ZyStatusTag from '#/components/zy-status-tag/ZyStatusTag.vue';
-import { NOTIFICATION_TYPE, notificationTypeTag } from '#/constants/status-dict';
+import {
+  NOTIFICATION_REF_TYPE,
+  NOTIFICATION_TYPE,
+  notificationTypeTag,
+} from '#/constants/status-dict';
 import { useNotificationStore } from '#/store';
 
 /**
@@ -43,6 +47,21 @@ const typeOptions = [
 ];
 const filterType = ref('');
 
+/**
+ * 关联对象筛选（BK，后端 BJ）：与 type 叠加生效，total 与全部筛选条件一致。
+ * 「全部」= 不传参（filterRefType='' 时 fetcher 不带该参数，不传空串）。
+ * 不收敛 type→refType 组合选项：组合关系归后端所有（BG 类批次持续扩展），
+ * 前端收敛映射是重复声明会腐化；矛盾组合（如 WORK_AUDIT×booking）由空态文案兜住。
+ */
+const refTypeOptions = [
+  { value: '', label: '全部对象' },
+  ...Object.entries(NOTIFICATION_REF_TYPE).map(([value, meta]) => ({
+    value,
+    label: meta.label,
+  })),
+];
+const filterRefType = ref('');
+
 const {
   tableData,
   loading,
@@ -58,6 +77,7 @@ const {
   fetcher: ({ page, pageSize: size }) => {
     const params: NotificationApi.ListParams = { page, size };
     if (filterType.value) params.type = filterType.value;
+    if (filterRefType.value) params.refType = filterRefType.value;
     return getNotifications(params);
   },
 });
@@ -66,6 +86,17 @@ function formatTime(dt?: string) {
   if (!dt) return '-';
   return String(dt).replace('T', ' ').slice(0, 16);
 }
+
+/** 空态文案（BK）：有筛选条件时说明是组合筛选无匹配，避免误读为「没有任何通知」 */
+const hasFilter = computed(() => !!(filterType.value || filterRefType.value));
+const emptyText = computed(() =>
+  hasFilter.value ? '没有匹配的通知' : '暂无通知',
+);
+const emptyHint = computed(() =>
+  hasFilter.value
+    ? '当前类型 × 关联对象组合下没有通知；可调整或清空筛选条件'
+    : '作品与评论审核、预约回复、小组与关怀事件会出现在这里；未读数有约 5 秒缓存，不必频繁刷新。',
+);
 
 const isCare = (item: NotificationApi.NotificationItem) => item.type === 'CARE_REMINDER';
 
@@ -178,8 +209,8 @@ const hasUnread = computed(() => tableData.value.some((n) => !n.read));
     :loading="loading"
     :error="errorMsg"
     :total="total"
-    empty-text="暂无通知"
-    empty-hint="作品与评论审核、预约回复、小组与关怀事件会出现在这里；未读数有约 5 秒缓存，不必频繁刷新。"
+    :empty-text="emptyText"
+    :empty-hint="emptyHint"
     @refresh="fetchList"
     @page-change="handlePageChange"
   >
@@ -211,6 +242,21 @@ const hasUnread = computed(() => tableData.value.some((n) => !n.read));
           :value="opt.value"
         />
       </el-select>
+      <label for="notification-ref-type" class="text-sm">关联对象</label>
+      <el-select
+        id="notification-ref-type"
+        v-model="filterRefType"
+        placeholder="全部对象"
+        style="width: 170px"
+        @change="handleFilterChange"
+      >
+        <el-option
+          v-for="opt in refTypeOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
+        />
+      </el-select>
     </template>
 
     <template #body>
@@ -220,8 +266,8 @@ const hasUnread = computed(() => tableData.value.some((n) => !n.read));
         v-else-if="!tableData.length"
         :loading="loading"
         :error="errorMsg"
-        empty-text="暂无通知"
-        empty-hint="作品与评论审核、预约回复、小组与关怀事件会出现在这里；未读数有约 5 秒缓存，不必频繁刷新。"
+        :empty-text="emptyText"
+        :empty-hint="emptyHint"
         @retry="fetchList"
       />
       <ul v-else class="notification-list" aria-label="通知列表">

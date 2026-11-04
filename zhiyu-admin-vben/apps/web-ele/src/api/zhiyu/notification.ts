@@ -18,9 +18,11 @@ export namespace NotificationApi {
 
   export type RefType =
     | 'booking'
+    | 'campus_verification'
     | 'care_reminder'
     | 'comment'
     | 'group'
+    | 'inheritor_profile'
     | 'project'
     | 'work';
 
@@ -40,6 +42,8 @@ export namespace NotificationApi {
     /** 服务端参数名为 size（非 pageSize） */
     size: number;
     type?: string;
+    /** BJ：按关联对象类型细分（8 个合法值见契约）；不传 = 不筛选（不传空串） */
+    refType?: string;
   }
 
   export interface ListResult {

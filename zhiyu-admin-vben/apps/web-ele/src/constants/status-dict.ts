@@ -101,10 +101,27 @@ export const COMMENT_STATUS: StatusDict = {
 /** 通知类型（notification.type，与后端通知模块枚举一一对应） */
 export const NOTIFICATION_TYPE: StatusDict = {
   BOOKING_REPLY: { label: '预约回复', tag: 'primary' },
+  CAMPUS_AUDIT: { label: '校园审核', tag: 'warning' },
   CARE_REMINDER: { label: '关怀提醒', tag: 'danger' },
   COMMENT_AUDIT: { label: '评论审核', tag: 'warning' },
   GROUP_JOIN: { label: '小组动态', tag: 'info' },
   WORK_AUDIT: { label: '作品审核', tag: 'warning' },
+};
+
+/**
+ * 通知关联对象类型（notification.ref_type，BK 筛选用）。
+ * 与 openapi /api/notifications 的 refType 参数 8 个合法值一一对应（BJ），
+ * 取自事件侧真实写入集合；「全部」= 不传参，不含占位值。
+ */
+export const NOTIFICATION_REF_TYPE: StatusDict = {
+  booking: { label: '预约', tag: 'primary' },
+  campus_verification: { label: '校园核验', tag: 'warning' },
+  care_reminder: { label: '关怀跟进', tag: 'danger' },
+  comment: { label: '评论', tag: 'warning' },
+  group: { label: '小组', tag: 'info' },
+  inheritor_profile: { label: '传承人资料', tag: 'info' },
+  project: { label: '项目', tag: 'warning' },
+  work: { label: '作品', tag: 'warning' },
 };
 
 /**
