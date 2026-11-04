@@ -20,7 +20,8 @@
     margin: 4px 0 8px;
   }
   .zy-business-eyebrow {
-    color: var(--el-color-primary);
+    /* AP：eyebrow 眉题在亮面 brand-600 仅 4.44:1，取对比方向色板 -dark-2 */
+    color: var(--el-color-primary-dark-2);
     font-size: 12px;
     letter-spacing: 2px;
     margin: 0;
@@ -66,6 +67,14 @@
   }
 }
 
+/* AP 巡检（2026-11-04）：侧栏菜单链接（.vben-menu-item）获得焦点时无任何可见指示，
+   键盘导航看不见当前位置；补焦点环（内缩避免被圆角裁切）。
+   提级（html body）：@core/menu-ui 的 .vben-menu-item:focus{outline:none} 同级但后加载。 */
+html body .vben-menu-item:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: -2px;
+}
+
 /* ElTag default type colors fall below AA on their tinted backgrounds.
    -dark-2 is the contrast-direction ramp in both themes (darker in light, lighter in dark). */
 .el-tag--primary {
@@ -82,6 +91,62 @@
 }
 .el-tag--info {
   --el-tag-text-color: var(--el-text-color-regular);
+}
+
+/* AP 巡检（2026-11-04）：次级说明文字 --el-text-color-secondary（#909399）在亮面仅 ~3.0:1，
+   低于 WCAG AA 4.5。Element 色板在 secondary 与 regular 之间没有中间令牌，
+   亮色统一回退到 regular（~5.7:1）；暗色由 html.dark 的 Element 暗色令牌覆盖，维持原值（已达标）。 */
+:root {
+  --el-text-color-secondary: var(--el-text-color-regular);
+}
+
+/* AP 巡检（2026-11-04）：亮色侧栏菜单激活态 brand-600 于 15% 主色底上仅 4.06:1，未达 AA。
+   与 ElTag 同理取 -dark-2（对比方向色板：亮更深、暗更浅）；暗色菜单走 is-dark 不受影响。
+   选择器提一级（html）：@core/menu-ui 的 .vben-menu.is-light 与本规则同优先级但后加载。 */
+html .vben-menu.is-light {
+  --menu-item-active-color: var(--el-color-primary-dark-2);
+  --menu-submenu-active-color: var(--el-color-primary-dark-2);
+}
+
+/* AP 巡检（2026-11-04）：Element 暗色主题不翻转主色，link 文字按钮沿用品牌 600 深档，
+   在暗底上仅 2.8~3.6:1（实测作品管理页 47 处）；dark-2 为对比方向色板（暗色提亮至 ~5.9:1）。
+   hover 默认取 light-3（暗色主题中更深，几乎不可见），一并校正为品牌 600（可见压暗反馈）。
+   仅作用于暗色 link 按钮，亮色实测达标不动。 */
+html.dark .el-button--primary.is-link {
+  --el-button-text-color: var(--el-color-primary-dark-2);
+  --el-button-hover-link-text-color: var(--el-color-primary);
+}
+html.dark .el-button--success.is-link {
+  --el-button-text-color: var(--el-color-success-dark-2);
+  --el-button-hover-link-text-color: var(--el-color-success);
+}
+html.dark .el-button--warning.is-link {
+  --el-button-text-color: var(--el-color-warning-dark-2);
+  --el-button-hover-link-text-color: var(--el-color-warning);
+}
+html.dark .el-button--danger.is-link {
+  --el-button-text-color: var(--el-color-danger-dark-2);
+  --el-button-hover-link-text-color: var(--el-color-danger);
+}
+
+/* AP 巡检（2026-11-04）：暗色分页激活页码同为品牌 600 深档（3.38:1），校正为提亮档。 */
+html.dark .el-pagination .is-active.number {
+  color: var(--el-color-primary-dark-2);
+}
+
+/* AP 巡检（2026-11-04）：plain 按钮与 link 同病因（暗底上品牌 600 深档 3.69:1），
+   校正文字为提亮档；hover 默认反白+品牌底（对比足够）不动。 */
+html.dark .el-button--primary.is-plain {
+  --el-button-text-color: var(--el-color-primary-dark-2);
+}
+html.dark .el-button--success.is-plain {
+  --el-button-text-color: var(--el-color-success-dark-2);
+}
+html.dark .el-button--warning.is-plain {
+  --el-button-text-color: var(--el-color-warning-dark-2);
+}
+html.dark .el-button--danger.is-plain {
+  --el-button-text-color: var(--el-color-danger-dark-2);
 }
 
 .business-note {

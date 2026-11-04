@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useAccessStore, useUserStore } from '@vben/stores';
 
-import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
+
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
   getInheritorList,
@@ -13,9 +13,17 @@ import {
   verifyInheritor,
 } from '#/api/zhiyu/admin-inheritor';
 import { createUser } from '#/api/zhiyu/admin-user';
-import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
-import DataState from '#/components/data-state/DataState.vue';
-import TablePagination from '#/components/table-pagination/TablePagination.vue';
+import ZyFormField from '#/components/zy-form-field/ZyFormField.vue';
+import ZyListPage from '#/components/zy-list-page/ZyListPage.vue';
+import { useListPage } from '#/components/zy-list-page/useListPage';
+import ZyStatusTag from '#/components/zy-status-tag/ZyStatusTag.vue';
+import { VERIFIED_STATUS } from '#/constants/status-dict';
+import {
+  nicknameRules,
+  passwordRules,
+  usernameRules,
+} from '#/utils/form-rules';
+import { focusFirstError } from '#/utils/form-a11y';
 
 /** 当前用户角色码 */
 const userStore = useUserStore();
@@ -38,16 +46,26 @@ const verifiedOptions = [
 const filterVerified = ref<number | string>('');
 const keyword = ref('');
 
-/** 表格 */
-const tableData = ref<any[]>([]);
-const loading = ref(false);
-const filtersVisible = ref(true);
-const errorMsg = ref('');
-
-/** 分页 */
-const total = ref(0);
-const currentPage = ref(1);
-const pageSize = ref(20);
+/** 列表状态机（页码/加载/错误/竞态守卫由封装负责） */
+const {
+  tableData,
+  loading,
+  errorMsg,
+  total,
+  currentPage,
+  pageSize,
+  fetchList,
+  handleFilterChange,
+  handleSearch,
+  handlePageChange,
+} = useListPage({
+  fetcher: ({ page, pageSize: size }) => {
+    const params: any = { page, pageSize: size };
+    if (filterVerified.value !== '') params.verified = filterVerified.value;
+    if (keyword.value.trim()) params.keyword = keyword.value.trim();
+    return getInheritorList(params);
+  },
+});
 
 /** 编辑弹窗 */
 const editDialogVisible = ref(false);
@@ -71,19 +89,11 @@ const createForm = ref({
   honor: '',
 });
 
+/** 规则组与用户新建弹窗共用（#/utils/form-rules），文案与后端约束一处维护 */
 const createRules: FormRules = {
-  username: [
-    { required: true, message: '请输入登录名', trigger: 'blur' },
-    { min: 3, max: 50, message: '登录名长度 3-50', trigger: 'blur' },
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 32, message: '密码长度 6-32', trigger: 'blur' },
-  ],
-  nickname: [
-    { required: true, message: '请输入显示昵称', trigger: 'blur' },
-    { max: 50, message: '显示昵称不超过 50 字', trigger: 'blur' },
-  ],
+  username: usernameRules(),
+  password: passwordRules(),
+  nickname: nicknameRules(),
   // skill 改为可选，不设 required 规则
 };
 
@@ -91,46 +101,6 @@ const createRules: FormRules = {
 function formatTime(dt?: string) {
   if (!dt) return '-';
   return dt.replace('T', ' ').substring(0, 19);
-}
-
-/** 拉取列表 */
-let listRequest = 0;
-async function fetchList() {
-  const requestId = ++listRequest;
-  loading.value = true;
-  errorMsg.value = '';
-  try {
-    const params: any = {
-      page: currentPage.value,
-      pageSize: pageSize.value,
-    };
-    if (filterVerified.value !== '') params.verified = filterVerified.value;
-    if (keyword.value.trim()) params.keyword = keyword.value.trim();
-    const data = await getInheritorList(params);
-    if (requestId !== listRequest) return;
-    tableData.value = data.records || [];
-    total.value = data.total || 0;
-  } catch (e: any) {
-    if (requestId !== listRequest) return;
-    errorMsg.value = (e && e.message) || '加载失败';
-  } finally {
-    if (requestId === listRequest) loading.value = false;
-  }
-}
-
-function handleFilterChange() {
-  currentPage.value = 1;
-  fetchList();
-}
-
-function handleSearch() {
-  currentPage.value = 1;
-  fetchList();
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page;
-  fetchList();
 }
 
 /** 认证 / 取消认证 */
@@ -248,7 +218,10 @@ function getAvatarUrl(url: string): string {
 async function submitCreate() {
   if (!createFormRef.value) return;
   const valid = await createFormRef.value.validate().catch(() => false);
-  if (!valid) return;
+  if (!valid) {
+    await focusFirstError();
+    return;
+  }
 
   creating.value = true;
   try {
@@ -280,261 +253,236 @@ async function submitCreate() {
     creating.value = false;
   }
 }
-
-onMounted(() => {
-  fetchList();
-});
 </script>
 
 <template>
-  <div class="zy-business-page flex flex-col gap-4">
-    <BusinessPageHeader title="传承人管理" description="维护传承人档案，连接非遗技艺与学生。" :loading="loading" @refresh="fetchList" />
-
-    <!-- 筛选栏 -->
-    <el-card shadow="never">
-      <div class="zy-filter-heading"><span>筛选条件</span><el-button link type="primary" :aria-expanded="filtersVisible" @click="filtersVisible = !filtersVisible">{{ filtersVisible ? '收起筛选' : '展开筛选' }}</el-button></div>
-      <div v-show="filtersVisible" class="zy-filter-content flex flex-wrap items-center gap-3">
-        <el-select
-          v-model="filterVerified"
-          placeholder="认证状态"
-          clearable
-          style="width: 160px"
-          @change="handleFilterChange"
-        >
-          <el-option
-            v-for="opt in verifiedOptions"
-            :key="opt.value"
-            :label="opt.label"
-            :value="opt.value"
-          />
-        </el-select>
-        <el-input
-          v-model="keyword"
-          placeholder="搜索技艺或显示昵称"
-          clearable
-          style="width: 220px"
-          @keyup.enter="handleSearch"
-          @clear="handleSearch"
+  <ZyListPage
+    v-model:page="currentPage"
+    v-model:page-size="pageSize"
+    title="传承人管理"
+    description="维护传承人档案，连接非遗技艺与学生。"
+    :data="tableData"
+    :loading="loading"
+    :error="errorMsg"
+    :total="total"
+    empty-text="暂无传承人"
+    empty-hint="可在用户管理中将账号角色调整为传承人"
+    @refresh="fetchList"
+    @page-change="handlePageChange"
+  >
+    <template #filters>
+      <el-select
+        v-model="filterVerified"
+        placeholder="认证状态"
+        clearable
+        style="width: 160px"
+        @change="handleFilterChange"
+      >
+        <el-option
+          v-for="opt in verifiedOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
         />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button v-if="isAdmin" type="success" @click="openCreateDialog">
-          新建传承人
-        </el-button>
-      </div>
-    </el-card>
-
-    <!-- 表格 -->
-    <el-card shadow="never">
-      <DataErrorBanner
-        v-if="errorMsg && total > 0"
-        :error="errorMsg"
-        :retrying="loading"
-        @retry="fetchList"
+      </el-select>
+      <el-input
+        v-model="keyword"
+        placeholder="搜索技艺或显示昵称"
+        clearable
+        style="width: 220px"
+        @keyup.enter="handleSearch"
+        @clear="handleSearch"
       />
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        style="width: 100%"
-      >
-        <template #empty>
-          <DataState
-            :loading="loading"
-            :error="errorMsg"
-            empty-text="暂无传承人"
-            @retry="fetchList"
-          />
+      <el-button type="primary" @click="handleSearch">搜索</el-button>
+    </template>
+    <template #actions>
+      <el-button v-if="isAdmin" type="success" @click="openCreateDialog">
+        新建传承人
+      </el-button>
+    </template>
+
+    <el-table-column label="序号" width="80">
+      <template #default="{ $index }">
+        {{ (currentPage - 1) * pageSize + $index + 1 }}
+      </template>
+    </el-table-column>
+    <el-table-column prop="nickname" label="显示昵称" width="120" />
+    <el-table-column prop="skill" label="擅长技艺" width="120" />
+    <el-table-column prop="honor" label="荣誉" min-width="160" show-overflow-tooltip>
+      <template #default="{ row }">
+        {{ row.honor || '-' }}
+      </template>
+    </el-table-column>
+    <el-table-column label="认证状态" width="110">
+      <template #default="{ row }">
+        <ZyStatusTag :dict="VERIFIED_STATUS" :value="row.verified" />
+      </template>
+    </el-table-column>
+    <el-table-column label="注册时间" width="160">
+      <template #default="{ row }">
+        {{ formatTime(row.createTime) }}
+      </template>
+    </el-table-column>
+    <el-table-column label="操作" width="220" fixed="right">
+      <template #default="{ row }">
+        <el-button
+          v-if="isAdmin && row.verified === 0"
+          type="success"
+          link
+          size="small"
+          @click="handleVerify(row, 1)"
+        >
+          通过认证
+        </el-button>
+        <el-button
+          v-if="isAdmin && row.verified === 1"
+          type="warning"
+          link
+          size="small"
+          @click="handleVerify(row, 0)"
+        >
+          取消认证
+        </el-button>
+        <el-button
+          v-if="isAdmin"
+          type="primary"
+          link
+          size="small"
+          @click="handleEdit(row)"
+        >
+          编辑
+        </el-button>
+      </template>
+    </el-table-column>
+
+    <template #append>
+      <!-- 编辑弹窗 -->
+      <el-dialog v-model="editDialogVisible" title="编辑传承人资料" width="480px">
+        <el-form label-width="80px">
+          <el-form-item label="擅长技艺">
+            <el-input v-model="editForm.skill" />
+          </el-form-item>
+          <el-form-item label="简介">
+            <el-input
+              v-model="editForm.intro"
+              type="textarea"
+              :rows="3"
+            />
+          </el-form-item>
+          <el-form-item label="荣誉">
+            <el-input v-model="editForm.honor" />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitEdit">保存</el-button>
         </template>
-        <el-table-column label="序号" width="80">
-          <template #default="{ $index }">
-            {{ (currentPage - 1) * pageSize + $index + 1 }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="nickname" label="显示昵称" width="120" />
-        <el-table-column prop="skill" label="擅长技艺" width="120" />
-        <el-table-column prop="honor" label="荣誉" min-width="160" show-overflow-tooltip>
-          <template #default="{ row }">
-            {{ row.honor || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="认证状态" width="110">
-          <template #default="{ row }">
-            <el-tag :type="row.verified === 1 ? 'success' : 'info'" size="small">
-              {{ row.verified === 1 ? '已认证' : '未认证' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="注册时间" width="160">
-          <template #default="{ row }">
-            {{ formatTime(row.createTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
-          <template #default="{ row }">
-            <el-button
-              v-if="isAdmin && row.verified === 0"
-              type="success"
-              link
-              size="small"
-              @click="handleVerify(row, 1)"
-            >
-              通过认证
-            </el-button>
-            <el-button
-              v-if="isAdmin && row.verified === 1"
-              type="warning"
-              link
-              size="small"
-              @click="handleVerify(row, 0)"
-            >
-              取消认证
-            </el-button>
-            <el-button
-              v-if="isAdmin"
-              type="primary"
-              link
-              size="small"
-              @click="handleEdit(row)"
-            >
-              编辑
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      </el-dialog>
 
-      <TablePagination
-        v-model:page="currentPage"
-        v-model:page-size="pageSize"
-        :show-sizes="true"
-        :total="total"
-        @change="handlePageChange"
-      />
-    </el-card>
-
-    <!-- 编辑弹窗 -->
-    <el-dialog v-model="editDialogVisible" title="编辑传承人资料" width="480px">
-      <el-form label-width="80px">
-        <el-form-item label="擅长技艺">
-          <el-input v-model="editForm.skill" />
-        </el-form-item>
-        <el-form-item label="简介">
-          <el-input
-            v-model="editForm.intro"
-            type="textarea"
-            :rows="3"
-          />
-        </el-form-item>
-        <el-form-item label="荣誉">
-          <el-input v-model="editForm.honor" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitEdit">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 新建传承人弹窗 -->
-    <el-dialog v-model="createDialogVisible" title="新建传承人" width="600px">
-      <el-form
-        ref="createFormRef"
-        :model="createForm"
-        :rules="createRules"
-        label-width="100px"
-      >
-        <!-- 头像上传 -->
-        <el-form-item label="头像">
-          <div class="flex items-center gap-3">
-            <div class="create-avatar-wrapper">
-              <img
-                v-if="createForm.avatarUrl"
-                :src="getAvatarUrl(createForm.avatarUrl)"
-                alt="头像"
-                class="create-avatar-img"
-              />
-              <div v-else class="create-avatar-placeholder">
-                {{ createForm.nickname.charAt(0) || '?' }}
+      <!-- 新建传承人弹窗 -->
+      <el-dialog v-model="createDialogVisible" title="新建传承人" width="600px">
+        <el-form
+          ref="createFormRef"
+          :model="createForm"
+          :rules="createRules"
+          label-width="100px"
+          scroll-to-error
+        >
+          <!-- 头像上传 -->
+          <el-form-item label="头像">
+            <div class="flex items-center gap-3">
+              <div class="create-avatar-wrapper">
+                <img
+                  v-if="createForm.avatarUrl"
+                  :src="getAvatarUrl(createForm.avatarUrl)"
+                  alt="头像"
+                  class="create-avatar-img"
+                />
+                <div v-else class="create-avatar-placeholder">
+                  {{ createForm.nickname.charAt(0) || '?' }}
+                </div>
               </div>
+              <el-button :loading="avatarUploading" @click="triggerAvatarUpload">
+                上传头像
+              </el-button>
             </div>
-            <el-button :loading="avatarUploading" @click="triggerAvatarUpload">
-              上传头像
-            </el-button>
-          </div>
-          <input
-            ref="avatarInput"
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            style="display: none"
-            @change="handleAvatarChange"
-          />
-        </el-form-item>
+            <input
+              ref="avatarInput"
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              style="display: none"
+              @change="handleAvatarChange"
+            />
+          </el-form-item>
 
-        <el-form-item label="登录名" prop="username">
-          <el-input
-            v-model="createForm.username"
-            placeholder="3-50 位（用于登录）"
-            style="max-width: 300px"
-          />
-        </el-form-item>
+          <ZyFormField label="登录名" prop="username">
+            <el-input
+              v-model="createForm.username"
+              placeholder="3-50 位（用于登录）"
+              style="max-width: 300px"
+            />
+          </ZyFormField>
 
-        <el-form-item label="密码" prop="password">
-          <el-input
-            v-model="createForm.password"
-            type="password"
-            placeholder="6-32 位"
-            show-password
-            style="max-width: 300px"
-          />
-        </el-form-item>
+          <ZyFormField label="密码" prop="password">
+            <el-input
+              v-model="createForm.password"
+              type="password"
+              placeholder="6-32 位"
+              show-password
+              style="max-width: 300px"
+            />
+          </ZyFormField>
 
-        <el-form-item label="显示昵称" prop="nickname">
-          <el-input
-            v-model="createForm.nickname"
-            placeholder="不超过 50 字（用于展示）"
-            style="max-width: 300px"
-          />
-        </el-form-item>
+          <ZyFormField label="显示昵称" prop="nickname">
+            <el-input
+              v-model="createForm.nickname"
+              placeholder="不超过 50 字（用于展示）"
+              style="max-width: 300px"
+            />
+          </ZyFormField>
 
-        <el-form-item label="学校">
-          <el-input
-            v-model="createForm.school"
-            placeholder="可选"
-            style="max-width: 300px"
-          />
-        </el-form-item>
+          <ZyFormField label="学校">
+            <el-input
+              v-model="createForm.school"
+              placeholder="可选"
+              style="max-width: 300px"
+            />
+          </ZyFormField>
 
-        <el-form-item label="擅长技艺">
-          <el-input
-            v-model="createForm.skill"
-            placeholder="如：赣绣、陶瓷等（可选）"
-            style="max-width: 300px"
-          />
-        </el-form-item>
+          <ZyFormField label="擅长技艺">
+            <el-input
+              v-model="createForm.skill"
+              placeholder="如：赣绣、陶瓷等（可选）"
+              style="max-width: 300px"
+            />
+          </ZyFormField>
 
-        <el-form-item label="个人简介">
-          <el-input
-            v-model="createForm.intro"
-            type="textarea"
-            :rows="3"
-            placeholder="可选"
-          />
-        </el-form-item>
+          <ZyFormField label="个人简介">
+            <el-input
+              v-model="createForm.intro"
+              type="textarea"
+              :rows="3"
+              placeholder="可选"
+            />
+          </ZyFormField>
 
-        <el-form-item label="荣誉">
-          <el-input
-            v-model="createForm.honor"
-            placeholder="如：非遗传承人等"
-            style="max-width: 300px"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="createDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="creating" @click="submitCreate">
-          创建
-        </el-button>
-      </template>
-    </el-dialog>
-  </div>
+          <ZyFormField label="荣誉">
+            <el-input
+              v-model="createForm.honor"
+              placeholder="如：非遗传承人等"
+              style="max-width: 300px"
+            />
+          </ZyFormField>
+        </el-form>
+        <template #footer>
+          <el-button @click="createDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="creating" @click="submitCreate">
+            创建
+          </el-button>
+        </template>
+      </el-dialog>
+    </template>
+  </ZyListPage>
 </template>
 
 <style scoped>

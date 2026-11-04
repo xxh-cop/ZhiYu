@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+
+import { useUserStore } from '@vben/stores';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { useUserStore } from '@vben/stores';
 
 import {
   deleteGroup,
+  getGroupDetail,
   getGroupList,
   updateGroupStatus,
 } from '#/api/zhiyu/admin-group';
-import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
-import DataState from '#/components/data-state/DataState.vue';
-import TablePagination from '#/components/table-pagination/TablePagination.vue';
+import ZyListPage from '#/components/zy-list-page/ZyListPage.vue';
+import { useListPage } from '#/components/zy-list-page/useListPage';
+import ZyStatusTag from '#/components/zy-status-tag/ZyStatusTag.vue';
+import { GROUP_STATUS } from '#/constants/status-dict';
+import { useSearchRegistryStore } from '#/store/search-registry';
 
 /** 当前用户角色码 */
 const userStore = useUserStore();
@@ -34,61 +38,93 @@ const statusOptions = [
 const filterStatus = ref<number | string>('');
 const keyword = ref('');
 
-/** 表格 */
-const tableData = ref<any[]>([]);
-const loading = ref(false);
-const filtersVisible = ref(true);
-const errorMsg = ref('');
+/**
+ * 通知中心落点：?groupId= 定位小组行。
+ * 与 users 页 ?keyword= 同一范式（先确定筛选值再拉列表）：
+ * 先按 id 取详情拿名称 → 名称进关键字 → 列表过滤到该行 → 高亮 + 滚动到可视区；
+ * 详情 404 说明小组已删除，给明确空态说明，不假装定位成功。
+ */
+const route = useRoute();
+const locatedGroupId = ref('');
+const groupNotice = ref('');
 
-/** 分页 */
-const total = ref(0);
-const currentPage = ref(1);
-const pageSize = ref(20);
+function rowClassName({ row }: { row: any }) {
+  return String(row.id) === locatedGroupId.value ? 'zy-row-located' : '';
+}
+
+async function scrollToLocated() {
+  await nextTick();
+  document
+    .querySelector('.zy-row-located')
+    ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+/**
+ * ?groupId= 定位流程（通知中心 / 全局搜索共用落点）。
+ * 页面被标签页 keepAlive 缓存时，再次带 query 进入不触发 onMounted，
+ * 故抽成函数并由 onMounted + watch 双通道调用。
+ */
+async function locateGroup(groupId: string) {
+  if (!groupId) return;
+  try {
+    const detail = await getGroupDetail(groupId as any);
+    locatedGroupId.value = String(groupId);
+    keyword.value = detail?.name || '';
+    currentPage.value = 1;
+    await fetchList();
+    await scrollToLocated();
+    ElMessage.success(`已定位小组「${detail?.name || groupId}」`);
+  } catch {
+    groupNotice.value = '未找到该小组（可能已删除）。可尝试用名称关键字搜索。';
+  }
+}
+
+onMounted(() => {
+  const groupId = route.query.groupId;
+  if (typeof groupId === 'string') locateGroup(groupId);
+});
+
+watch(
+  () => route.query.groupId,
+  (val) => {
+    if (typeof val === 'string') locateGroup(val);
+  },
+);
+
+/** 列表状态机（页码/加载/错误/竞态守卫由封装负责） */
+const {
+  tableData,
+  loading,
+  errorMsg,
+  total,
+  currentPage,
+  pageSize,
+  fetchList,
+  handleFilterChange,
+  handleSearch,
+  handlePageChange,
+} = useListPage({
+  fetcher: ({ page, pageSize: size }) => {
+    const params: any = { page, pageSize: size };
+    if (filterStatus.value !== '') params.status = filterStatus.value;
+    if (keyword.value.trim()) params.keyword = keyword.value.trim();
+    return getGroupList(params);
+  },
+});
+
+/** 全局搜索实体注册：本会话加载过的小组行进入命令面板候选（AB2，不查远端） */
+const searchRegistry = useSearchRegistryStore();
+watch(tableData, (rows) => {
+  searchRegistry.register(
+    'group',
+    rows.map((r: any) => ({ id: r.id, label: r.name })),
+  );
+});
 
 /** 格式化时间 */
 function formatTime(dt?: string) {
   if (!dt) return '-';
   return dt.replace('T', ' ').substring(0, 19);
-}
-
-/** 拉取列表 */
-let listRequest = 0;
-async function fetchList() {
-  const requestId = ++listRequest;
-  loading.value = true;
-  errorMsg.value = '';
-  try {
-    const params: any = {
-      page: currentPage.value,
-      pageSize: pageSize.value,
-    };
-    if (filterStatus.value !== '') params.status = filterStatus.value;
-    if (keyword.value.trim()) params.keyword = keyword.value.trim();
-    const data = await getGroupList(params);
-    if (requestId !== listRequest) return;
-    tableData.value = data.records || [];
-    total.value = data.total || 0;
-  } catch (e: any) {
-    if (requestId !== listRequest) return;
-    errorMsg.value = (e && e.message) || '加载失败';
-  } finally {
-    if (requestId === listRequest) loading.value = false;
-  }
-}
-
-function handleFilterChange() {
-  currentPage.value = 1;
-  fetchList();
-}
-
-function handleSearch() {
-  currentPage.value = 1;
-  fetchList();
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page;
-  fetchList();
 }
 
 /** 开放 / 关闭 */
@@ -123,131 +159,111 @@ async function handleDelete(row: any) {
     // 用户取消或请求失败
   }
 }
-
-onMounted(() => {
-  fetchList();
-});
 </script>
 
 <template>
-  <div class="zy-business-page flex flex-col gap-4">
-    <BusinessPageHeader title="小组管理" description="维护互助空间，连接共同创作的伙伴。" :loading="loading" @refresh="fetchList" />
-
-    <!-- 筛选栏 -->
-    <el-card shadow="never">
-      <div class="zy-filter-heading"><span>筛选条件</span><el-button link type="primary" :aria-expanded="filtersVisible" @click="filtersVisible = !filtersVisible">{{ filtersVisible ? '收起筛选' : '展开筛选' }}</el-button></div>
-      <div v-show="filtersVisible" class="zy-filter-content flex flex-wrap items-center gap-3">
-        <el-select
-          v-model="filterStatus"
-          placeholder="状态"
-          clearable
-          style="width: 130px"
-          @change="handleFilterChange"
-        >
-          <el-option
-            v-for="opt in statusOptions"
-            :key="opt.value"
-            :label="opt.label"
-            :value="opt.value"
-          />
-        </el-select>
-        <el-input
-          v-model="keyword"
-          placeholder="搜索小组名称"
-          clearable
-          style="width: 220px"
-          @keyup.enter="handleSearch"
-          @clear="handleSearch"
-        />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-      </div>
-    </el-card>
-
-    <!-- 表格 -->
-    <el-card shadow="never">
-      <DataErrorBanner
-        v-if="errorMsg && total > 0"
-        :error="errorMsg"
-        :retrying="loading"
-        @retry="fetchList"
-      />
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        style="width: 100%"
+  <ZyListPage
+    v-model:page="currentPage"
+    v-model:page-size="pageSize"
+    title="小组管理"
+    description="维护互助空间，连接共同创作的伙伴。"
+    :data="tableData"
+    :loading="loading"
+    :error="errorMsg"
+    :total="total"
+    empty-text="暂无小组"
+    empty-hint="学生创建互助小组后会出现在这里；可调整状态或名称关键字"
+    :row-class-name="rowClassName"
+    @refresh="fetchList"
+    @page-change="handlePageChange"
+  >
+    <template v-if="groupNotice" #banner>
+      <el-alert :title="groupNotice" type="warning" :closable="false" show-icon />
+    </template>
+    <template #filters>
+      <el-select
+        v-model="filterStatus"
+        placeholder="状态"
+        clearable
+        style="width: 130px"
+        @change="handleFilterChange"
       >
-        <template #empty>
-          <DataState
-            :loading="loading"
-            :error="errorMsg"
-            empty-text="暂无小组"
-            @retry="fetchList"
-          />
-        </template>
-        <el-table-column prop="id" label="ID" width="180" />
-        <el-table-column prop="name" label="名称" width="160" show-overflow-tooltip />
-        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip>
-          <template #default="{ row }">
-            {{ row.description || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="成员数" width="100">
-          <template #default="{ row }">
-            {{ row.memberCount }} / {{ row.maxCount }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="90">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
-              {{ row.status === 1 ? '开放' : '关闭' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="160">
-          <template #default="{ row }">
-            {{ formatTime(row.createTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
-          <template #default="{ row }">
-            <el-button
-              v-if="isAdmin && row.status === 0"
-              type="success"
-              link
-              size="small"
-              @click="handleToggleStatus(row, 1)"
-            >
-              开放
-            </el-button>
-            <el-button
-              v-if="isAdmin && row.status === 1"
-              type="warning"
-              link
-              size="small"
-              @click="handleToggleStatus(row, 0)"
-            >
-              关闭
-            </el-button>
-            <el-button
-              v-if="isAdmin"
-              type="danger"
-              link
-              size="small"
-              @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <TablePagination
-        v-model:page="currentPage"
-        v-model:page-size="pageSize"
-        :show-sizes="true"
-        :total="total"
-        @change="handlePageChange"
+        <el-option
+          v-for="opt in statusOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
+        />
+      </el-select>
+      <el-input
+        v-model="keyword"
+        placeholder="搜索小组名称"
+        clearable
+        style="width: 220px"
+        @keyup.enter="handleSearch"
+        @clear="handleSearch"
       />
-    </el-card>
-  </div>
+      <el-button type="primary" @click="handleSearch">搜索</el-button>
+    </template>
+
+    <el-table-column prop="id" label="ID" width="180" />
+    <el-table-column prop="name" label="名称" width="160" show-overflow-tooltip />
+    <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip>
+      <template #default="{ row }">
+        {{ row.description || '-' }}
+      </template>
+    </el-table-column>
+    <el-table-column label="成员数" width="100">
+      <template #default="{ row }">
+        {{ row.memberCount }} / {{ row.maxCount }}
+      </template>
+    </el-table-column>
+    <el-table-column label="状态" width="90">
+      <template #default="{ row }">
+        <ZyStatusTag :dict="GROUP_STATUS" :value="row.status" />
+      </template>
+    </el-table-column>
+    <el-table-column label="创建时间" width="160">
+      <template #default="{ row }">
+        {{ formatTime(row.createTime) }}
+      </template>
+    </el-table-column>
+    <el-table-column label="操作" width="160" fixed="right">
+      <template #default="{ row }">
+        <el-button
+          v-if="isAdmin && row.status === 0"
+          type="success"
+          link
+          size="small"
+          @click="handleToggleStatus(row, 1)"
+        >
+          开放
+        </el-button>
+        <el-button
+          v-if="isAdmin && row.status === 1"
+          type="warning"
+          link
+          size="small"
+          @click="handleToggleStatus(row, 0)"
+        >
+          关闭
+        </el-button>
+        <el-button
+          v-if="isAdmin"
+          type="danger"
+          link
+          size="small"
+          @click="handleDelete(row)"
+        >
+          删除
+        </el-button>
+      </template>
+    </el-table-column>
+  </ZyListPage>
 </template>
+
+<style scoped>
+:deep(.zy-row-located td) {
+  background: var(--el-color-primary-light-9) !important;
+}
+</style>

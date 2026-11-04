@@ -112,7 +112,10 @@ async function handleEnter() {
     if (isHttpUrl(to.path)) {
       window.open(to.path, '_blank');
     } else {
-      router.push({ path: to.path, replace: true });
+      // fork 定制：本仓库 vue-router 对对象形式 { path } 不解析串内 query，
+      // 菜单条目若携带 query（如全局搜索的实体定位 /users?keyword=）会被丢弃，
+      // 改用字符串形式的 replace，完整保留 query/hash。
+      router.replace(to.path);
     }
   }
 }

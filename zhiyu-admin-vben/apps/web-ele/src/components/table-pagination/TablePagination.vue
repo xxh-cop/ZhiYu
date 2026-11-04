@@ -6,10 +6,13 @@ withDefaults(
     pageSizes?: number[];
     showSizes?: boolean;
     total: number;
+    /** 禁用翻页（如行级操作进行中），默认 false */
+    disabled?: boolean;
   }>(),
   {
     pageSizes: () => [10, 20, 50, 100],
     showSizes: false,
+    disabled: false,
   },
 );
 
@@ -46,6 +49,7 @@ function handleSize(value: number) {
     :page-size="pageSize"
     :page-sizes="pageSizes"
     :total="total"
+    :disabled="disabled"
     @update:current-page="handlePage"
     @update:page-size="handleSize"
   />

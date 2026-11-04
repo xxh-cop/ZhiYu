@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
 import {
   ElAlert,
   ElButton,
@@ -92,7 +93,7 @@ const editKind = ref<EditKind>('pattern');
 const editId = ref('');
 const editError = ref('');
 const saving = ref(false);
-const form = reactive<any>({ palette: ['#ffffff', '#111111', '#2f7566', '#bb914d'] });
+const form = reactive<any>({ palette: ['#ffffff', '#111111', '#217e76', '#bb914d'] });
 
 const versions = ref<VersionSummary[]>([]);
 const versionsLoading = ref(false);
@@ -240,7 +241,34 @@ function openEdit(kind: EditKind, row: any) {
     });
   }
   editVisible.value = true;
+  takeFormSnapshot();
 }
+
+/** 编辑弹窗未保存跟踪：打开时取快照，关弹窗 / 跳路由前比对拦截 */
+let formSnapshot = '';
+function takeFormSnapshot() {
+  formSnapshot = JSON.stringify(form);
+}
+function isFormDirty() {
+  return editVisible.value && JSON.stringify(form) !== formSnapshot;
+}
+async function confirmLeaveIfDirty() {
+  if (!isFormDirty()) return true;
+  try {
+    await ElMessageBox.confirm('当前编辑尚未保存为草稿，离开后修改将丢失。', '未保存的修改', {
+      type: 'warning',
+      confirmButtonText: '仍要离开',
+      cancelButtonText: '继续编辑',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function handleEditBeforeClose(done: () => void) {
+  if (await confirmLeaveIfDirty()) done();
+}
+onBeforeRouteLeave(async () => await confirmLeaveIfDirty());
 
 function patternPayload() {
   return {
@@ -595,7 +623,7 @@ onMounted(load);
     </el-card>
     <p class="business-note">保存前请确认来源与原创边界；不要粘贴未授权图片、未核实传承人资料或诊断性措辞。</p>
 
-    <el-dialog v-model="editVisible" :title="editTitle" width="min(760px, 94vw)" destroy-on-close>
+    <el-dialog v-model="editVisible" :title="editTitle" width="min(760px, 94vw)" destroy-on-close :before-close="handleEditBeforeClose">
       <el-form label-position="top" class="heritage-form">
         <template v-if="editKind === 'pattern'">
           <div class="heritage-form-grid">
@@ -730,7 +758,8 @@ onMounted(load);
       :title="preview ? `版本 v${preview.version}` : '版本内容'"
       width="min(920px, 94vw)"
     >
-      <div v-loading="previewLoading" class="version-preview">
+      <div class="version-preview">
+        <el-skeleton v-if="previewLoading" :rows="5" animated />
         <div v-if="preview" class="version-meta">
           <span>{{ preview.note || '无发布说明' }}</span>
           <span>{{ preview.actorName }} · {{ preview.createdAt }}</span>
@@ -759,6 +788,9 @@ onMounted(load);
 .heritage-summary > div > span { display: block; margin-top: 5px; font-size: 13px; color: var(--el-text-color-regular); }
 .heritage-tags { display: flex; gap: 8px; flex-wrap: wrap; }
 .workflow-strip {
+  position: sticky;
+  top: 8px;
+  z-index: 10;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
   gap: 18px;
@@ -766,7 +798,9 @@ onMounted(load);
   padding: 18px 20px;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 12px;
+  /* 吸顶需实底避免下方内容透出；两侧留白处仍透出环境光 */
   background: var(--el-bg-color);
+  box-shadow: 0 8px 24px -18px hsl(var(--foreground) / 35%);
 }
 .workflow-metric { min-width: 0; }
 .workflow-label { display: block; font-size: 12px; letter-spacing: 0.04em; color: var(--el-text-color-secondary); }

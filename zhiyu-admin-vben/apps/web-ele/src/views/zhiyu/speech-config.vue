@@ -1,11 +1,86 @@
 <script setup lang="ts">
-import {onMounted,ref} from 'vue';
-import {requestClient} from '#/api/request';
+import { onMounted, ref } from 'vue';
+
+import { requestClient } from '#/api/request';
 import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
 import DataState from '#/components/data-state/DataState.vue';
-const data=ref<any>(null),loading=ref(false),error=ref('');
-async function load(){loading.value=true;error.value='';try{data.value=await requestClient.get('/admin/config/speech');}catch(e:any){error.value=e.message||'加载失败';}finally{loading.value=false;}}
+
+const data = ref<any>(null);
+const loading = ref(false);
+const error = ref('');
+
+async function load() {
+  loading.value = true;
+  error.value = '';
+  try {
+    data.value = await requestClient.get('/admin/config/speech');
+  } catch (e: any) {
+    error.value = e.message || '加载失败';
+  } finally {
+    loading.value = false;
+  }
+}
+
 onMounted(load);
 </script>
-<template><div class="zy-business-page flex flex-col gap-4"><BusinessPageHeader title="语音服务" description="检查语音网关配置；凭据始终由服务端环境变量管理。" :loading="loading" @refresh="load"/><DataErrorBanner v-if="error && data" :error="error" :retrying="loading" @retry="load"/><DataState v-if="!data" :loading="loading" :error="error" empty-text="暂无语音配置" @retry="load"/><el-card v-else shadow="never"><el-alert :title="data.status.message" :type="data.status.available?'success':'info'" :closable="false"/><p class="my-4 leading-relaxed">{{data.note}}</p><ol class="list-decimal pl-5 leading-8"><li>选择服务商适配器或本地网关；当前协议见下方。</li><li>在后端部署环境设置以下变量，密钥不要填写在前端或代码中。</li><li>重启后端并刷新状态，使用测试录音验证识别与合成。</li></ol><el-table :data="data.variables.map((name:string)=>({name}))" class="my-4"><el-table-column prop="name" label="服务端环境变量"/></el-table><p class="business-note">当前接入协议：{{data.protocol}}。已配置不等于服务可用；真实服务质量和授权仍需部署时核验。</p></el-card><p class="business-note">本系统不能替代专业心理咨询</p></div></template>
+
+<template>
+  <div class="zy-business-page flex flex-col gap-4">
+    <BusinessPageHeader
+      title="语音服务"
+      description="检查语音网关配置；凭据始终由服务端环境变量管理。"
+      :loading="loading"
+      @refresh="load"
+    />
+    <el-alert
+      title="本页为只读状态检查。修改环境变量后需重启后端并回到本页刷新状态。"
+      type="info"
+      :closable="false"
+      show-icon
+    />
+    <DataErrorBanner v-if="error && data" :error="error" :retrying="loading" @retry="load" />
+    <DataState
+      v-if="!data"
+      :loading="loading"
+      :error="error"
+      empty-text="暂无语音配置"
+      @retry="load"
+    />
+    <el-card v-else shadow="never">
+      <el-alert
+        :title="data.status.message"
+        :type="data.status.available ? 'success' : 'info'"
+        :closable="false"
+        show-icon
+      />
+      <p class="my-4 leading-relaxed">{{ data.note }}</p>
+
+      <h3 class="config-section-title">接入步骤</h3>
+      <ol class="list-decimal pl-5 leading-8">
+        <li>选择服务商适配器或本地网关；当前协议见下方。</li>
+        <li>在后端部署环境设置以下变量，密钥不要填写在前端或代码中。</li>
+        <li>重启后端并刷新状态，使用测试录音验证识别与合成。</li>
+      </ol>
+
+      <h3 class="config-section-title">服务端环境变量清单</h3>
+      <el-table :data="data.variables.map((name: string) => ({ name }))" class="my-4">
+        <el-table-column prop="name" label="变量名" />
+      </el-table>
+
+      <p class="business-note">
+        当前接入协议：{{ data.protocol }}。已配置不等于服务可用；真实服务质量和授权仍需部署时核验。
+      </p>
+    </el-card>
+    <p class="business-note">本系统不能替代专业心理咨询</p>
+  </div>
+</template>
+
+<style scoped>
+.config-section-title {
+  margin: 20px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+</style>

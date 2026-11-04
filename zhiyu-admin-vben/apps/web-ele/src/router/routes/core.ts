@@ -56,6 +56,15 @@ const coreRoutes: RouteRecordRaw[] = [
           title: $t('page.auth.login'),
         },
       },
+      {
+        // 忘记密码（AL1）：core 路由名单自动覆盖，匿名可访问（守卫 coreRouteNames 分支放行）
+        name: 'ForgotPassword',
+        path: 'forgot-password',
+        component: () => import('#/views/_core/authentication/forgot-password.vue'),
+        meta: {
+          title: '找回密码',
+        },
+      },
     ],
   },
 ];

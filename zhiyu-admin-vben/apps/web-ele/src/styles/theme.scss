@@ -20,36 +20,36 @@
   --zy-radius-hero: calc(var(--radius) * 2.8);
   --zy-ambient:
     radial-gradient(58rem 30rem at 8% -8%, hsl(var(--primary) / 14%), transparent 62%),
-    radial-gradient(46rem 26rem at 97% 1%, hsl(205deg 82% 46% / 12%), transparent 60%),
+    radial-gradient(46rem 26rem at 97% 1%, hsl(174deg 60% 40% / 12%), transparent 60%),
     radial-gradient(42rem 24rem at 54% 106%, hsl(var(--success) / 9%), transparent 66%);
 }
 
-/* 深墨蓝底：色相取自 indigo 主色，只压明度，不动品牌与语义色 */
+/* 深青玉底：色相取自 brand-600 青玉案主色（174deg），只压明度，不动品牌与语义色 */
 .dark {
-  --background: 228deg 30% 8%;
-  --background-deep: 230deg 34% 5%;
-  --card: 228deg 26% 11%;
-  --popover: 228deg 24% 13%;
-  --sidebar: 228deg 28% 9%;
-  --sidebar-deep: 230deg 30% 7%;
-  --header: 228deg 28% 9%;
+  --background: 174deg 26% 8%;
+  --background-deep: 176deg 30% 5%;
+  --card: 174deg 22% 11%;
+  --popover: 174deg 20% 13%;
+  --sidebar: 174deg 24% 9%;
+  --sidebar-deep: 176deg 26% 7%;
+  --header: 174deg 24% 9%;
   --menu: var(--sidebar);
-  --border: 228deg 20% 22%;
-  --accent: 228deg 20% 17%;
-  --accent-hover: 228deg 20% 21%;
-  --accent-lighter: 228deg 22% 14%;
-  --muted: 228deg 20% 17%;
+  --border: 174deg 16% 22%;
+  --accent: 174deg 16% 17%;
+  --accent-hover: 174deg 16% 21%;
+  --accent-lighter: 174deg 18% 14%;
+  --muted: 174deg 16% 17%;
 
   --zy-glass-bg: hsl(var(--card) / 62%);
   --zy-glass-chip: hsl(var(--accent) / 48%);
   --zy-glass-border: hsl(var(--foreground) / 12%);
   --zy-glass-edge: hsl(var(--foreground) / 20%);
   --zy-glass-inner: hsl(var(--foreground) / 8%);
-  --zy-glass-shadow: 0 22px 48px -26px hsl(230deg 60% 2% / 90%);
+  --zy-glass-shadow: 0 22px 48px -26px hsl(176deg 60% 2% / 90%);
   --zy-accent-glow: hsl(var(--primary) / 40%);
   --zy-ambient:
     radial-gradient(60rem 32rem at 6% -10%, hsl(var(--primary) / 26%), transparent 64%),
-    radial-gradient(48rem 26rem at 98% 0%, hsl(212deg 84% 52% / 18%), transparent 62%),
+    radial-gradient(48rem 26rem at 98% 0%, hsl(174deg 65% 55% / 16%), transparent 62%),
     radial-gradient(44rem 26rem at 50% 108%, hsl(var(--success) / 12%), transparent 68%);
 }
 

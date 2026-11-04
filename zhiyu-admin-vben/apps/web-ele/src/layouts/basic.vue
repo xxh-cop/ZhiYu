@@ -10,6 +10,8 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { getMyInheritorProfile } from '#/api/zhiyu/inheritor';
 import InheritorOnboarding from '#/components/InheritorOnboarding.vue';
+import NotificationBell from '#/components/NotificationBell.vue';
+import ZyGlobalSearch from '#/components/ZyGlobalSearch.vue';
 import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
@@ -114,6 +116,14 @@ watch(
         @clear-preferences-and-logout="handleLogout"
         @logout="handleLogout"
       />
+    </template>
+    <!-- 顶栏全局搜索（替代内置 widget，额外并入页面实体；快捷键 Cmd/Ctrl+K） -->
+    <template #header-right-9>
+      <ZyGlobalSearch />
+    </template>
+    <!-- 顶栏通知铃铛（header-right-N 自定义位，排在用户下拉之前） -->
+    <template #header-right-10>
+      <NotificationBell />
     </template>
     <template #extra>
       <AuthenticationLoginExpiredModal

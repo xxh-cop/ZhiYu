@@ -8,6 +8,9 @@ import { getAiGovernanceOverview } from '#/api/zhiyu/admin-ai-governance';
 import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
 import DataState from '#/components/data-state/DataState.vue';
+import ZyRangeSelect from '#/components/zy-range-select/ZyRangeSelect.vue';
+import ZyStatusTag from '#/components/zy-status-tag/ZyStatusTag.vue';
+import { AI_RESULT_STATUS, AUDIT_ACTION } from '#/constants/status-dict';
 
 import OperationsChart from './components/OperationsChart.vue';
 
@@ -111,38 +114,9 @@ async function load() {
   }
 }
 
-function range(value: number) {
-  days.value = value;
-  load();
-}
+/** 时间窗口切换由 ZyRangeSelect 承载（v-model 更新 days 后触发 load） */
 
-function actionTagType(action: string) {
-  switch (action) {
-    case 'PASS':
-      return 'success';
-    case 'REWRITE':
-    case 'REVIEW':
-      return 'warning';
-    case 'BLOCK':
-      return 'danger';
-    default:
-      return 'info';
-  }
-}
-
-function statusTagType(status: string) {
-  switch (status) {
-    case 'OK':
-      return 'success';
-    case 'FALLBACK':
-      return 'warning';
-    case 'BLOCKED':
-    case 'ERROR':
-      return 'danger';
-    default:
-      return 'info';
-  }
-}
+/** 动作/结果状态色型统一取状态字典（AUDIT_ACTION / AI_RESULT_STATUS） */
 
 function formatTime(value?: string) {
   return value ? value.replace('T', ' ').slice(0, 19) : '-';
@@ -175,18 +149,7 @@ onMounted(load);
       <div class="governance-toolbar">
         <div>
           <span class="toolbar-label">统计窗口</span>
-          <div class="range" role="group" aria-label="统计时间窗口">
-            <el-button
-              v-for="value in [7, 30, 90]"
-              :key="value"
-              size="small"
-              :type="days === value ? 'primary' : 'default'"
-              :aria-pressed="days === value"
-              @click="range(value)"
-            >
-              近 {{ value }} 天
-            </el-button>
-          </div>
+          <ZyRangeSelect v-model="days" :options="[7, 30, 90]" @change="load" />
         </div>
         <span v-if="data" class="generated">
           更新于 {{ formatTime(data.generatedAt) }}
@@ -376,9 +339,7 @@ onMounted(load);
           </el-table-column>
           <el-table-column label="状态" width="110">
             <template #default="{ row }">
-              <el-tag :type="statusTagType(row.resultStatus)" size="small">
-                {{ row.resultStatus }}
-              </el-tag>
+              <ZyStatusTag :dict="AI_RESULT_STATUS" :value="row.resultStatus" />
             </template>
           </el-table-column>
           <el-table-column prop="fallbackReason" label="归一化原因" min-width="140" />
@@ -466,7 +427,7 @@ onMounted(load);
           <el-table-column prop="sceneLabel" label="场景" width="120" />
           <el-table-column label="动作" width="110">
             <template #default="{ row }">
-              <el-tag :type="actionTagType(row.action)" size="small">{{ row.action }}</el-tag>
+              <ZyStatusTag :dict="AUDIT_ACTION" :value="row.action" />
             </template>
           </el-table-column>
           <el-table-column prop="reasonCategory" label="原因分类" min-width="160" />
@@ -502,10 +463,6 @@ onMounted(load);
   font-size: 13px;
   font-weight: 600;
   color: var(--el-text-color-primary);
-}
-.range {
-  display: inline-flex;
-  gap: 6px;
 }
 .generated {
   font-size: 12px;

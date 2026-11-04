@@ -54,3 +54,21 @@ export async function logoutApi() {
 export async function getAccessCodesApi() {
   return [] as string[];
 }
+
+/**
+ * 申请密码重置令牌（忘记密码），POST /api/auth/password/forgot（匿名放行）。
+ * 服务端语义（不自造状态）：
+ * - 账号不存在也返回成功（不泄露账号是否存在）；
+ * - 发送通道未配置时返回 3001「忘记密码功能暂未开放」——前端必须如实展示，不假装成功。
+ */
+export async function forgotPasswordApi(username: string) {
+  return requestClient.post('/auth/password/forgot', { username });
+}
+
+/**
+ * 用一次性令牌重置密码，POST /api/auth/password/reset（匿名放行）。
+ * 令牌无效/过期/已使用返回 3001「重置令牌无效或已过期，请重新申请」。
+ */
+export async function resetPasswordApi(token: string, newPassword: string) {
+  return requestClient.post('/auth/password/reset', { token, newPassword });
+}

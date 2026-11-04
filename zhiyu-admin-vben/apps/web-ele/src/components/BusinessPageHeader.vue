@@ -13,5 +13,5 @@ defineEmits<{ refresh: [] }>();
   </header>
 </template>
 <style scoped>
-.zy-business-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}.zy-business-eyebrow{font-size:11px;letter-spacing:2px;color:var(--el-color-primary);margin:0 0 8px}.zy-business-heading h1{font-size:26px;font-weight:650;line-height:1.4;margin:0 0 10px;color:var(--el-text-color-primary)}.zy-business-description{font-size:14px;line-height:1.8;color:var(--el-text-color-regular);margin:0;max-width:760px}@media(max-width:640px){.zy-business-heading{align-items:flex-start;gap:16px}.zy-business-heading h1{font-size:22px}.zy-business-description{font-size:13px}}
+.zy-business-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}.zy-business-eyebrow{font-size:11px;letter-spacing:2px;color:var(--el-color-primary-dark-2);margin:0 0 8px}.zy-business-heading h1{font-size:26px;font-weight:650;line-height:1.4;margin:0 0 10px;color:var(--el-text-color-primary)}.zy-business-description{font-size:14px;line-height:1.8;color:var(--el-text-color-regular);margin:0;max-width:760px}@media(max-width:640px){.zy-business-heading{align-items:flex-start;gap:16px}.zy-business-heading h1{font-size:22px}.zy-business-description{font-size:13px}}
 </style>

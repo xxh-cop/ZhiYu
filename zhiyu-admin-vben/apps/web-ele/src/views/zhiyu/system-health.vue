@@ -4,6 +4,8 @@ import { ElButton, ElCard, ElTable, ElTableColumn, ElTag } from 'element-plus';
 import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
 import DataState from '#/components/data-state/DataState.vue';
+import ZyStatusTag from '#/components/zy-status-tag/ZyStatusTag.vue';
+import { HEALTH_STATUS } from '#/constants/status-dict';
 import { requestClient } from '#/api/request';
 
 type HealthComponent = {
@@ -44,17 +46,12 @@ const manifestError = ref('');
 const copyState = ref('');
 
 const database = computed(() => health.value?.components.find(item => item.key === 'database'));
-const statusType = (status: string) =>
-  status === 'UP' ? 'success' : status === 'WARN' ? 'warning' : status === 'DOWN' ? 'danger' : 'info';
 const overallLabel = computed(() =>
   health.value?.overall === 'UP'
     ? '运行正常'
     : health.value?.overall === 'DEGRADED'
       ? '存在降级项'
       : '存在故障项',
-);
-const overallType = computed(() =>
-  health.value?.overall === 'UP' ? 'success' : health.value?.overall === 'DEGRADED' ? 'warning' : 'danger',
 );
 
 function formatTime(value?: string | null) {
@@ -126,7 +123,7 @@ onMounted(load);
             检查于 {{ formatTime(health.generatedAt) }} · 这是只读自检，不代替真实压测、备份恢复或外部服务验收
           </p>
         </div>
-        <el-tag :type="overallType" effect="dark" size="large">{{ health.overall }}</el-tag>
+        <ZyStatusTag :dict="HEALTH_STATUS" :value="health.overall" effect="dark" size="large" />
       </div>
 
       <div class="metric-grid">
@@ -163,7 +160,7 @@ onMounted(load);
           <el-table-column prop="label" label="组件" min-width="130" />
           <el-table-column label="状态" width="100">
             <template #default="{ row }">
-              <el-tag :type="statusType(row.status)" effect="plain">{{ row.status }}</el-tag>
+              <ZyStatusTag :dict="HEALTH_STATUS" :value="row.status" effect="plain" />
             </template>
           </el-table-column>
           <el-table-column prop="detail" label="说明" min-width="320" />
@@ -240,7 +237,8 @@ onMounted(load);
 .eyebrow {
   font-size: 11px;
   letter-spacing: 2px;
-  color: var(--el-color-primary);
+  /* AP：暗色下品牌 600 深档对比不足，取对比方向色板（亮更深、暗更浅） */
+  color: var(--el-color-primary-dark-2);
 }
 .health-hero h2 {
   margin: 8px 0 6px;

@@ -42,7 +42,8 @@ const kind = computed(() =>
         <el-button type="primary" @click="emit('retry')">重试</el-button>
       </template>
     </el-result>
-    <p v-else-if="kind === 'loading'" class="data-state__loading">正在加载…</p>
+    <!-- 加载统一用骨架，不用裸 spinner / 纯文本 -->
+    <el-skeleton v-else-if="kind === 'loading'" :rows="3" animated />
     <el-empty v-else :description="emptyText">
       <p v-if="emptyHint" class="data-state__hint">{{ emptyHint }}</p>
     </el-empty>
@@ -54,9 +55,8 @@ const kind = computed(() =>
   padding: 24px 0;
   text-align: center;
 }
-.data-state__loading {
-  color: var(--el-text-color-regular);
-  font-size: 13px;
+.data-state :deep(.el-skeleton) {
+  text-align: left;
 }
 .data-state__hint {
   margin-top: 6px;

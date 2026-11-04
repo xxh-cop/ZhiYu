@@ -196,7 +196,10 @@ async function submit() {
             </svg>
           </button>
         </span>
-        <p class="zy-field-hint">忘记密码请联系平台管理员重置。</p>
+        <p class="zy-field-hint">
+          <router-link class="forgot-link" to="/auth/forgot-password">忘记密码？</router-link>
+          也可联系平台管理员重置。
+        </p>
       </div>
 
       <p v-if="caps" class="caps">大写锁定已开启</p>
@@ -354,6 +357,15 @@ async function submit() {
 }
 .login-tags span:hover {
   color: var(--el-color-primary);
+}
+.forgot-link {
+  color: var(--el-color-primary);
+  text-decoration: none;
+}
+.forgot-link:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* 校验与失败提示：轻微横向回弹，让注意力落到错误上而不是整页闪动 */

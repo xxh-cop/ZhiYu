@@ -41,8 +41,12 @@ export async function getWorkDetail(id: number) {
   return requestClient.get<AdminWorkApi.WorkDetail>(`/admin/works/${id}`);
 }
 
-export async function updateWorkStatus(id: number, status: number) {
-  return requestClient.put(`/admin/works/${id}/status`, { status });
+/**
+ * 作品状态变更。I1（2026-11-04）起：status=2（下架/驳回）必须携带 reason，
+ * 服务端缺失返回 1001；reason 落库 work.audit_reason 并随通知送达作者。
+ */
+export async function updateWorkStatus(id: number, status: number, reason?: string) {
+  return requestClient.put(`/admin/works/${id}/status`, { status, reason });
 }
 
 export async function deleteWork(id: number) {

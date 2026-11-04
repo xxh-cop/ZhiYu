@@ -9,6 +9,7 @@ import { ElButton, ElSkeleton } from 'element-plus';
 
 import { requestClient } from '#/api/request';
 import DataErrorBanner from '#/components/data-state/DataErrorBanner.vue';
+import ZyRangeSelect from '#/components/zy-range-select/ZyRangeSelect.vue';
 
 import OperationsChart from './OperationsChart.vue';
 import TherapyFunnelCard from './TherapyFunnelCard.vue';
@@ -120,11 +121,6 @@ async function load() {
   }
 }
 
-function range(n: number) {
-  days.value = n;
-  load();
-}
-
 onMounted(() => {
   if (isAdmin.value) load();
 });
@@ -168,7 +164,7 @@ const date = new Intl.DateTimeFormat('zh-CN', {
         <p class="overline">NEEDS ATTENTION</p>
         <h3>今天，优先处理</h3>
         <button type="button" @click="router.push('/zhiyu/business/audit')">
-          <span><b>内容审核</b><small>让新的手作与大家见面</small></span>
+          <span><b>项目审核</b><small>让新的手作与大家见面</small></span>
           <strong class="zy-num">{{ data?.totals.pending ?? '—' }}</strong>
           <span>→</span>
         </button>
@@ -235,18 +231,8 @@ const date = new Intl.DateTimeFormat('zh-CN', {
           <h2>{{ analytics ? '参与趋势与内容结构' : '运营概览' }}</h2>
           <span>趋势按北京时间自然日统计 · 分布为当前全部记录</span>
         </div>
-        <div class="range zy-glass-chip">
-          <button
-            v-for="n in [7, 30]"
-            :key="n"
-            :aria-pressed="days === n"
-            :class="{ selected: days === n }"
-            type="button"
-            @click="range(n)"
-          >
-            近 {{ n }} 天
-          </button>
-        </div>
+        <!-- 后端 operations/therapy-funnel 均只接受 7/30（其它值 1001），勿加 90 -->
+        <ZyRangeSelect v-model="days" :options="[7, 30]" @change="load" />
       </div>
 
       <TherapyFunnelCard v-if="!analytics" :days="days" />
@@ -557,28 +543,6 @@ const date = new Intl.DateTimeFormat('zh-CN', {
 .section-heading span {
   font-size: 11px;
   color: var(--op-muted);
-}
-
-.range {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-}
-
-.range button {
-  padding: 8px 14px;
-  font-size: 12px;
-  white-space: nowrap;
-  color: var(--op-text);
-  background: transparent;
-  border: 0;
-  border-radius: calc(var(--radius) * 1.2);
-}
-
-.range .selected {
-  color: var(--el-color-white);
-  background: var(--el-color-primary);
-  box-shadow: 0 8px 18px -10px var(--zy-accent-glow);
 }
 
 .charts-top {
