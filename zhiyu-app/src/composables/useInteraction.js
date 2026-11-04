@@ -1,4 +1,5 @@
 import {ref,computed} from 'vue'
+import {notify} from './useToast'
 const preference=ref(false),systemReduced=ref(false)
 let initialized=false
 export function useInteraction(){
@@ -9,6 +10,6 @@ export function useInteraction(){
   // #endif
  }
  const reducedMotion=computed(()=>preference.value||systemReduced.value)
- function toggleMotion(){if(systemReduced.value){uni.showToast({title:'已跟随系统减少动效设置',icon:'none'});return}preference.value=!preference.value;try{uni.setStorageSync('zy-reduce-motion',preference.value)}catch{}}
+ function toggleMotion(){if(systemReduced.value){notify('已跟随系统减少动效设置');return}preference.value=!preference.value;try{uni.setStorageSync('zy-reduce-motion',preference.value)}catch{}}
  return {reducedMotion,toggleMotion}
 }

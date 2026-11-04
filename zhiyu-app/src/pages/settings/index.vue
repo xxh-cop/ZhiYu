@@ -7,7 +7,7 @@
 		</view>
 		<view v-if="loadError" class="settings-error" role="alert">
 			<text>{{ loadError }}</text>
-			<button @click="loadUserInfo">重试</button>
+			<AccessibleButton @click="loadUserInfo">重试</AccessibleButton>
 		</view>
 
 		<!-- 头像区域 -->
@@ -18,6 +18,7 @@
 					class="avatar-img"
 					:src="avatarFullUrl"
 					mode="aspectFill"
+					alt="当前头像"
 				/>
 				<view v-else class="avatar-placeholder">
 					<text class="avatar-placeholder-text">{{ avatarChar }}</text>
@@ -35,16 +36,20 @@
 				<text class="section-heading">基本资料</text>
 			</view>
 
-			<view class="form-group">
-				<text class="form-label">昵称</text>
-				<input
-					class="form-input"
-					v-model="form.nickname"
-					aria-label="昵称"
-					placeholder="请输入昵称"
-					:maxlength="50"
-				/>
-			</view>
+			<FormField label="昵称" required :error="profileErrors.nickname" :maxlength="50" :count="form.nickname.length">
+				<template #default="{ id, ariaDescribedby, ariaInvalid }">
+					<input
+						:id="id"
+						class="form-input"
+						v-model="form.nickname"
+						:aria-describedby="ariaDescribedby"
+						:aria-invalid="ariaInvalid"
+						placeholder="请输入昵称"
+						:maxlength="50"
+						@input="profileErrors.nickname = ''"
+					/>
+				</template>
+			</FormField>
 
 			<view class="form-group">
 				<text class="form-label">用户名</text>
@@ -63,29 +68,37 @@
 				</view>
 			</view>
 
-			<view class="form-group">
-				<text class="form-label">学校</text>
-				<input
-					class="form-input"
-					v-model="form.school"
-					aria-label="学校"
-					placeholder="请输入学校名称"
-					:maxlength="100"
-				/>
-			</view>
+			<FormField label="学校" :error="profileErrors.school" :maxlength="100" :count="form.school.length">
+				<template #default="{ id, ariaDescribedby, ariaInvalid }">
+					<input
+						:id="id"
+						class="form-input"
+						v-model="form.school"
+						:aria-describedby="ariaDescribedby"
+						:aria-invalid="ariaInvalid"
+						placeholder="请输入学校名称"
+						:maxlength="100"
+						@input="profileErrors.school = ''"
+					/>
+				</template>
+			</FormField>
 
-			<view class="form-group">
-				<text class="form-label">个人简介</text>
-				<textarea
-					class="form-textarea"
-					v-model="form.intro"
-					aria-label="个人简介"
-					placeholder="介绍一下自己吧"
-					:maxlength="500"
-					:auto-height="true"
-					:style="{ minHeight: '120rpx' }"
-				/>
-			</view>
+			<FormField label="个人简介" optional-text="选填" hint="会展示在你的作品与主页上" :error="profileErrors.intro" :maxlength="500" :count="form.intro.length">
+				<template #default="{ id, ariaDescribedby, ariaInvalid }">
+					<textarea
+						:id="id"
+						class="form-textarea"
+						v-model="form.intro"
+						:aria-describedby="ariaDescribedby"
+						:aria-invalid="ariaInvalid"
+						placeholder="介绍一下自己吧"
+						:maxlength="500"
+						:auto-height="true"
+						:style="{ minHeight: '120rpx' }"
+						@input="profileErrors.intro = ''"
+					/>
+				</template>
+			</FormField>
 
 			<view
 				class="btn-primary"
@@ -111,41 +124,53 @@
 				<text class="section-heading">修改密码</text>
 			</view>
 
-			<view class="form-group">
-				<text class="form-label">旧密码</text>
-				<input
-					class="form-input"
-					v-model="pwdForm.oldPassword"
-					aria-label="旧密码"
-					placeholder="请输入旧密码"
-					password
-					:maxlength="32"
-				/>
-			</view>
+			<FormField label="旧密码" required :error="pwdErrors.old" :maxlength="32" :count="pwdForm.oldPassword.length">
+				<template #default="{ id, ariaDescribedby, ariaInvalid }">
+					<input
+						:id="id"
+						class="form-input"
+						v-model="pwdForm.oldPassword"
+						:aria-describedby="ariaDescribedby"
+						:aria-invalid="ariaInvalid"
+						placeholder="请输入旧密码"
+						password
+						:maxlength="32"
+						@input="pwdErrors.old = ''"
+					/>
+				</template>
+			</FormField>
 
-			<view class="form-group">
-				<text class="form-label">新密码</text>
-				<input
-					class="form-input"
-					v-model="pwdForm.newPassword"
-					aria-label="新密码"
-					placeholder="6-32 位新密码"
-					password
-					:maxlength="32"
-				/>
-			</view>
+			<FormField label="新密码" required hint="6-32 位，建议包含字母与数字" :error="pwdErrors.new" :maxlength="32" :count="pwdForm.newPassword.length">
+				<template #default="{ id, ariaDescribedby, ariaInvalid }">
+					<input
+						:id="id"
+						class="form-input"
+						v-model="pwdForm.newPassword"
+						:aria-describedby="ariaDescribedby"
+						:aria-invalid="ariaInvalid"
+						placeholder="6-32 位新密码"
+						password
+						:maxlength="32"
+						@input="pwdErrors.new = ''"
+					/>
+				</template>
+			</FormField>
 
-			<view class="form-group">
-				<text class="form-label">确认新密码</text>
-				<input
-					class="form-input"
-					v-model="pwdForm.confirmPassword"
-					aria-label="确认新密码"
-					placeholder="请再次输入新密码"
-					password
-					:maxlength="32"
-				/>
-			</view>
+			<FormField label="确认新密码" required :error="pwdErrors.confirm" :maxlength="32" :count="pwdForm.confirmPassword.length">
+				<template #default="{ id, ariaDescribedby, ariaInvalid }">
+					<input
+						:id="id"
+						class="form-input"
+						v-model="pwdForm.confirmPassword"
+						:aria-describedby="ariaDescribedby"
+						:aria-invalid="ariaInvalid"
+						placeholder="请再次输入新密码"
+						password
+						:maxlength="32"
+						@input="pwdErrors.confirm = ''"
+					/>
+				</template>
+			</FormField>
 
 			<view
 				class="btn-primary btn-primary--accent"
@@ -183,8 +208,27 @@
 			<text class="memory-entry-text">默认关闭 · 只保存练习偏好 · 180 天后失效 · 可随时删除</text>
 		</view>
 
+		<!-- AM1 情绪关怀提醒开关（AR 批接入）：关闭后首页不再展示基线提醒 -->
+		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 5">
+			<view class="card-head">
+				<view class="card-icon-wrap card-icon-memory">
+					<wd-icon name="notification" size="32rpx" color="#FFFFFF" />
+				</view>
+				<text class="section-heading">情绪关怀提醒</text>
+			</view>
+			<text class="memory-entry-text">当最近的低落时刻比平时多时，在首页温和提醒你一次。这只是提醒，不是任何判断。</text>
+			<AccessibleButton
+				class="nudge-toggle"
+				:aria-pressed="nudgeEnabled"
+				:disabled="nudgeBusy"
+				:aria-label="nudgeEnabled ? '关闭情绪关怀提醒' : '开启情绪关怀提醒'"
+				@click="toggleNudge"
+			>{{ nudgeBusy ? '正在保存…' : nudgeEnabled ? '已开启 · 点按关闭' : '已关闭 · 点按开启' }}</AccessibleButton>
+		</view>
+
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
+		<Toast />
 	</view>
 </template>
 
@@ -192,8 +236,15 @@
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
+import { invalidate, TTL_KEYS } from '../../utils/ttlCache'
 import { useUserStore } from '../../stores/user'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
+import Toast from '../../components/Toast.vue'
+import FormField from '../../components/FormField.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import { useToast } from '../../composables/useToast'
+
+const toast = useToast()
 
 const ROLE_LABEL = {
 	0: '学生',
@@ -223,9 +274,37 @@ const savingProfile = ref(false)
 const savingPassword = ref(false)
 const loadingMe = ref(false)
 const loadError = ref('')
+const profileErrors = ref({ nickname: '', school: '', intro: '' })
+const pwdErrors = ref({ old: '', new: '', confirm: '' })
 
 function goMemory() {
 	uni.navigateTo({ url: '/pages/settings/memory' })
+}
+
+/* ── AM1 情绪关怀提醒开关（AR 批接入）── */
+const nudgeEnabled = ref(true)
+const nudgeBusy = ref(false)
+async function loadNudgeSetting() {
+	try {
+		const data = await request({ url: '/api/emotion/baseline-nudge', method: 'GET' })
+		nudgeEnabled.value = !data || data.enabled !== false
+	} catch (e) {
+		/* 读取失败保持默认开（后端默认开启），不打扰 */
+	}
+}
+async function toggleNudge() {
+	if (nudgeBusy.value) return
+	const next = !nudgeEnabled.value
+	nudgeBusy.value = true
+	try {
+		await request({ url: '/api/emotion/baseline-nudge/setting', method: 'PUT', data: { enabled: next } })
+		nudgeEnabled.value = next
+		toast.success(next ? '已开启情绪关怀提醒' : '已关闭，首页不会再展示提醒')
+	} catch (e) {
+		toast.care((e && e.message) || '保存失败，请重试')
+	} finally {
+		nudgeBusy.value = false
+	}
 }
 
 const roleLabel = computed(() => {
@@ -251,6 +330,7 @@ onShow(() => {
 		return
 	}
 	loadUserInfo()
+	loadNudgeSetting()
 })
 
 async function loadUserInfo() {
@@ -302,16 +382,16 @@ function uploadAvatar(filePath) {
 				const data = JSON.parse(uploadRes.data)
 				if (data.code === 0 && data.data && data.data.url) {
 					form.value.avatarUrl = data.data.url
-					uni.showToast({ title: '头像已更换', icon: 'success' })
+					toast.success('头像已更换')
 				} else {
-					uni.showToast({ title: data.message || '上传失败', icon: 'none' })
+					toast.care(data.message || '上传失败')
 				}
 			} catch (e) {
-				uni.showToast({ title: '上传失败', icon: 'none' })
+				toast.care('上传失败')
 			}
 		},
 		fail: () => {
-			uni.showToast({ title: '网络异常，上传失败', icon: 'none' })
+			toast.care('网络异常，上传失败')
 		},
 		complete: () => {
 			uni.hideLoading()
@@ -324,7 +404,7 @@ async function handleSaveProfile() {
 	if (savingProfile.value) return
 	const nickname = (form.value.nickname || '').trim()
 	if (!nickname) {
-		uni.showToast({ title: '昵称不能为空', icon: 'none' })
+		profileErrors.value.nickname = '昵称不能为空'
 		return
 	}
 	savingProfile.value = true
@@ -342,9 +422,10 @@ async function handleSaveProfile() {
 		})
 		// 更新 userStore，让「我的」页面同步
 		userStore.setUserInfo(data)
-		uni.showToast({ title: '资料已保存', icon: 'success' })
+		invalidate(TTL_KEYS.authMe)
+		toast.success('资料已保存')
 	} catch (e) {
-		uni.showToast({ title: e.message || '保存失败', icon: 'none' })
+		toast.care(e.message || '保存失败')
 	} finally {
 		savingProfile.value = false
 	}
@@ -356,23 +437,23 @@ async function handleChangePassword() {
 	const { oldPassword, newPassword, confirmPassword } = pwdForm.value
 
 	if (!oldPassword) {
-		uni.showToast({ title: '请输入旧密码', icon: 'none' })
+		pwdErrors.value.old = '请输入旧密码'
 		return
 	}
 	if (!newPassword) {
-		uni.showToast({ title: '请输入新密码', icon: 'none' })
+		pwdErrors.value.new = '请输入新密码'
 		return
 	}
 	if (newPassword.length < 6 || newPassword.length > 32) {
-		uni.showToast({ title: '新密码长度需 6-32 位', icon: 'none' })
+		pwdErrors.value.new = '新密码长度需 6-32 位'
 		return
 	}
 	if (oldPassword === newPassword) {
-		uni.showToast({ title: '新旧密码不能相同', icon: 'none' })
+		pwdErrors.value.new = '新旧密码不能相同'
 		return
 	}
 	if (newPassword !== confirmPassword) {
-		uni.showToast({ title: '两次密码输入不一致', icon: 'none' })
+		pwdErrors.value.confirm = '两次密码输入不一致'
 		return
 	}
 
@@ -383,13 +464,13 @@ async function handleChangePassword() {
 			method: 'PUT',
 			data: { oldPassword, newPassword },
 		})
-		uni.showToast({ title: '密码已修改，下次登录请使用新密码', icon: 'none', duration: 2500 })
+		toast.show('密码已修改，下次登录请使用新密码', { duration: 2500 })
 		pwdForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
 	} catch (e) {
 		if (e.code === 2001) {
-			uni.showToast({ title: '旧密码错误', icon: 'none' })
+			toast.care('旧密码错误')
 		} else {
-			uni.showToast({ title: e.message || '修改失败', icon: 'none' })
+			toast.care(e.message || '修改失败')
 		}
 	} finally {
 		savingPassword.value = false
@@ -420,7 +501,7 @@ async function handleChangePassword() {
 
 .page-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	display: block;
 	margin-top: 8rpx;
 }
@@ -439,7 +520,7 @@ async function handleChangePassword() {
 	height: 140rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 	flex-shrink: 0;
 }
 
@@ -455,7 +536,7 @@ async function handleChangePassword() {
 	width: 100%;
 	height: 100%;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566) 0%, var(--zy-primary-light, #82ad9b) 100%);
+	background: linear-gradient(135deg, var(--zy-brand-700, #1a645e) 0%, var(--zy-primary, #217e76) 100%);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -471,7 +552,7 @@ async function handleChangePassword() {
 
 .avatar-hint {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 卡片 ── */
@@ -495,7 +576,7 @@ async function handleChangePassword() {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -503,7 +584,7 @@ async function handleChangePassword() {
 }
 
 .card-icon-security {
-	background: linear-gradient(135deg, var(--zy-accent, #bb914d), #FFCB6E);
+	background: linear-gradient(135deg, var(--zy-accent, #8a6d1f), var(--zy-gold, #d9a441));
 }
 
 .section-heading {
@@ -517,9 +598,13 @@ async function handleChangePassword() {
 	margin-bottom: 24rpx;
 }
 
+.form-field {
+	margin-bottom: 24rpx;
+}
+
 .form-label {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	display: block;
 	margin-bottom: 10rpx;
 }
@@ -538,7 +623,7 @@ async function handleChangePassword() {
 }
 
 .form-input:focus {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 }
 
 .form-input--disabled {
@@ -558,7 +643,7 @@ async function handleChangePassword() {
 }
 
 .form-textarea:focus {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 }
 
 .form-readonly {
@@ -576,7 +661,7 @@ async function handleChangePassword() {
 .btn-primary {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -589,7 +674,7 @@ async function handleChangePassword() {
 }
 
 .btn-primary--accent {
-	background: linear-gradient(135deg, var(--zy-accent, #bb914d), #FFCB6E);
+	background: var(--zy-accent, #8a6d1f);
 }
 
 .btn-primary--disabled {
@@ -608,7 +693,7 @@ async function handleChangePassword() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
 </style>
@@ -616,7 +701,7 @@ async function handleChangePassword() {
 <style scoped>
 .avatar-ring:focus-visible,
 .btn-primary:focus-visible {
-	outline: 3px solid var(--zy-primary, #2f7566);
+	outline: 3px solid var(--zy-primary, #217e76);
 	outline-offset: 3px;
 }
 .settings-error {
@@ -629,7 +714,7 @@ async function handleChangePassword() {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 24rpx);
 	background: var(--zy-card-bg, #fff);
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	font-size: 23rpx;
 	line-height: 1.7;
 }
@@ -637,16 +722,16 @@ async function handleChangePassword() {
 	flex-shrink: 0;
 	min-height: 64rpx;
 	padding: 0 22rpx;
-	border: 1rpx solid var(--zy-primary, #2f7566);
+	border: 1rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-size: 23rpx;
 	line-height: 2.5;
 }
 .settings-error button::after { border: 0; }
 .card-icon-memory {
-	background: linear-gradient(135deg, var(--zy-accent, #bb914d), var(--zy-primary, #2f7566));
+	background: linear-gradient(135deg, var(--zy-accent, #8a6d1f), var(--zy-primary, #217e76));
 }
 .memory-entry {
 	cursor: pointer;
@@ -656,7 +741,7 @@ async function handleChangePassword() {
 }
 .memory-entry-arrow {
 	margin-left: auto;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	font-size: 40rpx;
 	line-height: 1;
 }
@@ -664,6 +749,19 @@ async function handleChangePassword() {
 	display: block;
 	font-size: 23rpx;
 	line-height: 1.7;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
+}
+/* AM1 情绪关怀提醒开关 */
+.nudge-toggle {
+	margin-top: 18rpx;
+	padding: 12rpx 26rpx;
+	font-size: 24rpx;
+	color: var(--zy-brand-700, #1a645e);
+	background: var(--zy-bg-tint-mint, #e8efe4);
+	border-radius: 999rpx;
+}
+.nudge-toggle[aria-pressed="false"] {
+	color: var(--zy-text, #4a5f54);
+	background: var(--zy-bg, #f5f7f2);
 }
 </style>

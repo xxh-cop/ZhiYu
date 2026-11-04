@@ -9,7 +9,7 @@
     <view class="account-main">
       <view class="account-mobile-brand"><image src="/static/logo.png" mode="aspectFit" aria-label="织愈"/><text>织愈 · 创作与陪伴</text></view>
       <view class="account-panel">
-        <view class="account-heading"><view><text class="account-eyebrow">{{eyebrow}}</text><text class="account-title" role="heading" aria-level="1">{{title}}</text></view><image src="/static/xiaozhi-caring.png" mode="aspectFit" aria-label="小织在这里陪你"/></view>
+        <view class="account-heading"><view><text class="account-eyebrow">{{eyebrow}}</text><text class="account-title" role="heading" aria-level="1">{{title}}</text></view><XiaotuanPet :size="72" face="calm" aria-hidden="true"/></view>
         <text class="account-description">{{description}}</text>
         <slot />
       </view>
@@ -18,12 +18,13 @@
   </view>
 </template>
 <script setup>
+import XiaotuanPet from './XiaotuanPet.vue'
 defineProps({title:String,description:String,eyebrow:String})
 </script>
 <style scoped>
 .account-shell{min-height:calc(100vh - var(--window-top,0px));display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#f7f8f3;color:#233d34;font-family:var(--zy-font,-apple-system,"Microsoft YaHei",sans-serif)}
 .account-story{background:#234638;color:#f3f5ed;padding:42px 48px;display:flex;flex-direction:column;overflow:hidden;min-width:0}.account-brand{display:flex;align-items:center;gap:14px;font-size:26px;font-weight:600}.account-brand image{width:48px;height:48px}.account-brand text{display:block}.account-brand .brand-caption{font-size:12px;color:#c7d7ca;font-weight:400;margin-top:4px}.story-copy{margin-top:70px;position:relative;z-index:1}.story-label{display:block;font-size:12px;letter-spacing:3px;color:#c2d4bf}.story-title{display:block;font-size:clamp(30px,3.1vw,48px);line-height:1.6;font-weight:550;margin-top:20px}.story-description{display:block;font-size:15px;line-height:1.9;color:#d0dfd2;margin-top:18px}.story-art{width:100%;height:250px;flex:1;min-height:200px;max-height:370px;margin:16px 0}.story-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #ffffff25;padding-top:20px;color:#c4d6c7;font-size:11px}
-.account-main{padding:44px 44px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}.account-panel{width:100%;max-width:430px;background:#fff;padding:30px;border:1px solid #dde5d9;border-radius:24px;box-sizing:border-box;box-shadow:0 12px 40px #244b3510}.account-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.account-heading image{width:66px;height:82px;flex-shrink:0}.account-eyebrow{display:block;font-size:12px;color:#586e62;margin-bottom:10px}.account-title{display:block;font-size:28px;font-weight:600;line-height:1.4}.account-description{display:block;font-size:14px;line-height:1.8;color:#586e62;margin:6px 0 24px}.account-footer{text-align:center;color:#586e62;font-size:12px;line-height:1.8;margin-top:24px}.account-footer text{display:block}.account-footer text+text{font-size:11px;margin-top:4px}.account-mobile-brand{display:none}
+.account-main{padding:44px 44px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}.account-panel{width:100%;max-width:430px;background:#fff;padding:30px;border:1px solid #dde5d9;border-radius:24px;box-sizing:border-box;box-shadow:0 12px 40px #244b3510}.account-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.account-heading image{width:66px;height:82px;flex-shrink:0}.account-eyebrow{display:block;font-size:12px;color:#4a5f54;margin-bottom:10px}.account-title{display:block;font-size:28px;font-weight:600;line-height:1.4}.account-description{display:block;font-size:14px;line-height:1.8;color:#4a5f54;margin:6px 0 24px}.account-footer{text-align:center;color:#4a5f54;font-size:12px;line-height:1.8;margin-top:24px}.account-footer text{display:block}.account-footer text+text{font-size:11px;margin-top:4px}.account-mobile-brand{display:none}
 @media(max-width:900px){.account-shell{grid-template-columns:1fr}.account-story{display:none}.account-main{padding:24px 20px calc(24px + env(safe-area-inset-bottom));justify-content:flex-start}.account-mobile-brand{display:flex;align-items:center;gap:10px;width:100%;max-width:430px;margin:0 0 22px;font-size:15px;font-weight:600}.account-mobile-brand image{width:34px;height:34px}.account-panel{padding:26px 24px}.account-title{font-size:26px}}
 @media(max-width:360px){.account-main{padding-left:14px;padding-right:14px}.account-panel{padding:22px 18px}.account-title{font-size:24px}}
 </style>

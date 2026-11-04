@@ -13,22 +13,29 @@
       }
     },
     {
-      "path": "pages/privacy/media",
-      "style": { "navigationBarTitleText": "我的媒体" }
+      "path": "pages/login/forgot",
+      "style": {
+        "navigationBarTitleText": "找回密码",
+        "navigationBarBackgroundColor": "#F5F7F2"
+      }
     },
     {
-      "path": "pages/programs/conversations",
-      "style": { "navigationBarTitleText": "预约交流" }
+      "path": "pages/privacy/media",
+      "style": { "navigationBarTitleText": "我的媒体" }
     },
     {
       "path": "pages/work/favorites",
       "style": { "navigationBarTitleText": "我的收藏" }
     },
     {
+      "path": "pages/notification/index",
+      "style": { "navigationBarTitleText": "消息通知", "enablePullDownRefresh": true }
+    },
+    {
       "path": "pages/register/index",
       "style": {
         "navigationBarTitleText": "注册",
-        "navigationBarBackgroundColor": "#F8F9FB"
+        "navigationBarBackgroundColor": "#F5F7F2"
       }
     },
     {
@@ -53,24 +60,6 @@
       "path": "pages/inheritor/story",
       "style": {
         "navigationBarTitleText": "手艺人的故事"
-      }
-    },
-    {
-      "path": "pages/heritage/gallery",
-      "style": {
-        "navigationBarTitleText": "非遗纹样馆"
-      }
-    },
-    {
-      "path": "pages/heritage/detail",
-      "style": {
-        "navigationBarTitleText": "纹样详情"
-      }
-    },
-    {
-      "path": "pages/heritage/studio",
-      "style": {
-        "navigationBarTitleText": "非遗配色台"
       }
     },
     {
@@ -153,21 +142,21 @@
       "path": "pages/settings/index",
       "style": {
         "navigationBarTitleText": "个人设置",
-        "navigationBarBackgroundColor": "#F8F9FB"
+        "navigationBarBackgroundColor": "#F5F7F2"
       }
     },
     {
       "path": "pages/settings/memory",
       "style": {
         "navigationBarTitleText": "小织记忆",
-        "navigationBarBackgroundColor": "#F8F9FB"
+        "navigationBarBackgroundColor": "#F5F7F2"
       }
     },
     {
       "path": "pages/crisis/index",
       "style": {
         "navigationBarTitleText": "心理援助",
-        "navigationBarBackgroundColor": "#F8F9FB"
+        "navigationBarBackgroundColor": "#F5F7F2"
       }
     },
     {
@@ -218,12 +207,6 @@
       "path": "pages/assessment/index",
       "style": {
         "navigationBarTitleText": "自我了解"
-      }
-    },
-    {
-      "path": "pages/programs/index",
-      "style": {
-        "navigationBarTitleText": "活动与预约"
       }
     },
     {
@@ -299,12 +282,6 @@
       }
     },
     {
-      "path": "pages/programs/course",
-      "style": {
-        "navigationBarTitleText": "我的课程"
-      }
-    },
-    {
       "path": "pages/group/detail",
       "style": {
         "navigationBarTitleText": "小组空间"
@@ -315,12 +292,46 @@
       "style": {
         "navigationBarTitleText": "我的作品"
       }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "sub-heritage",
+      "pages": [
+        {
+          "path": "pages/heritage/gallery",
+          "style": { "navigationBarTitleText": "非遗纹样馆" }
+        },
+        {
+          "path": "pages/heritage/detail",
+          "style": { "navigationBarTitleText": "纹样详情" }
+        },
+        {
+          "path": "pages/heritage/studio",
+          "style": { "navigationBarTitleText": "非遗配色台" }
+        }
+      ]
     },
     {
-      "path": "pages/programs/feedback",
-      "style": {
-        "navigationBarTitleText": "体验反馈"
-      }
+      "root": "sub-programs",
+      "pages": [
+        {
+          "path": "pages/programs/index",
+          "style": { "navigationBarTitleText": "活动与预约" }
+        },
+        {
+          "path": "pages/programs/conversations",
+          "style": { "navigationBarTitleText": "预约交流" }
+        },
+        {
+          "path": "pages/programs/course",
+          "style": { "navigationBarTitleText": "我的课程" }
+        },
+        {
+          "path": "pages/programs/feedback",
+          "style": { "navigationBarTitleText": "体验反馈" }
+        }
+      ]
     }
   ],
   "globalStyle": {
@@ -330,8 +341,8 @@
     "backgroundColor": "#f5f7f2"
   },
   "tabBar": {
-    "color": "#6b7e82",
-    "selectedColor": "#2f7566",
+    "color": "#4a5f54",
+    "selectedColor": "#217e76",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [

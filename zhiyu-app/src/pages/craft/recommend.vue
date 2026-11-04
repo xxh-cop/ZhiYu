@@ -13,7 +13,7 @@
 			<view class="reason-quote">"</view>
 			<view class="reason-header">
 				<view class="reason-icon-wrap">
-					<wd-icon name="chat" size="28rpx" color="#2f7566" />
+					<wd-icon name="chat" size="28rpx" color="#217e76" />
 				</view>
 				<text class="reason-label">小织推荐</text>
 			</view>
@@ -21,7 +21,7 @@
 		</view>
 
 		<!-- 刷新按钮 -->
-		<view class="refresh-btn zy-slide-up zy-stagger" style="--stagger-i: 2" @click="loadData">
+		<view class="refresh-btn zy-slide-up zy-stagger" style="--stagger-i: 2" role="button" tabindex="0" @click="loadData" @keydown.enter.prevent="loadData" @keydown.space.prevent="loadData">
 			<text class="refresh-icon">↻</text>
 			<text class="refresh-text">换一批</text>
 		</view>
@@ -55,7 +55,11 @@
 				:key="item.projectId"
 				class="craft-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx + 3 }"
+				role="button"
+				tabindex="0"
 				@click="goSession(item)"
+				@keydown.enter.prevent="goSession(item)"
+				@keydown.space.prevent="goSession(item)"
 			>
 				<!-- 封面图 -->
 				<view class="card-cover" :style="coverStyle(item.coverUrl)">
@@ -86,6 +90,10 @@
 					</view>
 
 					<text v-if="item.reason" class="card-reason">{{ item.reason }}</text>
+					<!-- AM2：低干扰负反馈入口，点击即移出该卡片并静默上报 DISMISS -->
+					<view class="card-dismiss">
+						<AccessibleButton class="dismiss-btn" :aria-label="'对「' + item.title + '」不感兴趣，换一条推荐'" @click.stop="dismiss(item)">换一个</AccessibleButton>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -100,6 +108,7 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { trackRecommendationClick } from '../../utils/recommend-click'
+import AccessibleButton from '../../components/AccessibleButton.vue'
 
 const loading = ref(false)
 const errorMsg = ref('')
@@ -166,7 +175,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
+	return 'background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));'
 }
 
 function goSession(item) {
@@ -177,6 +186,20 @@ function goSession(item) {
 	})
 	uni.navigateTo({
 		url: `/pages/craft/session?projectId=${item.projectId}&projectTitle=${encodeURIComponent(item.title)}`,
+	})
+}
+
+/**
+ * 「换一个」（AM2 DISMISS）：本地立即移出该卡片（用户要看到生效），
+ * 上报静默——失败不阻塞、不打扰（稀疏保护与回灌加权都在后端）。
+ */
+function dismiss(item) {
+	items.value = items.value.filter((i) => i.projectId !== item.projectId)
+	trackRecommendationClick({
+		recommendationId: recommendationId.value,
+		projectId: item.projectId,
+		source: 'RECOMMEND',
+		eventType: 'DISMISS',
 	})
 }
 </script>
@@ -212,7 +235,7 @@ function goSession(item) {
 
 .mood-text {
 	font-size: 24rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 /* ── 推荐理由卡片 ── */
@@ -233,7 +256,7 @@ function goSession(item) {
 	left: 16rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	opacity: 0.15;
 	line-height: 1;
 }
@@ -258,13 +281,13 @@ function goSession(item) {
 .reason-label {
 	font-size: 26rpx;
 	font-weight: 500;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .reason-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 /* ── 刷新按钮 ── */
@@ -278,7 +301,7 @@ function goSession(item) {
 
 .refresh-icon {
 	font-size: 28rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	transition: transform 0.5s ease;
 }
 
@@ -288,7 +311,7 @@ function goSession(item) {
 
 .refresh-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 /* ── 骨架屏 ── */
@@ -330,12 +353,12 @@ function goSession(item) {
 
 .status-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .error-text {
 	font-size: 28rpx;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-care, #a64842);
 }
 
 /* ── 卡片列表 ── */
@@ -371,7 +394,7 @@ function goSession(item) {
 .level-badge {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: rgba(255, 181, 71, 0.9);
+	background-color: var(--zy-gold, #d9a441);
 }
 
 .level-text {
@@ -401,12 +424,12 @@ function goSession(item) {
 .meta-pill {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #F3F4F6);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 .meta-pill-text {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 疗愈标签 ── */
@@ -425,7 +448,7 @@ function goSession(item) {
 
 .tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 /* ── 单项推荐理由 ── */
@@ -436,7 +459,7 @@ function goSession(item) {
 	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 	font-size: 24rpx;
 	font-style: italic;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	line-height: 1.6;
 }
 
@@ -445,7 +468,26 @@ function goSession(item) {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
+/* AM2「换一个」：低干扰小字入口，不抢卡片主视觉 */
+.card-dismiss {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 12rpx;
+}
+.dismiss-btn {
+	padding: 6rpx 16rpx;
+	font-size: 22rpx;
+	line-height: 1.6;
+	color: var(--zy-text, #4a5f54);
+	background: transparent;
+	border-radius: 999rpx;
+}
+.dismiss-btn:focus-visible {
+	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline-offset: 2px;
+}
+button:focus-visible{outline:3px solid var(--zy-brand-700,#1a645e);outline-offset:3px}
 </style>

@@ -31,14 +31,8 @@ const STATE_PRIORITY = {
 	idle: 1,
 }
 
-// ── petState → 图片路径映射 ──
-const STATE_IMAGE_MAP = {
-	idle: '/static/xiaozhi-avatar.png',
-	thinking: '/static/xiaozhi-thinking.png',
-	talking: '/static/xiaozhi-talk.png',
-	happy: '/static/xiaozhi-happy.png',
-	caring: '/static/xiaozhi-caring.png',
-}
+// petState → 表情的渲染映射由 components/XiaotuanPet.vue 的 FACE_MAP 统一承载
+// （2026-11-04 小织统一：渲染层不再读取本 store 的图片路径）。
 
 function readPos() {
 	try {
@@ -77,12 +71,7 @@ export const useAiCompanionStore = defineStore('aiCompanion', {
 		proactiveIdleMs: 60000,
 	}),
 
-	getters: {
-		/** 当前主状态对应的图片路径（不含 blink 叠加） */
-		currentImagePath() {
-			return STATE_IMAGE_MAP[this.petState] || STATE_IMAGE_MAP.idle
-		},
-	},
+	getters: {},
 
 	actions: {
 		setPosition(right, bottom) {

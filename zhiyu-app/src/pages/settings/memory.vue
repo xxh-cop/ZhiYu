@@ -8,7 +8,7 @@
 
 		<view v-if="error" class="growth-error" role="alert">
 			{{ error }}
-			<button class="growth-button secondary" @click="load">重试</button>
+			<AccessibleButton class="growth-button secondary" @click="load">重试</AccessibleButton>
 		</view>
 		<text v-if="loading" class="growth-muted">正在读取记忆设置…</text>
 
@@ -19,13 +19,13 @@
 						<text class="growth-card-title">让小织记住偏好</text>
 						<text class="growth-muted">默认关闭；开启后只用于练习推荐。</text>
 					</view>
-					<button
+					<AccessibleButton
 						class="memory-switch"
 						:class="{ on: enabled }"
 						role="switch"
 						:aria-checked="enabled ? 'true' : 'false'"
 						@click="toggleSwitch"
-					>{{ enabled ? '已开启' : '已关闭' }}</button>
+					>{{ enabled ? '已开启' : '已关闭' }}</AccessibleButton>
 				</view>
 				<view class="memory-facts">
 					<text>只保存 3 个偏好键</text>
@@ -37,7 +37,7 @@
 
 			<view v-if="!enabled" class="growth-card">
 				<text class="growth-card-title">开启前，请确认</text>
-				<button
+				<AccessibleButton
 					class="memory-consent"
 					role="checkbox"
 					:aria-checked="consent ? 'true' : 'false'"
@@ -46,10 +46,10 @@
 				>
 					<view class="memory-check" aria-hidden="true">{{ consent ? '✓' : '' }}</view>
 					<text>我同意小织保存我选择的练习偏好，用于推荐更合适的练习；不保存对话原文。</text>
-				</button>
-				<button class="growth-button" :disabled="!consent || busy" @click="enableMemory">
+				</AccessibleButton>
+				<AccessibleButton class="growth-button" :disabled="!consent || busy" @click="enableMemory">
 					{{ busy ? '正在开启…' : '开启小织记忆' }}
-				</button>
+				</AccessibleButton>
 			</view>
 
 			<template v-else>
@@ -57,13 +57,13 @@
 					<text class="growth-card-title">常用练习时长</text>
 					<text class="growth-muted">下次推荐会优先考虑这个时间预算。</text>
 					<view class="memory-options">
-						<button
+						<AccessibleButton
 							v-for="minutes in minutesOptions"
 							:key="minutes"
 							:class="{ selected: preferences.preferred_minutes === String(minutes) }"
 							:aria-pressed="preferences.preferred_minutes === String(minutes)"
 							@click="setPreference('preferred_minutes', String(minutes))"
-						>{{ minutes }} 分钟</button>
+						>{{ minutes }} 分钟</AccessibleButton>
 					</view>
 				</view>
 
@@ -71,13 +71,13 @@
 					<text class="growth-card-title">偏好材料</text>
 					<text class="growth-muted">只是推荐参考，不影响你已经开始的练习。</text>
 					<view class="memory-options">
-						<button
+						<AccessibleButton
 							v-for="item in materialOptions"
 							:key="item.code"
 							:class="{ selected: preferences.preferred_material === item.code }"
 							:aria-pressed="preferences.preferred_material === item.code"
 							@click="setPreference('preferred_material', item.code)"
-						>{{ item.label }}</button>
+						>{{ item.label }}</AccessibleButton>
 					</view>
 				</view>
 
@@ -85,28 +85,38 @@
 					<text class="growth-card-title">偏好纹样族</text>
 					<text class="growth-muted">选择你更想先看的纹样结构。</text>
 					<view class="memory-options">
-						<button
+						<AccessibleButton
 							v-for="item in familyOptions"
 							:key="item.code"
 							:class="{ selected: preferences.preferred_pattern_family === item.code }"
 							:aria-pressed="preferences.preferred_pattern_family === item.code"
 							@click="setPreference('preferred_pattern_family', item.code)"
-						>{{ item.label }}</button>
+						>{{ item.label }}</AccessibleButton>
 					</view>
 				</view>
 
 				<view class="growth-card memory-actions">
-					<button class="growth-button" :disabled="busy || !hasPreferences" @click="savePreferences">
+					<AccessibleButton class="growth-button" :disabled="busy || !hasPreferences" @click="savePreferences">
 						{{ busy ? '正在保存…' : '保存偏好' }}
-					</button>
-					<button class="growth-button secondary" :disabled="busy" @click="disableMemory">关闭记忆</button>
-					<button class="growth-button danger" :disabled="busy" @click="deleteAll">删除全部记忆</button>
+					</AccessibleButton>
+					<AccessibleButton class="growth-button secondary" :disabled="busy" @click="disableMemory">关闭记忆</AccessibleButton>
+					<AccessibleButton class="growth-button danger" :disabled="busy" @click="deleteAll">删除全部记忆</AccessibleButton>
 				</view>
 			</template>
 
 			<text v-if="status" class="memory-status" role="status" aria-live="polite">{{ status }}</text>
 			<text class="growth-foot">本系统不能替代专业心理咨询</text>
 		</template>
+		<ActionSheet
+			:open="showDeleteSheet"
+			title="删除全部小织记忆"
+			description="只删除偏好记忆，不删除练习会话或作品。是否继续？"
+			:actions="[{ key: 'confirm', label: '删除全部记忆', tone: 'danger' }]"
+			cancel-text="再想想"
+			@select="confirmDeleteAll"
+			@close="showDeleteSheet = false"
+		/>
+		<Toast />
 	</view>
 </template>
 
@@ -115,7 +125,12 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { useInteraction } from '../../composables/useInteraction'
+import ActionSheet from '../../components/ActionSheet.vue'
+import Toast from '../../components/Toast.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import { useToast } from '../../composables/useToast'
 
+const toast = useToast()
 const { reducedMotion } = useInteraction()
 const loading = ref(false)
 const busy = ref(false)
@@ -250,26 +265,27 @@ async function savePreferences() {
 	}
 }
 
+const showDeleteSheet = ref(false)
+
 function deleteAll() {
 	if (busy.value) return
-	uni.showModal({
-		title: '删除全部小织记忆',
-		content: '只删除偏好记忆，不删除练习会话或作品。是否继续？',
-		success: async res => {
-			if (!res.confirm || busy.value) return
-			busy.value = true
-			status.value = ''
-			try {
-				const data = await request({ url: '/api/companion/memory', method: 'DELETE' })
-				apply(data)
-				status.value = '小织记忆已删除并关闭。'
-			} catch (e) {
-				status.value = e.message || '删除失败，请重试'
-			} finally {
-				busy.value = false
-			}
-		},
-	})
+	showDeleteSheet.value = true
+}
+
+async function confirmDeleteAll() {
+	showDeleteSheet.value = false
+	if (busy.value) return
+	busy.value = true
+	status.value = ''
+	try {
+		const data = await request({ url: '/api/companion/memory', method: 'DELETE' })
+		apply(data)
+		toast.success('小织记忆已删除并关闭。')
+	} catch (e) {
+		status.value = e.message || '删除失败，请重试'
+	} finally {
+		busy.value = false
+	}
 }
 </script>
 
@@ -302,14 +318,14 @@ function deleteAll() {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 999rpx;
 	background: var(--zy-bg, #f5f7f2);
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	font-size: 23rpx;
 	line-height: 44px;
 }
 .memory-switch.on {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 .memory-facts {
 	display: grid;
@@ -322,7 +338,7 @@ function deleteAll() {
 .memory-facts text {
 	font-size: 21rpx;
 	line-height: 1.7;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 .memory-consent {
 	display: flex;
@@ -335,14 +351,14 @@ function deleteAll() {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 14rpx;
 	background: var(--zy-bg, #f5f7f2);
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	font-size: 23rpx;
 	line-height: 1.6;
 }
 .memory-consent[aria-checked='true'] {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 .memory-check {
 	display: inline-flex;
@@ -370,14 +386,14 @@ function deleteAll() {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 12rpx;
 	background: var(--zy-card-bg, #fff);
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	font-size: 22rpx;
 	line-height: 44px;
 }
 .memory-options button.selected {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 .memory-actions {
 	display: flex;
@@ -389,7 +405,7 @@ function deleteAll() {
 	margin: 16rpx 0 0;
 	font-size: 22rpx;
 	line-height: 1.7;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 @media (max-width: 420px) {
 	.memory-facts {

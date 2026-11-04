@@ -35,7 +35,7 @@
 						@keydown.enter.prevent="switchMediaTab('image')"
 						@keydown.space.prevent="switchMediaTab('image')"
 					>
-						<wd-icon name="image" size="36rpx" :color="form.mediaType === 'image' ? '#2f7566' : '#718478'" />
+						<wd-icon name="image" size="36rpx" :color="form.mediaType === 'image' ? '#217e76' : '#4a5f54'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'image' }">图片</text>
 					</view>
 					<view
@@ -48,7 +48,7 @@
 						@keydown.enter.prevent="switchMediaTab('video')"
 						@keydown.space.prevent="switchMediaTab('video')"
 					>
-						<wd-icon name="video" size="36rpx" :color="form.mediaType === 'video' ? '#2f7566' : '#718478'" />
+						<wd-icon name="video" size="36rpx" :color="form.mediaType === 'video' ? '#217e76' : '#4a5f54'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'video' }">视频</text>
 					</view>
 					<view
@@ -61,7 +61,7 @@
 						@keydown.enter.prevent="switchMediaTab('text')"
 						@keydown.space.prevent="switchMediaTab('text')"
 					>
-						<wd-icon name="edit" size="36rpx" :color="form.mediaType === 'text' ? '#2f7566' : '#718478'" />
+						<wd-icon name="edit" size="36rpx" :color="form.mediaType === 'text' ? '#217e76' : '#4a5f54'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'text' }">纯文字</text>
 					</view>
 				</view>
@@ -69,13 +69,12 @@
 				<!-- Tab 1：图片上传 -->
 				<view v-if="form.mediaType === 'image'" class="media-content">
 					<view class="image-upload-area" role="button" tabindex="0" aria-label="上传作品图片" @click="chooseImage" @keydown.enter.prevent="chooseImage" @keydown.space.prevent="chooseImage">
-						<image v-if="form.coverUrl && !uploading" class="image-preview" :src="imagePreview||fullUrl(form.coverUrl)" mode="aspectFill" />
+						<image v-if="form.coverUrl && !uploading" class="image-preview" :src="imagePreview||fullUrl(form.coverUrl)" mode="aspectFill" alt="已上传封面的预览" />
 						<view v-else-if="uploading" class="upload-loading">
-							<view class="loading-spinner"></view>
-							<text class="upload-loading-text">上传中…</text>
+							<StateBlock type="loading" title="上传中…" compact />
 						</view>
 						<view v-else class="image-placeholder">
-							<wd-icon name="add" size="48rpx" color="#718478" />
+							<wd-icon name="add" size="48rpx" color="#4a5f54" />
 							<text class="image-placeholder-text">点击上传作品图</text>
 							<text class="image-placeholder-hint">支持 jpg / jpeg / png / webp，≤5MB</text>
 						</view>
@@ -96,7 +95,7 @@
 							<text class="upload-loading-text">上传中 {{ uploadProgress }}%</text>
 						</view>
 						<view v-else class="image-placeholder">
-							<wd-icon name="video" size="48rpx" color="#718478" />
+							<wd-icon name="video" size="48rpx" color="#4a5f54" />
 							<text class="image-placeholder-text">点击上传作品视频</text>
 							<text class="image-placeholder-hint">MP4 · ≤50MB · 建议 H.264 + AAC</text>
 						</view>
@@ -106,11 +105,11 @@
 					</view>
 				</view>
 
-				<view v-if="uploading" class="upload-actions"><text>上传中 {{uploadProgress}}%</text><button @click.stop="cancelUpload">取消上传</button></view><view v-if="uploadError" class="upload-error"><text>{{uploadError}}</text><button @click="retryUpload">重试上传</button></view><text v-if="form.mediaType==='video'" class="video-notice">仅上传原创或已获授权的视频。公开前需审核，请勿包含未经同意的人像、声音与个人信息。</text><!-- Tab 3：纯文字 -->
+				<view v-if="uploading" class="upload-actions"><text>上传中 {{uploadProgress}}%</text><AccessibleButton @click.stop="cancelUpload">取消上传</AccessibleButton></view><view v-if="uploadError" class="upload-error"><text>{{uploadError}}</text><AccessibleButton @click="retryUpload">重试上传</AccessibleButton></view><text v-if="form.mediaType==='video'" class="video-notice">仅上传原创或已获授权的视频。公开前需审核，请勿包含未经同意的人像、声音与个人信息。</text><!-- Tab 3：纯文字 -->
 				<view v-if="form.mediaType === 'text'" class="media-content">
 					<view class="text-only-hint">
 						<view class="text-only-icon-wrap">
-							<wd-icon name="edit" size="40rpx" color="#2f7566" />
+							<wd-icon name="edit" size="40rpx" color="#217e76" />
 						</view>
 						<text class="text-only-title">只写文字，不配图</text>
 						<text class="text-only-sub">用文字记录你的创作故事</text>
@@ -119,7 +118,7 @@
 			</view>
 
 			<view class="btn-row">
-				<view class="btn-primary" :class="{ 'btn-primary--disabled': !canStep1 }" @click="nextStep">
+				<view class="btn-primary" role="button" :tabindex="canStep1 ? 0 : -1" :aria-disabled="!canStep1" :class="{ 'btn-primary--disabled': !canStep1 }" @click="nextStep" @keydown.enter.prevent="nextStep" @keydown.space.prevent="nextStep">
 					<text class="btn-primary-text">下一步</text>
 				</view>
 			</view>
@@ -131,33 +130,42 @@
 				<text class="step-card-title">作品信息</text>
 				<text class="step-card-sub">告诉大家这件作品的故事</text>
 
-				<view class="form-item">
-					<text class="form-label">作品标题 <text class="required">*</text></text>
-					<wd-input
-						v-model="form.title"
-						placeholder="给作品起个名字"
-						:maxlength="100"
-						no-border
-						custom-class="form-input-el"
-					/>
-				</view>
+				<FormField label="作品标题" required :error="errors.title">
+					<template #default="{ id }">
+						<wd-input
+							:id="id"
+							v-model="form.title"
+							placeholder="给作品起个名字"
+							:maxlength="100"
+							no-border
+							custom-class="form-input-el"
+							@input="errors.title = ''"
+						/>
+					</template>
+				</FormField>
 
-				<view class="form-item">
-					<text class="form-label">创作故事</text>
-					<wd-textarea
-						v-model="form.message"
-						placeholder="分享创作过程中的感受…"
-						:maxlength="500"
-						no-border
-						custom-class="form-textarea-el"
-					/>
-					<text class="char-hint">{{ form.message.length }} / 500</text>
-					<text v-if="prefilledMessage" class="char-hint">已带入小织回顾，可修改或删除。</text>
-				</view>
+				<FormField
+					label="创作故事"
+					optional-text="选填"
+					:maxlength="500"
+					:count="form.message.length"
+				>
+					<template #default="{ id }">
+						<wd-textarea
+							:id="id"
+							v-model="form.message"
+							placeholder="分享创作过程中的感受…"
+							:maxlength="500"
+							no-border
+							custom-class="form-textarea-el"
+						/>
+					</template>
+				</FormField>
+				<text v-if="prefilledMessage" class="char-hint">已带入小织回顾，可修改或删除。</text>
 
 				<view class="form-item">
 					<text class="form-label">谁可以看到</text>
-					<view class="radio-group" role="radiogroup" aria-label="谁可以看到作品"><button v-if="form.groupId" class="radio-item" role="radio" :class="{'radio-active':form.visible===2}" :aria-checked="form.visible===2" @click="form.visible=2">仅当前小组</button>
+					<view class="radio-group" role="radiogroup" aria-label="谁可以看到作品"><AccessibleButton v-if="form.groupId" class="radio-item" role="radio" :class="{'radio-active':form.visible===2}" :aria-checked="form.visible===2" @click="form.visible=2">仅当前小组</AccessibleButton>
 						<view
 							class="radio-item"
 							role="radio"
@@ -210,7 +218,7 @@
 				<!-- AI 寄语提示 -->
 				<view class="ai-hint">
 					<view class="ai-hint-icon-wrap">
-						<wd-icon name="sparkles" size="36rpx" color="#2f7566" />
+						<wd-icon name="sparkles" size="36rpx" color="#217e76" />
 					</view>
 					<view class="ai-hint-info">
 						<text class="ai-hint-title">AI 寄语</text>
@@ -220,10 +228,10 @@
 			</view>
 
 			<view class="btn-row">
-				<view class="btn-secondary" @click="prevStep">
+				<view class="btn-secondary" role="button" tabindex="0" @click="prevStep" @keydown.enter.prevent="prevStep" @keydown.space.prevent="prevStep">
 					<text class="btn-secondary-text">上一步</text>
 				</view>
-				<view class="btn-primary" :class="{ 'btn-primary--disabled': !canSubmit }" @click="nextStep">
+				<view class="btn-primary" role="button" :tabindex="canSubmit ? 0 : -1" :aria-disabled="!canSubmit" :class="{ 'btn-primary--disabled': !canSubmit }" @click="nextStep" @keydown.enter.prevent="nextStep" @keydown.space.prevent="nextStep">
 					<text class="btn-primary-text">下一步</text>
 				</view>
 			</view>
@@ -268,38 +276,48 @@
 			</view>
 
 			<view class="btn-row">
-				<view class="btn-secondary" @click="prevStep">
+				<view class="btn-secondary" role="button" tabindex="0" @click="prevStep" @keydown.enter.prevent="prevStep" @keydown.space.prevent="prevStep">
 					<text class="btn-secondary-text">上一步</text>
 				</view>
-				<view class="btn-primary" :class="{ 'btn-primary--disabled': !canSubmit || submitting }" @click="handleSubmit">
+				<view class="btn-primary" role="button" :tabindex="canSubmit && !submitting ? 0 : -1" :aria-disabled="!canSubmit || submitting" :class="{ 'btn-primary--disabled': !canSubmit || submitting }" @click="handleSubmit" @keydown.enter.prevent="handleSubmit" @keydown.space.prevent="handleSubmit">
 					<text class="btn-primary-text">{{ submitting ? '发布中…' : '发布作品' }}</text>
 				</view>
 			</view>
 		</view>
 
-		<!-- 发布成功页 -->
+		<!-- 发布成功页（先审后发：统一为「已提交」口径，保留成功感、不承诺即公开） -->
 		<view v-if="published" class="success-overlay" @click.stop>
 			<view class="success-card zy-elastic">
-				<image class="success-xiaozhi" src="/static/xiaozhi-happy.png" mode="aspectFit" />
-				<text class="success-title">{{form.mediaType==='video'?'视频已提交审核':'发布成功！'}}</text>
-				<text class="success-hint">{{form.mediaType==='video'?'审核通过后，公开作品会出现在社区。':'小织为你感到骄傲'}}</text>
-				<view class="success-btn" @click="goWorkList">
-					<text class="success-btn-text">查看作品</text>
+				<XiaotuanPet :size="72" face="happy" aria-hidden="true" />
+				<text class="success-title">已提交，审核通过后公开</text>
+				<text class="success-hint">小织已经收到你的作品。通过前仅你自己可见，进度随时可在「我的作品」查看。</text>
+				<view class="success-btn" role="button" tabindex="0" @click="goMine" @keydown.enter.prevent="goMine" @keydown.space.prevent="goMine">
+					<text class="success-btn-text">去我的作品看看</text>
 				</view>
 			</view>
 		</view>
 
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
+		<Toast />
 	</view>
 </template>
 
 <script setup>
 import MediaVideo from "../../components/MediaVideo.vue"
-import { ref, computed } from 'vue'
+import StateBlock from '../../components/StateBlock.vue'
+import FormField from '../../components/FormField.vue'
+import Toast from '../../components/Toast.vue'
+import XiaotuanPet from '../../components/XiaotuanPet.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import { ref, computed, reactive } from 'vue'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import { invalidate, TTL_KEYS } from '../../utils/ttlCache'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
+import { useToast } from '../../composables/useToast'
+
+const toast = useToast()
 
 const imagePreview=ref('')
 const currentStep = ref(1)
@@ -308,6 +326,10 @@ const submitting = ref(false)
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const prefilledMessage = ref(false)
+
+const errors = reactive({
+	title: '',
+})
 
 const form = ref({
 	coverUrl: '',
@@ -395,7 +417,7 @@ function chooseImage() {
 			// #ifdef H5
 			const file = res.tempFiles && res.tempFiles[0]
 			if (file && file.size > 5 * 1024 * 1024) {
-				uni.showToast({ title: '图片不能超过 5MB', icon: 'none' })
+				toast.care('图片不能超过 5MB')
 				return
 			}
 			uploadImage(tempPath)
@@ -419,7 +441,7 @@ function chooseVideo() {
 			const tempPath = res.tempFilePath
 			// 前端检查文件大小（50MB）
 			if (res.size && res.size > 50 * 1024 * 1024) {
-				uni.showToast({ title: '视频不能超过 50MB', icon: 'none' })
+				toast.care('视频不能超过 50MB')
 				return
 			}
 			uploadVideo(tempPath)
@@ -439,13 +461,13 @@ function nextStep() {
 	if (currentStep.value === 1) {
 		if (!canStep1.value) {
 			const hint = form.value.mediaType === 'image' ? '请上传图片' : form.value.mediaType === 'video' ? '请上传视频' : ''
-			if (hint) uni.showToast({ title: hint, icon: 'none' })
+			if (hint) toast.care(hint)
 			return
 		}
 		currentStep.value = 2
 	} else if (currentStep.value === 2) {
 		if (!canSubmit.value) {
-			uni.showToast({ title: '请填写作品标题', icon: 'none' })
+			errors.title = '请填写作品标题'
 			return
 		}
 		currentStep.value = 3
@@ -463,7 +485,11 @@ function goBack() {
 }
 
 async function handleSubmit() {
-	if (!canSubmit.value || submitting.value) return
+	if (submitting.value) return
+	if (!canSubmit.value) {
+		errors.title = '请填写作品标题'
+		return
+	}
 
 	submitting.value = true
 	try {
@@ -489,17 +515,19 @@ async function handleSubmit() {
 		}
 
 		await http.post('/api/works', body)
+		invalidate(TTL_KEYS.userStats)
 		published.value = true
 	} catch (e) {
-		uni.showToast({ title: (e && e.message) || '发布失败', icon: 'none' })
+		toast.care((e && e.message) || '发布失败')
 	} finally {
 		submitting.value = false
 	}
 }
 
-function goWorkList() {
+function goMine() {
 	published.value = false
-	uni.switchTab({ url: '/pages/work/list' })
+	// 先审后发：新作处于审核中，不会出现在社区；引导去「我的作品」看进度
+	uni.navigateTo({ url: '/pages/work/mine' })
 }
 </script>
 
@@ -566,16 +594,20 @@ function goWorkList() {
 }
 
 .step-dot--active {
-	background-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-primary, #217e76);
 }
 
 .step-dot--current {
-	box-shadow: 0 0 0 6rpx rgba(45, 155, 143, 0.15);
+	box-shadow: 0 0 0 6rpx rgba(33, 126, 118, 0.15);
 }
 
 .step-dot-text {
 	font-size: 26rpx;
 	font-weight: 600;
+	color: var(--zy-text, #4a5f54);
+}
+/* AV 巡检修复：未激活步骤圆点是浅灰绿底，白字仅 1.26:1；激活态才用白字 */
+.step-dot--active .step-dot-text {
 	color: #FFFFFF;
 }
 
@@ -587,7 +619,7 @@ function goWorkList() {
 }
 
 .step-line--active {
-	background-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-primary, #217e76);
 }
 
 /* ── 步骤内容 ── */
@@ -615,7 +647,7 @@ function goWorkList() {
 .step-card-sub {
 	display: block;
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	margin-bottom: 32rpx;
 }
 
@@ -640,17 +672,17 @@ function goWorkList() {
 }
 
 .media-tab--active {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .media-tab-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .media-tab-text--active {
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-brand-700, #1a645e);
 	font-weight: 500;
 }
 
@@ -669,7 +701,7 @@ function goWorkList() {
 }
 
 .image-upload-area:active {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 }
 
 .image-preview {
@@ -686,12 +718,12 @@ function goWorkList() {
 
 .image-placeholder-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .image-placeholder-hint {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	opacity: 0.7;
 }
 
@@ -708,7 +740,7 @@ function goWorkList() {
 	height: 48rpx;
 	border-radius: 50%;
 	border: 4rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #2f7566);
+	border-top-color: var(--zy-primary, #217e76);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -718,7 +750,7 @@ function goWorkList() {
 
 .upload-loading-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .upload-progress-bar {
@@ -732,7 +764,7 @@ function goWorkList() {
 .upload-progress-fill {
 	height: 100%;
 	border-radius: 4rpx;
-	background: linear-gradient(90deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(90deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 	transition: width 0.2s ease;
 }
 
@@ -745,7 +777,7 @@ function goWorkList() {
 
 .re-upload-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 /* ── 纯文字提示 ── */
@@ -776,10 +808,14 @@ function goWorkList() {
 
 .text-only-sub {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 表单项 ── */
+.form-field {
+	margin-bottom: 32rpx;
+}
+
 .form-item {
 	display: flex;
 	flex-direction: column;
@@ -798,17 +834,17 @@ function goWorkList() {
 }
 
 .required {
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-care, #a64842);
 }
 
 .form-hint {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .char-hint {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: right;
 }
 
@@ -831,7 +867,7 @@ function goWorkList() {
 }
 
 .radio-active {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
@@ -845,14 +881,14 @@ function goWorkList() {
 }
 
 .dot-active {
-	border-color: var(--zy-primary, #2f7566);
-	background-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
+	background-color: var(--zy-primary, #217e76);
 	box-shadow: inset 0 0 0 4rpx var(--zy-card-bg, #FFFFFF);
 }
 
 .radio-label {
 	font-size: 28rpx;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 /* ── switch ── */
@@ -878,7 +914,7 @@ function goWorkList() {
 }
 
 .switch-on {
-	background-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-primary, #217e76);
 }
 
 .switch-knob {
@@ -904,7 +940,7 @@ function goWorkList() {
 	padding: 24rpx;
 	border-radius: var(--zy-radius-md, 24rpx);
 	background-color: var(--zy-bg-tint-mint, #e8efe4);
-	border: 1rpx solid rgba(45, 155, 143, 0.12);
+	border: 1rpx solid rgba(33, 126, 118, 0.12);
 	margin-top: 8rpx;
 }
 
@@ -912,7 +948,7 @@ function goWorkList() {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: 50%;
-	background-color: rgba(45, 155, 143, 0.1);
+	background-color: rgba(33, 126, 118, 0.1);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -934,7 +970,7 @@ function goWorkList() {
 
 .ai-hint-text {
 	font-size: 24rpx;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	line-height: 1.5;
 }
 
@@ -966,7 +1002,7 @@ function goWorkList() {
 }
 
 .preview-cover--placeholder {
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 }
 
 .preview-cover-text {
@@ -992,7 +1028,7 @@ function goWorkList() {
 	display: block;
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	margin-bottom: 16rpx;
 }
 
@@ -1009,7 +1045,7 @@ function goWorkList() {
 
 .preview-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 /* ── 按钮行 ── */
@@ -1022,7 +1058,7 @@ function goWorkList() {
 	flex: 1;
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1061,7 +1097,7 @@ function goWorkList() {
 
 .btn-secondary-text {
 	font-size: 30rpx;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 /* ── 发布成功 ── */
@@ -1098,19 +1134,19 @@ function goWorkList() {
 	font-family: var(--zy-serif);
 	font-size: 36rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .success-hint {
 	font-size: 28rpx;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 .success-btn {
 	margin-top: 16rpx;
 	padding: 20rpx 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
@@ -1129,7 +1165,7 @@ function goWorkList() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
 </style>
@@ -1142,7 +1178,12 @@ function goWorkList() {
 .re-upload-btn:focus-visible,
 .radio-item:focus-visible,
 .switch:focus-visible {
-	outline: 3px solid var(--zy-primary, #2f7566);
+	outline: 3px solid var(--zy-primary, #217e76);
+	outline-offset: 3px;
+}
+
+button:focus-visible {
+	outline: 3px solid var(--zy-brand-700, #1a645e);
 	outline-offset: 3px;
 }
 </style>

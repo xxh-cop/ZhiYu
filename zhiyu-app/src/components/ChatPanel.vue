@@ -7,14 +7,7 @@
 			<view class="cp-header">
 				<view class="cp-header-left">
 				<view class="cp-avatar-dynamic">
-					<image
-						v-if="!avatarError"
-						:src="avatarSrc"
-						mode="aspectFit"
-						class="cp-avatar-img"
-						@error="onAvatarError"
-					/>
-					<text v-else class="cp-avatar-text">织</text>
+					<XiaotuanPet :size="48" />
 					<view class="cp-avatar-dot"></view>
 				</view>
 					<view class="cp-header-info">
@@ -23,10 +16,10 @@
 					</view>
 				</view>
 			<view class="cp-header-actions">
-				<view class="cp-fullscreen-btn" @click="onFullscreen">
-					<wd-icon name="fullscreen" size="36rpx" color="#718478" />
+				<view class="cp-fullscreen-btn" role="button" tabindex="0" aria-label="全屏打开对话" @click="onFullscreen" @keydown.enter.prevent="onFullscreen" @keydown.space.prevent="onFullscreen">
+					<wd-icon name="fullscreen" size="36rpx" color="var(--zy-text, #4a5f54)" />
 				</view>
-				<view class="cp-close-btn" @click="onClose">
+				<view class="cp-close-btn" role="button" tabindex="0" aria-label="关闭对话面板" @click="onClose" @keydown.enter.prevent="onClose" @keydown.space.prevent="onClose">
 					<text class="cp-close-icon">×</text>
 				</view>
 			</view>
@@ -127,6 +120,7 @@ import { storeToRefs } from 'pinia'
 import { useEmotionStore } from '../stores/emotion'
 import { useUserStore } from '../stores/user'
 import { useAiCompanionStore } from '../stores/aiCompanion'
+import XiaotuanPet from './XiaotuanPet.vue'
 
 const emit = defineEmits(['close'])
 
@@ -138,24 +132,7 @@ const { messages, streaming, errorMsg, scrollSignal } = storeToRefs(emotionStore
 const inputText = ref('')
 const scrollTop = ref(0)
 
-// ── 头像图片加载失败降级 ──
-const avatarError = ref(false)
-function onAvatarError() {
-	avatarError.value = true
-}
-
-// ── 头部小织动态图（直接追踪 petState 确保响应式） ──
-const STATE_IMAGE_MAP = {
-	idle: '/static/xiaozhi-avatar.png',
-	thinking: '/static/xiaozhi-thinking.png',
-	talking: '/static/xiaozhi-talk.png',
-	happy: '/static/xiaozhi-happy.png',
-	caring: '/static/xiaozhi-caring.png',
-}
-const avatarSrc = ref(STATE_IMAGE_MAP.idle)
-watch(() => aiStore.petState, (newState) => {
-	avatarSrc.value = STATE_IMAGE_MAP[newState] || STATE_IMAGE_MAP.idle
-}, { immediate: true })
+// ── 头部小织渲染（线团小兽，组件内部跟随 aiStore.petState） ──
 
 // ── 键盘高度（小程序端） ──
 const keyboardHeight = ref(0)
@@ -331,23 +308,11 @@ onUnmounted(() => {
 .cp-avatar-dynamic {
 	position: relative;
 	width: 96rpx;
-	height: 128rpx;
+	height: 96rpx;
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-
-.cp-avatar-img {
-	width: 96rpx;
-	height: 128rpx;
-	object-fit: contain;
-}
-
-.cp-avatar-text {
-	font-size: 28rpx;
-	font-weight: 600;
-	color: var(--wot-color-theme, #2f7566);
 }
 
 .cp-avatar-dot {
@@ -357,7 +322,7 @@ onUnmounted(() => {
 	width: 16rpx;
 	height: 16rpx;
 	border-radius: 50%;
-	background-color: #10B981;
+	background-color: var(--zy-success, #2e7d5b);
 	border: 2rpx solid #FFFFFF;
 	box-sizing: border-box;
 }
@@ -376,7 +341,7 @@ onUnmounted(() => {
 
 .cp-header-sub {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .cp-header-actions {
@@ -405,7 +370,7 @@ onUnmounted(() => {
 
 .cp-close-icon {
 	font-size: 40rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 	line-height: 1;
 }
 
@@ -430,13 +395,13 @@ onUnmounted(() => {
 
 .cp-welcome-text {
 	font-size: 30rpx;
-	color: var(--wot-color-theme, #2f7566);
+	color: var(--wot-color-theme, #217e76);
 	margin-bottom: 16rpx;
 }
 
 .cp-welcome-hint {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 消息行 ── */
@@ -491,7 +456,7 @@ onUnmounted(() => {
 .cp-ai-avatar-text {
 	font-size: 28rpx;
 	font-weight: 600;
-	color: var(--wot-color-theme, #2f7566);
+	color: var(--wot-color-theme, #217e76);
 }
 
 /* ── 用户头像 ── */
@@ -499,7 +464,7 @@ onUnmounted(() => {
 	width: 64rpx;
 	height: 64rpx;
 	border-radius: 50%;
-	background-color: #F3F4F6;
+	background-color: var(--zy-bg, #f5f7f2);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -509,7 +474,7 @@ onUnmounted(() => {
 .cp-user-avatar-text {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: #6B7280;
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 气泡 ── */
@@ -522,13 +487,13 @@ onUnmounted(() => {
 }
 
 .cp-bubble-user {
-	background-color: var(--wot-color-theme, #2f7566);
+	background-color: var(--wot-color-theme, #217e76);
 }
 
 .cp-bubble-ai {
 	background-color: #FFFFFF;
 	border: 1px solid var(--zy-border, #dfe7dc);
-	box-shadow: 0 2rpx 8rpx rgba(45, 155, 143, 0.06);
+	box-shadow: 0 2rpx 8rpx rgba(33, 126, 118, 0.06);
 }
 
 .cp-bubble-text {
@@ -541,13 +506,13 @@ onUnmounted(() => {
 }
 
 .cp-text-ai {
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 /* ── 打字机光标 ── */
 .cp-typing {
 	font-size: 15px;
-	color: var(--wot-color-theme, #2f7566);
+	color: var(--wot-color-theme, #217e76);
 	margin-left: 2px;
 	animation: cpBlink 0.8s steps(2) infinite;
 }
@@ -561,7 +526,7 @@ onUnmounted(() => {
 .cp-msg-time {
 	margin-top: 8rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .cp-msg-time--user {
@@ -579,7 +544,7 @@ onUnmounted(() => {
 
 .cp-error-text {
 	font-size: 13px;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-danger, #a64842);
 }
 
 /* ── 输入区 ── */
@@ -615,6 +580,6 @@ onUnmounted(() => {
 
 .cp-disclaimer-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 </style>

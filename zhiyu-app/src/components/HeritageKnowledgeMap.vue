@@ -65,7 +65,7 @@ function draw() {
 		const y = (node.y / 100) * sizeValue
 		const radius = node.type === 'tradition' ? 18 : 15
 		context.beginPath()
-		context.setFillStyle(node.type === 'tradition' ? '#2f7566' : '#bb914d')
+		context.setFillStyle(node.type === 'tradition' ? '#217e76' : '#bb914d')
 		context.arc(x, y, radius, 0, Math.PI * 2)
 		context.fill()
 		context.setFillStyle('#233d34')
@@ -92,12 +92,12 @@ onBeforeUnmount(() => {
 .knowledge-map { padding: 8rpx 0 0; }
 .knowledge-map-canvas { display: block; margin: 0 auto; border-radius: 20rpx; background: #f7f9f4; }
 .knowledge-map-legend { display: flex; justify-content: center; gap: 24rpx; margin: 12rpx 0 16rpx; }
-.legend-item { display: flex; align-items: center; gap: 8rpx; font-size: 21rpx; color: var(--zy-text, #586e62); }
+.legend-item { display: flex; align-items: center; gap: 8rpx; font-size: 21rpx; color: var(--zy-text, #4a5f54); }
 .legend-dot { width: 16rpx; height: 16rpx; border-radius: 50%; }
-.legend-dot.tradition { background: #2f7566; }
+.legend-dot.tradition { background: #217e76; }
 .legend-dot.source { background: #bb914d; }
 .knowledge-map-list { display: flex; flex-direction: column; gap: 12rpx; }
 .knowledge-group { padding: 14rpx 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); }
 .knowledge-group-title { display: block; font-size: 24rpx; color: var(--zy-title, #233d34); font-weight: 600; }
-.knowledge-group-meta, .knowledge-group-patterns { display: block; margin-top: 4rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #586e62); word-break: break-word; }
+.knowledge-group-meta, .knowledge-group-patterns { display: block; margin-top: 4rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); word-break: break-word; }
 </style>

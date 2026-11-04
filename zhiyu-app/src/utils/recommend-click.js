@@ -6,8 +6,8 @@ import { buildRecommendationClickPayload } from './recommend-click-payload'
  *
  * 这是辅助埋点：不等待、不弹 Toast、不触发登录跳转；失败不影响用户进入详情。
  */
-export function trackRecommendationClick({ recommendationId, projectId, source }) {
-	const payload = buildRecommendationClickPayload(recommendationId, projectId, source)
+export function trackRecommendationClick({ recommendationId, projectId, source, eventType }) {
+	const payload = buildRecommendationClickPayload(recommendationId, projectId, source, eventType)
 	if (!payload) return
 
 	let token = ''

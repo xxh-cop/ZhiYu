@@ -36,22 +36,26 @@
 		</view>
 
 		<!-- 空状态 -->
-		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="empty-box zy-slide-up">
-			<view class="empty-icon-wrap">
-				<text class="empty-emoji">🌱</text>
-			</view>
-			<text class="empty-title">还没有作品</text>
-			<text class="empty-subtitle">发布你的第一件吧</text>
-			<view class="empty-btn" role="button" tabindex="0" @click="goPublish" @keydown.enter.prevent="goPublish" @keydown.space.prevent="goPublish">
-				<text class="empty-btn-text">去发布</text>
-			</view>
-		</view>
+		<StateBlock
+			v-else-if="!loading && records.length === 0 && !errorMsg"
+			type="empty"
+			art="community"
+			title="还没有作品"
+			description="发布你的第一件吧"
+			action-text="去发布"
+			@action="goPublish"
+		/>
 
 		<!-- 错误状态 -->
-		<view v-else-if="errorMsg && records.length === 0" class="status-box">
-			<text class="error-text">{{ errorMsg }}</text>
-			<wd-button type="primary" plain size="small" @click="loadData(1)">重试</wd-button>
-		</view>
+		<StateBlock
+			v-else-if="errorMsg && records.length === 0"
+			type="error"
+			title="作品没有加载成功"
+			:description="errorMsg"
+			action-text="重试"
+			:action-loading="loading"
+			@action="loadData(1)"
+		/>
 
 		<!-- 作品卡片列表 -->
 		<view v-else class="card-list">
@@ -91,11 +95,11 @@
 					<view class="card-meta">
 						<view class="meta-left">
 							<view class="meta-item">
-								<wd-icon name="heart" size="28rpx" :color="item.liked ? '#FF6B6B' : '#718478'" />
+								<wd-icon name="heart" size="28rpx" :color="item.liked ? '#a64842' : '#4a5f54'" />
 								<text class="meta-num" :class="{ 'meta-liked': item.liked }">{{ item.likeCount }}</text>
 							</view>
 							<view class="meta-item">
-								<wd-icon name="chat" size="28rpx" color="#718478" />
+								<wd-icon name="chat" size="28rpx" color="#4a5f54" />
 								<text class="meta-num">{{ item.commentCount }}</text>
 							</view>
 						</view>
@@ -107,7 +111,7 @@
 			<!-- 分页失败：保留已加载作品 -->
 			<view v-if="errorMsg && records.length > 0" class="bottom-error" role="alert">
 				<text>{{ errorMsg }}</text>
-				<button @click="loadMore">重试</button>
+				<AccessibleButton @click="loadMore">重试</AccessibleButton>
 			</view>
 
 			<!-- 底部状态 -->
@@ -132,6 +136,8 @@ import { ref, computed } from 'vue'
 import { onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { API_BASE_URL } from '../../utils/config.js'
+import StateBlock from '../../components/StateBlock.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
 
 const tabs = [
 	{ label: '全部', value: 'all' },
@@ -223,7 +229,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${url}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2f7566 0%, #82ad9b 100%);'
+	return 'background: linear-gradient(135deg, #217e76 0%, #5bc4a8 100%);'
 }
 
 function fullUrl(url) {
@@ -278,7 +284,7 @@ loadData(1)
 
 .brand-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 	margin-top: 4rpx;
 	display: block;
 }
@@ -299,13 +305,13 @@ loadData(1)
 }
 
 .tab-active {
-	background-color: var(--zy-primary, #2f7566);
-	border-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, #217e76);
 }
 
 .tab-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .tab-text-active {
@@ -335,71 +341,6 @@ loadData(1)
 .skeleton-text {
 	height: 28rpx;
 	width: 90%;
-}
-
-/* ── 空状态 ── */
-.empty-box {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 100rpx 0;
-	gap: 16rpx;
-}
-
-.empty-icon-wrap {
-	width: 120rpx;
-	height: 120rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 16rpx;
-}
-
-.empty-emoji {
-	font-size: 60rpx;
-}
-
-.empty-title {
-	font-size: 30rpx;
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-}
-
-.empty-subtitle {
-	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
-}
-
-.empty-btn {
-	margin-top: 16rpx;
-	padding: 16rpx 48rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
-	box-shadow: var(--zy-shadow-md);
-}
-
-.empty-btn-text {
-	font-size: 28rpx;
-	color: #FFFFFF;
-	font-weight: 500;
-}
-
-/* ── 状态 ── */
-.status-box {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 120rpx 0;
-	gap: 24rpx;
-}
-
-.error-text {
-	font-size: 28rpx;
-	color: var(--zy-danger, #FF6B6B);
 }
 
 /* ── 卡片列表 ── */
@@ -459,7 +400,7 @@ loadData(1)
 
 .play-icon-text {
 	font-size: 28rpx;
-	color: #2f7566;
+	color: #217e76;
 	margin-left: 4rpx;
 }
 
@@ -467,18 +408,18 @@ loadData(1)
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: linear-gradient(135deg, rgba(45, 155, 143, 0.1) 0%, rgba(91, 196, 168, 0.05) 100%);
+	background: linear-gradient(135deg, rgba(33, 126, 118, 0.1) 0%, rgba(91, 196, 168, 0.05) 100%);
 }
 
 .card-cover-text-label {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .cover-placeholder {
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(135deg, rgba(45, 155, 143, 0.1) 0%, rgba(91, 196, 168, 0.05) 100%);
+	background: linear-gradient(135deg, rgba(33, 126, 118, 0.1) 0%, rgba(91, 196, 168, 0.05) 100%);
 }
 
 .card-body {
@@ -496,7 +437,7 @@ loadData(1)
 	display: block;
 	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .card-message {
@@ -504,7 +445,7 @@ loadData(1)
 	margin-top: 12rpx;
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -532,16 +473,16 @@ loadData(1)
 
 .meta-num {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .meta-liked {
-	color: #FF6B6B;
+	color: var(--zy-care, #a64842);
 }
 
 .meta-time {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 底部 ── */
@@ -564,7 +505,7 @@ loadData(1)
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #2f7566);
+	border-top-color: var(--zy-primary, #217e76);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -574,23 +515,22 @@ loadData(1)
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
 </style>
 
 <style scoped>
 .filter-tab:focus-visible,
-.empty-btn:focus-visible,
 .work-card:focus-visible {
-	outline: 3px solid var(--zy-primary, #2f7566);
+	outline: 3px solid var(--zy-primary, #217e76);
 	outline-offset: 3px;
 }
 .bottom-error {
@@ -603,7 +543,7 @@ loadData(1)
 	border: 1rpx dashed var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 24rpx);
 	background: var(--zy-card-bg, #fff);
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	font-size: 24rpx;
 	line-height: 1.7;
 	text-align: center;
@@ -611,10 +551,10 @@ loadData(1)
 .bottom-error button {
 	min-height: 72rpx;
 	padding: 0 26rpx;
-	border: 1rpx solid var(--zy-primary, #2f7566);
+	border: 1rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-size: 24rpx;
 	line-height: 2.6;
 }

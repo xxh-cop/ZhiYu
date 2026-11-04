@@ -24,6 +24,7 @@
 					tabindex="0"
 					@click="goStory(story)"
 					@keydown.enter.prevent="goStory(story)"
+					@keydown.space.prevent="goStory(story)"
 				>
 					<text class="story-index">0{{ idx + 1 }}</text>
 					<text class="story-title">{{ story.title }}</text>
@@ -38,7 +39,7 @@
 		<!-- 搜索框 -->
 		<view class="search-bar zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="search-input-wrap">
-				<wd-icon name="search" size="32rpx" color="#718478" />
+				<wd-icon name="search" size="32rpx" color="var(--zy-text, #4a5f54)" />
 				<input
 					class="search-input"
 					type="text"
@@ -86,7 +87,11 @@
 				:key="item.id"
 				class="inheritor-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx + 2 }"
+				role="button"
+				tabindex="0"
 				@click="goDetail(item)"
+				@keydown.enter.prevent="goDetail(item)"
+				@keydown.space.prevent="goDetail(item)"
 			>
 				<!-- 左侧渐变竖线 -->
 				<view class="card-accent-line"></view>
@@ -114,7 +119,7 @@
 						<!-- 底部：认证徽章 + 项目数 -->
 						<view class="card-footer">
 							<view v-if="item.verified" class="verified-badge">
-								<wd-icon name="check-circle-filled" size="24rpx" color="#2f7566" />
+								<wd-icon name="check-circle-filled" size="24rpx" color="#217e76" />
 								<text class="verified-text">已认证</text>
 							</view>
 							<view class="project-count">
@@ -230,7 +235,7 @@ function avatarStyle(item) {
 		return `background-image: url(${item.avatarUrl}); background-size: cover; background-position: center;`
 		// #endif
 	}
-	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
+	return 'background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));'
 }
 
 function goDetail(item) {
@@ -305,7 +310,7 @@ loadStories()
 }
 
 .search-input-wrap:focus-within {
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 }
 
 .search-input {
@@ -315,12 +320,12 @@ loadStories()
 }
 
 .search-placeholder {
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .search-btn {
 	font-size: 28rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	white-space: nowrap;
 }
 
@@ -390,12 +395,12 @@ loadStories()
 
 .empty-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .error-text {
 	font-size: 28rpx;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-danger, #a64842);
 }
 
 /* ── 卡片列表 ── */
@@ -424,7 +429,7 @@ loadStories()
 .card-accent-line {
 	width: 6rpx;
 	flex-shrink: 0;
-	background: linear-gradient(180deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(180deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
 }
 
 .card-inner {
@@ -440,7 +445,7 @@ loadStories()
 	height: 132rpx;
 	border-radius: 50%;
 	padding: 4rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
 	flex-shrink: 0;
 }
 
@@ -490,13 +495,13 @@ loadStories()
 
 .skill-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .card-honor {
 	margin-top: 8rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .card-intro {
@@ -504,7 +509,7 @@ loadStories()
 	margin-top: 8rpx;
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -527,12 +532,12 @@ loadStories()
 
 .verified-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .project-count-text {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 底部 ── */
@@ -555,7 +560,7 @@ loadStories()
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #2f7566);
+	border-top-color: var(--zy-primary, #217e76);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -565,14 +570,14 @@ loadStories()
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
 </style>
@@ -581,19 +586,19 @@ loadStories()
 .story-section { margin-bottom: 26rpx; }
 .story-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12rpx; margin-bottom: 14rpx; }
 .story-eyebrow { display: block; font-family: var(--zy-serif); font-size: 30rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.story-note { display: block; margin-top: 6rpx; font-size: 19rpx; letter-spacing: 1rpx; color: var(--zy-sub, #718478); }
+.story-note { display: block; margin-top: 6rpx; font-size: 19rpx; letter-spacing: 1rpx; color: var(--zy-text, #4a5f54); }
 .story-skeleton { height: 260rpx; border-radius: 20rpx; }
-.story-error { padding: 22rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-card-bg, #fff); font-size: 22rpx; line-height: 1.7; color: var(--zy-content, #586e62); }
+.story-error { padding: 22rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-card-bg, #fff); font-size: 22rpx; line-height: 1.7; color: var(--zy-content, #4a5f54); }
 .story-scroll { width: 100%; white-space: nowrap; }
 .story-card { display: inline-flex; flex-direction: column; width: 300rpx; margin-right: 16rpx; padding: 22rpx 22rpx 20rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 20rpx; background: linear-gradient(145deg, var(--zy-card-bg, #fff), var(--zy-bg-tint-mint, #eef5ef)); vertical-align: top; white-space: normal; box-sizing: border-box; }
 .story-card:last-child { margin-right: 0; }
-.story-index { font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #bb914d); }
+.story-index { font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #8a6d1f); }
 .story-title { display: block; margin-top: 8rpx; font-family: var(--zy-serif); font-size: 28rpx; font-weight: 600; line-height: 1.45; color: var(--zy-title, #233d34); }
-.story-meta { display: block; margin-top: 6rpx; font-size: 19rpx; color: var(--zy-primary, #2f7566); }
-.story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size: 21rpx; line-height: 1.7; color: var(--zy-content, #586e62); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.story-link { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-primary, #2f7566); }
-.story-boundary { display: block; margin-top: 12rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-sub, #718478); }
-.story-card:focus-visible { outline: 3px solid var(--zy-primary, #2f7566); outline-offset: 3px; }
+.story-meta { display: block; margin-top: 6rpx; font-size: 19rpx; color: var(--zy-primary, #217e76); }
+.story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size: 21rpx; line-height: 1.7; color: var(--zy-content, #4a5f54); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.story-link { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-primary, #217e76); }
+.story-boundary { display: block; margin-top: 12rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
+.story-card:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   .story-card { transition: none; }
 }

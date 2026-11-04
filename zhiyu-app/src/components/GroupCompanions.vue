@@ -6,7 +6,7 @@ const props=defineProps({groupId:String,members:Array,myMemberId:String})
 const candidates=computed(()=>(props.members||[]).filter(m=>m.id!==props.myMemberId))
 const rows=ref([]),error=ref(''),busy=ref(false)
 const labels={PENDING:'等待回应',ACCEPTED:'已结伴',DECLINED:'已婉拒',CANCELLED:'已取消'}
-async function load(){error.value='';try{rows.value=await request({url:'/api/groups/'+props.groupId+'/companions'})}catch(e){error.value=e.message}}
+async function load(){error.value='';try{rows.value=(await request({url:'/api/groups/'+props.groupId+'/companions'}))||[]}catch(e){error.value='结伴状态暂时没有读取成功'}}
 async function run(url,method,data){if(busy.value)return;busy.value=true;error.value='';try{await request({url:'/api/groups/'+props.groupId+'/companions'+url,method,data});await load()}catch(e){error.value=e.message}finally{busy.value=false}}
 function invite(){const available=candidates.value;if(!available.length)return;uni.showActionSheet({itemList:available.map(m=>m.nickname),success:r=>run('','POST',{memberId:available[r.tapIndex].id})})}
 onMounted(load)

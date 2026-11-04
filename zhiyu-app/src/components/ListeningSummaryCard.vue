@@ -9,13 +9,13 @@
 		<text v-if="loading" class="growth-muted summary-state" role="status" aria-live="polite">正在读取小结…</text>
 		<view v-else-if="error" class="summary-error" role="alert">
 			<text class="growth-error">{{ error }}</text>
-			<button class="growth-button secondary" @click="load">重试</button>
+			<AccessibleButton class="growth-button secondary" @click="load">重试</AccessibleButton>
 		</view>
 
 		<template v-else>
 			<view v-if="safetyHold" class="summary-alert" role="alert">
 				<text>{{ summary }}</text>
-				<button class="growth-button secondary" @click="support">前往支持页</button>
+				<AccessibleButton class="growth-button secondary" @click="support">前往支持页</AccessibleButton>
 			</view>
 
 			<template v-else>
@@ -31,7 +31,7 @@
 				/>
 				<text v-if="summary" class="summary-hint" role="status" aria-live="polite">{{ generated ? 'AI 生成，已通过安全过滤；可以编辑后保存。' : '这是可编辑的记录引导，不代表 AI 已读懂对话。' }}</text>
 
-				<button
+				<AccessibleButton
 					v-if="sessionStatus === 1 && !safetyHold"
 					class="summary-consent"
 					role="checkbox"
@@ -41,26 +41,44 @@
 				>
 					<view class="summary-consent-box" aria-hidden="true">{{ consent ? '✓' : '' }}</view>
 					<text>同意读取这次已结束对话中我说过的话，用于生成或保存小结</text>
-				</button>
+				</AccessibleButton>
 
 				<view v-if="sessionStatus === 1" class="summary-actions">
-					<button class="growth-button secondary" :disabled="!consent || busy" @click="generate">{{ busy ? '处理中…' : '请小织生成' }}</button>
-					<button class="growth-button" :disabled="!canSave" @click="save">保存小结</button>
-					<button v-if="hasSaved" class="growth-button secondary" :disabled="busy" @click="remove">删除小结</button>
+					<AccessibleButton class="growth-button secondary" :disabled="!consent || busy" @click="generate">{{ busy ? '处理中…' : '请小织生成' }}</AccessibleButton>
+					<AccessibleButton class="growth-button" :disabled="!canSave" @click="save">保存小结</AccessibleButton>
+					<AccessibleButton v-if="hasSaved" class="growth-button secondary" :disabled="busy" @click="remove">删除小结</AccessibleButton>
 				</view>
 				<view v-else-if="hasSaved" class="summary-actions">
-					<button class="growth-button secondary" :disabled="busy" @click="remove">删除小结</button>
+					<AccessibleButton class="growth-button secondary" :disabled="busy" @click="remove">删除小结</AccessibleButton>
 				</view>
 			</template>
 		</template>
 
 		<text class="summary-foot">本系统不能替代专业心理咨询</text>
+
+		<ActionSheet
+			:open="pendingDelete"
+			title="删除倾听小结"
+			description="只删除这条小结，不删除倾听对话。是否继续？"
+			:actions="[{ key: 'confirm', label: '确认删除', tone: 'danger', busy: busy }]"
+			cancel-text="再想想"
+			:busy="busy"
+			@select="confirmRemove"
+			@close="pendingDelete = false"
+		/>
+		<Toast />
 	</view>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { request } from '../utils/request'
+import ActionSheet from './ActionSheet.vue'
+import Toast from './Toast.vue'
+import AccessibleButton from './AccessibleButton.vue'
+import { useToast } from '../composables/useToast'
+
+const toast = useToast()
 
 const props = defineProps({
 	sessionId: { type: [String, Number], required: true },
@@ -77,6 +95,7 @@ const summary = ref('')
 const generated = ref(false)
 const safetyHold = ref(false)
 const consent = ref(false)
+const pendingDelete = ref(false)
 const canSave = computed(() => consent.value && !safetyHold.value && summary.value.trim().length > 0 && !busy.value)
 
 async function load() {
@@ -132,7 +151,7 @@ async function save() {
 		hasSaved.value = true
 		savedText.value = summary.value.trim()
 		summary.value = data.summary || summary.value.trim()
-		uni.showToast({ title: '小结已保存', icon: 'success' })
+		toast.success('小结已保存')
 	} catch (e) {
 		error.value = (e && e.message) || '保存失败，请重试。'
 	} finally {
@@ -141,29 +160,29 @@ async function save() {
 }
 
 function remove() {
-	uni.showModal({
-		title: '删除倾听小结',
-		content: '只删除这条小结，不删除倾听对话。是否继续？',
-		success: async (result) => {
-			if (!result.confirm || busy.value) return
-			busy.value = true
-			error.value = ''
-			try {
-				await request({ url: `/api/emotion/sessions/${props.sessionId}/summary`, method: 'DELETE' })
-				saved.value = false
-				hasSaved.value = false
-				savedText.value = ''
-				summary.value = ''
-				generated.value = false
-				safetyHold.value = false
-				uni.showToast({ title: '小结已删除', icon: 'none' })
-			} catch (e) {
-				error.value = (e && e.message) || '删除失败，请重试。'
-			} finally {
-				busy.value = false
-			}
-		},
-	})
+	if (busy.value) return
+	pendingDelete.value = true
+}
+
+async function confirmRemove() {
+	if (busy.value) return
+	busy.value = true
+	error.value = ''
+	try {
+		await request({ url: `/api/emotion/sessions/${props.sessionId}/summary`, method: 'DELETE' })
+		saved.value = false
+		hasSaved.value = false
+		savedText.value = ''
+		summary.value = ''
+		generated.value = false
+		safetyHold.value = false
+		pendingDelete.value = false
+		toast.show('小结已删除')
+	} catch (e) {
+		error.value = (e && e.message) || '删除失败，请重试。'
+	} finally {
+		busy.value = false
+	}
 }
 
 function support() {
@@ -180,17 +199,18 @@ watch(summary, (value) => {
 <style scoped>
 .summary-card { margin-top: 18rpx; }
 .summary-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12rpx; }
-.summary-badge { flex-shrink: 0; padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-aid, #718478); font-size: 20rpx; }
-.summary-badge.saved { background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #2f7566); }
+.summary-badge { flex-shrink: 0; padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 20rpx; }
+.summary-badge.saved { background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #217e76); }
 .summary-state { display: block; margin-top: 14rpx; }
 .summary-error { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; margin-top: 14rpx; }
-.summary-alert { display: flex; flex-direction: column; align-items: flex-start; gap: 14rpx; margin-top: 14rpx; padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); font-size: 24rpx; line-height: 1.7; color: var(--zy-text, #586e62); }
+.summary-alert { display: flex; flex-direction: column; align-items: flex-start; gap: 14rpx; margin-top: 14rpx; padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); font-size: 24rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
 .summary-input { display: block; width: 100%; min-height: 160rpx; margin-top: 14rpx; box-sizing: border-box; }
-.summary-hint { display: block; margin-top: 8rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-aid, #718478); }
-.summary-consent { display: flex; align-items: flex-start; gap: 10rpx; width: 100%; margin: 14rpx 0 0; padding: 12rpx 14rpx; text-align: left; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #586e62); font-size: 22rpx; line-height: 1.6; }
-.summary-consent[aria-checked="true"] { border-color: var(--zy-primary, #2f7566); color: var(--zy-primary, #2f7566); }
+.summary-hint { display: block; margin-top: 8rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); }
+.summary-consent { display: flex; align-items: flex-start; gap: 10rpx; width: 100%; margin: 14rpx 0 0; padding: 12rpx 14rpx; text-align: left; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 22rpx; line-height: 1.6; }
+.summary-consent[aria-checked="true"] { border-color: var(--zy-primary, #217e76); color: var(--zy-primary, #217e76); }
 .summary-consent-box { display: inline-flex; align-items: center; justify-content: center; width: 30rpx; height: 30rpx; flex-shrink: 0; border: 1rpx solid currentColor; border-radius: 8rpx; font-size: 18rpx; }
 .summary-actions { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 14rpx; }
 .summary-actions .growth-button { margin: 0; }
-.summary-foot { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-aid, #718478); }
+.summary-foot { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-text, #4a5f54); }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 3px; }
 </style>

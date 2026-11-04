@@ -16,42 +16,45 @@
 			<!-- 简述区 -->
 			<view class="panel-body">
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2f7566" />
+					<wd-icon name="check" size="28rpx" color="#217e76" />
 					<text class="clause-text">我们仅在你同意后收集昵称、对话内容等必要信息</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2f7566" />
+					<wd-icon name="check" size="28rpx" color="#217e76" />
 					<text class="clause-text">对话与便签加密存储，咨询师看到的是脱敏汇总</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2f7566" />
+					<wd-icon name="check" size="28rpx" color="#217e76" />
 					<text class="clause-text">你可随时撤回同意、关闭联系方式授权或注销账号</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#2f7566" />
+					<wd-icon name="check" size="28rpx" color="#217e76" />
 					<text class="clause-text">本系统不能替代专业心理咨询</text>
 				</view>
 			</view>
 
 			<!-- 链接 -->
-			<text class="policy-link" @click="viewFullPolicy">查看完整隐私政策</text>
+			<text class="policy-link" role="button" tabindex="0" @click="viewFullPolicy" @keydown.enter.prevent="viewFullPolicy" @keydown.space.prevent="viewFullPolicy">查看完整隐私政策</text>
 
 			<!-- 按钮区 -->
 			<view class="panel-actions">
-				<view class="btn-decline" @click="onDecline">
+				<view class="btn-decline" role="button" tabindex="0" @click="onDecline" @keydown.enter.prevent="onDecline" @keydown.space.prevent="onDecline">
 					<text class="btn-decline-text">不同意，仅浏览</text>
 				</view>
-				<view class="btn-agree" @click="onAgree" :class="{ 'btn-agree--loading': loading }">
+				<view class="btn-agree" role="button" tabindex="0" @click="onAgree" @keydown.enter.prevent="onAgree" @keydown.space.prevent="onAgree" :class="{ 'btn-agree--loading': loading }">
 					<text class="btn-agree-text">{{ loading ? '提交中...' : '同意并继续' }}</text>
 				</view>
 			</view>
 		</view>
+		<Toast />
 	</view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { http } from '../utils/request'
+import { useToast } from '../composables/useToast'
+import Toast from './Toast.vue'
 
 const props = defineProps({
 	visible: { type: Boolean, default: false },
@@ -60,6 +63,7 @@ const props = defineProps({
 const emit = defineEmits(['agree', 'decline'])
 
 const loading = ref(false)
+const toast = useToast()
 
 async function onAgree() {
 	if (loading.value) return
@@ -68,7 +72,7 @@ async function onAgree() {
 		await http.post('/api/user/privacy/agree', {})
 		emit('agree')
 	} catch (e) {
-		uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
+		toast.show('网络异常，请稍后重试')
 	} finally {
 		loading.value = false
 	}
@@ -113,7 +117,7 @@ function viewFullPolicy() {
 
 .panel-accent {
 	height: 8rpx;
-	background: linear-gradient(90deg, #2f7566 0%, #82ad9b 100%);
+	background: linear-gradient(90deg, #217e76 0%, var(--zy-brand-300, #5bc4a8) 100%);
 }
 
 .panel-header {
@@ -127,12 +131,12 @@ function viewFullPolicy() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #2f7566, #5BCFBF);
+	background: linear-gradient(135deg, #217e76, #5BCFBF);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	margin-bottom: 20rpx;
-	box-shadow: 0 8rpx 24rpx rgba(45, 155, 143, 0.2);
+	box-shadow: 0 8rpx 24rpx rgba(33, 126, 118, 0.2);
 }
 
 .header-icon-text {
@@ -150,7 +154,7 @@ function viewFullPolicy() {
 .panel-sub {
 	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: #718478;
+	color: var(--zy-text, #4a5f54);
 }
 
 .panel-body {
@@ -168,14 +172,14 @@ function viewFullPolicy() {
 	flex: 1;
 	font-size: 28rpx;
 	line-height: 1.6;
-	color: #586e62;
+	color: #4a5f54;
 }
 
 .policy-link {
 	display: block;
 	text-align: center;
 	font-size: 26rpx;
-	color: #2f7566;
+	color: #217e76;
 	padding: 16rpx 0 8rpx;
 }
 
@@ -202,19 +206,19 @@ function viewFullPolicy() {
 
 .btn-decline-text {
 	font-size: 28rpx;
-	color: #6B7280;
+	color: var(--zy-text, #4a5f54);
 }
 
 .btn-agree {
 	flex: 1.2;
 	height: 88rpx;
 	border-radius: 999rpx;
-	background: linear-gradient(135deg, #2f7566, #82ad9b);
+	background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	transition: transform 0.15s ease;
-	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.25);
+	box-shadow: 0 4rpx 16rpx rgba(33, 126, 118, 0.25);
 }
 
 .btn-agree:active {

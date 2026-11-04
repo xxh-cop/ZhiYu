@@ -51,12 +51,12 @@
 				placeholder="例如：我有点静不下来，想找一件十分钟的小事"
 				aria-label="想和小织说的话，最多 500 字"
 			/>
-			<button
+			<AccessibleButton
 				class="growth-button companion-send"
 				:disabled="busy || !draft.trim()"
 				:aria-busy="busy ? 'true' : 'false'"
 				@click="send"
-			>{{ busy ? '……' : '发送' }}</button>
+			>{{ busy ? '……' : '发送' }}</AccessibleButton>
 		</view>
 		<text class="companion-foot">本轮文字只用于当前练习；AI 审计加密保存，不向其他同学展示。生成失败时会使用本地引导。</text>
 	</view>
@@ -66,6 +66,7 @@
 import { onBeforeUnmount, ref } from 'vue'
 import { API_BASE_URL, TOKEN_KEY } from '../utils/config'
 import { startSSE } from '../utils/sse'
+import AccessibleButton from './AccessibleButton.vue'
 
 const props = defineProps({
 	session: { type: Object, default: null },
@@ -221,14 +222,14 @@ onBeforeUnmount(() => {
 	display: block;
 	font-size: 19rpx;
 	letter-spacing: 3rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 .companion-stage {
 	flex-shrink: 0;
 	padding: 4rpx 12rpx;
 	border-radius: 999rpx;
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-size: 21rpx;
 }
 .companion-intro {
@@ -258,7 +259,7 @@ onBeforeUnmount(() => {
 }
 .companion-message-meta {
 	font-size: 19rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 .companion-message-text {
 	font-size: 24rpx;
@@ -273,13 +274,13 @@ onBeforeUnmount(() => {
 	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 	font-size: 21rpx;
 	line-height: 1.7;
-	color: #8a5a33;
+	color: var(--zy-accent, #8a6d1f);
 }
 .companion-thinking {
 	display: block;
 	margin: 6rpx 0 10rpx;
 	font-size: 22rpx;
-	color: var(--zy-text, #586e62);
+	color: var(--zy-text, #4a5f54);
 }
 .companion-tool {
 	margin-top: 12rpx;
@@ -299,7 +300,7 @@ onBeforeUnmount(() => {
 	margin-top: 6rpx;
 	font-size: 22rpx;
 	line-height: 1.6;
-	color: var(--zy-text, #586e62);
+	color: var(--zy-text, #4a5f54);
 	overflow-wrap: anywhere;
 }
 .companion-tool-note {
@@ -309,7 +310,7 @@ onBeforeUnmount(() => {
 	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 	font-size: 21rpx;
 	line-height: 1.7;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 .companion-citations {
 	margin-top: 12rpx;
@@ -322,7 +323,7 @@ onBeforeUnmount(() => {
 	margin-top: 4rpx;
 	font-size: 21rpx;
 	line-height: 1.6;
-	color: var(--zy-text, #586e62);
+	color: var(--zy-text, #4a5f54);
 	overflow-wrap: anywhere;
 }
 .companion-error {
@@ -330,7 +331,7 @@ onBeforeUnmount(() => {
 	margin-top: 12rpx;
 	font-size: 22rpx;
 	line-height: 1.6;
-	color: #a4453f;
+	color: var(--zy-care, #a64842);
 }
 .companion-input-row {
 	display: flex;
@@ -367,7 +368,7 @@ onBeforeUnmount(() => {
 	margin-top: 12rpx;
 	font-size: 20rpx;
 	line-height: 1.7;
-	color: var(--zy-text, #586e62);
+	color: var(--zy-text, #4a5f54);
 }
 @media (max-width: 420px) {
 	.companion-message {

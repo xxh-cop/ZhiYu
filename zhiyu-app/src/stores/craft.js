@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { invalidate, TTL_KEYS } from '../utils/ttlCache'
 
 /**
  * 创作会话 Pinia store（T1.9b）。
@@ -79,6 +80,8 @@ export const useCraftStore = defineStore('craft', {
 		/** 标记完成 */
 		finish() {
 			this.status = 3
+			// X2：会话统计/进行中缓存即刻失效（首页回到 30s 前的数据不可接受）
+			invalidate(TTL_KEYS.userStats, TTL_KEYS.craftSessionActive)
 		},
 	},
 })

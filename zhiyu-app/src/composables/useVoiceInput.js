@@ -2,6 +2,7 @@ import {ref} from 'vue'
 import {onHide,onUnload} from '@dcloudio/uni-app'
 import {request} from '../utils/request'
 import {API_BASE_URL,TOKEN_KEY} from '../utils/config'
+import {notify} from './useToast'
 
 function writeWavString(view,offset,text){
   for(let i=0;i<text.length;i++)view.setUint8(offset+i,text.charCodeAt(i))
@@ -29,7 +30,7 @@ export function useVoiceInput(onText) {
   const state=ref('idle')
   let recorder=null,stream=null,timer=null,cancelled=false,upload=null
   let audioContext=null,sourceNode=null,processorNode=null
-  const fail=e=>uni.showToast({title:e?.message||'录音暂不可用，请使用文字输入',icon:'none'})
+  const fail=e=>notify(e?.message||'录音暂不可用，请使用文字输入',{tone:'care'})
   const tracks=()=>{stream?.getTracks().forEach(t=>t.stop());stream=null}
   const closeAudio=()=>{
     try{processorNode?.disconnect();sourceNode?.disconnect();audioContext?.close()}catch(e){}
@@ -52,7 +53,7 @@ export function useVoiceInput(onText) {
       // #ifndef H5
       data=await new Promise((resolve,reject)=>{upload=uni.uploadFile({url:API_BASE_URL+'/api/speech/transcribe',filePath:blobOrPath,name:'file',header:{Authorization:'Bearer '+uni.getStorageSync(TOKEN_KEY)},timeout:30000,success:r=>{try{const body=JSON.parse(r.data);if(body.code!==0)throw new Error(body.message||'识别失败');resolve(body.data)}catch(e){reject(e)}},fail:()=>reject(new Error('录音上传失败，请使用文字输入'))})})
       // #endif
-      if(!cancelled){onText(data.text);uni.showToast({title:'请确认文字后再发送',icon:'none'})}
+      if(!cancelled){onText(data.text);notify('请确认文字后再发送')}
     }catch(e){if(!cancelled)fail(e)}finally{upload=null;finish()}
   }
   async function toggle(){
@@ -62,7 +63,7 @@ export function useVoiceInput(onText) {
     try{
       const status=await request({url:'/api/speech/status'})
       if(cancelled)return
-      if(!status.available){finish();uni.showToast({title:status.message,icon:'none',duration:3500});return}
+      if(!status.available){finish();notify(status.message,{tone:'care',duration:3500});return}
       const consent=await new Promise(resolve=>uni.showModal({title:'语音输入',content:'录音将交由已配置语音服务识别，不保存原始音频。识别文字需由你确认后发送。',success:r=>resolve(r.confirm),fail:()=>resolve(false)}))
       if(!consent||cancelled){finish();return}
       // #ifdef H5

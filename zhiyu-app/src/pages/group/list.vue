@@ -6,39 +6,20 @@
 			<text class="brand-subtitle">找到同行的伙伴</text>
 		</view>
 
-		<!-- 骨架屏 -->
-		<view v-if="loading" class="card-list">
-			<view v-for="i in 3" :key="'sk-'+i" class="skeleton-card">
-				<view class="skeleton-body">
-					<view class="skeleton-title zy-skeleton"></view>
-					<view class="skeleton-text zy-skeleton"></view>
-				</view>
-			</view>
-		</view>
+		<!-- 首屏加载骨架 -->
+		<StateBlock v-if="loading" type="loading" title="正在整理小组…" />
 
 		<!-- 空状态 -->
-		<view v-else-if="groups.length === 0 && !errorMsg" class="empty-box zy-slide-up">
-			<view class="empty-icon-wrap">
-				<text class="empty-emoji">🌿</text>
-			</view>
-			<text class="empty-title">还没有小组</text>
-			<text class="empty-sub">来创建第一个吧</text>
-			<view class="empty-btn" role="button" tabindex="0" @click="goCreate" @keydown.enter.prevent="goCreate" @keydown.space.prevent="goCreate">
-				<text class="empty-btn-text">创建小组</text>
-			</view>
-		</view>
+		<StateBlock v-else-if="groups.length === 0 && !errorMsg" type="empty" face="calm" title="还没有小组" description="来创建第一个吧。" action-text="创建小组" @action="goCreate" />
 
 		<!-- 错误状态 -->
-		<view v-else-if="errorMsg && groups.length === 0" class="status-box">
-			<text class="error-text">{{ errorMsg }}</text>
-			<wd-button type="primary" plain size="small" @click="loadData">重试</wd-button>
-		</view>
+		<StateBlock v-else-if="errorMsg && groups.length === 0" type="error" title="小组加载失败" :description="errorMsg" action-text="重试" @action="loadData" />
 
 		<!-- 小组卡片列表 -->
 		<view v-else class="card-list">
 			<view v-if="errorMsg" class="group-error-row" role="alert">
 				<text>{{ errorMsg }}</text>
-				<button @click="loadData">重试</button>
+				<AccessibleButton @click="loadData">重试</AccessibleButton>
 			</view>
 			<view
 				v-for="(group, idx) in groups"
@@ -61,7 +42,7 @@
 						</view>
 						<text v-if="group.description" class="group-desc">{{ group.description }}</text>
 						<view class="member-row">
-							<wd-icon name="user" size="24rpx" color="#718478" />
+							<wd-icon name="user" size="24rpx" color="#4a5f54" />
 							<text class="member-text">{{ group.memberCount }} / {{ group.maxCount }} 人</text>
 						</view>
 					</view>
@@ -96,6 +77,8 @@
 
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
+
+		<Toast />
 	</view>
 </template>
 
@@ -103,6 +86,12 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import StateBlock from '../../components/StateBlock.vue'
+import Toast from '../../components/Toast.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import { useToast } from '../../composables/useToast'
+
+const toast = useToast()
 
 const loading = ref(false)
 const errorMsg = ref('')
@@ -111,10 +100,10 @@ const joiningId = ref(null)
 function openGroup(group){uni.navigateTo({url:'/pages/group/detail?id='+group.id})}
 
 const GRADIENTS = [
-	'linear-gradient(135deg, #2f7566, #82ad9b)',
-	'linear-gradient(135deg, #bb914d, #FFD08A)',
-	'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
-	'linear-gradient(135deg, #82ad9b, #8DD9C4)',
+	'linear-gradient(135deg, #217e76, #5bc4a8)',
+	'linear-gradient(135deg, #8a6d1f, #FFD08A)',
+	'linear-gradient(135deg, #a64842, #d4736a)',
+	'linear-gradient(135deg, #5bc4a8, #8adcc6)',
 	'linear-gradient(135deg, #FF9B6B, #FFC499)',
 ]
 
@@ -150,9 +139,9 @@ async function handleJoin(group) {
 		if (idx >= 0) {
 			groups.value[idx] = updated
 		}
-		uni.showToast({ title: '加入成功', icon: 'success' })
+		toast.success('加入成功')
 	} catch (e) {
-		uni.showToast({ title: (e && e.message) || '加入失败', icon: 'none' })
+		toast.care((e && e.message) || '加入失败')
 	} finally {
 		joiningId.value = null
 	}
@@ -186,7 +175,7 @@ function goCreate() {
 
 .brand-subtitle {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 	display: block;
 	margin-top: 8rpx;
 }
@@ -245,14 +234,14 @@ function goCreate() {
 
 .empty-sub {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .empty-btn {
 	margin-top: 16rpx;
 	padding: 16rpx 48rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	box-shadow: var(--zy-shadow-md);
 }
 
@@ -274,7 +263,7 @@ function goCreate() {
 
 .error-text {
 	font-size: 28rpx;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-danger, #a64842);
 }
 
 /* ── 卡片列表 ── */
@@ -348,7 +337,7 @@ function goCreate() {
 
 .role-text {
 	font-size: 22rpx;
-	color: var(--zy-warning, #bb914d);
+	color: var(--zy-warning, #8a6d1f);
 }
 
 .group-desc {
@@ -356,7 +345,7 @@ function goCreate() {
 	margin-top: 8rpx;
 	font-size: 26rpx;
 	line-height: 1.5;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -371,14 +360,14 @@ function goCreate() {
 
 .member-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 右侧按钮 ── */
 .join-btn {
 	padding: 12rpx 32rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	flex-shrink: 0;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -406,7 +395,7 @@ function goCreate() {
 
 .joined-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .full-tag {
@@ -419,7 +408,7 @@ function goCreate() {
 
 .full-text {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 悬浮创建按钮 ── */
@@ -430,7 +419,7 @@ function goCreate() {
 	width: 100rpx;
 	height: 100rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -447,7 +436,7 @@ function goCreate() {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
 </style>
@@ -457,7 +446,7 @@ function goCreate() {
 .joined-tag:focus-visible,
 .join-btn:focus-visible,
 .fab:focus-visible {
-	outline: 3px solid var(--zy-primary, #2f7566);
+	outline: 3px solid var(--zy-primary, #217e76);
 	outline-offset: 3px;
 }
 .group-error-row {
@@ -470,7 +459,7 @@ function goCreate() {
 	border: 1rpx dashed var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 24rpx);
 	background: var(--zy-card-bg, #fff);
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	font-size: 24rpx;
 	line-height: 1.7;
 	text-align: center;
@@ -478,10 +467,10 @@ function goCreate() {
 .group-error-row button {
 	min-height: 72rpx;
 	padding: 0 26rpx;
-	border: 1rpx solid var(--zy-primary, #2f7566);
+	border: 1rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-size: 24rpx;
 	line-height: 2.6;
 }

@@ -32,6 +32,6 @@ onBeforeUnmount(() => element?.removeEventListener('keydown', keydown))
 <style scoped>
 button{min-height:44px;box-sizing:border-box;line-height:1.5;display:flex;align-items:center;justify-content:center;gap:8px}
 button::after{border:0}
-button:focus-visible{outline:3px solid #986725;outline-offset:3px}
+button:focus-visible{outline:3px solid var(--zy-brand-700,#1a645e);outline-offset:3px}
 button[disabled]{opacity:.55;cursor:not-allowed}
 </style>

@@ -4,7 +4,7 @@ import {ref,onMounted} from 'vue'
 import {request} from '../utils/request'
 import {API_BASE_URL} from '../utils/config'
 const props=defineProps({groupId:String});const rows=ref([]),busy=ref(false),error=ref(''),more=ref(false)
-async function load(append=false){if(busy.value)return;busy.value=true;error.value='';try{const list=await request({url:'/api/groups/'+props.groupId+'/works',data:append?{before:rows.value.at(-1)?.id}:{}});rows.value=append?[...rows.value,...list]:list;more.value=list.length===20}catch(e){error.value=e.message}finally{busy.value=false}}
+async function load(append=false){if(busy.value)return;busy.value=true;error.value='';try{const list=(await request({url:'/api/groups/'+props.groupId+'/works',data:append?{before:rows.value.at(-1)?.id}:{}}))||[];rows.value=append?[...rows.value,...list]:list;more.value=list.length===20}catch(e){error.value='组内作品暂时没有读取成功'}finally{busy.value=false}}
 function open(id){uni.navigateTo({url:'/pages/work/detail?id='+id})}
 function publish(){uni.navigateTo({url:'/pages/work/publish?groupId='+props.groupId})}
 function image(url){return url?.startsWith('/')?API_BASE_URL+url:url}

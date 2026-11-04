@@ -2,14 +2,17 @@
 	<view class="page zy-page-enter">
 		<!-- 加载中 -->
 		<view v-if="loading" class="status-box">
-			<wd-loading color="#2f7566" />
+			<wd-loading color="#217e76" />
 			<text class="status-text">正在加载…</text>
 		</view>
 
 		<!-- 错误状态 -->
 		<view v-else-if="errorMsg" class="status-box">
 			<text class="error-text">{{ errorMsg }}</text>
-			<wd-button type="primary" plain size="small" @click="loadData">重试</wd-button>
+			<view class="status-actions">
+				<wd-button type="primary" plain size="small" @click="loadData">重试</wd-button>
+				<wd-button type="primary" plain size="small" @click="goBack">返回上一页</wd-button>
+			</view>
 		</view>
 
 		<!-- 项目详情 -->
@@ -25,15 +28,15 @@
 			<CraftCover v-if="!project.coverUrl" :category="project.category"/><MediaVideo v-if="project.videoUrl" :src="project.videoUrl" caption="传承人教学视频"/><!-- ═══ 信息条（pill 标签） ═══ -->
 			<button open-type="share" class="share-craft" @click="share">分享手作项目</button><view class="info-pills zy-slide-up zy-stagger" style="--stagger-i: 1">
 				<view v-if="project.category" class="pill">
-					<wd-icon name="grid" size="24rpx" color="#2f7566" />
+					<wd-icon name="grid" size="24rpx" color="#217e76" />
 					<text class="pill-text">{{ project.category }}</text>
 				</view>
 				<view class="pill">
-					<wd-icon name="chart-bar" size="24rpx" color="#bb914d" />
+					<wd-icon name="chart-bar" size="24rpx" color="#8a6d1f" />
 					<text class="pill-text">{{ levelLabel(project.level) }}</text>
 				</view>
 				<view class="pill">
-					<wd-icon name="time" size="24rpx" color="#82ad9b" />
+					<wd-icon name="time" size="24rpx" color="#5bc4a8" />
 					<text class="pill-text">约 {{ project.estMinutes }} 分钟</text>
 				</view>
 			</view>
@@ -54,7 +57,11 @@
 				v-if="project.inheritorProfileId"
 				class="inheritor-bar zy-slide-up zy-stagger"
 				style="--stagger-i: 3"
+				role="button"
+				tabindex="0"
 				@click="goInheritorDetail"
+				@keydown.enter.prevent="goInheritorDetail"
+				@keydown.space.prevent="goInheritorDetail"
 			>
 				<view class="inheritor-avatar" :style="inheritorAvatarStyle">
 					<text v-if="!hasInheritorAvatar" class="inheritor-avatar-letter">{{ firstLetter(project.inheritorNickname) }}</text>
@@ -63,7 +70,7 @@
 					<text class="inheritor-name">{{ project.inheritorNickname || '传承人' }}</text>
 					<text v-if="project.inheritorSkill" class="inheritor-skill">{{ project.inheritorSkill }}</text>
 				</view>
-				<wd-icon name="arrow-right" size="32rpx" color="#718478" />
+				<wd-icon name="arrow-right" size="32rpx" color="#4a5f54" />
 			</view>
 
 			<!-- ═══ 文化背景 ═══ -->
@@ -84,7 +91,7 @@
 						class="material-item"
 					>
 						<view class="material-icon">
-							<wd-icon name="gift" size="28rpx" color="#2f7566" />
+							<wd-icon name="gift" size="28rpx" color="#217e76" />
 						</view>
 						<text class="material-name">{{ mat.name }}</text>
 						<text v-if="mat.qty" class="material-qty">{{ mat.qty }}</text>
@@ -121,13 +128,14 @@
 
 		<!-- 底部固定按钮 -->
 		<view v-if="project" class="bottom-bar">
-			<view class="start-btn" @click="goSession">
+			<view class="start-btn" role="button" tabindex="0" @click="goSession" @keydown.enter.prevent="goSession" @keydown.space.prevent="goSession">
 				<text class="start-btn-text">开始创作</text>
 			</view>
 		</view>
 
 		<!-- 底部免责声明 -->
 		<text v-if="project" class="footnote">本系统不能替代专业心理咨询</text>
+		<Toast />
 	</view>
 </template>
 
@@ -138,7 +146,11 @@ import CraftCover from "../../components/CraftCover.vue"
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import CraftSafety from '../../components/CraftSafety.vue'
+import Toast from '../../components/Toast.vue'
+import { useToast } from '../../composables/useToast'
 import { http } from '../../utils/request'
+
+const toast = useToast()
 
 const projectId = ref(null)
 const project = ref(null)
@@ -166,7 +178,7 @@ const hasInheritorAvatar = computed(() => {
 })
 
 const inheritorAvatarStyle = computed(() => {
-	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
+	return 'background: linear-gradient(135deg, #217e76, #5bc4a8);'
 })
 
 onLoad((query) => {
@@ -181,7 +193,10 @@ async function loadData() {
 		const data = await http.get(`/api/craft/projects/${projectId.value}`)
 		project.value = data
 	} catch (e) {
-		errorMsg.value = (e && e.message) || '加载失败，请稍后重试'
+		// BB（2026-11-05）：1004（项目下架/未上架/不存在，后端统一不区分）翻译为温和口径，不抛后端原文
+		errorMsg.value = (e && e.code === 1004)
+			? '这个手作已调整或暂未上架，去看看别的吧'
+			: (e && e.message) || '加载失败，请稍后重试'
 	} finally {
 		loading.value = false
 	}
@@ -192,13 +207,18 @@ function firstLetter(name) {
 	return name.charAt(0)
 }
 
+// 直开无历史栈时回首页（与会话页 goBack 同款兜底）
+function goBack() {
+	uni.navigateBack({ fail: () => uni.switchTab({ url: '/pages/home/index' }) })
+}
+
 function coverStyle(coverUrl) {
 	// #ifdef H5
 	if (coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2f7566 0%, #82ad9b 100%);'
+	return 'background: linear-gradient(135deg, #217e76 0%, #5bc4a8 100%);'
 }
 
 function levelLabel(level) {
@@ -214,7 +234,7 @@ function goInheritorDetail() {
 			url: `/pages/inheritor/detail?id=${project.value.inheritorProfileId}`,
 		})
 	} else {
-		uni.showToast({ title: '传承人主页暂不可用', icon: 'none' })
+		toast.show('传承人主页暂不可用')
 	}
 }
 
@@ -228,7 +248,7 @@ function goSession() {
 </script>
 
 <style lang="scss" scoped>
-.share-craft{margin:24rpx;background:#e8efe4;color:#245f51;font-size:26rpx;border-radius:16rpx;}
+.share-craft{margin:24rpx;background:#e8efe4;color:var(--zy-brand-700, #1a645e);font-size:26rpx;border-radius:16rpx;}
 .page {
 	min-height: 100vh;
 	padding: 0 0 120rpx;
@@ -248,12 +268,17 @@ function goSession() {
 
 .status-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .error-text {
 	font-size: 28rpx;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-care, #a64842);
+}
+
+.status-actions {
+	display: flex;
+	gap: 20rpx;
 }
 
 /* ── 封面区 ── */
@@ -310,7 +335,7 @@ function goSession() {
 
 .pill-text {
 	font-size: 24rpx;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 /* ── 疗愈标签 ── */
@@ -329,7 +354,7 @@ function goSession() {
 
 .therapy-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 /* ── 传承人信息条 ── */
@@ -381,7 +406,7 @@ function goSession() {
 .inheritor-skill {
 	margin-top: 4rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 区块卡片 ── */
@@ -402,7 +427,7 @@ function goSession() {
 	left: 16rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	opacity: 0.15;
 	line-height: 1;
 }
@@ -420,7 +445,7 @@ function goSession() {
 .section-text {
 	font-size: 28rpx;
 	line-height: 1.9;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	position: relative;
 }
 
@@ -463,7 +488,7 @@ function goSession() {
 
 .material-qty {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	flex-shrink: 0;
 }
 
@@ -489,11 +514,11 @@ function goSession() {
 	width: 52rpx;
 	height: 52rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 2rpx 8rpx rgba(45, 155, 143, 0.25);
+	box-shadow: 0 2rpx 8rpx rgba(33, 126, 118, 0.25);
 }
 
 .step-dot-num {
@@ -528,7 +553,7 @@ function goSession() {
 	margin-top: 6rpx;
 	font-size: 24rpx;
 	line-height: 1.6;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -556,7 +581,7 @@ function goSession() {
 .start-btn {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -579,7 +604,12 @@ function goSession() {
 	display: block;
 	margin: 24rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
+}
+
+button:focus-visible {
+	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline-offset: 3px;
 }
 </style>

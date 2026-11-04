@@ -31,7 +31,7 @@
 							<text class="skill-text">{{ inheritor.skill }}</text>
 						</view>
 						<view v-if="inheritor.honor" class="honor-badge">
-							<wd-icon name="medal" size="24rpx" color="#bb914d" />
+							<wd-icon name="medal" size="24rpx" color="var(--zy-accent, #8a6d1f)" />
 							<text class="honor-text">{{ inheritor.honor }}</text>
 						</view>
 					</view>
@@ -81,7 +81,7 @@
 				<!-- 首次加载失败 -->
 				<view v-else-if="projectError && projects.length === 0" class="empty-projects project-error" role="alert">
 					<text class="empty-text">{{ projectError }}</text>
-					<button class="project-retry" @click="retryProjects">重试</button>
+					<AccessibleButton class="project-retry" @click="retryProjects">重试</AccessibleButton>
 				</view>
 
 				<!-- 空状态 -->
@@ -96,7 +96,11 @@
 						:key="item.id"
 						class="project-card zy-slide-up zy-stagger"
 						:style="{ '--stagger-i': idx + 4 }"
+						role="button"
+						tabindex="0"
 						@click="goProjectDetail(item)"
+						@keydown.enter.prevent="goProjectDetail(item)"
+						@keydown.space.prevent="goProjectDetail(item)"
 					>
 						<!-- 封面图 -->
 						<view class="card-cover" :style="coverStyle(item.coverUrl)">
@@ -123,7 +127,7 @@
 					<!-- 分页失败：保留已加载项目 -->
 					<view v-if="projectError && projects.length > 0" class="project-error-row" role="alert">
 						<text class="empty-text">{{ projectError }}</text>
-						<button class="project-retry" @click="retryProjects">重试</button>
+						<AccessibleButton class="project-retry" @click="retryProjects">重试</AccessibleButton>
 					</view>
 
 					<!-- 底部状态 -->
@@ -149,6 +153,7 @@
 import { ref, computed } from 'vue'
 import { onLoad, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import AccessibleButton from '../../components/AccessibleButton.vue'
 
 const inheritorId = ref(null)
 const inheritor = ref(null)
@@ -260,7 +265,7 @@ function avatarStyle(item) {
 		return `background-image: url(${item.avatarUrl}); background-size: cover; background-position: center;`
 		// #endif
 	}
-	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
+	return 'background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));'
 }
 
 function coverStyle(coverUrl) {
@@ -269,7 +274,7 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #2f7566, #82ad9b);'
+	return 'background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));'
 }
 
 function levelLabel(level) {
@@ -336,7 +341,7 @@ function goProjectDetail(item) {
 
 .error-text {
 	font-size: 28rpx;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-danger, #a64842);
 }
 
 /* ── 渐变头部区 ── */
@@ -372,7 +377,7 @@ function goProjectDetail(item) {
 	height: 212rpx;
 	border-radius: 50%;
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
 	margin-bottom: 8rpx;
 }
 
@@ -416,7 +421,7 @@ function goProjectDetail(item) {
 
 .skill-text {
 	font-size: 24rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .honor-badge {
@@ -425,17 +430,17 @@ function goProjectDetail(item) {
 	gap: 6rpx;
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-warm, #f5edde);
+	background-color: var(--zy-bg-tint-warm, #f7efd9);
 }
 
 .honor-text {
 	font-size: 24rpx;
-	color: var(--zy-accent, #bb914d);
+	color: var(--zy-accent, #8a6d1f);
 }
 
 .hero-school {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 数据行 ── */
@@ -469,7 +474,7 @@ function goProjectDetail(item) {
 
 .stat-label {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .stat-divider {
@@ -495,7 +500,7 @@ function goProjectDetail(item) {
 	left: 20rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	opacity: 0.2;
 	line-height: 1;
 }
@@ -503,7 +508,7 @@ function goProjectDetail(item) {
 .intro-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 /* ── TA 的手作 ── */
@@ -529,7 +534,7 @@ function goProjectDetail(item) {
 
 .empty-text {
 	font-size: 28rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 骨架项目卡片 ── */
@@ -593,13 +598,13 @@ function goProjectDetail(item) {
 .level-badge {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: rgba(255, 181, 71, 0.9);
+	background-color: var(--zy-gold, #d9a441);
 }
 
 .level-text {
 	font-size: 22rpx;
-	color: #FFFFFF;
-	font-weight: 500;
+	color: var(--zy-brand-900, #0f3d38);
+	font-weight: 600;
 }
 
 /* ── 卡片内容 ── */
@@ -623,7 +628,7 @@ function goProjectDetail(item) {
 	margin-top: 8rpx;
 	font-size: 24rpx;
 	line-height: 1.5;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -640,23 +645,23 @@ function goProjectDetail(item) {
 .category-badge {
 	padding: 4rpx 14rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #F3F4F6);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 .category-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .time-badge {
 	padding: 4rpx 14rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #F3F4F6);
+	background-color: var(--zy-bg, #f5f7f2);
 }
 
 .time-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 底部 ── */
@@ -680,7 +685,7 @@ function goProjectDetail(item) {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #2f7566);
+	border-top-color: var(--zy-primary, #217e76);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -690,14 +695,14 @@ function goProjectDetail(item) {
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .footnote {
 	display: block;
 	margin: 24rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
 </style>
@@ -719,13 +724,13 @@ function goProjectDetail(item) {
 .project-retry {
 	min-height: 88rpx;
 	padding: 0 28rpx;
-	border: 1rpx solid var(--zy-primary, #2f7566);
+	border: 1rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-size: 25rpx;
 	line-height: 2.8;
 }
 .project-retry::after { border: 0; }
-.project-retry:focus-visible { outline: 3px solid var(--zy-primary, #2f7566); outline-offset: 3px; }
+.project-retry:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: 3px; }
 </style>

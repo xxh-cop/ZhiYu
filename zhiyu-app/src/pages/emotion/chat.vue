@@ -1,6 +1,6 @@
 <template>
-	<view class="page">
-		<view class="chat-header"><image src="/static/xiaozhi-avatar.png" class="chat-companion" mode="aspectFit" aria-label="小织"/><view><text class="header-name">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><button v-if="emotionStore.sessionId" class="header-help" :disabled="streaming" @click="endConversation">结束倾听</button><button class="header-help" @click="goCrisisPage">寻求支持</button></view>
+	<view class="page" @touchstart="idleArm" @click="idleArm">
+		<view class="chat-header"><XiaotuanPet :size="42" aria-label="小织"/><view><text class="header-name">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><AccessibleButton v-if="emotionStore.sessionId" class="header-help" :disabled="streaming" @click="endConversation">结束倾听</AccessibleButton><AccessibleButton class="header-help" @click="goCrisisPage">寻求支持</AccessibleButton></view>
 		<!-- 对话区 -->
 		<scroll-view
 			class="chat-area"
@@ -12,7 +12,7 @@
 				<!-- 空状态欢迎区 -->
 				<view v-if="messages.length === 0" class="welcome">
 					<view class="welcome-avatar">
-						<image src="/static/xiaozhi-caring.png" style="width:130rpx;height:150rpx" mode="aspectFit" aria-label="小织陪伴你"/>
+						<XiaotuanPet :size="110" aria-label="小织陪伴你"/>
 					</view>
 					<text class="welcome-title">我在这里陪你</text>
 					<text class="welcome-sub">我是小织，一个耐心的倾听者</text>
@@ -28,7 +28,7 @@
 					<!-- AI 消息：头像 + 气泡 -->
 					<view v-if="msg.role === 'assistant'" class="msg-content">
 						<view class="ai-avatar">
-							<image src="/static/xiaozhi-avatar.png" style="width:60rpx;height:70rpx" mode="aspectFit" aria-label="小织"/>
+							<XiaotuanPet :size="30"/>
 							<view class="ai-avatar-dot"></view>
 						</view>
 						<view class="msg-main">
@@ -98,8 +98,18 @@
 				</view>
 			</view>
 
+			<!-- 隐私同意引导（Q2）：撤回同意后对话不可用，引导主动查看并重新同意（不自动弹） -->
+			<StateBlock
+				v-if="isConsentError"
+				type="error"
+				face="care"
+				title="需要你重新同意隐私政策"
+				description="你之前撤回了隐私政策同意。对话内容属于敏感信息，只有在你重新同意后，小织才能继续陪你聊。是否同意，始终由你决定。"
+				action-text="去了解并重新同意"
+				@action="goPrivacySettings"
+			/>
 			<!-- 错误重试 -->
-			<view v-if="errorMsg" class="error-row">
+			<view v-else-if="errorMsg" class="error-row">
 				<text class="error-text">{{ errorMsg }}</text>
 				<wd-button type="error" size="small" plain @click="handleRetry">重试</wd-button>
 			</view>
@@ -112,7 +122,7 @@
 				custom-class="chat-input"
 				v-model="inputText"
 				placeholder="说说你现在的感受..."
-				:disabled="streaming || historyLoading || historyError"
+				:disabled="streaming || historyLoading || historyError || isConsentError"
 				confirm-type="send"
 				@confirm="handleSend"
 				no-border
@@ -124,7 +134,7 @@
 			<wd-button
 				type="primary"
 				size="small"
-				:disabled="streaming || historyLoading || historyError || !inputText.trim()"
+				:disabled="streaming || historyLoading || historyError || isConsentError || !inputText.trim()"
 				@click="handleSend"
 				custom-style="border-radius: 999rpx; min-width: 120rpx;"
 			>
@@ -136,6 +146,16 @@
 		<view class="footer-disclaimer">
 			<text class="footer-disclaimer-text">本系统不能替代专业心理咨询</text>
 		</view>
+		<!-- R3 时机②：长停无操作的一次性陪伴（9s 自动退场，可点 ✕ / 右滑关闭；点按即收起） -->
+		<CompanionNudge
+			:open="idleNudgeOpen"
+			text="不用急着说完"
+			face="care"
+			bottom-offset="calc(220rpx + env(safe-area-inset-bottom))"
+			@action="idleNudgeOpen = false"
+			@close="idleNudgeOpen = false"
+		/>
+		<Toast />
 	</view>
 </template>
 
@@ -148,10 +168,34 @@ import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
 import {useVoiceInput} from '../../composables/useVoiceInput'
 import {playSpeech, stopSpeech} from '../../utils/speech-playback'
+import XiaotuanPet from '../../components/XiaotuanPet.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import StateBlock from '../../components/StateBlock.vue'
+import CompanionNudge from '../../components/CompanionNudge.vue'
+import Toast from '../../components/Toast.vue'
+import { useToast } from '../../composables/useToast'
+import { useIdleNudge } from '../../composables/useIdleNudge'
+
+const toast = useToast()
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
-const { messages, streaming, errorMsg, scrollSignal, crisisTriggered } = storeToRefs(emotionStore)
+const { messages, streaming, errorMsg, errorCode, scrollSignal, crisisTriggered } = storeToRefs(emotionStore)
+
+// Q2：撤回隐私同意后，情绪接口返回 1003「请先阅读并同意隐私政策」。
+// 此时展示「去重新同意」引导态（不自动弹同意、不阻断用户选择），替代裸错误 + 无效重试。
+const isConsentError = computed(() => errorCode.value === 1003 && /隐私政策/.test(errorMsg.value || ''))
+function goPrivacySettings() {
+	uni.navigateTo({ url: '/pages/privacy/settings' })
+}
+
+// R3 时机②：页内长停无操作 120s，小织出现一次（仅「正在做事」页启用；
+// 任何交互重置计时；quotaKey page-idle 每天 ≤2 次）
+const idleNudgeOpen = ref(false)
+const { arm: idleArm } = useIdleNudge({
+	quotaKey: 'page-idle',
+	onTrigger: () => { idleNudgeOpen.value = true },
+})
 
 const inputText = ref('')
 const speechAvailable = ref(false)
@@ -170,7 +214,7 @@ async function loadHistory() {
   const detail = await request({url:'/api/emotion/sessions/'+historyId.value})
   emotionStore.sessionId = detail.session.sessionId
   emotionStore.messages = detail.messages.map(m=>({role:m.role,text:m.content,done:true}))
- } catch(e) { historyError.value = true; emotionStore.errorMsg = e.message || '历史对话读取失败，请重试' }
+ } catch(e) { historyError.value = true; emotionStore.errorMsg = e.message || '历史对话读取失败，请重试'; emotionStore.errorCode = (e && typeof e.code === 'number' && e.code) || 0 }
  finally { historyLoading.value = false }
 }
 
@@ -265,12 +309,12 @@ async function toggleSpeak(msg,idx){
 			onEnd:()=>{if(speakingIndex.value===idx)speakingIndex.value=-1},
 			onError:()=>{
 				if(speakingIndex.value===idx)speakingIndex.value=-1
-				uni.showToast({title:'语音播放失败，可以继续看文字',icon:'none'})
+				toast.care('语音播放失败，可以继续看文字')
 			}
 		})
 	}catch(e){
 		speakingIndex.value=-1
-		uni.showToast({title:e.message||'语音暂时不可用',icon:'none'})
+		toast.care(e.message||'语音暂时不可用')
 	}finally{
 		speechBusy.value=-1
 	}
@@ -320,7 +364,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 </script>
 
 <style lang="scss" scoped>
-.chat-companion{width:64rpx;height:80rpx;flex-shrink:0}.chat-header .header-help{font-size:22rpx;padding:8rpx 12rpx;line-height:1.8;background:#e8efe4;border-radius:12rpx}.chat-header{display:flex;align-items:center;gap:20rpx;padding:24rpx 28rpx;border-bottom:1rpx solid var(--zy-border,#e2e9e9);background:var(--zy-card-bg,#fff);flex-shrink:0}.header-avatar{padding:12rpx 20rpx;background:#2f7566;color:#fff;border-radius:18rpx}.header-name{display:block;font-size:28rpx;font-weight:600;color:var(--zy-title,#253c36)}.header-state{display:block;font-size:22rpx;color:var(--zy-sub,#708078);margin-top:6rpx}.header-help{font-size:23rpx;color:#2f7566;margin-left:auto}.input-area,.footer-disclaimer{flex-shrink:0}
+.chat-companion{width:64rpx;height:80rpx;flex-shrink:0}.chat-header .header-help{font-size:22rpx;padding:8rpx 12rpx;line-height:1.8;background:#e8efe4;border-radius:12rpx}.chat-header{display:flex;align-items:center;gap:20rpx;padding:24rpx 28rpx;border-bottom:1rpx solid var(--zy-border,#e2e9e9);background:var(--zy-card-bg,#fff);flex-shrink:0}.header-avatar{padding:12rpx 20rpx;background:#217e76;color:#fff;border-radius:18rpx}.header-name{display:block;font-size:28rpx;font-weight:600;color:var(--zy-title,#253c36)}.header-state{display:block;font-size:22rpx;color:var(--zy-sub,#708078);margin-top:6rpx}.header-help{font-size:23rpx;color:#217e76;margin-left:auto}.input-area,.footer-disclaimer{flex-shrink:0}
 
 .page {
 	display: flex;
@@ -355,7 +399,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #5BCFBF));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -380,13 +424,13 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 .welcome-sub {
 	margin-top: 16rpx;
 	font-size: 28rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .welcome-hint {
 	margin-top: 32rpx;
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 消息行 ── */
@@ -431,7 +475,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	width: 64rpx;
 	height: 64rpx;
 	border-radius: 50%;
-	background-color: var(--zy-border, #F3F4F6);
+	background-color: var(--zy-border, #dfe7dc);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -441,7 +485,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 .user-avatar-text {
 	font-size: 28rpx;
 	font-weight: 500;
-	color: var(--zy-sub, #6B7280);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── AI 头像 ── */
@@ -460,7 +504,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 .ai-avatar-text {
 	font-size: 28rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-family: var(--zy-serif);
 }
 
@@ -471,7 +515,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	width: 16rpx;
 	height: 16rpx;
 	border-radius: 50%;
-	background-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-primary, #217e76);
 	border: 3rpx solid #FFFFFF;
 	box-sizing: border-box;
 }
@@ -486,13 +530,13 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 }
 
 .bubble-user {
-	background-color: var(--zy-primary, #2f7566);
+	background-color: var(--zy-primary, #217e76);
 }
 
 .bubble-ai {
 	background-color: #FFFFFF;
 	border: 1px solid var(--zy-border, #dfe7dc);
-	box-shadow: 0 2rpx 8rpx rgba(45, 155, 143, 0.06);
+	box-shadow: 0 2rpx 8rpx rgba(33, 126, 118, 0.06);
 }
 
 .bubble-text {
@@ -505,7 +549,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 }
 
 .text-ai {
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 /* ── 打字机光标 ── */
@@ -516,7 +560,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	margin-left: 3px;
 	vertical-align: text-bottom;
 	border-radius: 2px;
-	background: linear-gradient(180deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(180deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
 	animation: blink 0.8s steps(2) infinite;
 }
 
@@ -529,7 +573,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 .msg-time {
 	margin-top: 8rpx;
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 .msg-time--user {
@@ -549,7 +593,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	border: 1px solid var(--zy-border, #dfe7dc);
 	border-radius: 999rpx;
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-size: 12px;
 	line-height: 32px;
 }
@@ -559,7 +603,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 }
 
 .speak-btn[aria-pressed='true'] {
-	background: var(--zy-primary, #2f7566);
+	background: var(--zy-primary, #217e76);
 	color: #fff;
 }
 
@@ -577,7 +621,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 
 .recommend-text {
 	font-size: 13px;
-	color: var(--wot-color-theme, #2f7566);
+	color: var(--wot-color-theme, #217e76);
 }
 
 /* ── 错误重试 ── */
@@ -591,7 +635,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 
 .error-text {
 	font-size: 13px;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-danger, #a64842);
 }
 
 /* ── 输入区（固定底部，不被压缩） ── */
@@ -640,7 +684,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 
 .footer-disclaimer-text {
 	font-size: 20rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-aid, #4a5f54);
 }
 
 /* ── 危机关怀卡片 ── */
@@ -649,8 +693,8 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	padding: 32rpx 28rpx;
 	border-radius: 32rpx;
 	background: linear-gradient(135deg, #e8efe4 0%, #FFFFFF 100%);
-	border: 2rpx solid rgba(45, 155, 143, 0.2);
-	box-shadow: 0 4rpx 20rpx rgba(45, 155, 143, 0.08);
+	border: 2rpx solid rgba(33, 126, 118, 0.2);
+	box-shadow: 0 4rpx 20rpx rgba(33, 126, 118, 0.08);
 	animation: crisisIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -670,7 +714,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #5BCFBF));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5BCFBF));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -687,7 +731,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 .crisis-card-title {
 	font-size: 30rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-family: var(--zy-serif);
 }
 
@@ -695,7 +739,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	display: block;
 	font-size: 28rpx;
 	line-height: 1.7;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	margin-bottom: 28rpx;
 }
 
@@ -720,7 +764,7 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 }
 
 .crisis-btn-primary {
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 }
 
 .crisis-btn-secondary {
@@ -736,14 +780,14 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 
 .crisis-btn-text-secondary {
 	font-size: 28rpx;
-	color: var(--zy-aid, #6B7280);
+	color: var(--zy-aid, #4a5f54);
 }
 </style>
 
 <style scoped>
 .recommend-entry:focus-visible,
 .crisis-btn:focus-visible {
-	outline: 3px solid var(--zy-primary, #2f7566);
+	outline: 3px solid var(--zy-primary, #217e76);
 	outline-offset: 3px;
 }
 </style>

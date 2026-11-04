@@ -5,7 +5,7 @@
 				<!-- 顶部封面 -->
 				<view class="cover zy-slide-up zy-stagger" style="--stagger-i: 0">
 					<view class="cover-icon-wrap">
-						<wd-icon name="setting" size="48rpx" color="#2f7566" />
+						<wd-icon name="setting" size="48rpx" color="#217e76" />
 					</view>
 					<text class="cover-title">隐私政策</text>
 					<text class="cover-sub">我们如何保护你的数据</text>
@@ -49,10 +49,11 @@
 
 		<!-- 底部固定按钮（仅首次同意流程显示） -->
 		<view v-if="showAgreeButton" class="bottom-bar">
-			<view class="btn-agree" @click="handleAgree" :class="{ 'btn-agree--loading': loading }">
+			<view class="btn-agree" role="button" :tabindex="loading ? -1 : 0" :aria-disabled="loading" @click="handleAgree" @keydown.enter.prevent="handleAgree" @keydown.space.prevent="handleAgree" :class="{ 'btn-agree--loading': loading }">
 				<text class="btn-agree-text">{{ loading ? '提交中...' : '我已阅读并同意' }}</text>
 			</view>
 		</view>
+		<Toast />
 	</view>
 </template>
 
@@ -61,7 +62,10 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
+import Toast from '../../components/Toast.vue'
+import { useToast } from '../../composables/useToast'
 
+const toast = useToast()
 const userStore = useUserStore()
 const loading = ref(false)
 const showAgreeButton = ref(false)
@@ -176,12 +180,12 @@ async function handleAgree() {
 	try {
 		await http.post('/api/user/privacy/agree', {})
 		userStore.setPrivacyAgreed(1)
-		uni.showToast({ title: '已同意', icon: 'success' })
+		toast.success('已同意')
 		setTimeout(() => {
 			uni.navigateBack()
 		}, 800)
 	} catch (e) {
-		uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
+		toast.care('网络异常，请稍后重试')
 	} finally {
 		loading.value = false
 	}
@@ -234,16 +238,16 @@ async function handleAgree() {
 .cover-sub {
 	margin-top: 8rpx;
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 免责声明 ── */
 .disclaimer-box {
-	background-color: var(--zy-bg-tint-warm, #f5edde);
+	background-color: var(--zy-bg-tint-warm, #f7efd9);
 	border-radius: var(--zy-radius-md, 24rpx);
 	padding: 24rpx 28rpx;
 	margin-bottom: 24rpx;
-	border: 1rpx solid rgba(255, 181, 71, 0.2);
+	border: 1rpx solid rgba(217,164,65,.2);
 }
 
 .disclaimer-text {
@@ -264,7 +268,7 @@ async function handleAgree() {
 .section-heading {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	display: block;
 	margin-bottom: 16rpx;
 }
@@ -276,13 +280,13 @@ async function handleAgree() {
 .para-text {
 	font-size: 28rpx;
 	line-height: 1.8;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 
 .table-row {
 	display: flex;
 	padding: 8rpx 0;
-	border-bottom: 1rpx solid var(--zy-border, #F3F4F6);
+	border-bottom: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
 .table-row:last-child {
@@ -292,7 +296,7 @@ async function handleAgree() {
 .table-cell {
 	font-size: 26rpx;
 	line-height: 1.6;
-	color: var(--zy-sub, #6B7280);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 联系卡片 ── */
@@ -305,13 +309,13 @@ async function handleAgree() {
 
 .contact-label {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	display: block;
 }
 
 .contact-value {
 	font-size: 26rpx;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	display: block;
 	margin-top: 6rpx;
 }
@@ -337,7 +341,7 @@ async function handleAgree() {
 .btn-agree {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -357,5 +361,10 @@ async function handleAgree() {
 	font-size: 32rpx;
 	font-weight: 500;
 	color: #FFFFFF;
+}
+
+button:focus-visible {
+	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline-offset: 3px;
 }
 </style>

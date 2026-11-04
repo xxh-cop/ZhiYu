@@ -1,7 +1,7 @@
 <template><view class="growth-page" :class="{'motion-reduced':reducedMotion}">
  <view class="growth-hero"><text class="growth-eyebrow">TRACE · 平面临摹辅助</text><text class="growth-title">让纹样，落在纸上</text><text class="growth-subtitle">固定手机，调整线稿位置，再观察纸面临摹。图案不会自动锚定真实空间。</text></view>
  <view class="tracing-frame" :style="{height:size+'px'}" @touchstart="touchStart" @touchmove.stop.prevent="touchMove">
-  <image v-if="photo" :src="photo" class="camera-surface" mode="aspectFill"/>
+  <image v-if="photo" :src="photo" class="camera-surface" mode="aspectFill" alt="你拍摄的照片"/>
   <!-- #ifdef H5 -->
   <view :id="hostId" class="camera-surface"/>
   <!-- #endif -->
@@ -9,13 +9,13 @@
   <camera v-if="active" class="camera-surface" device-position="back" flash="off" @initdone="busy=false" @error="cameraError" @stop="stop"/>
   <!-- #endif -->
   <text v-if="!active&&!photo" class="frame-hint">可以先在空白画布调整线稿</text>
-  <image v-if="overlay" :src="overlay" class="trace-overlay" :style="overlayStyle" mode="aspectFit"/>
+  <image v-if="overlay" :src="overlay" class="trace-overlay" :style="overlayStyle" mode="aspectFit" alt="描红线稿"/>
   <view class="frame-badge">{{active?'相机已开启 · 不录制':photo?'本地图片 · 不上传':'空白画布'}} · {{locked?'位置已锁定':'拖动调整位置'}}</view>
  </view>
  <canvas canvas-id="trace-source" class="source-canvas" :style="{width:size+'px',height:size+'px'}"/>
  <view v-if="error" class="growth-error" role="alert">{{error}}</view>
- <view class="growth-row"><button class="growth-button" @click="active||busy?stop():start()">{{busy?'取消开启':active?'关闭相机':'开启相机'}}</button><button class="growth-button secondary" :disabled="busy" @click="choosePhoto">使用本地图片</button></view>
- <view class="growth-card controls"><view class="growth-row growth-spread"><text class="growth-card-title">调整线稿</text><button class="lock" @click="locked=!locked">{{locked?'解锁位置':'锁定位置'}}</button></view><text class="growth-muted">透明度 {{opacity}}%</text><slider :value="opacity" :min="10" :max="100" activeColor="#2f7566" @changing="opacity=$event.detail.value" @change="opacity=$event.detail.value"/><text class="growth-muted">大小 {{scale}}%</text><slider :value="scale" :min="40" :max="160" :disabled="locked" activeColor="#2f7566" @changing="scale=$event.detail.value" @change="scale=$event.detail.value"/><text class="growth-muted">旋转 {{angle}}°</text><slider :value="angle" :min="-180" :max="180" :disabled="locked" activeColor="#2f7566" @changing="angle=$event.detail.value" @change="angle=$event.detail.value"/><button class="growth-button secondary" @click="reset">恢复位置与大小</button></view>
+ <view class="growth-row"><AccessibleButton class="growth-button" @click="active||busy?stop():start()">{{busy?'取消开启':active?'关闭相机':'开启相机'}}</AccessibleButton><AccessibleButton class="growth-button secondary" :disabled="busy" @click="choosePhoto">使用本地图片</AccessibleButton></view>
+ <view class="growth-card controls"><view class="growth-row growth-spread"><text class="growth-card-title">调整线稿</text><AccessibleButton class="lock" @click="locked=!locked">{{locked?'解锁位置':'锁定位置'}}</AccessibleButton></view><text class="growth-muted">透明度 {{opacity}}%</text><slider :value="opacity" :min="10" :max="100" activeColor="#217e76" @changing="opacity=$event.detail.value" @change="opacity=$event.detail.value"/><text class="growth-muted">大小 {{scale}}%</text><slider :value="scale" :min="40" :max="160" :disabled="locked" activeColor="#217e76" @changing="scale=$event.detail.value" @change="scale=$event.detail.value"/><text class="growth-muted">旋转 {{angle}}°</text><slider :value="angle" :min="-180" :max="180" :disabled="locked" activeColor="#217e76" @changing="angle=$event.detail.value" @change="angle=$event.detail.value"/><AccessibleButton class="growth-button secondary" @click="reset">恢复位置与大小</AccessibleButton></view>
  <text class="growth-foot">只在你点击后申请相机权限，不录音、不录制、不上传画面；离开页面自动关闭。<br/>本系统不能替代专业心理咨询</text>
 </view></template>
 <script setup>
@@ -25,6 +25,7 @@ const {reducedMotion}=useInteraction()
 import{ref,computed,getCurrentInstance,nextTick}from'vue'
 import{onLoad,onReady,onHide,onUnload}from'@dcloudio/uni-app'
 import{makeShapes,normalizePlan,drawShapes}from'../../utils/lineart'
+import AccessibleButton from '../../components/AccessibleButton.vue'
 const instance=getCurrentInstance(),size=Math.min(uni.getSystemInfoSync().windowWidth-28,650),hostId='trace-camera-'+instance.uid
 const active=ref(false),busy=ref(false),error=ref(''),photo=ref(''),overlay=ref(''),locked=ref(false),opacity=ref(65),scale=ref(90),angle=ref(0),x=ref(0),y=ref(0)
 const overlayStyle=computed(()=>({opacity:opacity.value/100,transform:`translate(-50%,-50%) translate(${x.value}px,${y.value}px) rotate(${angle.value}deg) scale(${scale.value/100})`}))
@@ -56,4 +57,4 @@ onHide(stop);onUnload(()=>{alive=false;stop()
  // #endif
 })
 </script>
-<style src="../../styles/growth.css"></style><style scoped>.tracing-frame{position:relative;background:#eef2ed;border:1rpx solid #d5dfd8;border-radius:24rpx;overflow:hidden;touch-action:none;max-height:650px}.camera-surface{position:absolute;inset:0;width:100%;height:100%}.trace-overlay{position:absolute;left:50%;top:50%;width:100%;height:100%;pointer-events:none}.frame-hint{position:absolute;left:0;right:0;top:18rpx;text-align:center;font-size:23rpx;color:#789184}.frame-badge{position:absolute;bottom:16rpx;left:16rpx;padding:8rpx 14rpx;background:#ffffffd9;border-radius:10rpx;font-size:22rpx;color:#274639}.source-canvas{position:fixed;left:-9999px;top:0;pointer-events:none}.controls{margin-top:24rpx}.growth-row>.growth-button{flex:1;font-size:25rpx}.lock{font-size:24rpx;background:#edf5f3;color:#2f7566;margin:0;border-radius:12rpx}.lock::after{border:0}</style>
+<style src="../../styles/growth.css"></style><style scoped>.tracing-frame{position:relative;background:#eef2ed;border:1rpx solid #d5dfd8;border-radius:24rpx;overflow:hidden;touch-action:none;max-height:650px}.camera-surface{position:absolute;inset:0;width:100%;height:100%}.trace-overlay{position:absolute;left:50%;top:50%;width:100%;height:100%;pointer-events:none}.frame-hint{position:absolute;left:0;right:0;top:18rpx;text-align:center;font-size:23rpx;color:#789184}.frame-badge{position:absolute;bottom:16rpx;left:16rpx;padding:8rpx 14rpx;background:#ffffffd9;border-radius:10rpx;font-size:22rpx;color:#274639}.source-canvas{position:fixed;left:-9999px;top:0;pointer-events:none}.controls{margin-top:24rpx}.growth-row>.growth-button{flex:1;font-size:25rpx}.lock{font-size:24rpx;background:#edf5f3;color:#217e76;margin:0;border-radius:12rpx}.lock::after{border:0}</style>

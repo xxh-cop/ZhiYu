@@ -1,38 +1,32 @@
 <template>
 	<view class="page zy-page-enter">
 		<!-- 悬浮新建按钮 -->
-		<view class="fab" @click="goCreate">
+		<view class="fab" role="button" tabindex="0" aria-label="新建心情便签" @click="goCreate" @keydown.enter.prevent="goCreate" @keydown.space.prevent="goCreate">
 			<wd-icon name="add" size="44rpx" color="#FFFFFF" />
 		</view>
 
-		<!-- 骨架屏 -->
-		<view v-if="loading && records.length === 0" class="card-list">
-			<view v-for="i in 3" :key="'sk-'+i" class="skeleton-card">
-				<view class="skeleton-body">
-					<view class="skeleton-line zy-skeleton" style="width: 30%"></view>
-					<view class="skeleton-line zy-skeleton" style="width: 90%"></view>
-					<view class="skeleton-line zy-skeleton" style="width: 60%"></view>
-				</view>
-			</view>
-		</view>
+		<!-- 加载状态 -->
+		<StateBlock v-if="loading && records.length === 0" type="loading" title="正在读取心情便签…" />
 
 		<!-- 空状态 -->
-		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="empty-box zy-slide-up">
-			<view class="empty-icon-wrap">
-				<text class="empty-emoji">📝</text>
-			</view>
-			<text class="empty-title">还没有心情便签</text>
-			<text class="empty-sub">记录第一条心情</text>
-			<view class="empty-btn" @click="goCreate">
-				<text class="empty-btn-text">记录第一条</text>
-			</view>
-		</view>
+		<StateBlock
+			v-else-if="!loading && records.length === 0 && !errorMsg"
+			type="empty"
+			title="还没有心情便签"
+			description="写下此刻的心情，就从第一句开始"
+			action-text="记录第一条"
+			@action="goCreate"
+		/>
 
 		<!-- 错误状态 -->
-		<view v-else-if="errorMsg && records.length === 0" class="status-box">
-			<text class="error-text">{{ errorMsg }}</text>
-			<wd-button type="primary" plain size="small" @click="loadData(1)">重试</wd-button>
-		</view>
+		<StateBlock
+			v-else-if="errorMsg && records.length === 0"
+			type="error"
+			title="便签暂时没有加载出来"
+			:description="errorMsg"
+			action-text="重试"
+			@action="loadData(1)"
+		/>
 
 		<!-- 便签卡片列表 -->
 		<view v-else class="card-list">
@@ -41,7 +35,11 @@
 				:key="item.id"
 				class="note-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx }"
+				role="button"
+				tabindex="0"
 				@click="goEdit(item)"
+				@keydown.enter.prevent="goEdit(item)"
+				@keydown.space.prevent="goEdit(item)"
 				@longpress="onLongPress(item)"
 			>
 				<view class="card-main">
@@ -79,6 +77,18 @@
 
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
+
+		<ActionSheet
+			:open="!!pendingDelete"
+			title="移除便签"
+			description="确定要移除这条心情便签吗？"
+			:actions="[{ key: 'confirm', label: '确认移除', tone: 'danger', busy: deleting }]"
+			cancel-text="再想想"
+			:busy="deleting"
+			@select="confirmDelete"
+			@close="pendingDelete = null"
+		/>
+		<Toast />
 	</view>
 </template>
 
@@ -86,6 +96,12 @@
 import { ref, computed } from 'vue'
 import { onShow, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import StateBlock from '../../components/StateBlock.vue'
+import ActionSheet from '../../components/ActionSheet.vue'
+import Toast from '../../components/Toast.vue'
+import { useToast } from '../../composables/useToast'
+
+const toast = useToast()
 
 const MOOD_MAP = {
 	'开心': '😊',
@@ -101,16 +117,16 @@ const MOOD_MAP = {
 }
 
 const MOOD_GRADIENTS = {
-	'开心': 'linear-gradient(135deg, #bb914d, #FFD08A)',
-	'平静': 'linear-gradient(135deg, #2f7566, #82ad9b)',
-	'一般': 'linear-gradient(135deg, #6B7280, #718478)',
-	'有点累': 'linear-gradient(135deg, #82ad9b, #8DD9C4)',
-	'不太好': 'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
-	'happy': 'linear-gradient(135deg, #bb914d, #FFD08A)',
-	'calm': 'linear-gradient(135deg, #2f7566, #82ad9b)',
-	'neutral': 'linear-gradient(135deg, #6B7280, #718478)',
-	'tired': 'linear-gradient(135deg, #82ad9b, #8DD9C4)',
-	'down': 'linear-gradient(135deg, #FF6B6B, #FF9B9B)',
+	'开心': 'linear-gradient(135deg, var(--zy-accent, #8a6d1f), #FFD08A)',
+	'平静': 'linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8))',
+	'一般': 'linear-gradient(135deg, #6B7280, var(--zy-text, #4a5f54))',
+	'有点累': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), #8adcc6)',
+	'不太好': 'linear-gradient(135deg, var(--zy-care, #a64842), #d4736a)',
+	'happy': 'linear-gradient(135deg, var(--zy-accent, #8a6d1f), #FFD08A)',
+	'calm': 'linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8))',
+	'neutral': 'linear-gradient(135deg, #6B7280, var(--zy-text, #4a5f54))',
+	'tired': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), #8adcc6)',
+	'down': 'linear-gradient(135deg, var(--zy-care, #a64842), #d4736a)',
 }
 
 const loading = ref(false)
@@ -119,6 +135,8 @@ const records = ref([])
 const page = ref(1)
 const total = ref(0)
 const pageSize = 10
+const pendingDelete = ref(null)
+const deleting = ref(false)
 
 const hasMore = computed(() => page.value * pageSize < total.value)
 
@@ -175,7 +193,7 @@ function moodEmoji(mood) {
 }
 
 function moodGradient(mood) {
-	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, #2f7566, #82ad9b)'
+	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8))'
 }
 
 function formatDate(dateStr) {
@@ -200,34 +218,30 @@ function onLongPress(item) {
 			if (res.tapIndex === 0) {
 				goEdit(item)
 			} else if (res.tapIndex === 1) {
-				confirmDelete(item)
+				askDelete(item)
 			}
 		},
 	})
 }
 
-function confirmDelete(item) {
-	uni.showModal({
-		title: '移除便签',
-		content: '确定要移除这条心情便签吗？',
-		confirmText: '移除',
-		confirmColor: '#b85450',
-		success: (res) => {
-			if (res.confirm) {
-				doDelete(item)
-			}
-		},
-	})
+function askDelete(item) {
+	pendingDelete.value = item
 }
 
-async function doDelete(item) {
+async function confirmDelete() {
+	const item = pendingDelete.value
+	if (!item || deleting.value) return
+	deleting.value = true
 	try {
 		await http.del('/api/emotion/notes/' + item.id)
-		uni.showToast({ title: '已移除', icon: 'success' })
+		toast.success('已移除')
 		records.value = records.value.filter((r) => r.id !== item.id)
 		total.value = Math.max(0, total.value - 1)
+		pendingDelete.value = null
 	} catch (e) {
-		uni.showToast({ title: (e && e.message) || '操作失败', icon: 'none' })
+		toast.care((e && e.message) || '操作失败')
+	} finally {
+		deleting.value = false
 	}
 }
 </script>
@@ -248,7 +262,7 @@ async function doDelete(item) {
 	width: 100rpx;
 	height: 100rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -259,6 +273,12 @@ async function doDelete(item) {
 
 .fab:active {
 	transform: scale(0.92);
+}
+
+.fab:focus-visible,
+.note-card:focus-visible {
+	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline-offset: 3px;
 }
 
 /* ── 骨架屏 ── */
@@ -313,14 +333,14 @@ async function doDelete(item) {
 
 .empty-sub {
 	font-size: 26rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .empty-btn {
 	margin-top: 16rpx;
 	padding: 16rpx 48rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 	box-shadow: var(--zy-shadow-md);
 }
 
@@ -342,7 +362,7 @@ async function doDelete(item) {
 
 .error-text {
 	font-size: 28rpx;
-	color: var(--zy-danger, #FF6B6B);
+	color: var(--zy-care, #a64842);
 }
 
 /* ── 卡片列表 ── */
@@ -401,7 +421,7 @@ async function doDelete(item) {
 	display: -webkit-box;
 	font-size: 28rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -410,7 +430,7 @@ async function doDelete(item) {
 
 .note-date {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 底部心情标签 ── */
@@ -429,7 +449,7 @@ async function doDelete(item) {
 
 .mood-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-weight: 500;
 }
 
@@ -453,7 +473,7 @@ async function doDelete(item) {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #2f7566);
+	border-top-color: var(--zy-primary, #217e76);
 	animation: spin 0.8s linear infinite;
 }
 
@@ -463,14 +483,14 @@ async function doDelete(item) {
 
 .bottom-text {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
 </style>

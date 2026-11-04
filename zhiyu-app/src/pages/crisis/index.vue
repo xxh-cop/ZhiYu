@@ -14,7 +14,7 @@
 			<view class="card-stripe stripe-warm"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-warm">
-					<wd-icon name="phone" size="40rpx" color="#bb914d" />
+					<wd-icon name="phone" size="40rpx" color="var(--zy-accent, #8a6d1f)" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ psychCenterName }}</text>
@@ -22,19 +22,19 @@
 				</view>
 			</view>
 			<text class="card-phone">{{ psychCenterPhone }}</text>
-			<view class="card-btn" @click="callPhone(psychCenterPhone)">
+			<view class="card-btn" role="button" tabindex="0" @click="callPhone(psychCenterPhone)" @keydown.enter.prevent="callPhone(psychCenterPhone)" @keydown.space.prevent="callPhone(psychCenterPhone)">
 				<wd-icon name="phone" size="32rpx" color="#FFFFFF" />
 				<text class="card-btn-text">拨打电话</text>
 			</view>
 		</view>
 
-		<view class="card" @click="goSupport"><text class="card-title">校内预约与官方来源 →</text><text class="card-desc">查看地点、预约准备和信息核对日期</text></view>
+		<view class="card" role="button" tabindex="0" @click="goSupport" @keydown.enter.prevent="goSupport" @keydown.space.prevent="goSupport"><text class="card-title">校内预约与官方来源 →</text><text class="card-desc">查看地点、预约准备和信息核对日期</text></view>
 		<!-- 卡片 2：全国心理援助热线 -->
 		<view class="card zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="card-stripe stripe-mint"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-mint">
-					<wd-icon name="phone" size="40rpx" color="#2f7566" />
+					<wd-icon name="phone" size="40rpx" color="#217e76" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ nationalHotlineName }}</text>
@@ -42,14 +42,14 @@
 				</view>
 			</view>
 			<text class="card-phone">{{ nationalHotline }}</text>
-			<view class="card-btn card-btn-mint" @click="callPhone(nationalHotline)">
+			<view class="card-btn card-btn-mint" role="button" tabindex="0" @click="callPhone(nationalHotline)" @keydown.enter.prevent="callPhone(nationalHotline)" @keydown.space.prevent="callPhone(nationalHotline)">
 				<wd-icon name="phone" size="32rpx" color="#FFFFFF" />
 				<text class="card-btn-text">拨打电话</text>
 			</view>
 		</view>
 
 		<!-- 卡片 3：立刻找人聊聊 -->
-		<view class="chat-card zy-slide-up zy-stagger" style="--stagger-i: 3" @click="goChat">
+		<view class="chat-card zy-slide-up zy-stagger" style="--stagger-i: 3" role="button" tabindex="0" @click="goChat" @keydown.enter.prevent="goChat" @keydown.space.prevent="goChat">
 			<view class="chat-card-icon">
 				<wd-icon name="chat" size="44rpx" color="#FFFFFF" />
 			</view>
@@ -145,7 +145,7 @@ function goChat() {
 	width: 112rpx;
 	height: 112rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #5BCFBF));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -170,7 +170,7 @@ function goChat() {
 .hero-sub {
 	margin-top: 12rpx;
 	font-size: 28rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 热线卡片 ── */
@@ -194,11 +194,11 @@ function goChat() {
 }
 
 .stripe-warm {
-	background: linear-gradient(90deg, #bb914d, #FF6B6B);
+	background: linear-gradient(90deg, var(--zy-care, #a64842), var(--zy-d-care, #d4736a));
 }
 
 .stripe-mint {
-	background: linear-gradient(90deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(90deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 }
 
 .card-header {
@@ -240,14 +240,14 @@ function goChat() {
 
 .card-desc {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .card-phone {
 	display: block;
 	font-size: 48rpx;
 	font-weight: 700;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-family: var(--zy-serif);
 	letter-spacing: 4rpx;
 	margin-bottom: 28rpx;
@@ -256,13 +256,13 @@ function goChat() {
 .card-btn {
 	height: 80rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, #bb914d, #FF8C6B);
+	background: var(--zy-accent, #8a6d1f);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 12rpx;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-	box-shadow: 0 4rpx 16rpx rgba(255, 181, 71, 0.25);
+	box-shadow: 0 4rpx 16rpx rgba(138, 109, 31, 0.25);
 }
 
 .card-btn:active {
@@ -270,8 +270,8 @@ function goChat() {
 }
 
 .card-btn-mint {
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
-	box-shadow: 0 4rpx 16rpx rgba(45, 155, 143, 0.25);
+	background: var(--zy-brand-600, #217e76);
+	box-shadow: 0 4rpx 16rpx rgba(33, 126, 118, 0.25);
 }
 
 .card-btn-text {
@@ -287,7 +287,7 @@ function goChat() {
 	gap: 24rpx;
 	padding: 36rpx 32rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566) 0%, var(--zy-primary-light, #82ad9b) 100%);
+	background: var(--zy-brand-600, #217e76);
 	box-shadow: var(--zy-shadow-md);
 	margin-bottom: 32rpx;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
@@ -338,7 +338,7 @@ function goChat() {
 .warm-line {
 	font-size: 26rpx;
 	line-height: 1.8;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
 
@@ -346,7 +346,8 @@ function goChat() {
 .footnote {
 	display: block;
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
+button:focus-visible{outline:3px solid var(--zy-brand-700,#1a645e);outline-offset:3px}
 </style>

@@ -7,18 +7,18 @@
 				<text class="practice-bar-sub">{{ hint }}</text>
 			</view>
 			<view class="practice-bar-actions">
-				<button
+				<AccessibleButton
 					v-if="status === 3"
 					class="practice-bar-button"
 					:disabled="busy"
 					@click="$emit('pause-and-leave')"
-				>{{ busy ? '正在保存…' : '稍后继续' }}</button>
-				<button
+				>{{ busy ? '正在保存…' : '稍后继续' }}</AccessibleButton>
+				<AccessibleButton
 					v-if="status === 4 || status === 5 || status === 6"
 					class="practice-bar-button"
 					:disabled="busy"
 					@click="$emit('open-journey')"
-				>回看旅程</button>
+				>回看旅程</AccessibleButton>
 			</view>
 		</view>
 		<text v-if="error" class="practice-bar-error" role="alert">{{ error }}</text>
@@ -28,6 +28,7 @@
 <script setup>
 import { computed } from 'vue'
 import { practiceKindLabel } from '../utils/practice-session'
+import AccessibleButton from './AccessibleButton.vue'
 
 const props = defineProps({
 	session: { type: Object, default: null },
@@ -71,7 +72,7 @@ const hint = computed(() => {
 	display: block;
 	font-size: 20rpx;
 	letter-spacing: 2rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 .practice-bar-title {
 	display: block;
@@ -85,7 +86,7 @@ const hint = computed(() => {
 	margin-top: 4rpx;
 	font-size: 22rpx;
 	line-height: 1.6;
-	color: var(--zy-text, #586e62);
+	color: var(--zy-text, #4a5f54);
 }
 .practice-bar-actions {
 	display: flex;
@@ -99,7 +100,7 @@ const hint = computed(() => {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 12rpx;
 	background: var(--zy-bg, #f5f7f2);
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	font-size: 23rpx;
 	line-height: 44px;
 }
@@ -111,6 +112,6 @@ const hint = computed(() => {
 	margin-top: 10rpx;
 	font-size: 22rpx;
 	line-height: 1.6;
-	color: #a4453f;
+	color: var(--zy-care, #a64842);
 }
 </style>

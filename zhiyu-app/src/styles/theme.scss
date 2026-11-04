@@ -1,59 +1,82 @@
 /**
- * 织愈 · 清爽现代 + 薄荷青亮点主题
+ * 织愈 · 青玉案主题（2026-11-02 定案）
  *
- * 设计气质参考：Notion Calendar / Bear / Craft / Arc Browser
- * 冷色调但不冷淡，克制但有节奏。
- * 保留宋体标题作为"非遗文化感"锚点。
+ * 设计 Token v5.0：主色收敛为 brand-600 #217E76（与 logo 同源），
+ * brand-500 #2D9B8F 降为 hover/图形（不作按钮底，白字对比 3.39 不达标），
+ * 语义色 success / warning 双轨 / care 绛红，中性文字加深至 #4A5F54。
+ * 定义与对比度依据：docs/design-tokens-20261102.md；单一事实源：design/tokens.json。
  *
- * 设计 Token v4.0（UI 冲刺阶段一）
  * 原先定义在 uni.scss 的 :root, page {} 块已迁移至此，
  * 因 UniApp 编译器不输出 uni.scss 的 CSS 规则。
- * 与 docs/ui-tokens.md 一一对应。
  */
 
 :root,
 page {
-	/* ── wot-design-uni 主题变量 ── */
-	--wot-color-theme: #2f7566;        /* 薄荷青 — 主色 */
-	--wot-color-success: #2f7566;       /* 松绿 */
-	--wot-color-warning: #8a642b;       /* 暖橙 */
-	--wot-color-danger: #aa463b;        /* 珊瑚红 */
-	--wot-color-info: #586e62;          /* 浅灰 */
+	/* ── 品牌色阶（青玉案） ── */
+	--zy-brand-50: #eaf4f1;
+	--zy-brand-100: #c9e4dd;
+	--zy-brand-300: #5bc4a8;    /* 深色态主色 / 浅色态图形 */
+	--zy-brand-500: #2d9b8f;    /* hover / 图表 / 图形（不作按钮底） */
+	--zy-brand-600: #217e76;    /* 主色：按钮、链接、导航选中 */
+	--zy-brand-700: #1a645e;    /* 按钮按下态 */
+	--zy-brand-900: #0f3d38;    /* 深色态按钮文字（配 brand-300 底） */
 
-	--wot-color-bg: #f5f7f2;            /* 冷白背景 */
-	--wot-color-border: #dfe7dc;        /* 冷灰边框 */
+	/* ── wot-design-uni 主题变量 ── */
+	--wot-color-theme: #217e76;        /* 青玉案 brand-600 — 主色 */
+	--wot-color-success: #2e7d5b;      /* 成功绿 */
+	--wot-color-warning: #9a6a12;      /* 警示琥珀（大字/图标级） */
+	--wot-color-danger: #a64842;       /* 危机绛（非纯红） */
+	--wot-color-info: #4a5f54;         /* 中性次要 */
+
+	--wot-color-bg: #f5f7f2;            /* 页面底 */
+	--wot-color-border: #dfe7dc;        /* 边框 */
 	--wot-color-border-light: #F3F4F6;  /* 浅冷灰 */
 
-	--wot-color-title: #233d34;         /* 深灰蓝 — 标题 */
-	--wot-color-content: #586e62;       /* 中灰 — 正文 */
-	--wot-color-secondary: #586e62;     /* 中灰 — 次要 */
-	--wot-color-aid: #586e62;           /* 浅灰 — 辅助 */
-	--wot-color-tip: #D1D5DB;           /* 银灰 — 提示 */
+	--wot-color-title: #233d34;         /* 标题 */
+	--wot-color-content: #4a5f54;       /* 正文（对比度修正：6.37:1） */
+	--wot-color-secondary: #4a5f54;     /* 次要 */
+	--wot-color-aid: #4a5f54;           /* 辅助 */
+	--wot-color-tip: #D1D5DB;           /* 银灰 — 占位提示（非正文用途） */
 
-	/* ── 织愈色板（v3.0 薄荷青） ── */
-	--zy-primary: #2f7566;
-	--zy-primary-light: #82ad9b;
+	/* ── 织愈色板（向后兼容别名，指向青玉案令牌） ── */
+	--zy-primary: #217e76;
+	--zy-primary-light: #5bc4a8;
 	--zy-bg: #f5f7f2;
 	--zy-card-bg: #FFFFFF;
 	--zy-title: #233d34;
-	--zy-text: #586e62;
-	--zy-muted: #586e62;
+	--zy-text: #4a5f54;
+	--zy-muted: #4a5f54;
 	--zy-border: #dfe7dc;
-	--zy-accent: #8a642b;
-	--zy-danger: #aa463b;
+	--zy-accent: #8a6d1f;               /* 深金文字（非遗标注/正文级警示） */
+	--zy-danger: #a64842;               /* 危机绛 */
 
 	--zy-bg-warm: #FFFFFF;              /* 卡片纯白 */
-	--zy-bg-tint-mint: #e8efe4;         /* 薄荷青 4% — 模块底色 */
-	--zy-bg-tint-warm: #f5edde;         /* 暖橙 4% */
-	--zy-content: #586e62;              /* 中灰 */
-	--zy-aid: #586e62;                  /* 浅灰 */
+	--zy-bg-tint-mint: #e8efe4;         /* 薄荷 4% — 模块底色 */
+	--zy-bg-tint-warm: #f7efd9;         /* 暖金 4% */
+	--zy-content: #4a5f54;
+	--zy-aid: #4a5f54;
+
+	/* ── 语义色 ── */
+	--zy-success: #2e7d5b;
+	--zy-warning: #9a6a12;              /* 仅大字/图标 */
+	--zy-warning-text: #8a6d1f;         /* 正文级警示 */
+	--zy-care: #a64842;                 /* 危机干预绛 */
+	--zy-gold: #d9a441;                 /* 暖金：仅图形/徽章，不承担文本 */
+
+	/* ── 深色态（夜间页面级：音乐/呼吸/睡前；全站暗色未启用） ── */
+	--zy-d-bg: #14201c;
+	--zy-d-surface: #1c2b26;
+	--zy-d-text: #e8ede9;
+	--zy-d-text-secondary: #a9bbb2;
+	--zy-d-primary: #5bc4a8;
+	--zy-d-care: #d4736a;
 
 	--zy-font: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 	/* 保留旧变量供已有页面引用，统一为易读的界面字体。 */
 	--zy-serif: var(--zy-font);
 	--zy-sans: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
 
-	/* ── 圆角 ── */
+	/* ── 圆角（基础阶） ── */
 	--zy-radius-xs: 6rpx;
 	--zy-radius-sm: 12rpx;
 	--zy-radius-md: 24rpx;
@@ -61,12 +84,18 @@ page {
 	--zy-radius-xl: 48rpx;
 	--zy-radius-full: 9999rpx;
 
-	/* ── 阴影 ── */
-	--zy-shadow-xs: 0 2rpx 4rpx rgba(45, 155, 143, 0.04);
-	--zy-shadow-sm: 0 2rpx 8rpx rgba(45, 155, 143, 0.06);
-	--zy-shadow-md: 0 4rpx 16rpx rgba(45, 155, 143, 0.08);
-	--zy-shadow-lg: 0 8rpx 24rpx rgba(45, 155, 143, 0.10);
-	--zy-shadow-xl: 0 12rpx 32rpx rgba(45, 155, 143, 0.12);
+	/* ── 圆角（语义别名：卡片/控件/弹窗分级） ── */
+	--zy-radius-card: var(--zy-radius-lg);      /* 卡片 32rpx ≈ 16px */
+	--zy-radius-control: var(--zy-radius-md);   /* 按钮/输入 24rpx ≈ 12px */
+	--zy-radius-dialog: var(--zy-radius-xl);    /* 弹窗 48rpx ≈ 24px */
+	--zy-radius-chip: var(--zy-radius-sm);      /* 标签/小片 12rpx */
+
+	/* ── 阴影（青玉案主色派生） ── */
+	--zy-shadow-xs: 0 2rpx 4rpx rgba(33, 126, 118, 0.04);
+	--zy-shadow-sm: 0 2rpx 8rpx rgba(33, 126, 118, 0.06);
+	--zy-shadow-md: 0 4rpx 16rpx rgba(33, 126, 118, 0.08);
+	--zy-shadow-lg: 0 8rpx 24rpx rgba(33, 126, 118, 0.10);
+	--zy-shadow-xl: 0 12rpx 32rpx rgba(33, 126, 118, 0.12);
 
 	/* ── 间距 ── */
 	--zy-space-2xs: 4rpx;
@@ -85,6 +114,7 @@ page {
 	--zy-font-lg: 36rpx;
 	--zy-font-xl: 44rpx;
 	--zy-font-2xl: 56rpx;
+	--zy-leading: 1.6;
 
 	/* ── 动效时长 ── */
 	--zy-duration-instant: 100ms;

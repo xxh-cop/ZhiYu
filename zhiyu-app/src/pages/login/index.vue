@@ -12,7 +12,7 @@
       <AccountField id="login-password" ref="passwordField" v-model="form.password" label="密码" placeholder="请输入密码" autocomplete="current-password" secret :maxlength="32" :disabled="loading" :error="errors.password" confirm-type="done" @confirm="handleLogin"/>
       <view v-if="errMsg" class="account-notice error" role="alert">{{errMsg}}</view>
       <AccessibleButton class="account-action" :loading="loading" @click="handleLogin">{{loading?'正在登录…':'登录织愈'}}</AccessibleButton>
-      <view class="account-links"><text>第一次来到这里？</text><AccessibleButton class="account-link" :disabled="loading" @click="goRegister">创建账号</AccessibleButton></view>
+      <view class="account-links"><text>第一次来到这里？</text><AccessibleButton class="account-link" :disabled="loading" @click="goRegister">创建账号</AccessibleButton><AccessibleButton class="account-link" :disabled="loading" @click="goForgot">忘记密码？</AccessibleButton></view>
     </template>
     <view class="account-divider"/>
     <text class="account-help">使用平台注册账号登录。校园身份可在登录后申请人工核验；账号问题请联系平台管理员。</text>
@@ -55,6 +55,7 @@ async function handleLogin(){
   finally{loading.value=false}
 }
 function goRegister(){uni.navigateTo({url:'/pages/register/index'+(returnTo.value?'?next='+encodeURIComponent(returnTo.value):'')})}
+function goForgot(){uni.navigateTo({url:'/pages/login/forgot'})}
 function goPrivacy(){uni.navigateTo({url:'/pages/privacy/index'})}
 </script>
 <style scoped src="../../styles/account.css"></style>

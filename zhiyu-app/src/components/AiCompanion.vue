@@ -37,38 +37,27 @@
 			<text class="bubble-text">{{ breathingText }}</text>
 		</view>
 
-		<!-- 小织形象（petState 驱动 + blink 叠加） — H5 + 小程序共用 -->
+		<!-- 小织形象（线团小兽渲染层，跟随 aiStore.petState；点击反馈为组件内置 squish） — H5 + 小程序共用 -->
 		<!-- #ifdef H5 -->
 		<view
 			class="xiaozhi-wrapper"
-			:class="{ breathing: mode === 'breathing', 'thinking-fallback': needsFallback }"
+			:class="{ breathing: mode === 'breathing' }"
 			@mousedown="onMouseDown"
 			@click="onCompanionClick"
 		>
-			<image
-				class="xiaozhi-img"
-				:src="currentSrc"
-				mode="aspectFit"
-				draggable="false"
-				@error="onImageError"
-			/>
+			<XiaotuanPet :size="70" class="xiaotuan-render" />
 		</view>
 		<!-- #endif -->
 
 		<!-- #ifndef H5 -->
 		<view
 			class="xiaozhi-wrapper"
-			:class="{ breathing: mode === 'breathing', 'thinking-fallback': needsFallback }"
+			:class="{ breathing: mode === 'breathing' }"
 			@click="onCompanionClick"
 		>
-			<image
-				class="xiaozhi-img"
-				:src="currentSrc"
-				mode="aspectFit"
-				@error="onImageError"
-			/>
+			<XiaotuanPet :size="70" class="xiaotuan-render" />
 		</view>
-			<!-- #endif -->
+		<!-- #endif -->
 		</view>
 	</view>
 </template>
@@ -76,6 +65,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAiCompanionStore } from '../stores/aiCompanion'
+import XiaotuanPet from './XiaotuanPet.vue'
 
 const props = defineProps({
 	proactive: {
@@ -90,8 +80,6 @@ const aiStore = useAiCompanionStore()
 const pos = computed(() => aiStore.position)
 const mode = computed(() => aiStore.mode)
 const visible = computed(() => aiStore.visible)
-const petState = computed(() => aiStore.petState)
-const isBlinking = computed(() => aiStore.isBlinking)
 const isHidden = computed(() => aiStore.isHidden)
 const isDragging = computed(() => aiStore.isDragging)
 const showBubble = computed(() => aiStore.showBubble)
@@ -99,22 +87,8 @@ const bubbleContent = computed(() => aiStore.bubbleText)
 const bubbleSide = computed(() => aiStore.bubbleSide)
 const breathingText = ref('跟着我，慢慢吸…')
 
-// 图片路径：blink 叠加优先，否则用 petState 对应图
-const BLINK_IMG = '/static/xiaozhi-blink.png'
-const currentSrc = computed(() => {
-	if (isBlinking.value) return BLINK_IMG
-	return aiStore.currentImagePath
-})
-
-// 降级标记：图片加载失败时回 idle
-const needsFallback = computed(() => petState.value === 'thinking' && imageFailed.value)
-const imageFailed = ref(false)
-
-// 图片加载失败 → 回 idle（降级方案）
-function onImageError() {
-	imageFailed.value = true
-	aiStore.petState = 'idle'
-}
+// 渲染层已切换到 XiaotuanPet（线团小兽）：表情由组件内部按 aiStore.petState 映射，
+// 点击反馈用组件内置 squish，旧 PNG 的 blink 叠加与加载失败降级不再需要。
 
 // 拖动状态
 let dragging = false
@@ -169,15 +143,11 @@ function onTouchEnd() {
 	dragging = false
 }
 
-// 点击（未拖动）→ 眨眼 150ms → 打开聊天面板
+// 点击（未拖动）→ 打开聊天面板（点击视觉反馈由 XiaotuanPet 内置 squish 承担）
 function onCompanionClick() {
 	if (dragging || suppressClick) return
 
-	// 1. 先眨眼（150ms 反馈）
-	aiStore.blink()
-
-	// 2. 眨眼结束后立即打开面板（不再弹气泡）
-	//    只设 visible=false 隐藏小织，不动 isHidden（避免触发恢复按钮）
+	// 只设 visible=false 隐藏小织，不动 isHidden（避免触发恢复按钮）
 	setTimeout(() => {
 		aiStore.hideBubble()
 		aiStore.visible = false
@@ -288,24 +258,16 @@ watch(
 .xiaozhi-wrapper {
 	pointer-events: auto;
 	width: 140rpx;
-	height: 180rpx;
+	height: 140rpx;
 	position: relative;
 	display: flex;
-	align-items: flex-end;
+	align-items: center;
 	justify-content: center;
+	filter: drop-shadow(0 4rpx 8rpx rgba(33, 126, 118, 0.15));
 }
 
-/* ── 问题 1 修法：固定图片尺寸 + 强制内容居中缩放 ── */
-.xiaozhi-img {
-	width: 140rpx;
-	height: 180rpx;
-	display: block;
-	object-fit: contain;
-	object-position: center bottom;
-	filter: drop-shadow(0 4rpx 8rpx rgba(45, 155, 143, 0.15));
-	-webkit-user-drag: none;
+.xiaotuan-render {
 	user-select: none;
-	pointer-events: none;
 }
 
 /* ── 问题 2 修法：气泡文字横排 ── */
@@ -318,7 +280,7 @@ watch(
 	padding: 14rpx 24rpx;
 	background: var(--zy-card-bg, #ffffff);
 	border-radius: var(--zy-radius-md, 24rpx);
-	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(45, 155, 143, 0.08));
+	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(33, 126, 118, 0.08));
 	font-size: 26rpx;
 	line-height: 1.5;
 	color: var(--zy-title, #233d34);
@@ -366,8 +328,8 @@ watch(
 	bottom: 40rpx;
 	transform: translateX(-50%);
 	padding: 16rpx 40rpx;
-	background: rgba(45, 155, 143, 0.15);
-	border: 2rpx dashed rgba(45, 155, 143, 0.4);
+	background: rgba(33, 126, 118, 0.15);
+	border: 2rpx dashed rgba(33, 126, 118, 0.4);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	pointer-events: none;
 	z-index: 9998;
@@ -376,12 +338,12 @@ watch(
 
 .hide-zone-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 	white-space: nowrap;
 }
 
 .hide-zone-hint.active {
-	background: var(--zy-primary, #2f7566);
+	background: var(--zy-primary, #217e76);
 	border-color: transparent;
 	transform: translateX(-50%) scale(1.05);
 }
@@ -409,12 +371,12 @@ watch(
 	width: 72rpx;
 	height: 72rpx;
 	border-radius: 50%;
-	background: rgba(45, 155, 143, 0.15);
+	background: rgba(33, 126, 118, 0.15);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 9999;
-	box-shadow: var(--zy-shadow-sm, 0 2rpx 8rpx rgba(45, 155, 143, 0.06));
+	box-shadow: var(--zy-shadow-sm, 0 2rpx 8rpx rgba(33, 126, 118, 0.06));
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 	pointer-events: auto;
 }
@@ -428,15 +390,6 @@ watch(
 }
 
 /* ── 呼吸动画 ── */
-.xiaozhi-wrapper.thinking-fallback {
-	animation: thinkingFloat 1.5s var(--zy-ease-in-out, ease-in-out) infinite;
-}
-
-@keyframes thinkingFloat {
-	0%, 100% { transform: translateY(0); }
-	50%      { transform: translateY(-4rpx); }
-}
-
 .xiaozhi-wrapper.breathing {
 	animation: breathe 10s var(--zy-ease-in-out, ease-in-out) infinite;
 }

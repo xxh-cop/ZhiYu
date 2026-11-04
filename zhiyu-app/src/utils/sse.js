@@ -46,7 +46,20 @@ function startSSEH5({ url, body, token, onMessage, onDone, onError, onEvent }) {
 					return
 				}
 				if (!aborted) {
-					onError({ code: response.status, message: 'HTTP ' + response.status })
+					// 优先取业务错误体（Result 包装），如 1003「请先阅读并同意隐私政策」；
+					// 读不到再退化为 HTTP 状态码，避免用户只看到「HTTP 403」。
+					response
+						.clone()
+						.json()
+						.then((body) => {
+							if (!aborted) {
+								const code = body && typeof body.code === 'number' ? body.code : response.status
+								onError({ code, message: (body && body.message) || 'HTTP ' + response.status })
+							}
+						})
+						.catch(() => {
+							if (!aborted) onError({ code: response.status, message: 'HTTP ' + response.status })
+						})
 				}
 				return
 			}

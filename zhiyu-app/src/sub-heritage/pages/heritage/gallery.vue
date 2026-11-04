@@ -11,7 +11,7 @@
 		</view>
 		<view v-else-if="error" class="growth-card heritage-status" role="alert">
 			<text class="growth-error">{{ error }}</text>
-			<button class="growth-button secondary" @click="load">重试</button>
+			<AccessibleButton class="growth-button secondary" @click="load">重试</AccessibleButton>
 		</view>
 		<template v-else>
 			<view class="growth-card heritage-search-card">
@@ -29,18 +29,18 @@
 			</view>
 
 			<view class="growth-row heritage-filters" role="group" aria-label="按技艺筛选">
-				<button
+				<AccessibleButton
 					:class="['growth-choice', { selected: !traditionId }]"
 					:aria-pressed="!traditionId"
 					@click="traditionId = ''"
-				>全部</button>
-				<button
+				>全部</AccessibleButton>
+				<AccessibleButton
 					v-for="tradition in traditions"
 					:key="tradition.id"
 					:class="['growth-choice', { selected: traditionId === tradition.id }]"
 					:aria-pressed="traditionId === tradition.id"
 					@click="traditionId = tradition.id"
-				>{{ tradition.shortName }}</button>
+				>{{ tradition.shortName }}</AccessibleButton>
 			</view>
 
 			<view class="heritage-count-row">
@@ -50,18 +50,18 @@
 
 			<view v-if="!filtered.length" class="growth-card heritage-status">
 				<text class="growth-muted">{{ patterns.length ? '没有找到匹配的纹样。' : '当前没有可展示的纹样。' }}</text>
-				<button v-if="patterns.length" class="growth-button secondary" @click="clearFilters">清空筛选</button>
-				<button v-else class="growth-button secondary" @click="load">重试</button>
+				<AccessibleButton v-if="patterns.length" class="growth-button secondary" @click="clearFilters">清空筛选</AccessibleButton>
+				<AccessibleButton v-else class="growth-button secondary" @click="load">重试</AccessibleButton>
 			</view>
 			<view v-else class="heritage-grid">
-				<button
+				<AccessibleButton
 					v-for="pattern in filtered"
 					:key="pattern.id"
 					class="heritage-card"
 					:aria-label="'查看纹样 ' + pattern.name + '，' + pattern.traditionShortName + '，' + pattern.level"
 					@click="openPattern(pattern.id)"
 				>
-					<image class="heritage-card-art" :src="patternImage(pattern.id)" mode="aspectFill" lazy-load />
+					<image class="heritage-card-art" :src="patternImage(pattern.id)" mode="aspectFill" lazy-load :alt="(pattern.name||'非遗')+'纹样图样'" />
 					<view class="heritage-card-copy">
 						<view class="heritage-card-title-row">
 							<text class="heritage-card-title">{{ pattern.name }}</text>
@@ -70,7 +70,7 @@
 						<text class="heritage-card-meta">{{ pattern.traditionShortName }} · {{ pattern.region }}</text>
 						<text class="heritage-card-note">{{ pattern.familyLabel }} · {{ pattern.level }} · 约 {{ pattern.minutes }} 分钟数字练习</text>
 					</view>
-				</button>
+				</AccessibleButton>
 			</view>
 		</template>
 
@@ -81,9 +81,10 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { request } from '../../utils/request'
-import { decoratePatterns, filterHeritagePatterns, patternImage } from '../../utils/heritage-ui'
-import { useInteraction } from '../../composables/useInteraction'
+import { request } from '@/utils/request'
+import { decoratePatterns, filterHeritagePatterns, patternImage } from '@/utils/heritage-ui'
+import { useInteraction } from '@/composables/useInteraction'
+import AccessibleButton from '@/components/AccessibleButton.vue'
 
 const { reducedMotion } = useInteraction()
 const loading = ref(false)
@@ -106,7 +107,7 @@ function clearFilters() {
 }
 
 function openPattern(id) {
-	uni.navigateTo({ url: '/pages/heritage/detail?id=' + encodeURIComponent(id) })
+	uni.navigateTo({ url: '/sub-heritage/pages/heritage/detail?id=' + encodeURIComponent(id) })
 }
 
 async function load() {
@@ -126,7 +127,7 @@ async function load() {
 onLoad(load)
 </script>
 
-<style src="../../styles/growth.css"></style>
+<style src="@/styles/growth.css"></style>
 <style scoped>
 .heritage-page { max-width: 1180px; margin: 0 auto; }
 .heritage-hero { padding-bottom: 12rpx; }
@@ -143,8 +144,8 @@ onLoad(load)
 .heritage-card-copy { display: block; padding: 20rpx 22rpx 24rpx; }
 .heritage-card-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10rpx; }
 .heritage-card-title { font-size: 29rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.heritage-card-tag { flex-shrink: 0; font-size: 20rpx; color: var(--zy-primary, #2f7566); background: var(--zy-bg-tint-mint, #e8efe4); border-radius: 8rpx; padding: 2rpx 8rpx; }
-.heritage-card-meta, .heritage-card-note { display: block; font-size: 22rpx; color: var(--zy-text, #586e62); margin-top: 8rpx; }
+.heritage-card-tag { flex-shrink: 0; font-size: 20rpx; color: var(--zy-primary, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); border-radius: 8rpx; padding: 2rpx 8rpx; }
+.heritage-card-meta, .heritage-card-note { display: block; font-size: 22rpx; color: var(--zy-text, #4a5f54); margin-top: 8rpx; }
 .heritage-card-note { font-size: 20rpx; }
 .heritage-card:active { opacity: .86; }
 @media (min-width: 700px) { .heritage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .heritage-card-art { height: 220px; } }

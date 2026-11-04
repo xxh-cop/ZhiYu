@@ -1,7 +1,7 @@
 <template>
 	<view class="kits-page zy-page-enter">
 		<view class="kits-nav">
-			<button class="back-btn" aria-label="返回材料探索" @click="leave">‹ 返回</button>
+			<AccessibleButton class="back-btn" aria-label="返回材料探索" @click="leave">‹ 返回</AccessibleButton>
 			<text class="nav-label">工作坊材料包</text>
 		</view>
 
@@ -19,22 +19,22 @@
 
 		<view v-else-if="errorMsg" class="status-card" role="alert">
 			<text class="status-text">{{ errorMsg }}</text>
-			<button class="primary-action" @click="load">重新加载</button>
-			<button class="text-action" @click="leave">返回材料探索</button>
+			<AccessibleButton class="primary-action" @click="load">重新加载</AccessibleButton>
+			<AccessibleButton class="text-action" @click="leave">返回材料探索</AccessibleButton>
 		</view>
 
 		<template v-else>
 			<text v-if="disclaimer" class="catalog-note">{{ disclaimer }}</text>
 
 			<view v-for="(kit, idx) in kits" :key="kit.id" class="kit-card">
-				<button class="kit-head" :aria-expanded="expanded === kit.id" @click="toggle(kit.id)">
+				<AccessibleButton class="kit-head" :aria-expanded="expanded === kit.id" @click="toggle(kit.id)">
 					<view class="kit-head-copy">
 						<text class="kit-index">0{{ idx + 1 }}</text>
 						<text class="kit-name">{{ kit.name }}</text>
 						<text class="kit-meta">{{ kit.audience }} · 建议 {{ kit.capacity }} 人</text>
 					</view>
 					<text class="chevron">{{ expanded === kit.id ? '−' : '+' }}</text>
-				</button>
+				</AccessibleButton>
 
 				<view v-if="expanded === kit.id" class="kit-body">
 					<view class="block">
@@ -84,6 +84,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
+import AccessibleButton from '../../components/AccessibleButton.vue'
 
 const kits = ref([])
 const disclaimer = ref('')
@@ -126,55 +127,55 @@ function leave() {
 	padding: 28rpx 32rpx 90rpx;
 	box-sizing: border-box;
 	background: var(--zy-bg, #f5f7f2);
-	color: var(--zy-content, #586e62);
+	color: var(--zy-content, #4a5f54);
 }
 .kits-nav { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
-.back-btn { margin: 0; padding: 8rpx 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 999rpx; background: var(--zy-card-bg, #fff); color: var(--zy-content, #586e62); font-size: 22rpx; line-height: 2; }
+.back-btn { margin: 0; padding: 8rpx 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 999rpx; background: var(--zy-card-bg, #fff); color: var(--zy-content, #4a5f54); font-size: 22rpx; line-height: 2; }
 .back-btn::after { border: 0; }
-.nav-label { font-size: 20rpx; letter-spacing: 2rpx; color: var(--zy-sub, #718478); }
+.nav-label { font-size: 20rpx; letter-spacing: 2rpx; color: var(--zy-text, #4a5f54); }
 .kits-hero { margin: 34rpx 0 24rpx; }
-.eyebrow { display: block; font-size: 19rpx; letter-spacing: 2rpx; color: var(--zy-accent, #bb914d); }
+.eyebrow { display: block; font-size: 19rpx; letter-spacing: 2rpx; color: var(--zy-accent, #8a6d1f); }
 .title { display: block; margin-top: 10rpx; font-family: var(--zy-serif); font-size: 44rpx; font-weight: 600; line-height: 1.4; color: var(--zy-title, #233d34); }
-.subtitle { display: block; margin-top: 10rpx; font-size: 23rpx; line-height: 1.8; color: var(--zy-sub, #718478); }
-.catalog-note { display: block; margin-bottom: 18rpx; padding: 16rpx 18rpx; border-radius: 12rpx; background: var(--zy-bg-tint-mint, #eaf5ef); font-size: 20rpx; line-height: 1.8; color: var(--zy-content, #586e62); }
+.subtitle { display: block; margin-top: 10rpx; font-size: 23rpx; line-height: 1.8; color: var(--zy-text, #4a5f54); }
+.catalog-note { display: block; margin-bottom: 18rpx; padding: 16rpx 18rpx; border-radius: 12rpx; background: var(--zy-bg-tint-mint, #eaf5ef); font-size: 20rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .kit-card { margin-bottom: 18rpx; overflow: hidden; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 22rpx; background: var(--zy-card-bg, #fff); box-shadow: var(--zy-shadow-sm); }
 .kit-head { display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 0; padding: 24rpx 24rpx; border: 0; background: transparent; text-align: left; line-height: 1.5; }
 .kit-head::after { border: 0; }
 .kit-head-copy { flex: 1; min-width: 0; }
-.kit-index { display: block; font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #bb914d); }
+.kit-index { display: block; font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #8a6d1f); }
 .kit-name { display: block; margin-top: 6rpx; font-family: var(--zy-serif); font-size: 29rpx; font-weight: 600; line-height: 1.5; color: var(--zy-title, #233d34); }
-.kit-meta { display: block; margin-top: 6rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-sub, #718478); }
-.chevron { flex-shrink: 0; width: 54rpx; text-align: center; font-size: 34rpx; color: var(--zy-primary, #2f7566); }
+.kit-meta { display: block; margin-top: 6rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); }
+.chevron { flex-shrink: 0; width: 54rpx; text-align: center; font-size: 34rpx; color: var(--zy-primary, #217e76); }
 .kit-body { padding: 0 24rpx 26rpx; }
 .block { margin-top: 24rpx; }
-.block-label { display: block; margin-bottom: 12rpx; font-size: 21rpx; font-weight: 600; letter-spacing: 1rpx; color: var(--zy-primary, #2f7566); }
+.block-label { display: block; margin-bottom: 12rpx; font-size: 21rpx; font-weight: 600; letter-spacing: 1rpx; color: var(--zy-primary, #217e76); }
 .item-row { display: flex; align-items: flex-start; gap: 16rpx; padding: 14rpx 0; border-bottom: 1rpx dashed var(--zy-border, #dfe7dc); }
 .item-row:last-child { border-bottom: 0; }
 .item-main { flex: 1; min-width: 0; }
 .item-name { display: block; font-size: 23rpx; line-height: 1.6; color: var(--zy-title, #233d34); }
-.item-note { display: block; margin-top: 4rpx; font-size: 19rpx; line-height: 1.6; color: var(--zy-sub, #718478); }
-.item-qty { flex-shrink: 0; max-width: 190rpx; text-align: right; font-size: 20rpx; line-height: 1.6; color: var(--zy-primary, #2f7566); }
-.bullet { display: block; margin-top: 6rpx; font-size: 22rpx; line-height: 1.8; color: var(--zy-content, #586e62); }
+.item-note { display: block; margin-top: 4rpx; font-size: 19rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); }
+.item-qty { flex-shrink: 0; max-width: 190rpx; text-align: right; font-size: 20rpx; line-height: 1.6; color: var(--zy-primary, #217e76); }
+.bullet { display: block; margin-top: 6rpx; font-size: 22rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .step-row { display: flex; align-items: flex-start; gap: 14rpx; margin-top: 10rpx; }
-.step-num { flex-shrink: 0; width: 38rpx; height: 38rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-primary, #2f7566); font-size: 19rpx; line-height: 38rpx; text-align: center; }
-.step-text { flex: 1; font-size: 22rpx; line-height: 1.8; color: var(--zy-content, #586e62); }
-.safety-block { padding: 18rpx 18rpx 14rpx; border-radius: 14rpx; background: #fbf5e9; }
-.safety-label { color: #94602c; }
-.safety-bullet { color: #7d5b32; }
+.step-num { flex-shrink: 0; width: 38rpx; height: 38rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-primary, #217e76); font-size: 19rpx; line-height: 38rpx; text-align: center; }
+.step-text { flex: 1; font-size: 22rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
+.safety-block { padding: 18rpx 18rpx 14rpx; border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); border-left: 6rpx solid var(--zy-gold, #d9a441); }
+.safety-label { color: var(--zy-warning-text, #8a6d1f); }
+.safety-bullet { color: var(--zy-warning-text, #8a6d1f); }
 .digital-card { margin-top: 22rpx; padding: 18rpx; border: 1rpx dashed var(--zy-border, #dfe7dc); border-radius: 14rpx; }
-.digital-label { display: block; font-size: 19rpx; letter-spacing: 1rpx; color: var(--zy-accent, #bb914d); }
-.digital-text { display: block; margin-top: 6rpx; font-size: 21rpx; line-height: 1.8; color: var(--zy-content, #586e62); }
-.source-note { display: block; margin-top: 18rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-sub, #718478); }
+.digital-label { display: block; font-size: 19rpx; letter-spacing: 1rpx; color: var(--zy-accent, #8a6d1f); }
+.digital-text { display: block; margin-top: 6rpx; font-size: 21rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
+.source-note { display: block; margin-top: 18rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
 .loading-card, .status-card { margin-top: 30rpx; padding: 34rpx 28rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 20rpx; background: var(--zy-card-bg, #fff); }
 .loading-line { height: 28rpx; border-radius: 8rpx; }
 .loading-line.short { width: 62%; margin-top: 16rpx; }
-.loading-text, .status-text { display: block; margin-top: 16rpx; font-size: 22rpx; line-height: 1.8; color: var(--zy-sub, #718478); }
-.primary-action { min-height: 86rpx; margin-top: 18rpx; border-radius: 999rpx; background: var(--zy-primary, #2f7566); color: #fff; font-size: 26rpx; line-height: 2.8; }
+.loading-text, .status-text { display: block; margin-top: 16rpx; font-size: 22rpx; line-height: 1.8; color: var(--zy-text, #4a5f54); }
+.primary-action { min-height: 86rpx; margin-top: 18rpx; border-radius: 999rpx; background: var(--zy-primary, #217e76); color: #fff; font-size: 26rpx; line-height: 2.8; }
 .primary-action::after { border: 0; }
-.text-action { margin-top: 10rpx; background: transparent; color: var(--zy-sub, #718478); font-size: 22rpx; line-height: 2.4; }
+.text-action { margin-top: 10rpx; background: transparent; color: var(--zy-text, #4a5f54); font-size: 22rpx; line-height: 2.4; }
 .text-action::after { border: 0; }
-.page-disclaimer { display: block; margin-top: 32rpx; text-align: center; font-size: 20rpx; color: var(--zy-sub, #718478); }
-.kit-head:focus-visible { outline: 3px solid var(--zy-primary, #2f7566); outline-offset: -3px; }
+.page-disclaimer { display: block; margin-top: 32rpx; text-align: center; font-size: 20rpx; color: var(--zy-text, #4a5f54); }
+.kit-head:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: -3px; }
 @media (max-width: 360px) {
 	.kits-page { padding-left: 24rpx; padding-right: 24rpx; }
 	.title { font-size: 38rpx; }

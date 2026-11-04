@@ -13,7 +13,7 @@
 
 		<!-- 关系图谱 -->
 		<view class="map-card">
-			<button
+			<AccessibleButton
 				class="map-toggle"
 				:aria-expanded="mapExpanded ? 'true' : 'false'"
 				aria-controls="heritage-map-panel"
@@ -24,11 +24,11 @@
 					<text class="map-desc">{{ graph ? '4 门工艺 · 24 个纹样 · 4 条已登记来源' : '正在读取目录…' }}</text>
 				</view>
 				<text class="map-action">{{ mapExpanded ? '收起' : '展开' }}</text>
-			</button>
+			</AccessibleButton>
 			<scroll-view v-if="mapExpanded" id="heritage-map-panel" class="map-panel" scroll-y>
 				<view v-if="mapError" class="map-error" role="alert">
 					<text>{{ mapError }}</text>
-					<button class="map-retry" @click="loadGraph">重试</button>
+					<AccessibleButton class="map-retry" @click="loadGraph">重试</AccessibleButton>
 				</view>
 				<HeritageKnowledgeMap v-else-if="graph" :graph="graph" />
 			</scroll-view>
@@ -44,7 +44,11 @@
 						v-for="tag in suggestions"
 						:key="tag"
 						class="suggestion-tag"
+						role="button"
+						tabindex="0"
 						@click="quickAsk(tag)"
+						@keydown.enter.prevent="quickAsk(tag)"
+						@keydown.space.prevent="quickAsk(tag)"
 					>
 						<text class="tag-text">{{ tag }}</text>
 					</view>
@@ -74,9 +78,9 @@
 						</view>
 						<!-- 引用来源 -->
 						<view v-if="msg.sources && msg.sources.length > 0" class="sources-area">
-							<view class="sources-header" @click="toggleSources(idx)">
+							<view class="sources-header" role="button" tabindex="0" @click="toggleSources(idx)" @keydown.enter.prevent="toggleSources(idx)" @keydown.space.prevent="toggleSources(idx)">
 								<text class="sources-title">引用来源（{{ msg.sources.length }}）</text>
-								<wd-icon :name="msg.showSources ? 'arrow-up' : 'arrow-down'" size="24rpx" color="#718478" />
+								<wd-icon :name="msg.showSources ? 'arrow-up' : 'arrow-down'" size="24rpx" color="#4a5f54" />
 							</view>
 							<view v-if="msg.showSources" class="sources-list">
 								<view
@@ -92,13 +96,13 @@
 									<text class="source-excerpt">{{ src.excerpt }}</text>
 									<text v-if="src.relation" class="source-relation">{{ src.relation }}</text>
 									<text v-if="src.sourceVersion" class="source-version">资料版本 {{ src.sourceVersion }}</text>
-									<button
+									<AccessibleButton
 										v-if="src.url"
 										class="source-link"
 										role="link"
 										:aria-label="'打开来源 ' + src.title"
 										@click="openSource(src)"
-									>打开已登记来源 ↗</button>
+									>打开已登记来源 ↗</AccessibleButton>
 									<text v-if="src.mediaReuse === 'NOT_GRANTED'" class="source-media">仅作背景参考，媒体不转载</text>
 								</view>
 							</view>
@@ -134,7 +138,12 @@
 			<view
 				class="send-btn"
 				:class="{ 'send-btn-disabled': !inputText.trim() || loading }"
+				role="button"
+				:tabindex="!inputText.trim() || loading ? -1 : 0"
+				aria-label="发送"
 				@click="handleAsk"
+				@keydown.enter.prevent="handleAsk"
+				@keydown.space.prevent="handleAsk"
 			>
 				<wd-icon name="arrow-up" size="36rpx" color="#FFFFFF" />
 			</view>
@@ -142,6 +151,7 @@
 
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
+		<Toast />
 	</view>
 </template>
 
@@ -149,7 +159,12 @@
 import { ref, nextTick, onMounted } from 'vue'
 import { request } from '../../utils/request'
 import HeritageKnowledgeMap from '../../components/HeritageKnowledgeMap.vue'
+import Toast from '../../components/Toast.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import { useToast } from '../../composables/useToast'
 import { buildHeritageGraph } from '../../utils/heritage-graph-layout'
+
+const toast = useToast()
 
 const inputText = ref('')
 const loading = ref(false)
@@ -192,7 +207,7 @@ function openSource(source) {
 	// #ifndef H5
 	uni.setClipboardData({
 		data: source.url,
-		success: () => uni.showToast({ title: '来源链接已复制，请在浏览器打开', icon: 'none' }),
+		success: () => toast.show('来源链接已复制，请在浏览器打开'),
 	})
 	// #endif
 }
@@ -284,7 +299,7 @@ onMounted(loadGraph)
 	width: 72rpx;
 	height: 72rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -305,7 +320,7 @@ onMounted(loadGraph)
 
 .header-desc {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 对话区域 ── */
@@ -328,7 +343,7 @@ onMounted(loadGraph)
 
 .welcome-title {
 	font-size: 30rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
 
@@ -349,12 +364,12 @@ onMounted(loadGraph)
 
 .suggestion-tag:active {
 	background-color: var(--zy-bg-tint-mint, #e8efe4);
-	border-color: var(--zy-primary, #2f7566);
+	border-color: var(--zy-primary, #217e76);
 }
 
 .tag-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 /* ── 消息项 ── */
@@ -371,7 +386,7 @@ onMounted(loadGraph)
 	max-width: 75%;
 	padding: 20rpx 28rpx;
 	border-radius: 32rpx 32rpx 8rpx 32rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: var(--zy-brand-600, #217e76);
 }
 
 .msg-text-user {
@@ -414,7 +429,7 @@ onMounted(loadGraph)
 
 .sources-title {
 	font-size: 24rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 }
 
 .sources-list {
@@ -433,12 +448,12 @@ onMounted(loadGraph)
 .source-title {
 	font-size: 24rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #2f7566);
+	color: var(--zy-primary, #217e76);
 }
 
 .source-excerpt {
 	font-size: 22rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	margin-top: 4rpx;
 }
 
@@ -454,7 +469,7 @@ onMounted(loadGraph)
 	width: 12rpx;
 	height: 12rpx;
 	border-radius: 50%;
-	background-color: var(--zy-primary-light, #82ad9b);
+	background-color: var(--zy-brand-300, #5bc4a8);
 	animation: dotBounce 1.4s infinite ease-in-out both;
 }
 
@@ -498,7 +513,7 @@ onMounted(loadGraph)
 	width: 72rpx;
 	height: 72rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #2f7566), var(--zy-primary-light, #82ad9b));
+	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -514,7 +529,7 @@ onMounted(loadGraph)
 	display: block;
 	text-align: center;
 	font-size: 20rpx;
-	color: var(--zy-aid, #718478);
+	color: var(--zy-text, #4a5f54);
 	padding: 8rpx 0 12rpx;
 	background-color: var(--zy-card-bg, #FFFFFF);
 }
@@ -539,18 +554,18 @@ onMounted(loadGraph)
 	border: 0;
 }
 .map-title { display: block; font-size: 25rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.map-desc { display: block; margin-top: 4rpx; font-size: 21rpx; color: var(--zy-aid, #718478); }
-.map-action { flex-shrink: 0; font-size: 22rpx; color: var(--zy-primary, #2f7566); }
+.map-desc { display: block; margin-top: 4rpx; font-size: 21rpx; color: var(--zy-text, #4a5f54); }
+.map-action { flex-shrink: 0; font-size: 22rpx; color: var(--zy-primary, #217e76); }
 .map-panel { box-sizing: border-box; width: 100%; height: 52vh; padding: 0 16rpx 16rpx; }
 .map-error { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; padding: 20rpx; font-size: 23rpx; color: #9b4b4b; }
-.map-retry { padding: 8rpx 18rpx; font-size: 22rpx; color: var(--zy-primary, #2f7566); background: var(--zy-bg-tint-mint, #e8efe4); border: 0; border-radius: 999rpx; }
+.map-retry { padding: 8rpx 18rpx; font-size: 22rpx; color: var(--zy-primary, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); border: 0; border-radius: 999rpx; }
 .answer-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10rpx; margin-top: 12rpx; }
-.mode-chip { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #2f7566); font-size: 20rpx; }
-.mode-note { font-size: 20rpx; color: var(--zy-aid, #718478); }
+.mode-chip { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #217e76); font-size: 20rpx; }
+.mode-note { font-size: 20rpx; color: var(--zy-text, #4a5f54); }
 .source-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12rpx; }
-.source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 6rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-aid, #718478); font-size: 19rpx; }
-.source-org, .source-relation, .source-version, .source-media { display: block; margin-top: 4rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-aid, #718478); word-break: break-word; }
-.source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size: 21rpx; color: var(--zy-primary, #2f7566); background: transparent; border: 0; text-align: left; }
+.source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 6rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 19rpx; }
+.source-org, .source-relation, .source-version, .source-media { display: block; margin-top: 4rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); word-break: break-word; }
+.source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size: 21rpx; color: var(--zy-primary, #217e76); background: transparent; border: 0; text-align: left; }
 
 @media (min-width: 900px) {
 	.map-card,
@@ -563,5 +578,10 @@ onMounted(loadGraph)
 	.msg-bubble-ai {
 		max-width: 760px;
 	}
+}
+
+button:focus-visible {
+	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline-offset: 3px;
 }
 </style>

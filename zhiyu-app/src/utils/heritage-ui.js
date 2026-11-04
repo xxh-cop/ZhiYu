@@ -41,7 +41,8 @@ export function variantLabel(family, variant) {
 }
 
 export function patternImage(id) {
-  return `/static/heritage/${String(id || '')}.png`
+  // T2 分包治理：纹样 PNG 已迁入 sub-heritage 分包静态目录（首页入口卡用的 971201.png 保留在主包）
+  return `/sub-heritage/static/heritage/${String(id || '')}.png`
 }
 
 export function decoratePatterns(catalog) {

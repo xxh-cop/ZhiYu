@@ -11,10 +11,17 @@ export default {
 <style lang="scss">
 /* 每个页面公共 css —— 冷调薄荷青主题（v3.0） */
 page {
-	background: var(--zy-bg, #F8F9FB);
+	background: var(--zy-bg, #f5f7f2);
 	color: var(--zy-title, #1F2937);
 	font-size: 28rpx;
 	line-height: 1.6;
+}
+
+/* AV 巡检修复：H5 占位文字默认色 #808080 仅 3.66:1，统一加深为正文令牌色（约 7:1）。
+   仅影响未单独指定 placeholder-style 的输入框（内联 placeholder-style 优先）。 */
+.uni-input-placeholder,
+.uni-textarea-placeholder {
+	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 页面进入动效 ── */
