@@ -138,18 +138,18 @@ ai:
       strong: [standard, cached_template]
       standard: [cached_template]
 
-  # 双对话收敛（dialogue-unification-20261104；P0 骨架，全部默认关闭，纯增量无运行时行为变化）
+  # 双对话收敛（dialogue-unification-20261104；P0 骨架 2026-11-04；2026-11-05 阶段 2 起三开关默认开启）
   # 数值与文档 §2.3/§2.4/§3 一致；各期开关由 zhiyu.dialogue.*（application.yml）承载默认值。
   dialogue:
     commander:
-      enabled: false           # C1 端点 /api/dialogue/chat 注册（物理入口；application.yml zhiyu.dialogue.commander）
+      enabled: true            # C1 端点 /api/dialogue/chat 注册（zhiyu.dialogue.commander；2026-11-05 起默认开）
     listening_via_commander:
-      enabled: false           # AK1 灰度：倾听链委托调度层（zhiyu.dialogue.listening-via-commander）；与端点注册解耦，可只放倾听
+      enabled: true            # AK1：倾听链委托调度层（zhiyu.dialogue.listening-via-commander；2026-11-05 起默认开）；与端点注册解耦，可只放倾听
       note: 危机路径永久直连、无开关——两路径都先过内容安检、零 LLM（用户拍板 2026-11-04）
     companion_adapter:
       enabled: false           # P3 companion 薄适配器开关（/api/companion/sessions/{id}/message 转调度层；预留未接线）
     rolling_summary:
-      enabled: false           # P1b 滚动摘要开关（仅倾听链）
+      enabled: true            # P1b 滚动摘要开关（仅倾听链；2026-11-05 起默认开）
       trigger_turn: 11         # 第 11 轮起触发
       increment_turns: 5       # 每新增 5 轮，把滑出原文窗口的最旧 5 轮增量压缩进摘要
       ttl_days: 90             # 摘要滚动过期

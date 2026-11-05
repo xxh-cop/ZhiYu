@@ -675,7 +675,7 @@ CREATE TABLE IF NOT EXISTS admin_export_log (
   KEY idx_export_target (target_type,create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='导出审计留痕（只追加）';
 
--- ---------- 对话上下文滚动摘要（P1b 2026-11-04，rolling-summary 默认关闭） ----------
+-- ---------- 对话上下文滚动摘要（P1b 2026-11-04；2026-11-05 阶段 2 起 rolling-summary 默认开启） ----------
 CREATE TABLE IF NOT EXISTS dialogue_context_summary (
   id                 BIGINT       NOT NULL,
   user_id            BIGINT       NOT NULL COMMENT '归属用户（本人数据隔离）',
@@ -690,7 +690,7 @@ CREATE TABLE IF NOT EXISTS dialogue_context_summary (
   deleted            TINYINT      NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   KEY idx_dcs_user_session (user_id, session_id, deleted)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对话上下文滚动摘要（P1b，rolling-summary 默认关闭）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对话上下文滚动摘要（P1b；2026-11-05 起默认开启）';
 
 -- ---------- 危机路径留存（AJ 2026-11-04：只存脱敏摘要与危机等级，绝不存原文） ----------
 CREATE TABLE IF NOT EXISTS crisis_session_log (

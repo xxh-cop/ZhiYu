@@ -169,6 +169,12 @@ zhiyu:
     store: ${ZHIYU_FLOW_STORE:memory}
     focus-idle-seconds: 300
     stuck-repeat-times: 3
+    # ── 心流自评校准（阶段 1-1，2026-11-05） ──
+    # 会话 finish 时按 sample-rate 抽样落库（wellbeing_record，可追溯、稳定）；
+    # 管理端聚合自评与「专注停留占比」的 Spearman 相关，效度不足时指标名降级
+    calibration:
+      enabled: ${ZHIYU_FLOW_CALIBRATION_ENABLED:true}
+      sample-rate: ${ZHIYU_FLOW_CALIBRATION_SAMPLE_RATE:0.2}
     # 疑似离席判定（2026-11-05 心流度量修复）：只标记不扣除 flow_seconds。
     # 不要求输入事件；强信号走生命周期；前台静置默认算沉浸。
     away:
@@ -201,13 +207,14 @@ zhiyu:
     image-max-size: 5242880       # 5MB
     video-max-size: 52428800      # 50MB
 
-  # ── 双对话收敛开关（P0 2026-11-04；AK 批细粒度化，全部默认关闭） ──
+  # ── 双对话收敛开关（P0 2026-11-04；AK 批细粒度化；2026-11-05 阶段 2 起默认开启） ──
   # 数值见 ai-config/ai-capabilities.yaml dialogue 段；危机路径永久直连（无开关，两路径都先过安检、零 LLM）
+  # 一键回落：环境变量置 false 即回旧路径（旧实现保留，不删）；@Value 代码级默认 false 为配置缺失时的安全失败方向
   dialogue:
-    commander: ${ZHIYU_DIALOGUE_COMMANDER:false}             # C1 端点 /api/dialogue/chat 注册（物理入口）
-    listening-via-commander: ${ZHIYU_DIALOGUE_LISTENING_COMMANDER:false}  # AK1 灰度：倾听链 /api/emotion/chat 委托调度层
-    companion-adapter: ${ZHIYU_DIALOGUE_COMPANION_ADAPTER:false}  # P3 companion 薄适配器（预留，当前未接线）
-    rolling-summary: ${ZHIYU_DIALOGUE_ROLLING_SUMMARY:false}      # P1b 滚动摘要（仅倾听链）
+    commander: ${ZHIYU_DIALOGUE_COMMANDER:true}              # C1 端点 /api/dialogue/chat 注册（物理入口）
+    listening-via-commander: ${ZHIYU_DIALOGUE_LISTENING_COMMANDER:true}  # AK1：倾听链 /api/emotion/chat 委托调度层（协议零破坏）
+    companion-adapter: ${ZHIYU_DIALOGUE_COMPANION_ADAPTER:false}  # P3 companion 薄适配器（预留，当前未接线，保持关闭）
+    rolling-summary: ${ZHIYU_DIALOGUE_ROLLING_SUMMARY:true}       # P1b 滚动摘要（仅倾听链；失败降级保留原文窗口）
     # P1b 滚动摘要参数（与 ai-config/ai-capabilities.yaml dialogue.rolling_summary 段一致）
     summary-trigger-turn: 11      # 第 N 条消息起允许触发
     summary-increment-turns: 5    # 每滑出 N 条增量压缩一次
