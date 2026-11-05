@@ -2555,6 +2555,26 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/craft/session/{id}/export:
+    get:
+      operationId: craftSessionExport
+      summary: 导出本人在合规下架窗口内的创作会话数据（2026-11-05 下架窗口导出）
+      description: '仅项目处于合规下架导出窗口（status=2 且 takedown_kind=compliance 且当前时刻 ≤ export_until）且 zhiyu.takedown.export-enabled=true 时可导出；窗口过期、项目不在窗口内、归档态或导出开关关闭一律 HTTP 200 + code=3001 并给可读原因（不用 1004 伪装「不存在」）。范围严格限定本人会话产物：会话起止/时长/当前步骤/心流快照（flowSeconds）、已发生的行为事件（列口径同 data-export 的 craft-events 类别）、该会话产出的作品标识（id/title/mediaType/时间，不含媒体内容）；不导出他人内容、不导出平台步骤内容。响应为附件下载：Content-Disposition: attachment，文件名 zhiyu-craft-session-{sessionId}-p{projectId}.json，Content-Type: application/json;charset=UTF-8，Cache-Control: no-store。成功导出后写入 craft_session_event 的 export 事件（不静默）。'
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '会话 ID（雪花，字符串）' } }
+      responses:
+        '200':
+          description: '成功时为附件（application/json;charset=UTF-8），body 为导出 JSON：version/exportedAt/exportUntil/project{id,title}/session{...}/events[]/works[]；业务拒绝（code=3001 窗口过期或不在窗口、1003 非本人）时 body 为 Result JSON 而非附件'
+          content:
+            application/json:
+              schema:
+                type: object
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: '非会话归属者（code=1003；与既有会话端点口径一致）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   # ---------- L4 PracticeSession ----------
   /api/practice/short-practices:
     get:

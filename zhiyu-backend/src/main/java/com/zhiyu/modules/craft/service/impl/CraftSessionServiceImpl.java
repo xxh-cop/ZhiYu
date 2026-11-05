@@ -50,6 +50,8 @@ public class CraftSessionServiceImpl implements CraftSessionService {
     private final com.zhiyu.modules.craft.takedown.TakedownProperties takedownProperties;
     private final CraftSessionEventService craftSessionEventService;
     private final AwayDetectionService awayDetectionService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -244,6 +246,139 @@ public class CraftSessionServiceImpl implements CraftSessionService {
         boolean inFlow = detection.state() == FlowState.FLOW;
         boolean needBreathing = detection.state() == FlowState.ANXIOUS;
         return new HeartbeatResult(inFlow, needBreathing);
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  下架窗口导出（2026-11-05）
+    // ──────────────────────────────────────────────────────
+
+    @Override
+    public Map<String, Object> exportSession(Long userId, Long sessionId) {
+        // 1. 会话存在性与归属（与既有会话端点同口径：不存在 1004，非本人 1003）
+        CraftSession session = craftSessionMapper.selectById(sessionId);
+        if (session == null) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+        if (!session.getUserId().equals(userId)) {
+            throw new BusinessException(ResultCode.FORBIDDEN);
+        }
+        CraftProject project = craftProjectMapper.selectById(session.getProjectId());
+        if (project == null) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+
+        // 2. 窗口判定：导出开关关闭 / 窗口过期 / 不在窗口均 3001 + 可读原因（不用 1004 伪装）
+        if (!takedownProperties.isExportEnabled()) {
+            throw new BusinessException(ResultCode.BAD_STATE.getCode(), "导出功能暂未开放");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        var view = com.zhiyu.modules.craft.takedown.TakedownStateResolver.resolve(
+                project, takedownProperties, now);
+        if (!view.canExport()) {
+            if (project.getExportUntil() != null && now.isAfter(project.getExportUntil())) {
+                throw new BusinessException(ResultCode.BAD_STATE.getCode(),
+                        "导出窗口已于 " + project.getExportUntil().format(EXPORT_TIME_FMT) + " 关闭，现仅可回看");
+            }
+            throw new BusinessException(ResultCode.BAD_STATE.getCode(), "该项目不在可导出窗口内");
+        }
+
+        // 3. 先记导出事件（不静默；事件自证本次导出），再装配载荷
+        craftSessionEventService.recordServerEvent(sessionId, userId, project.getId(),
+                CraftSessionEventType.EXPORT, null,
+                Map.of("exportUntil", String.valueOf(project.getExportUntil())), null);
+
+        Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("version", 1);
+        out.put("exportedAt", now.toString());
+        out.put("exportUntil", project.getExportUntil() == null ? null : project.getExportUntil().toString());
+
+        Map<String, Object> projectBlock = new java.util.LinkedHashMap<>();
+        projectBlock.put("id", String.valueOf(project.getId()));
+        projectBlock.put("title", project.getTitle());
+        projectBlock.put("takedownKind", project.getTakedownKind());
+        out.put("project", projectBlock);
+
+        Map<String, Object> sessionBlock = new java.util.LinkedHashMap<>();
+        sessionBlock.put("id", String.valueOf(session.getId()));
+        sessionBlock.put("status", session.getStatus());
+        SessionStatus ss = SessionStatus.fromCode(session.getStatus());
+        sessionBlock.put("statusLabel", ss != null ? ss.getLabel() : "未知");
+        sessionBlock.put("currentStep", session.getCurrentStep());
+        sessionBlock.put("totalSteps", Math.toIntExact(countSteps(session.getProjectId())));
+        sessionBlock.put("startTime", session.getStartTime() == null ? null : session.getStartTime().toString());
+        sessionBlock.put("endTime", session.getEndTime() == null ? null : session.getEndTime().toString());
+        sessionBlock.put("durationSeconds",
+                session.getStartTime() != null && session.getEndTime() != null
+                        ? Duration.between(session.getStartTime(), session.getEndTime()).getSeconds() : null);
+        // 心流快照（如有）：累计心流秒数
+        sessionBlock.put("flowSeconds", session.getFlowSeconds() != null ? session.getFlowSeconds() : 0);
+        out.put("session", sessionBlock);
+
+        // 已发生的行为事件：列口径同 data-export 的 craft-events 类别（本人 + 本会话双限定）
+        List<Map<String, Object>> events = jdbc.queryForList(
+                "SELECT id,event_type,step_no,occurred_at,client_seq,context,dwell_seconds,create_time"
+                        + " FROM craft_session_event WHERE session_id=? AND user_id=? AND deleted=0"
+                        + " ORDER BY occurred_at ASC,id ASC", sessionId, userId);
+        List<Map<String, Object>> eventItems = new java.util.ArrayList<>();
+        for (var row : events) {
+            Map<String, Object> item = new java.util.LinkedHashMap<>();
+            item.put("id", String.valueOf(row.get("id")));
+            item.put("eventType", row.get("event_type"));
+            item.put("stepNo", row.get("step_no"));
+            item.put("occurredAt", row.get("occurred_at") == null ? null : row.get("occurred_at").toString());
+            item.put("clientSeq", row.get("client_seq"));
+            item.put("context", parseEventContext(row.get("context")));
+            item.put("dwellSeconds", row.get("dwell_seconds"));
+            eventItems.add(item);
+        }
+        out.put("events", eventItems);
+
+        // 该会话产出的作品标识（不含媒体内容，不含他人数据）
+        List<Map<String, Object>> works = jdbc.queryForList(
+                "SELECT id,title,media_type,status,create_time FROM work"
+                        + " WHERE session_id=? AND user_id=? AND deleted=0 ORDER BY id ASC", sessionId, userId);
+        List<Map<String, Object>> workItems = new java.util.ArrayList<>();
+        for (var row : works) {
+            Map<String, Object> item = new java.util.LinkedHashMap<>();
+            item.put("id", String.valueOf(row.get("id")));
+            item.put("title", row.get("title"));
+            item.put("mediaType", row.get("media_type"));
+            item.put("status", row.get("status"));
+            item.put("createTime", row.get("create_time") == null ? null : row.get("create_time").toString());
+            workItems.add(item);
+        }
+        out.put("works", workItems);
+
+        // 如实标注当前取不到的类别（不编造）
+        out.put("omitted", List.of("自评校准等尚未落地的数据类别当前无法导出，未包含在本文件中"));
+        log.info("会话数据导出: sessionId={}, userId={}, projectId={}, events={}, works={}",
+                sessionId, userId, project.getId(), eventItems.size(), workItems.size());
+        return out;
+    }
+
+    private static final java.time.format.DateTimeFormatter EXPORT_TIME_FMT =
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    private long countSteps(Long projectId) {
+        LambdaQueryWrapper<CraftStep> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CraftStep::getProjectId, projectId);
+        return craftStepMapper.selectCount(wrapper);
+    }
+
+    /** context 列是脱敏 JSON 字符串：能解析就还成 JSON 值，解析失败原样下发（不丢数据）。 */
+    private Object parseEventContext(Object context) {
+        if (context == null) {
+            return null;
+        }
+        String raw = context.toString();
+        if (raw.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(raw, Object.class);
+        } catch (Exception e) {
+            return raw;
+        }
     }
 
     // ──────────────────────────────────────────────────────

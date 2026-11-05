@@ -52,4 +52,17 @@ public interface CraftSessionService {
      * @return 心流判定信号（inFlow / needBreathing）
      */
     HeartbeatResult heartbeat(Long userId, Long sessionId, HeartbeatReq req);
+
+    /**
+     * 导出本人在合规下架窗口内的会话创作数据（2026-11-05 下架窗口导出）。
+     *
+     * <p>仅 {@code TakedownStateResolver} 判定 canExport（合规下架窗口内且导出开关开）
+     * 可导出；窗口过期 / 不在窗口 / 开关关闭一律 3001 并给可读原因（不用 1004 伪装）。
+     * 范围严格限定本人会话产物；成功导出写入 craft_session_event 的 export 事件。
+     *
+     * @param userId    当前用户 ID（须为会话归属者，否则 1003）
+     * @param sessionId 会话 ID（不存在 1004）
+     * @return 导出载荷（LinkedHashMap，键序稳定；雪花 ID 为字符串）
+     */
+    java.util.Map<String, Object> exportSession(Long userId, Long sessionId);
 }

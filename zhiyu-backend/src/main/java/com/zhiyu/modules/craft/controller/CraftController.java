@@ -43,6 +43,7 @@ public class CraftController {
     private final CraftProjectService craftProjectService;
     private final CraftSessionEventService craftSessionEventService;
     private final BusinessAccess access;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     /**
      * 根据当前心情推荐手作。
@@ -128,5 +129,33 @@ public class CraftController {
         // 行为事件属行为信号写入，挂同意门（与心跳同口径）
         Long userId = access.consentedUser();
         return Result.success(craftSessionEventService.ingest(userId, id, req));
+    }
+
+    // ── 2026-11-05 下架窗口导出 ──
+
+    /**
+     * 导出本人在合规下架窗口内的会话创作数据（附件下载）。
+     *
+     * <p>仅 TakedownStateResolver 判定 canExport 可导出；窗口过期/不在窗口/开关关闭
+     * 一律 3001 + 可读原因（HTTP 200 Result 体），非本人 1003，未登录 1002。
+     * 登录口径与 GET /api/user/data-export 一致（access.user()，行使既有数据权利不挂同意门）。
+     * 成功导出写入 craft_session_event 的 export 事件。
+     */
+    @GetMapping("/session/{id}/export")
+    public org.springframework.http.ResponseEntity<byte[]> exportSession(@PathVariable Long id) throws Exception {
+        Long userId = access.user();
+        java.util.Map<String, Object> payload = craftSessionService.exportSession(userId, id);
+        byte[] body = objectMapper.writeValueAsBytes(payload);
+        Object projectId = ((java.util.Map<?, ?>) payload.get("project")).get("id");
+        String filename = "zhiyu-craft-session-" + id + "-p" + projectId + ".json";
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/json;charset=UTF-8"))
+                .cacheControl(org.springframework.http.CacheControl.noStore())
+                .header("X-Content-Type-Options", "nosniff")
+                .header("Content-Disposition",
+                        org.springframework.http.ContentDisposition.attachment()
+                                .filename(filename, java.nio.charset.StandardCharsets.US_ASCII)
+                                .build().toString())
+                .body(body);
     }
 }

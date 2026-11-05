@@ -103,9 +103,11 @@ public class CraftProjectServiceImpl implements CraftProjectService {
         String deadline = view.deadline() != null ? view.deadline().format(DEADLINE_FMT) : "此前";
         String exportEntry;
         if (view.canExport()) {
-            exportEntry = "「我的 → 创作记录」页可导出";
+            // 指向真实入口：GET /api/craft/session/{id}/export（会话页「导出我的创作数据」按钮）
+            exportEntry = "也可以经会话页的「导出我的创作数据」入口，下载你在该项目下的创作记录。";
         } else if (TakedownStateResolver.NOTICE_COMPLIANCE.equals(view.noticeKey())) {
-            exportEntry = takedownProperties.isExportEnabled() ? "导出窗口已关闭" : "导出功能暂未开放";
+            exportEntry = takedownProperties.isExportEnabled()
+                    ? "导出窗口已关闭，你仍可随时回看。" : "导出功能暂未开放；窗口截止前你仍可随时回看。";
         } else {
             exportEntry = "";
         }
