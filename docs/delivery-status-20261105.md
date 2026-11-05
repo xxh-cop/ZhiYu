@@ -236,6 +236,72 @@
 
 ---
 
+## 2026-11-05 分级治理 / 闸口证据 / 开启态守门（批次结论登记）
+
+> 本节登记 2026-11-05 五个批次（分级治理、闸口证据、开启态守门、审核门槛评测、开源 UI 调研）的会话报告结论。
+> 数字与结论均来自各批会话报告，**本台账未重跑任何验证**；已完成与缺口严格分列。
+
+### N. 手作难度分级落地
+
+- `starter-crafts.json` **无 `level` 字段**（核实结论）：12 个原创项目等级只来自 SQL，无覆盖风险。
+- `init-data.sql` 仅 4 处值变更：101/102/103/940004 由 1→2；104 维持 2；其余 11 项维持 1。迁移 `20261105_craft_project_level_regrade.sql` **幂等**（真库连跑 4 遍，第 4 遍 `ROW_COUNT()=0`），**纯数据变更、无结构变更**。
+- `ProjectCreateDTO`/`ProjectUpdateDTO` 补 `@Min(1) @Max(3)`；**连带修复 `InheritorController.updateProject` 缺 `@Valid`——编辑路径的字段校验此前从未生效**。
+- 清理两条测试遗留项目：`2106946170906521601`（测试传承项目）、`2106955610569355266`（精度修复测试），引用核查全 0，按明确 id 删主表+子行；25 条逻辑删除行未动。
+- 口径修正：`craft_project.level`「19/18」旧口径**有误**——SQL 种子实为 16 个（15×L1+1×L2），线上活跃 18 个系含 2 条测试遗留。分级后分布 **L1×11 / L2×5 / L3×0**（L3 空是标准一致结果）。
+- 文档：[craft-level-grading-20261105.md](file:///d:/develop/Zhi_Yu/docs/craft-level-grading-20261105.md)（三档阈值可复算；工具风险不参与判级；三个同名 `level` 口径区别；`GrowthService` 把安全等级以 `level` 字段名输出的命名风险仅记录未改名）。
+
+### O. 心跳闸口证据事件（step_gate_blocked）
+
+- 新事件 `step_gate_blocked`：仅服务端派生、**不入 `CLIENT_ALLOWED`**（客户端上报即 1001，有断言）。
+- 两个只有真跑才暴露的陷阱：① heartbeat 的 `@Transactional(rollbackFor=Exception.class)` 会把同事务的证据事件一并回滚（首轮冒烟事件行数 0），修为 `recordServerEventStandalone`（REQUIRES_NEW 独立提交）；② 去重计数走 MyBatis Mapper 时一级缓存会把「0」缓存导致重复落行，改 JdbcTemplate 直读。
+- 看板剔除改为分档：精确档 `step_gate_blocked`、兜底档 `session_archive`；`exclusions[]` 新增 `readOnlyEvidence`（project_state / step_gate_blocked / session_archive）。
+- 同步面：schema 注释白名单 + 幂等迁移 `20261105_craft_session_gate_event.sql`（纯注释 MODIFY）+ openapi 三处（185 paths）。
+- 真库冒烟：两次被拒心跳均 3001、事件恰好 1 条、`readOnlySince` 为 gate 事件时点（毫秒精度）、`readOnlyEvidence=step_gate_blocked`。
+
+### P. 开启态测试守门
+
+- 新剖面 `src/test/resources/application-dialogue-on-test.yml`（仅 commander / listening-via-commander / rolling-summary 三键 true），测试类 `@ActiveProfiles({"test","dialogue-on-test"})`；**`application-test.yml` 一行未动**，既有测试前提不变。
+- 4 条 RANDOM_PORT 真实 Tomcat 集成测试，路径区分断言为「委托路径独有证据」：`ai_trace` 的 `scene=dialogue-route` + `tool_name` + `fallback_reason='rule=R4'`；`/api/emotion/chat` 的 done 无 `capability` 字段；危机轮 `streamChatCallCount()==0`；超阈值后 `scene='dialogue-summary'` 的 FALLBACK 记账行。
+- 首次运行 4/4 通过，未触发「实现错 vs 假设过时」判定；全量 **901 通过 / 0 失败 / 1 跳过，exit 0**。
+- 意义：M1「默认开启组合无测试守门」**已由本批闭合**（开启态有了自动化拦截）。
+
+### Q. 内容审核门槛评测（结论级）
+
+详见 [moderation-gate-eval-20261105.md](file:///d:/develop/Zhi_Yu/docs/moderation-gate-eval-20261105.md)：
+
+| 指标 | 实测值 |
+|---|---|
+| 规模 | 180 次真实调用（deepseek-reasoner）；零降级零熔断 |
+| 高危漏放率 | **0%**（正例 105：L3 0/12、L2 0/48、L1 0/45）；L2+L3 的 95% 上界 **5.0%**（n=60） |
+| 误杀率 | 9.3%；其中**情绪类良性误杀 6/15 = 40%** |
+| 延迟 / token | avg 2454ms / P95 4066ms；token 151,428 |
+| 增量价值 | 105 条正例中仅 15 条会被本地词库拦住，**90 条全靠 AI 层**（词库兜底覆盖率约 14%） |
+
+- **产品决策：不切「先发后审」**——L3 样本 n=12 时 0 漏放上界 25%，统计未证明；情绪类良性误杀 40% 会把最需要被听见用户的内容推进人工审核队列。
+- 后续条件：L3 扩样 ≥60 复跑 + 修情绪类误杀（补「个人体验分享 vs 疗效宣称」示例或加软档），两件完成后复跑再议。
+- 审计/指标表 append-only：`ai_audit_log` +186（1270→1456）、`ai_trace` +186（108→294），行保留未删。
+
+### R. 开源 UI 调研（参考性，非决策）
+
+- [student-ui-reference-20261105.md](file:///d:/develop/Zhi_Yu/docs/student-ui-reference-20261105.md)：C 类（代码可直接搬）**0 项**——候选全为 React/Tailwind/DOM 生态；A 类思路 7 项、B 类纯前端复刻 5 项、D 类不可迁移 9 项。
+- 待拍板 5 点：motion-v 是否引入、令牌改造渐进或一次收口、工具状态条是否需后端扩 SSE、Skyline 是否评估、心情日历与图表并存或替换。**尚未拍板，本台账不写成已决定。**
+
+### S. 单列缺口（未验证/待决，不写成已解决）
+
+| # | 缺口 | 来源批 |
+|---|---|---|
+| S1 | 104 陶艺 0 步骤/0 材料/0 安全行，维持 L2 标「待内容补齐后复核」（若含烧制应升 L3） | 分级 |
+| S2 | L3 空缺：种子层学生端永远看不到「高阶」徽章（口径后果，非缺陷） | 分级 |
+| S3 | 真库 26 条会话中 `includedSessions=0`（18 条缺有效 `step_leave` 驻留事件）——看板真实数据几乎为空，因事件上报刚上线 | 分级/看板 |
+| S4 | 推荐接口未实机调用（改用 SQL 等价谓词验证）；看板 byLevel 前端渲染未走查 | 分级 |
+| S5 | 并发双击同时被拒可能各落一条（`client_seq` 为 NULL 不受唯一键保护，未压测）；REQUIRES_NEW 会让测试内 gate 事件逃出回滚（雪花 ID 不复用，已注释说明） | 闸口 |
+| S6 | 开启态全跑 Mock；Redis `RouteGuardStore` 仍只有关闭态单测；滚动摘要真实产出未验 | 守门 |
+| S7 | 评测为单次运行、单一模型版本、仅文本不含图片；L3 样本不足（n=12） | 评测 |
+| S8 | star 数来自聚合站（starstruk/gstars），非 GitHub API 实时值：量级可信、精确值不作依据 | 调研 |
+| S9 | **运营事实**：对话会话两次以「后台跑 mvn → turn 结束等通知」方式中断、报告未发出；后续派发改为要求前台跑完或轮内轮询 | 运营 |
+
+---
+
 ## 0. 验证基线（第一轮：HEAD 19502bb）
 
 | 项 | 值 |
