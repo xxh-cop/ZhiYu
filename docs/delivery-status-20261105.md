@@ -180,6 +180,62 @@
 
 ---
 
+## 2026-11-05 HEAD 04099c0 部署前整体验证
+
+> 本节为**本轮真实执行的验证记录**（区别于 §F–§M 的批次结论登记）。只验证、未 commit、未 push、未改源码。
+> 五条提交：`3255ba0`（craft 校准+看板后端）→ `ea66bf0`（dialogue 三开关默认开）→ `c5e1fcf`（学生端自评弹窗）→ `00ff4ea`（管理端看板页）→ `04099c0`（台账）。
+
+### A. 基线核对
+
+| 核对项 | 结果 |
+|---|---|
+| 分支 / HEAD | `dev` @ `04099c0`；`dev...origin/dev` 无领先落后 |
+| 工作区 | 仅剩根目录 docx（M）与 `output/`（??），无源码级未提交改动，HEAD 与工作区一致 |
+| 五条提交 | 与任务清单一致（见上） |
+
+### B. 逐项结果（全部在 HEAD 04099c0 上执行）
+
+| 项 | 命令 / 方式 | 退出码 | 关键数字 / 证据 | 结论 |
+|---|---|---|---|---|
+| 后端全量测试 | `mvn test "-Dmaven.repo.local=../.ai-tmp/m2"`（锁机制：`.ai-tmp/backend-mvn.lock` 自建自删，日志确认 lock acquired/released） | 0 | **Tests run: 897, Failures: 0, Errors: 0, Skipped: 1**（`SpringAiLlmClientTest` 需真实密钥，历史口径一致）；Total time 01:27 min | ✅ |
+| 冒烟实例启动 | 18093 端口（18082 被并行任务占用，换口未动之）；**未注入 `.env`**（其内无 dialogue 开关覆盖）→ MockLlmClient 接管（日志确认「降级模式：未配置 DEEPSEEK_API_KEY」）+ 真实本机 MySQL + **默认开关（全 true）** | 启动成功 | `Started ZhiyuApplication in 3.71 seconds`；SchemaCompatibilityCheck 通过（设计为失败才抛异常） | ✅ |
+| ① 步骤接口 | `GET /api/craft/projects/101/steps`（student01） | — | 200 / code=0 / 4 步 / `audioUrl` 全 null | ✅ |
+| ② AI 指标 | `GET /api/admin/ai-metrics`（admin） | — | 200 / code=0 | ✅ |
+| ③ 专注度量看板 | `GET /api/admin/flow-metrics/dashboard`（admin） | — | 200 / code=0；**`metricLabel` = 「专注停留占比」**（真实数据 insufficient，符合「不得显示心流占时」预期） | ✅ |
+| ④ 校准统计 | `GET /api/admin/flow-calibration/stats`（admin） | — | 200 / code=0；`{method:spearman, threshold:0.3, minSamples:30, sampleSize:0, status:insufficient, rho:null}` | ✅ |
+| ⑤ 倾听链委托（重点复核） | `POST /api/emotion/chat`（mode=live，Mock） | — | 200，SSE `chunk→chunk→done`，done 载荷 `{"sessionId":...,"crisis":false,"revoked":false}` **无 capability 字段**（协议零破坏）；`ai_trace` 实测落 `scene=dialogue-route, rule=R4→LISTENING, model=mock`（id `2118254057712902100`）——**实际命中委托路径** | ✅ |
+| ⑥ commander 端点（重点复核） | `POST /api/dialogue/chat`（Mock） | — | 200，SSE `chunk→chunk→done`，done 含 `capability=LISTENING, toolUsed=false`；`ai_trace` 落 route 行（id `2118254058434322400`，rule=R4）——**默认配置下端点已注册可用** | ✅ |
+| 管理端类型检查 | `pnpm -F @vben/web-ele run typecheck` | 0 | 0 类型错误 | ✅ |
+| 管理端生产构建 | `pnpm run build:ele` | 0 | turbo 11/11，总 25.107s，web-ele built in 17.24s；`dist.zip` 1,733,211 字节 | ✅ |
+| 学生端 H5 构建 | `npm run build:h5` | 0 | DONE；94 行历史既有 Sass 警告，无新增 | ✅ |
+| 学生端小程序构建 | `npm run build:mp-weixin` | 0 | DONE；产物 `dist/build/mp-weixin`；94 历史警告 + 既有 Circular chunk 提示 | ✅ |
+| 冒烟实例处置 | StopCommand | — | 18093 端口确认释放；8080 全程未动（验证前后均未运行） | ✅ |
+| 冒烟数据清理 | `DELETE /api/emotion/sessions/{id}` 业务接口 | — | 两条冒烟会话（`2118254057641598977`、`2118254058497236993`）已逻辑删除（code=0）；`ai_trace` 两行 route 记账保留（只追加指标表，作为本验证证据） | ✅ |
+
+### C. 三个行为变更 ↔ 提交 ↔ 验证覆盖
+
+| 行为变更 | 引入提交 | 本轮验证覆盖到 | 未覆盖到 |
+|---|---|---|---|
+| craft 心流度量（自评校准 + 看板口径） | `3255ba0`（后端） | mvn test 897 全绿（含 `FlowCalibrationTest`/`FlowMetricsTest`）；真实 MySQL 冒烟两端点 code=0、`metricLabel=专注停留占比`、calibration `insufficient/rho=null` | 真实大样本统计行为；`flow_seconds` 新口径（阈值后时长）未与历史数据对比 |
+| dialogue 三开关默认开 | `ea66bf0` | **默认配置冒烟**：委托路径命中（ai_trace route 行）、commander 端点注册、SSE 协议形状不变 | **全量测试跑在关闭态**（application-test.yml 钉住四开关 false）——默认开启组合仅本次冒烟覆盖，无自动化守门；真实模型多轮质量未验 |
+| 管理端看板页 / 学生端自评弹窗 | `00ff4ea` / `c5e1fcf` | typecheck 0 错误 + 三端构建 exit 0 | 浏览器/真机走查（页面渲染、弹窗交互）本轮未做 |
+
+### D. 本次验证不能证明什么
+
+- **全量 897 项测试跑在 dialogue 关闭态**（`application-test.yml` 钉住四开关 false）；默认开启组合仅有本次单点冒烟覆盖，无测试守门，开启态回归不会被 CI 拦截。
+- 冒烟 AI 链路全为 **Mock**（`model=mock`）：真实模型多轮对话质量、滚动摘要真实生成均未验证；评测基线仍是 2026-11-04 历史报告。
+- 冒烟用**本机 dev MySQL + 内存版熔断/guard store**；生产 MySQL/Redis、多实例一致性未覆盖。
+- **微信真机**未覆盖（SSE 分块、自评弹窗、导出下载均无真机证据）。
+- **并发压测**未做（含 commander 路径首字延迟 NFR-02 口径）。
+- `flow_seconds` 语义已变更为「阈值后时长」，**不可与变更前的历史数值直接比较**；本轮未造创作会话，看板读的是既有数据。
+- 看板/弹窗为构建级验证，未做浏览器或真机走查。
+
+### E. 结论
+
+**HEAD 04099c0 部署前整体验证通过**：全部验证项退出码 0、无失败项；三个行为变更均有对应证据（craft 度量到端点级、dialogue 默认开到冒烟级、前端到构建级）。通过口径严格限于 §D 边界；其中「默认开启组合无测试守门」建议作为后续第一优先补强项。
+
+---
+
 ## 0. 验证基线（第一轮：HEAD 19502bb）
 
 | 项 | 值 |
