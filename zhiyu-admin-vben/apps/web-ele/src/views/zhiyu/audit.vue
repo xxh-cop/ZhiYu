@@ -29,12 +29,17 @@ const route = useRoute();
 const typeOptions = [{ value: 'project', label: '项目' }];
 const filterType = ref('project');
 const catalogStatus = ref(
-  ['0', '1', '2'].includes(String(route.query.status))
+  ['0', '1', '2', '3'].includes(String(route.query.status))
     ? Number(route.query.status)
     : 0,
 );
 const catalogCategory = ref(String(route.query.category || ''));
 const searchText = ref('');
+
+/** 空态文案（BN3）：筛归档时说明「暂无归档项目」，不显示成加载失败/通用无匹配 */
+const catalogEmptyText = computed(() =>
+  Number(catalogStatus.value) === 3 ? '暂无归档项目' : '没有匹配的项目',
+);
 
 /**
  * 列表状态机。
@@ -71,10 +76,14 @@ const rejectRow = ref<any>(null);
 const rejectReason = ref('');
 const rejectLoading = ref(false);
 
-/** 下架弹窗（BA 2026-11-05，后端 AY1：仅 status 1→2，理由必填 ≤300 字） */
+/** 下架弹窗（BA 2026-11-05，后端 AY1；分层下架契约：kind 必填，operational 需 archiveAt） */
 const takedownDialogVisible = ref(false);
 const takedownRow = ref<any>(null);
 const takedownReason = ref('');
+/** 下架类型：compliance 合规 / operational 运营（必填，不预选，防手滑默认） */
+const takedownKind = ref('' as '' | 'compliance' | 'operational');
+/** 运营下架的归档截止时间（ISO 本地格式；默认预填 14 天，最小 7 天前端校验） */
+const takedownArchiveAt = ref('');
 const takedownLoading = ref(false);
 
 /**
@@ -185,23 +194,48 @@ async function confirmReject() {
   }
 }
 
-/** 打开下架弹窗（仅上架态入口） */
+/** 打开下架弹窗（仅上架态入口；运营下架默认预填 14 天，对齐后端 default-deadline-days） */
 function openTakedown(row: any) {
   takedownRow.value = row;
   takedownReason.value = '';
+  takedownKind.value = '';
+  const d = new Date(Date.now() + 14 * 24 * 3600 * 1000);
+  const p = (n: number) => String(n).padStart(2, '0');
+  takedownArchiveAt.value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:00`;
   takedownDialogVisible.value = true;
 }
 
 /** 确认下架 */
 async function confirmTakedown() {
   const reason = takedownReason.value.trim();
+  if (!takedownKind.value) {
+    ElMessage.warning('请选择下架类型（合规 / 运营）');
+    return;
+  }
   if (!reason) {
     ElMessage.warning('请填写下架理由');
     return;
   }
+  if (takedownKind.value === 'operational') {
+    if (!takedownArchiveAt.value) {
+      ElMessage.warning('运营下架请选择归档截止时间');
+      return;
+    }
+    const at = new Date(takedownArchiveAt.value).getTime();
+    if (Number.isNaN(at) || at < Date.now() + 7 * 24 * 3600 * 1000) {
+      ElMessage.warning('归档截止时间距现在至少 7 天');
+      return;
+    }
+  }
   takedownLoading.value = true;
   try {
-    await takedownProject(takedownRow.value.id, reason);
+    await takedownProject(takedownRow.value.id, {
+      reason,
+      kind: takedownKind.value as 'compliance' | 'operational',
+      ...(takedownKind.value === 'operational'
+        ? { archiveAt: takedownArchiveAt.value }
+        : {}),
+    });
     ElMessage.success(`「${takedownRow.value.title}」已下架`);
     takedownDialogVisible.value = false;
     await fetchList();
@@ -255,7 +289,7 @@ async function confirmDelete() {
     :loading="loading"
     :error="errorMsg"
     :total="total"
-    empty-text="没有匹配的项目"
+    :empty-text="catalogEmptyText"
     empty-hint="传承人提交项目后会进入待审核；可调整分类与上架状态筛选"
     :show-sizes="false"
     @refresh="fetchList"
@@ -271,6 +305,7 @@ async function confirmDelete() {
         <el-option :value="0" label="待审" />
         <el-option :value="1" label="上架" />
         <el-option :value="2" label="下架" />
+        <el-option :value="3" label="归档" />
       </el-select>
       <el-input
         v-model="catalogCategory"
@@ -413,6 +448,16 @@ async function confirmDelete() {
                 历史数据无操作日志可推导来源，仅知当前状态为「下架」（2026-11-05 前的下架态均为评审驳回）。
               </template>
             </p>
+            <!-- BN3：下架三键（takedownKind/exportUntil/archiveAt）恒下发、无值为 null；
+                 仅下架态且有类型时渲染该块；null 不渲染（不留空行/空白标签） -->
+            <p v-if="detail.takedownKind" class="note-text">
+              <template v-if="detail.takedownKind === 'compliance'">
+                合规下架，可导出至 {{ formatTime(detail.exportUntil) }}（到期归档）。
+              </template>
+              <template v-else-if="detail.takedownKind === 'operational'">
+                运营下架，{{ formatTime(detail.archiveAt) }} 到期归档。
+              </template>
+            </p>
           </template>
           <p v-if="!detail.lastAction" class="note-text">
             该项目暂无操作日志（2026-11-05 起审核/下架/删除动作才落日志），仅知当前状态。
@@ -457,11 +502,11 @@ async function confirmDelete() {
         </template>
       </el-dialog>
 
-      <!-- 下架弹窗（常规操作：终态但保留数据，通知传承人） -->
+      <!-- 下架弹窗（常规操作：终态但保留数据，通知传承人；分层下架：kind 必选） -->
       <el-dialog
         v-model="takedownDialogVisible"
         title="下架项目"
-        width="min(480px, 92vw)"
+        width="min(520px, 92vw)"
       >
         <el-alert
           type="warning"
@@ -470,6 +515,40 @@ async function confirmDelete() {
           title="下架后学生端与传承人端将立即无法访问该项目（含步骤音频），且下架为终态、不可再审核复活。"
           class="mb-3"
         />
+        <p class="mb-2 business-note">下架类型（必选）：</p>
+        <el-radio-group v-model="takedownKind" class="mb-3 takedown-kind">
+          <el-radio value="compliance" border>合规下架</el-radio>
+          <el-radio value="operational" border>运营下架</el-radio>
+        </el-radio-group>
+        <el-alert
+          v-if="takedownKind === 'compliance'"
+          type="info"
+          :closable="false"
+          show-icon
+          title="合规下架：公开面即收，进行中/暂停的创作会话转只读（可回看不可推进）；将给予 72 小时导出窗口，到期自动归档。"
+          class="mb-3"
+        />
+        <template v-if="takedownKind === 'operational'">
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            title="运营下架：不再接受新创作；存量创作会话可继续到下方截止时间，到期未完成会话转只读并归档。"
+            class="mb-3"
+          />
+          <p class="mb-2 business-note">
+            归档截止时间（距现在至少 7 天，默认预填 14 天）：
+          </p>
+          <el-date-picker
+            v-model="takedownArchiveAt"
+            type="datetime"
+            placeholder="选择归档截止时间"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            :disabled-date="(d: Date) => d.getTime() < Date.now() + 6 * 24 * 3600 * 1000"
+            class="mb-3"
+            style="width: 100%"
+          />
+        </template>
         <p class="mb-3 business-note">
           请填写下架理由（将通知传承人，≤300 字）。
         </p>

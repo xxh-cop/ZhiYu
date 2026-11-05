@@ -74,14 +74,16 @@ export const WORK_VISIBLE: StatusDict = {
 };
 
 /**
- * 手作项目状态（craft_project.status：0 / 1 / 2）。
- * 定稿依据 sql/schema.sql DDL 注释「0待审 1上架 2下架」；
- * 内容审核页（audit）原先的「待审核/已上架/已下架」为偏离方，已统一为 DDL 措辞。
+ * 手作项目状态（craft_project.status：0 / 1 / 2 / 3）。
+ * 定稿依据 sql/schema.sql DDL 注释「0待审 1上架 2下架」；3=归档（分层下架 2026-11-05，
+ * 下架到期由归档 Worker 流转，2/3 不可回 1）。
  */
 export const PROJECT_STATUS: StatusDict = {
   0: { label: '待审', tag: 'warning' },
   1: { label: '上架', tag: 'success' },
   2: { label: '下架', tag: 'info' },
+  // 分层下架（2026-11-05）：下架到期由归档 Worker 转 3；颜色沿用终态灰，文字区分
+  3: { label: '归档', tag: 'info' },
 };
 
 /** 手作项目难度（level：1 入门 / 2 进阶 / 3 高阶） */
@@ -130,7 +132,10 @@ export const NOTIFICATION_REF_TYPE: StatusDict = {
  * 未来新增的细分（如 BG 批核验/小组类通知）只需在此表加条目，页面不加分支。
  */
 const NOTIFICATION_TYPE_REFINE: Record<string, StatusMeta> = {
+  // BE：项目审核结果复用 WORK_AUDIT + refType=project（不加类型码）
   'WORK_AUDIT:project': { label: '项目审核', tag: 'warning' },
+  // BG1（BN 补）：传承人入驻核验结果复用 CAMPUS_AUDIT + refType=inheritor_profile
+  'CAMPUS_AUDIT:inheritor_profile': { label: '传承人核验', tag: 'warning' },
 };
 
 /**
@@ -157,8 +162,19 @@ export const AUDIT_ACTION: StatusDict = {
 /** AI 调用场景（ai_audit_log.scene） */
 export const AUDIT_SCENE: StatusDict = {
   chat: { label: '对话', tag: 'info' },
+  moderation: { label: '审核辅助', tag: 'info' },
   recommend: { label: '推荐', tag: 'info' },
   work_message: { label: '作品寄语', tag: 'info' },
+};
+
+/**
+ * AI 审核辅助倾向（BL ai-suggest 的 tendency 三枚举）。
+ * 仅描述「机器提示倾向」，不构成审核结论（disclaimer 随响应常驻展示）。
+ */
+export const AI_MODERATION_TENDENCY: StatusDict = {
+  HAS_CONCERNS: { label: '有需要关注点', tag: 'warning' },
+  NO_OBVIOUS_ISSUE: { label: '未见明显关注点', tag: 'success' },
+  UNCERTAIN: { label: '无法判断', tag: 'info' },
 };
 
 /** AI 调用结果状态（治理看板 resultStatus） */

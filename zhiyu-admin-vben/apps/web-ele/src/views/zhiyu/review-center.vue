@@ -9,6 +9,8 @@ import { requestClient } from '#/api/request';
 import BusinessPageHeader from '#/components/BusinessPageHeader.vue';
 import { WORK_VISIBLE, dictLabel } from '#/constants/status-dict';
 
+import AiSuggestPanel from './components/AiSuggestPanel.vue';
+
 /**
  * 审核工作台：聚合「评论 + 作品 + 非遗项目 + 校园核验」待审的统一队列式决策页。
  * 接口现状：
@@ -397,6 +399,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
           <p class="item-meta">
             {{ current.author }} · 评论于「{{ current.title }}」 · {{ formatTime(current.createTime) }}
           </p>
+          <!-- BM：AI 辅助建议（按需调用，点击才触发真实模型调用） -->
+          <AiSuggestPanel target-type="comment" :target-id="current.id" />
         </template>
         <template v-else-if="current.kind === 'project'">
           <p class="work-title">{{ current.title }}</p>
@@ -429,6 +433,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
               </p>
             </div>
           </div>
+          <!-- BM：AI 辅助建议（媒体内容 AI 不可见，后端如实返回人工核对提示） -->
+          <AiSuggestPanel target-type="work" :target-id="current.id" />
         </template>
 
         <div class="decision-actions">

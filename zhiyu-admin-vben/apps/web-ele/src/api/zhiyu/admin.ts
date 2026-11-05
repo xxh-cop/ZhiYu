@@ -59,11 +59,17 @@ export async function auditProject(
 }
 
 /**
- * 下架已上架项目（AY1）：仅 status 1→2，理由必填（≤300 字），
- * 落 craft_project.audit_reason 并通知传承人；非上架态返回 3001（原文上屏，不吞）。
+ * 下架已上架项目（AY1 + 分层下架 2026-11-05）：仅 status 1→2，
+ * kind 必填（compliance 合规 / operational 运营）；operational 必须带 archiveAt
+ * （距现在 ≥7 天，管理端按后端 default-deadline-days=14 预填）；compliance 不得带
+ * archiveAt（下架时刻 + 72h 导出窗口后自动归档）。理由必填 ≤300 字，落
+ * craft_project.audit_reason 并通知传承人；非法参数 1001、非上架态 3001（原文上屏）。
  */
-export async function takedownProject(id: number | string, reason: string) {
-  return requestClient.put(`/admin/projects/${id}/takedown`, { reason });
+export async function takedownProject(
+  id: number | string,
+  body: { archiveAt?: string; kind: 'compliance' | 'operational'; reason: string },
+) {
+  return requestClient.put(`/admin/projects/${id}/takedown`, body);
 }
 
 /**
@@ -99,4 +105,26 @@ export async function getDashboardStats() {
   return requestClient.get<ZhiyuAdminApi.DashboardStats>(
     '/admin/dashboard/stats',
   );
+}
+
+/**
+ * AI 审核辅助建议（BL，POST /api/admin/{works|comments}/{id}/ai-suggest，仅 role=3）。
+ * 按需调用（点击才触发，真实模型调用有费用）；available=false 为正常降级（note 原文展示），
+ * 频控超限（400/1001）是唯一显式错误。disclaimer 固定下发、前端必须常驻展示。
+ */
+export interface AiSuggestion {
+  available: boolean;
+  tendency?: 'HAS_CONCERNS' | 'NO_OBVIOUS_ISSUE' | 'UNCERTAIN';
+  riskPoints?: Array<{ location: string; note: string }>;
+  uncertainty?: string;
+  note?: string;
+  disclaimer: string;
+}
+
+export async function getWorkAiSuggestion(id: string) {
+  return requestClient.post<AiSuggestion>(`/admin/works/${id}/ai-suggest`);
+}
+
+export async function getCommentAiSuggestion(id: string) {
+  return requestClient.post<AiSuggestion>(`/admin/comments/${id}/ai-suggest`);
 }

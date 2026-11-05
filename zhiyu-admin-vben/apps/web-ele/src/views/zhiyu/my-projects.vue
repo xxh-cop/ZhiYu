@@ -12,12 +12,13 @@ import { PROJECT_STATUS } from '#/constants/status-dict';
 
 const router = useRouter();
 
-/** 筛选（文案与状态字典 PROJECT_STATUS 一致，源自 DDL 注释） */
+/** 筛选（文案与状态字典 PROJECT_STATUS 一致，源自 DDL 注释；3=归档 自分层下架起） */
 const statusOptions = [
   { value: '', label: '全部状态' },
   { value: 0, label: '待审' },
   { value: 1, label: '上架' },
   { value: 2, label: '下架' },
+  { value: 3, label: '归档' },
 ];
 const filterStatus = ref<number | string>('');
 
