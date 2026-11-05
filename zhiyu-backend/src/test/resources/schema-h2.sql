@@ -159,6 +159,11 @@ CREATE TABLE IF NOT EXISTS craft_project (
   cover_url    VARCHAR(255),
   status       TINYINT      NOT NULL DEFAULT 0,
   audit_reason VARCHAR(300)  DEFAULT NULL,
+  takedown_kind VARCHAR(16)  DEFAULT NULL,
+  takedown_at  TIMESTAMP    DEFAULT NULL,
+  archive_at   TIMESTAMP    DEFAULT NULL,
+  export_until TIMESTAMP    DEFAULT NULL,
+  notice_key   VARCHAR(64)   DEFAULT NULL,
   create_time  TIMESTAMP    DEFAULT NULL,
   update_time  TIMESTAMP    DEFAULT NULL,
   deleted      TINYINT      NOT NULL DEFAULT 0,
@@ -172,6 +177,9 @@ CREATE TABLE IF NOT EXISTS craft_step (
   title       VARCHAR(100),
   guide       CLOB,
   audio_url   VARCHAR(255),
+  license_status VARCHAR(16) NOT NULL DEFAULT 'none',
+  attribution  VARCHAR(300)  DEFAULT NULL,
+  asset_status VARCHAR(16)   DEFAULT NULL,
   create_time TIMESTAMP    DEFAULT NULL,
   update_time TIMESTAMP    DEFAULT NULL,
   deleted     TINYINT      NOT NULL DEFAULT 0,
@@ -241,6 +249,24 @@ status       TINYINT     NOT NULL DEFAULT 0,
   create_time  TIMESTAMP   DEFAULT NULL,
   update_time  TIMESTAMP   DEFAULT NULL,
   deleted      TINYINT     NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
+-- ---------- 创作会话行为事件（2026-11-05 心流度量配套；context 在 H2 以 TEXT 存 JSON） ----------
+CREATE TABLE IF NOT EXISTS craft_session_event (
+  id               BIGINT       NOT NULL,
+  session_id       BIGINT       NOT NULL,
+  user_id          BIGINT       NOT NULL,
+  craft_project_id BIGINT       NOT NULL,
+  event_type       VARCHAR(32)  NOT NULL,
+  step_no          INT          DEFAULT NULL,
+  occurred_at      TIMESTAMP(3) NOT NULL,
+  client_seq       BIGINT       DEFAULT NULL,
+  context          TEXT         DEFAULT NULL,
+  dwell_seconds    INT          DEFAULT NULL,
+  create_time      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted          TINYINT      NOT NULL DEFAULT 0,
   PRIMARY KEY (id)
 );
 
@@ -367,6 +393,10 @@ CREATE INDEX IF NOT EXISTS idx_craft_recommend_event_time    ON craft_recommend_
 CREATE INDEX IF NOT EXISTS idx_craft_recommend_event_rec     ON craft_recommend_event (recommendation_id);
 CREATE INDEX IF NOT EXISTS idx_craft_session_user            ON craft_session (user_id);
 CREATE INDEX IF NOT EXISTS idx_craft_session_project         ON craft_session (project_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_craft_session_event_seq          ON craft_session_event (session_id, client_seq);
+CREATE INDEX IF NOT EXISTS idx_craft_session_event_session_time       ON craft_session_event (session_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_craft_session_event_type_time          ON craft_session_event (event_type, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_craft_session_event_p95                ON craft_session_event (craft_project_id, event_type, step_no);
 CREATE INDEX IF NOT EXISTS idx_work_user                     ON work (user_id);
 CREATE INDEX IF NOT EXISTS idx_work_status                   ON work (status);
 CREATE INDEX IF NOT EXISTS idx_work_comment_work             ON work_comment (work_id);

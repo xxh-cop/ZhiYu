@@ -88,36 +88,44 @@ ON DUPLICATE KEY UPDATE
   deleted      = new.deleted;
 
 -- ---------- 步骤（以扎染为例） ----------
-INSERT INTO craft_step (id, project_id, step_no, title, guide, audio_url, create_time, update_time, deleted) VALUES
-(1001, 101, 1, '折布与捆扎', '把白色方巾按你喜欢的方式折叠，用棉线紧紧扎紧。不必追求整齐，随心意即可。', '/static/audio/101-1.mp3', NOW(), NOW(), 0),
-(1002, 101, 2, '调配染料',   '把染料缓缓倒入水盆，观察颜色在水中晕开。',                                     '/static/audio/101-2.mp3', NOW(), NOW(), 0),
-(1003, 101, 3, '浸染',       '把扎好的布浸入染料，静静等待 10 分钟。',                                       '/static/audio/101-3.mp3', NOW(), NOW(), 0),
-(1004, 101, 4, '拆开与晾晒', '拆开棉线，展开属于你的独一无二纹样。',                                         '/static/audio/101-4.mp3', NOW(), NOW(), 0) AS new
+-- 音频死链修复（2026-11-05）：/static/audio/101-*.mp3 仓库无此文件，audio_url 置 NULL；
+-- asset_status='missing' 表示「设计上应有音频但资产缺失」，待内容方补齐后改回 ready。
+INSERT INTO craft_step (id, project_id, step_no, title, guide, audio_url, license_status, attribution, asset_status, create_time, update_time, deleted) VALUES
+(1001, 101, 1, '折布与捆扎', '把白色方巾按你喜欢的方式折叠，用棉线紧紧扎紧。不必追求整齐，随心意即可。', NULL, 'none', NULL, 'missing', NOW(), NOW(), 0),
+(1002, 101, 2, '调配染料',   '把染料缓缓倒入水盆，观察颜色在水中晕开。',                                     NULL, 'none', NULL, 'missing', NOW(), NOW(), 0),
+(1003, 101, 3, '浸染',       '把扎好的布浸入染料，静静等待 10 分钟。',                                       NULL, 'none', NULL, 'missing', NOW(), NOW(), 0),
+(1004, 101, 4, '拆开与晾晒', '拆开棉线，展开属于你的独一无二纹样。',                                         NULL, 'none', NULL, 'missing', NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   project_id  = new.project_id,
   step_no     = new.step_no,
   title       = new.title,
   guide       = new.guide,
   audio_url   = new.audio_url,
+  license_status = new.license_status,
+  attribution = new.attribution,
+  asset_status = new.asset_status,
   update_time = new.update_time,
   deleted     = new.deleted;
 
 -- ---------- 步骤（赣绣小书签 / 剪纸释压团花） ----------
-INSERT INTO craft_step (id, project_id, step_no, title, guide, audio_url, create_time, update_time, deleted) VALUES
-(2001, 102, 1, '准备绣线', '挑选你喜欢的颜色，把线穿进针孔。', NULL, NOW(), NOW(), 0),
-(2002, 102, 2, '起针',     '从布的反面起针，让线头藏在背面。', NULL, NOW(), NOW(), 0),
-(2003, 102, 3, '绣制图案', '沿着图案慢慢走针，不用追求完美。', NULL, NOW(), NOW(), 0),
-(2004, 102, 4, '收针与整理', '把线头藏好，书签就完成了。',     NULL, NOW(), NOW(), 0),
-(3001, 103, 1, '折纸',     '把正方形红纸对折三次，形成一个小三角。', NULL, NOW(), NOW(), 0),
-(3002, 103, 2, '画稿',     '在折好的纸上画上你想要的图案。',         NULL, NOW(), NOW(), 0),
-(3003, 103, 3, '剪制',     '沿着画线慢慢剪，注意不要剪断连接处。',   NULL, NOW(), NOW(), 0),
-(3004, 103, 4, '展开',     '轻轻展开纸张，看看你的团花。',           NULL, NOW(), NOW(), 0) AS new
+INSERT INTO craft_step (id, project_id, step_no, title, guide, audio_url, license_status, attribution, asset_status, create_time, update_time, deleted) VALUES
+(2001, 102, 1, '准备绣线', '挑选你喜欢的颜色，把线穿进针孔。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(2002, 102, 2, '起针',     '从布的反面起针，让线头藏在背面。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(2003, 102, 3, '绣制图案', '沿着图案慢慢走针，不用追求完美。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(2004, 102, 4, '收针与整理', '把线头藏好，书签就完成了。',     NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(3001, 103, 1, '折纸',     '把正方形红纸对折三次，形成一个小三角。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(3002, 103, 2, '画稿',     '在折好的纸上画上你想要的图案。',         NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(3003, 103, 3, '剪制',     '沿着画线慢慢剪，注意不要剪断连接处。',   NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(3004, 103, 4, '展开',     '轻轻展开纸张，看看你的团花。',           NULL, 'none', NULL, NULL, NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   project_id  = new.project_id,
   step_no     = new.step_no,
   title       = new.title,
   guide       = new.guide,
   audio_url   = new.audio_url,
+  license_status = new.license_status,
+  attribution = new.attribution,
+  asset_status = new.asset_status,
   update_time = new.update_time,
   deleted     = new.deleted;
 

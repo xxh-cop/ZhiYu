@@ -169,6 +169,28 @@ zhiyu:
     store: ${ZHIYU_FLOW_STORE:memory}
     focus-idle-seconds: 300
     stuck-repeat-times: 3
+    # 疑似离席判定（2026-11-05 心流度量修复）：只标记不扣除 flow_seconds。
+    # 不要求输入事件；强信号走生命周期；前台静置默认算沉浸。
+    away:
+      # 同一步骤停留须超过「同类步骤 P95 × 该倍数」才可能标记
+      p95-multiplier: 2.0
+      # P95 估计的最小样本量，不足不判定（冷启动期不标记）
+      min-samples: 30
+      # 绝对地板：停留低于该秒数一律不判定
+      floor-seconds: 300
+      # P95 样本截取上限（按发生时刻倒序）
+      sample-limit: 500
+
+  # ── 分层下架状态机（2026-11-05） ──
+  # 合规下架：公开面即收，进行中/暂停会话转只读，export-window-hours 内可导出，窗口结束转归档。
+  # 运营下架：存量会话不受影响，一直运行到 archive_at（请求必填，管理端按 default-deadline-days 预填）。
+  takedown:
+    export-enabled: ${ZHIYU_TAKEDOWN_EXPORT_ENABLED:true}
+    compliance:
+      export-window-hours: 72
+    operational:
+      # 产品红线：最小 7 天；绑定期校验，配置更小的值启动即失败
+      default-deadline-days: 14
 
   # ── 文件上传配置（批次 2） ──
   file:

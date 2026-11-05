@@ -157,8 +157,13 @@ CREATE TABLE IF NOT EXISTS craft_project (
   therapy_tags VARCHAR(255) COMMENT '疗愈效果标签,逗号分隔,词表见 dict_therapy_tags',
     video_url VARCHAR(255) DEFAULT NULL,
   cover_url    VARCHAR(255),
-  status       TINYINT      NOT NULL DEFAULT 0 COMMENT '0待审 1上架 2下架',
+  status       TINYINT      NOT NULL DEFAULT 0 COMMENT '0待审 1上架 2下架 3归档（2/3 不可回 1，恢复上线走新建送审）',
   audit_reason VARCHAR(300)  DEFAULT NULL COMMENT '审核/下架/删除理由（AY1 2026-11-05；驳回理由同列落库）',
+  takedown_kind VARCHAR(16)  DEFAULT NULL COMMENT '下架类型：compliance 合规 / operational 运营（2026-11-05 分层下架）',
+  takedown_at  DATETIME      DEFAULT NULL COMMENT '下架时间',
+  archive_at   DATETIME      DEFAULT NULL COMMENT '归档时间/截止：运营下架必填；合规下架窗口结束转归档时回填',
+  export_until DATETIME      DEFAULT NULL COMMENT '私有导出/只读窗口截止（合规下架 = takedown_at + zhiyu.takedown.compliance.export-window-hours）',
+  notice_key   VARCHAR(64)   DEFAULT NULL COMMENT '提示语模板 key，对应 resources/notices/<key>.md',
   create_time  DATETIME     DEFAULT NULL,
   update_time  DATETIME     DEFAULT NULL,
   deleted      TINYINT      NOT NULL DEFAULT 0,
@@ -174,6 +179,9 @@ CREATE TABLE IF NOT EXISTS craft_step (
   title      VARCHAR(100),
   guide      TEXT         COMMENT '引导语',
   audio_url  VARCHAR(255) COMMENT '引导语音频',
+  license_status VARCHAR(16) NOT NULL DEFAULT 'none' COMMENT '音频授权：none/cc0/owned/licensed/pending_review',
+  attribution  VARCHAR(300) DEFAULT NULL COMMENT '音频署名信息（CC/授权来源）',
+  asset_status VARCHAR(16)  DEFAULT NULL COMMENT '音频资产状态：ready 可播 / missing 缺失 / disabled 停用；NULL=无音频资产',
   create_time DATETIME    DEFAULT NULL,
   update_time DATETIME    DEFAULT NULL,
   deleted    TINYINT      NOT NULL DEFAULT 0,
@@ -254,6 +262,28 @@ status      TINYINT     NOT NULL DEFAULT 0 COMMENT '0待开始 1进行中 2暂�
   KEY idx_user (user_id),
   KEY idx_project (project_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='创作会话表';
+
+-- ---------- 创作会话行为事件（2026-11-05 心流度量配套） ----------
+CREATE TABLE IF NOT EXISTS craft_session_event (
+  id               BIGINT       NOT NULL COMMENT '应用侧雪花 ID（ASSIGN_ID）',
+  session_id       BIGINT       NOT NULL COMMENT 'craft_session.id',
+  user_id          BIGINT       NOT NULL COMMENT '归属用户（服务端按会话填充，不信任客户端）',
+  craft_project_id BIGINT       NOT NULL COMMENT '所属项目（服务端按会话填充）',
+  event_type       VARCHAR(32)  NOT NULL COMMENT 'step_enter/step_leave/step_advance/step_backtrack/heartbeat/audio_play/visibility_change/app_lifecycle/dwell_stagnation/suspected_away/breathing_prompt/breathing_responded/export/session_finish/session_abandon/session_archive',
+  step_no          INT          DEFAULT NULL COMMENT '相关步骤序号（会话级事件为 NULL）',
+  occurred_at      DATETIME(3)  NOT NULL COMMENT '事件发生时刻（客户端上报或服务端接收）',
+  client_seq       BIGINT       DEFAULT NULL COMMENT '客户端序号（每会话单调），幂等去重；服务端派生事件为 NULL',
+  context          JSON         DEFAULT NULL COMMENT '脱敏上下文（标量键值），禁止对话/自由文本',
+  dwell_seconds    INT          DEFAULT NULL COMMENT '步骤停留秒数（step_leave 等填写，P95 统计用）',
+  create_time      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted          TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_session_event_seq (session_id, client_seq),
+  KEY idx_session_event_session_time (session_id, occurred_at),
+  KEY idx_session_event_type_time (event_type, occurred_at),
+  KEY idx_session_event_p95 (craft_project_id, event_type, step_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='创作会话行为事件表（心流度量配套；焦躁双信号 dwell_stagnation 与 step_backtrack 分开记录）';
 
 -- ---------- 作品与互动 ----------
 CREATE TABLE IF NOT EXISTS work (

@@ -70,6 +70,12 @@ ai:
     breathing:
       inhale_ms: 4000
       exhale_ms: 6000
+    # 疑似离席判定（2026-11-05 心流度量修复）：只标记不扣除 flow_seconds
+    away:
+      p95_multiplier: 2.0            # 同一步骤停留须超过同类步骤 P95 × 该倍数
+      min_samples: 30                # P95 估计最小样本量，不足不判定
+      floor_seconds: 300             # 绝对地板，低于该秒数不判定
+      sample_limit: 500              # P95 样本截取上限（按发生时刻倒序）
 
   # 内容安全
   safety:
@@ -91,6 +97,7 @@ ai:
       - llm-message
       - llm-strong        # strong 档（倾听小结等）独立熔断，2026-11-04 B2 注册
       - llm-summary       # 上下文滚动摘要（P1b，standard 档）独立熔断，2026-11-04 注册
+      - llm-moderation    # 审核辅助建议（BL，strong→standard 链共用）独立熔断，2026-11-05 注册
       - asr
       - tts
     fallback:

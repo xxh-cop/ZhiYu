@@ -11,7 +11,7 @@ info:
     - 除 SSE 接口外，所有接口的响应 body 统一包 Result。
     - SSE 接口（/api/emotion/chat）不使用 HTTP 层错误码，失败通过 `event: error` 推送，由前端降级。
     - 类型口径（S3 2026-11-04 统一）：雪花 ID 一律为字符串；列表接口的分页元数据（total/page/size/pageNum/pageSize）与列表内嵌计数（如 journey 的 completed/works、mine 的 counts、programs 的 booked）一律为 JSON number。
-    - 例外（保持字符串，属只读展示统计指标而非列表分页元数据）：/api/admin/dashboard/stats、/api/admin/dashboard/operations、/api/admin/dashboard/therapy-funnel、/api/admin/ops/health、/api/admin/ai-governance/overview 中的聚合计数按字符串返回（全局 Long→String 序列化策略）。前端展示可直接渲染；如需计算请先 Number() 转换。
+    - 例外（保持字符串，属只读展示统计指标而非列表分页元数据）：/api/admin/dashboard/stats、/api/admin/dashboard/operations、/api/admin/dashboard/therapy-funnel、/api/admin/ops/health、/api/admin/ai-governance/overview、/api/admin/ai-metrics 中的聚合计数按字符串返回（全局 Long→String 序列化策略）。前端展示可直接渲染；如需计算请先 Number() 转换。
 servers:
   - url: http://localhost:8080
     description: 本地开发
@@ -224,6 +224,47 @@ components:
                 inFlow: { type: boolean, description: 是否处于心流状态（连续 5 分钟无步骤切换且未主动退出） }
                 needBreathing: { type: boolean, description: 是否需要呼吸引导（焦躁：同一步骤反复停留>3 次且未响应呼吸提醒） }
 
+    SessionEventItem:
+      type: object
+      description: 会话行为事件条目（2026-11-05 心流度量配套）
+      required: [eventType, occurredAt, clientSeq]
+      properties:
+        eventType:
+          type: string
+          description: '事件类型（仅客户端白名单）：step_enter / step_leave / step_advance / step_backtrack / heartbeat / audio_play / visibility_change / app_lifecycle / breathing_responded / export；服务端派生类型（dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive）上报即 1001'
+        stepNo: { type: integer, nullable: true, description: 相关步骤序号（会话级事件可空） }
+        occurredAt: { type: string, format: date-time, description: 事件发生时刻（允许 5 分钟时钟偏移，超前过多计 failed） }
+        clientSeq: { type: integer, format: int64, minimum: 1, description: 客户端序号（每会话单调递增），与服务端组成 (session_id, client_seq) 幂等去重键 }
+        context:
+          type: object
+          nullable: true
+          description: '脱敏上下文（≤20 个标量键值）：值仅允许数字/布尔/≤64 字符字符串；step_leave 建议携带 dwellSeconds（数字，提取成列供 P95 统计）；visibility_change 建议 visible（布尔）；app_lifecycle 建议 foreground（布尔）；禁止对话或自由文本'
+          additionalProperties: true
+
+    SessionEventBatchReq:
+      type: object
+      description: 会话行为事件批量上报请求（1-100 条，超出整体 1001）
+      required: [events]
+      properties:
+        events:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items: { $ref: '#/components/schemas/SessionEventItem' }
+
+    SessionEventBatchResult:
+      description: 事件批量上报受理结果，统一包 Result
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                accepted: { type: integer, description: 新入库条数 }
+                deduped: { type: integer, description: 重复 client_seq 去重条数（幂等，不算错误） }
+                failed: { type: integer, description: 时钟超前等不可接受而丢弃的条数 }
+
     LikeResult:
       description: 点赞/收藏 toggle 结果，统一包 Result，data.active 表示本次请求后的状态
       allOf:
@@ -259,7 +300,25 @@ components:
         stepNo: { type: integer, description: 步骤序号 }
         title: { type: string, description: 步骤标题 }
         guide: { type: string, description: 引导语 }
-        audioUrl: { type: string, nullable: true, description: '引导语音频：私有媒体引用在下发时换为 1h 签名播放地址（/api/media/{id}/content?uid=&expires=&signature=）；http(s) 外链与 /static/ 前端包静态资源原样透传；null 表示无音频' }
+        audioUrl: { type: string, nullable: true, description: '引导语音频：私有媒体引用在下发时换为 1h 签名播放地址（/api/media/{id}/content?uid=&expires=&signature=）；http(s) 外链与 /static/ 前端包静态资源原样透传；音频资产 missing/disabled 或无音频时为 null' }
+
+    CraftProjectStepsVO:
+      type: object
+      description: '项目步骤结构化视图（2026-11-05 分层下架）：上架项目正常下发；下架/归档项目返回步骤（可回看）+ 会话状态 + 只读/导出标记 + 截止时间 + 提示语，不再 1004'
+      properties:
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/CraftStepVO' }
+        projectStatus: { type: integer, description: '有效项目状态：1 上架 / 2 下架 / 3 归档（窗口或期限已过的下架按 3 下发）' }
+        sessionId: { type: string, nullable: true, description: '当前用户在该项目最近一个会话 ID（雪花，字符串；无则 null）' }
+        sessionStatus: { type: integer, nullable: true, description: '当前用户在该项目最近一个会话状态：0待开始 1进行中 2已暂停 3已完成 4已放弃（无则 null）' }
+        readOnly: { type: boolean, description: '会话只读：true 时心跳推进步骤被拒（code=3001）' }
+        canReview: { type: boolean, description: '可回看历史步骤（下架/归档均为 true）' }
+        canExport: { type: boolean, description: '当前可导出创作数据（合规下架窗口内且导出开关开）' }
+        exportUntil: { type: string, format: date-time, nullable: true, description: '私有导出/只读窗口截止（合规下架）' }
+        archiveAt: { type: string, format: date-time, nullable: true, description: '归档时间/截止（运营下架为预定截止；已归档为实际归档时间）' }
+        noticeKey: { type: string, nullable: true, description: '提示语模板 key（craft-takedown-compliance / craft-takedown-operational / craft-archived），前端条件渲染用' }
+        notice: { type: string, nullable: true, description: '渲染后的提示文案（发生了什么 + 截止时间 + 能做什么）；模板缺失时为 null，前端用 noticeKey 兜底' }
 
     CraftProject:
       type: object
@@ -2291,12 +2350,13 @@ paths:
   /api/craft/projects/{id}/steps:
     get:
       operationId: craftProjectSteps
-      summary: 项目步骤详情
+      summary: 项目步骤详情（2026-11-05 起为结构化视图，含下架/归档只读信息）
+      description: '分层下架后不再「非上架即 1004」：项目已下架/已归档时返回 200 + CraftProjectStepsVO（steps 可回看 + sessionStatus + readOnly/canExport/canReview + exportUntil/archiveAt + noticeKey/notice）。readOnly=true 时 POST /api/craft/session/{id}/heartbeat 推进步骤被拒（code=3001）；finish/abandon 退出动作不受影响。仅项目不存在或待审（status=0）返回 1004。'
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
       responses:
         '200':
-          description: 步骤列表（按 stepNo 升序）
+          description: 步骤结构化视图（按 stepNo 升序；下架/归档含只读与提示语字段）
           content:
             application/json:
               schema:
@@ -2305,12 +2365,11 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items: { $ref: '#/components/schemas/CraftStepVO' }
+                        $ref: '#/components/schemas/CraftProjectStepsVO'
         '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
-        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: '项目不存在或待审（code=1004）；下架/归档不走此分支', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
@@ -2467,6 +2526,31 @@ paths:
         '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/craft/session/{id}/events:
+    post:
+      operationId: craftSessionEventsIngest
+      summary: 批量上报创作会话行为事件（幂等，2026-11-05 心流度量配套）
+      description: '客户端上报生命周期（visibility_change / app_lifecycle）、音频播放（audio_play）、步骤进入/离开（step_enter / step_leave）等行为信号，作为心流沉浸与疑似离席判定的数据源。幂等：同一 (session_id, client_seq) 重复上报计 deduped 不重复入库；仅白名单事件类型可上报，dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive 等服务端派生类型一律 1001。context 只允许脱敏标量键值（数字/布尔/≤64 字符字符串），禁止对话或自由文本。会话进行中（DOING）或已暂停（PAUSED）可上报，其余状态 3001。'
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SessionEventBatchReq' }
+      responses:
+        '200':
+          description: '受理结果计数，形如 { code: 0, data: { accepted: 2, deduped: 1, failed: 0 } }；deduped 为重复 client_seq 去重条数（幂等，不算错误），failed 为时钟超前等不可接受条数'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionEventBatchResult' }
+        '400': { description: 参数校验失败（code=1001；含未知/服务端派生事件类型、context 非标量、批次超 100 条）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003，非会话归属者）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -3500,15 +3584,22 @@ paths:
   /api/admin/projects/{id}/takedown:
     put:
       operationId: adminProjectTakedown
-      summary: '管理员：下架已上架的手作项目（AY1，2026-11-05）'
+      summary: '管理员：下架已上架的手作项目（AY1 2026-11-05；分层下架 2026-11-05）'
       description: |
-        状态机：仅 status=1（上架）→ 2（下架，DDL 既有口径「0待审 1上架 2下架」，不新增状态值）。
-        理由必填（≤300 字），落 craft_project.audit_reason（AY1 新列），随 WORK_AUDIT 通知
-        （refType=project）送达传承人；操作落 admin_operation_log（project.takedown）。
-        下架后学生端与传承人端访问该项目内容一律 1004（不泄露存在性），步骤音频等
-        私有媒体授权即时失效（授权条件含项目上架态）；下架为终态——审核接口只受理
-        status=0，已下架项目不能再被「审核通过」复活（现状无重新提交流程，重新上线
-        只能新建项目送审）。
+        状态机：status=1（上架）→ 2（下架，带 kind）→ 3（归档，到期由归档 Worker 执行）；
+        2/3 不可回 1（恢复上线走新建送审），审核接口只受理 status=0。
+        两类下架（kind 必填）：
+        - compliance 合规下架：公开面即收；进行中/暂停会话转只读（可回看、不可推进步骤），
+          export_until = 下架时刻 + zhiyu.takedown.compliance.export-window-hours（默认 72h）
+          内可导出；窗口结束转归档。不得提供 archiveAt。
+        - operational 运营下架：挡新建；存量会话不受影响，可运行到 archiveAt（必填，
+          距现在至少 7 天；管理端按 zhiyu.takedown.operational.default-deadline-days=14 预填）；
+          到期未完成会话转只读并归档。
+        理由必填（≤300 字），落 craft_project.audit_reason，随 WORK_AUDIT 通知
+        （refType=project）送达传承人（理由只发传承人，学生端提示语不带指向性措辞）；
+        操作落 admin_operation_log（project.takedown）。
+        下架后项目详情/新建会话仍 1004（不泄露存在性），步骤音频等私有媒体授权即时失效；
+        GET /api/craft/projects/{id}/steps 返回结构化只读视图（见该端点说明）。
       x-required-role: admin
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, description: '项目 ID（雪花，字符串）' } }
@@ -3518,12 +3609,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [reason]
+              required: [reason, kind]
               properties:
                 reason: { type: string, minLength: 1, maxLength: 300, description: 下架理由（必填，通知传承人） }
+                kind: { type: string, enum: [compliance, operational], description: '下架类型：compliance 合规 / operational 运营' }
+                archiveAt: { type: string, format: date-time, nullable: true, description: '归档截止时间（ISO-8601）；operational 必填且距现在至少 7 天，compliance 不得提供' }
       responses:
         '200': { description: 'Result；非法状态流转时 HTTP 仍为 200、body code=3001（仅上架中项目可下架）' }
-        '400': { description: '理由缺失或超长（code=1001）' }
+        '400': { description: '理由缺失或超长 / kind 缺失或非法 / operational 未填 archiveAt 或距现在不足 7 天 / compliance 提供了 archiveAt（code=1001）' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 项目不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -3539,6 +3632,9 @@ paths:
         最近一条 project.* 动作；AY 起审核/下架/删除均落操作日志）+ lastActionTime/lastActorId
         + statusOrigin（仅 status=2 时推导：lastAction=TAKEDOWN → TAKEDOWN（事后下架）；
         否则 REJECT（评审驳回——下架能力 2026-11-05 才存在，无日志的历史 status=2 必为驳回））。
+        + 下架三字段（BT 批 2026-11-05）：takedownKind（compliance/operational）、
+        exportUntil（合规下架的导出/只读窗口截止）、archiveAt（归档时间/截止）——
+        键恒存在，未下架或无值时如实为 null（不省略、不给空串），日期为 ISO-8601 字符串。
         雪花 ID 字符串。已逻辑删除项目 → 1004（删除动作经 /api/admin/operation-logs 追溯）。
         仅 role=3。学生端不下发理由（1004 不泄露存在性）。
       x-required-role: admin
@@ -3841,6 +3937,28 @@ paths:
         '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 非管理员（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/admin/ai-metrics:
+    get:
+      operationId: adminAiMetricsGet
+      tags: [Admin]
+      summary: '管理员：AI 调用用量与质量指标聚合'
+      description: '按时间区间返回按资源 key（scene：llm-chat / llm-recommend / llm-message / llm-strong / llm-moderation / llm-summary / llm-rag / llm-lineart / asr / tts；编排层 trace 以业务场景名记录，如 companion）分组的调用量、成功率、降级率、错误率、avg/P50/P95 延迟、tokens 用量与模型标识。数据源为 ai_trace（只追加、脱敏元数据），不含用户标识、会话 ID、prompt 或对话原文；tokens 仅在客户端可获取时记录，未记录的行不参与求和；P50/P95 基于区间内延迟样本（全场景合计上限 20000 条、取最近，latencySampleTruncated 标记是否截断）。聚合计数遵循全局 Long→String 序列化。'
+      x-required-role: admin-only
+      parameters:
+        - { name: from, in: query, required: false, schema: { type: string, format: date-time, example: '2026-11-01T00:00:00' }, description: '区间起（含）；缺省取 to-7天' }
+        - { name: to, in: query, required: false, schema: { type: string, format: date-time, example: '2026-11-05T23:59:59' }, description: '区间止（含）；缺省取当前时间' }
+      responses:
+        '200':
+          description: 'Result.data 含 window（from/to）、generatedAt、scenes（scene/calls/okCount/fallbackCount/errorCount/blockedCount/successRate/fallbackRate/errorRate/avgLatencyMs/p50LatencyMs/p95LatencyMs/inputTokens/outputTokens/models）、latencySampleTruncated、note；scenes 为空数组表示区间内无记录'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: '参数非法：from 不早于 to 或区间超过 90 天（code=1001）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非管理员（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   # ── P1-B1：传承人管理（4 个接口） ──
 
   /api/admin/inheritors:
@@ -3952,6 +4070,43 @@ paths:
               schema: { $ref: '#/components/schemas/Result' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/works/{id}/ai-suggest:
+    post:
+      operationId: adminWorkAiSuggest
+      summary: '审核员：作品 AI 辅助建议（按需调用，BL 2026-11-05）'
+      description: |
+        AI 只给建议不处置：不写审核状态、不触发任何动作，建议仅返回给审核员参考。
+        响应固定含 disclaimer（前端必须展示「AI 辅助建议，仅供人工参考，不构成结论」）。
+        媒体内容 AI 不可见，只在 riskPoints 提示人工核对，绝不编造媒体描述。
+        降级：AI 不可用/熔断/输出未过安全过滤/格式不可用 → code=0 且 data.available=false
+        + note 说明（明确状态标识，不是报错也不是"没问题"）。
+        频控：每审核员 30 次/小时（超限 1001）。每次调用落 ai_audit_log（scene=moderation，
+        携带 refType=work + refId，raw_input/ai_output 加密）。
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '作品 ID（雪花，字符串）' } }
+      responses:
+        '200': { description: 'Result，data 为建议结构（available/tendency/riskPoints/uncertainty/note/disclaimer）' }
+        '400': { description: '频控超限（code=1001）' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003，仅审核员 role=3）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 作品不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/comments/{id}/ai-suggest:
+    post:
+      operationId: adminCommentAiSuggest
+      summary: '审核员：评论 AI 辅助建议（按需调用，BL 2026-11-05）'
+      description: '同 /api/admin/works/{id}/ai-suggest，对象为评论（refType=comment）。'
+      x-required-role: admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '评论 ID（雪花，字符串）' } }
+      responses:
+        '200': { description: 'Result，data 为建议结构' }
+        '400': { description: '频控超限（code=1001）' }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 评论不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   /api/admin/works/{id}:
     get:
@@ -4305,7 +4460,7 @@ paths:
       summary: 管理员按上架状态和分类分页查看项目
       parameters:
         - { name: page, in: query, schema: { type: integer, default: 1, minimum: 1 } }
-        - { name: status, in: query, schema: { type: integer, minimum: 0, maximum: 2, default: 0 } }
+        - { name: status, in: query, schema: { type: integer, minimum: 0, maximum: 3, default: 0 }, description: '项目状态：0 待审 / 1 上架 / 2 下架 / 3 归档（2026-11-05 起放开归档可见）；其他值（含负数与 4+）一律 1001' }
         - { name: category, in: query, schema: { type: string, maxLength: 100 } }
         - { name: keyword, in: query, schema: { type: string, maxLength: 100 } }
       responses:
@@ -4531,7 +4686,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [profile, notes, sessions, messages, records, works, bookings, campus, crafts, lessons, memberships, group-messages, guidance-messages, comments, favorites, media]
+            enum: [profile, notes, sessions, messages, records, works, bookings, campus, crafts, craft-events, lessons, memberships, group-messages, guidance-messages, comments, favorites, media]
         - in: query
           name: after
           schema:

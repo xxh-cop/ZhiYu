@@ -32,20 +32,32 @@ class SchemaCompatibilityCheckTest {
   var work=mock(ResultSet.class);when(work.next()).thenReturn(true,upgraded,upgraded,false);when(work.getString("COLUMN_NAME")).thenReturn(upgraded?"media_type":"id","video_url","audit_reason");
   var comment=mock(ResultSet.class);when(comment.next()).thenReturn(upgraded,false);when(comment.getString("COLUMN_NAME")).thenReturn("audit_reason");when(metadata.getColumns("zhiyu",null,"work_comment",null)).thenReturn(comment);
   var session=mock(ResultSet.class);when(session.next()).thenReturn(true,false);when(session.getString("COLUMN_NAME")).thenReturn("emotion_session_id");
-  var project=mock(ResultSet.class);var projectPos=new java.util.concurrent.atomic.AtomicInteger(-1);var projectCols=upgraded?java.util.List.of("video_url","audit_reason"):java.util.List.of("video_url");when(project.next()).thenAnswer(i->projectPos.incrementAndGet()<projectCols.size());when(project.getString("COLUMN_NAME")).thenAnswer(i->projectCols.get(projectPos.get()));var media=mock(ResultSet.class);when(media.next()).thenReturn(true,true,false);when(media.getString("COLUMN_NAME")).thenReturn("storage_key","user_id");when(metadata.getColumns("zhiyu",null,"craft_project",null)).thenReturn(project);when(metadata.getColumns("zhiyu",null,"media_asset",null)).thenReturn(media);
+  var project=mock(ResultSet.class);var projectPos=new java.util.concurrent.atomic.AtomicInteger(-1);var projectCols=upgraded?java.util.List.of("video_url","audit_reason","takedown_kind","takedown_at","archive_at","export_until","notice_key"):java.util.List.of("video_url");when(project.next()).thenAnswer(i->projectPos.incrementAndGet()<projectCols.size());when(project.getString("COLUMN_NAME")).thenAnswer(i->projectCols.get(projectPos.get()));var media=mock(ResultSet.class);when(media.next()).thenReturn(true,true,false);when(media.getString("COLUMN_NAME")).thenReturn("storage_key","user_id");when(metadata.getColumns("zhiyu",null,"craft_project",null)).thenReturn(project);when(metadata.getColumns("zhiyu",null,"media_asset",null)).thenReturn(media);
+  // 2026-11-05 分层下架：craft_step 音频资产三字段
+  var stepCols=upgraded?java.util.List.of("license_status","attribution","asset_status"):java.util.List.<String>of();
+  var step=mock(ResultSet.class);var stepPos=new java.util.concurrent.atomic.AtomicInteger(-1);
+  when(step.next()).thenAnswer(i->stepPos.incrementAndGet()<stepCols.size());
+  when(step.getString("COLUMN_NAME")).thenAnswer(i->stepCols.get(stepPos.get()));
+  when(metadata.getColumns("zhiyu",null,"craft_step",null)).thenReturn(step);
   var auditLog=mock(ResultSet.class);when(auditLog.next()).thenReturn(upgraded,upgraded,upgraded,false);when(auditLog.getString("COLUMN_NAME")).thenReturn("user_id","ref_type","ref_id");when(metadata.getColumns("zhiyu",null,"ai_audit_log",null)).thenReturn(auditLog);
   var eventColumns=upgraded?java.util.List.of("id","user_id","recommendation_id","project_id","event_type","source","create_time","update_time","deleted"):java.util.List.<String>of();
   var event=mock(ResultSet.class);var eventPosition=new java.util.concurrent.atomic.AtomicInteger(-1);
   when(event.next()).thenAnswer(i->eventPosition.incrementAndGet()<eventColumns.size());
   when(event.getString("COLUMN_NAME")).thenAnswer(i->eventColumns.get(eventPosition.get()));
   when(metadata.getColumns("zhiyu",null,"craft_recommend_event",null)).thenReturn(event);
+  // 2026-11-05 心流度量配套：craft_session_event 必检表
+  var sessionEventCols=upgraded?java.util.List.of("id","session_id","user_id","craft_project_id","event_type","occurred_at","create_time","update_time","deleted"):java.util.List.<String>of();
+  var sessionEvent=mock(ResultSet.class);var sessionEventPos=new java.util.concurrent.atomic.AtomicInteger(-1);
+  when(sessionEvent.next()).thenAnswer(i->sessionEventPos.incrementAndGet()<sessionEventCols.size());
+  when(sessionEvent.getString("COLUMN_NAME")).thenAnswer(i->sessionEventCols.get(sessionEventPos.get()));
+  when(metadata.getColumns("zhiyu",null,"craft_session_event",null)).thenReturn(sessionEvent);
   when(metadata.getColumns("zhiyu",null,"work",null)).thenReturn(work);when(metadata.getColumns("zhiyu",null,"craft_session",null)).thenReturn(session);
   // L4 批次新增必检表（practice_session / user_ai_memory / ai_trace / heritage_catalog_version）
   // 2026-11-04 通知系统新增必检表 notification
   for(var entry:java.util.Map.of(
     "practice_session",java.util.List.of("id","user_id","kind","status","minutes_budget","current_step","create_time","update_time","deleted"),
     "user_ai_memory",java.util.List.of("id","user_id","memory_key","value_cipher","consent_version","create_time","update_time","deleted"),
-    "ai_trace",java.util.List.of("id","trace_id","scene","result_status","create_time"),
+    "ai_trace",java.util.List.of("id","trace_id","user_id","scene","model","latency_ms","input_tokens","output_tokens","result_status","fallback_reason","create_time"),
     "notification",java.util.List.of("id","user_id","type","title","ref_id","sub_ref_id","dedupe_key","read_flag","create_time","update_time","deleted"),
     "dialogue_context_summary",java.util.List.of("id","user_id","session_id","covered_end_turn","summary_cipher","create_time","update_time","deleted"),
     "crisis_session_log",java.util.List.of("id","user_id","scene","risk_level","summary_cipher","create_time","update_time","deleted"),
