@@ -34,8 +34,15 @@
 			</view>
 		</view>
 
-		<!-- 状态条：同步失败 / 已暂停 / 心流（同一位置轮替，不叠加） -->
-		<view v-if="syncError" class="banner banner-warn" role="alert">
+		<!-- 状态条：只读回看（BR）/ 同步失败 / 已暂停 / 心流（同一位置轮替，不叠加） -->
+		<view v-if="craftStore.readOnly" class="banner banner-readonly" role="status">
+			<text class="banner-text readonly-text">{{ craftStore.notice }}</text>
+			<text v-if="craftStore.canExport && craftStore.exportUntil" class="banner-sub">可导出至 {{ formatDeadline(craftStore.exportUntil) }}（截止后转为归档，仅保留回看）</text>
+		</view>
+		<view v-else-if="craftStore.notice" class="banner banner-readonly" role="status">
+			<text class="banner-text readonly-text">{{ craftStore.notice }}</text>
+		</view>
+		<view v-else-if="syncError" class="banner banner-warn" role="alert">
 			<text class="banner-text">{{ syncError }}</text>
 			<AccessibleButton class="banner-btn" :disabled="progressSaving" @click="retryProgress">重试保存</AccessibleButton>
 		</view>
@@ -91,13 +98,22 @@
 				<AccessibleButton
 					v-if="!craftStore.inFlow && currentStep > 1"
 					class="text-button"
-					:disabled="craftStore.status !== 1 || statusBusy || progressSaving"
+					:disabled="(craftStore.status !== 1 && !craftStore.readOnly) || statusBusy || progressSaving"
 					@click="handlePrev"
 				>上一步</AccessibleButton>
 				<text v-else class="session-tip">跟随自己的节奏</text>
-				<text class="safe-tip">进度自动保留，随时可以离开</text>
+				<text class="safe-tip">{{ craftStore.readOnly ? '回看模式：创作记录已保留' : '进度自动保留，随时可以离开' }}</text>
 			</view>
+			<!-- BR：只读回看推进控件不可用——主按钮替换为纯浏览「翻看下一步」，不出现完成/推进入口 -->
 			<AccessibleButton
+				v-if="craftStore.readOnly"
+				class="primary-btn"
+				:disabled="currentStep >= totalSteps"
+				aria-label="翻看下一步"
+				@click="handleNext"
+			>翻看下一步</AccessibleButton>
+			<AccessibleButton
+				v-else
 				class="primary-btn"
 				:disabled="pageLoading || statusBusy || progressSaving || !!loadError || !totalSteps"
 				:aria-label="primaryLabel"
@@ -204,6 +220,7 @@ import { useToast } from '../../composables/useToast'
 import { useIdleNudge } from '../../composables/useIdleNudge'
 import { useCompanionNudge } from '../../composables/useCompanionNudge'
 import { invalidate, TTL_KEYS } from '../../utils/ttlCache'
+import { bindSessionEvents, unbindSessionEvents, finishSessionEvents, trackSessionEvent, flushSessionEvents } from '../../utils/session-events'
 
 const toast = useToast()
 
@@ -285,7 +302,11 @@ const currentStepData = computed(() => {
 	const steps = craftStore.steps
 	if (!steps || steps.length === 0) return { title: '', guide: '', audioUrl: null }
 	const step = steps.find((s) => s.stepNo === currentStep.value)
-	return step || { title: '', guide: '', audioUrl: null }
+	const raw = step || { title: '', guide: '', audioUrl: null }
+	// BQ（2026-11-05）：audioUrl 归一化——空白字符串视同无音频。
+	// 播放控件仅对非空白地址渲染（v-if 走这里），null 时不出现按钮、不触发任何播放/错误路径。
+	const audioUrl = typeof raw.audioUrl === 'string' && raw.audioUrl.trim() ? raw.audioUrl.trim() : null
+	return { ...raw, audioUrl }
 })
 
 onLoad(query=>{route=query||{};initialize().then(loadTeaching)})
@@ -295,11 +316,29 @@ async function initialize(){
  try{
   let projectId=route.projectId
   if(!projectId)throw new Error('缺少项目参数')
-  // Read steps before creating a session; retry cannot strand a hidden unfinished session.
-  const steps=await http.get('/api/craft/projects/'+projectId+'/steps')
+  // BR（2026-11-05 分层下架）：listSteps 为结构化响应 {steps, projectStatus, readOnly, notice, ...}；
+  // 仅「不存在/待审」1004。先拆包装写入 store（含 readOnly/notice 等），再按只读与否分流。
+  const payload=await http.get('/api/craft/projects/'+projectId+'/steps')
+  craftStore.setStepsPayload(payload)
+  const steps=(payload&&payload.steps)||[]
   if(!steps.length)throw new Error('项目暂无可用步骤，请返回重新选择')
+  // BR 只读回看（合规下架窗口内/已归档/窗口过期）：不建不续会话、不起心跳，
+  // 步骤可本地翻看，推进控件禁用，页面显示后端 notice 原文。
+  // BS：只读不绑定事件上报（无会话），step_enter/step_leave 天然零事件，不污染心流数据。
+  if(craftStore.readOnly){
+   if(disposed)return
+   craftStore.totalSteps=steps.length
+   craftStore.currentStep=1
+   stepStartTime=Date.now()
+   return
+  }
   const active=await http.get('/api/craft/session/active?projectId='+projectId)
-  const existing=route.sessionId?active.find(x=>String(x.sessionId)===String(route.sessionId)):active[0]
+  let existing=route.sessionId?active.find(x=>String(x.sessionId)===String(route.sessionId)):active[0]
+  // BR：运营下架后 active 列表（JOIN 上架项目）不再返回进行中会话；
+  // 用 listSteps 下发的最近会话指针恢复（getProgress 只校验归属，不校验项目状态）。
+  if(!existing&&payload.sessionId&&[1,2].includes(Number(payload.sessionStatus))){
+   existing={sessionId:String(payload.sessionId)}
+  }
   let vo
   if(route.sessionId&&!existing)throw new Error('该进度已结束或项目暂不可用，请返回目录')
   if(existing){resumed.value=true;vo=await http.get('/api/craft/session/'+existing.sessionId)}
@@ -309,14 +348,18 @@ async function initialize(){
   }
   if(![1,2].includes(vo.status))throw new Error('该创作已结束，请返回目录')
   if(disposed)return
-  sessionId=vo.sessionId;craftStore.setSession(vo);craftStore.setSteps(steps)
+  sessionId=vo.sessionId;craftStore.setSession(vo)
+  // BS：绑定事件上报 + 埋首步进入 + 注册可见性监听（仅进行中会话走到这里）
+  bindSessionEvents(sessionId)
+  trackSessionEvent('step_enter',{stepNo:vo.currentStep||1})
+  registerVisibilityEvents()
   stepStartTime=Date.now();if(vo.status===1&&!hidden)startHeartbeatTimer()
   http.get('/api/craft/starter').then(all=>{if(!disposed)starter.value=all.find(x=>String(x.id)===String(projectId))||null}).catch(()=>{})
  }catch(e){if(!disposed)loadError.value=(e&&e.code===1004)?'这个手作已调整或暂未上架，去看看别的吧':e.message||'加载失败，请重试'}finally{if(!disposed)pageLoading.value=false}
 }
 onHide(()=>{hidden=true;stopHeartbeatTimer();if(sessionId&&craftStore.status===1&&!progressSaving.value)sendHeartbeat({stepNo:currentStep.value,dwellSeconds:getDwellSeconds(),isExited:true,isBreathingResponded:false})})
 onShow(()=>{hidden=false;if(sessionId&&craftStore.status===1&&!pageLoading.value){stepStartTime=Date.now();startHeartbeatTimer()}})
-onUnload(()=>{stopHeartbeatTimer();if(sessionId&&!isExited&&craftStore.status===1&&!progressSaving.value){isExited=true;sendHeartbeat({stepNo:currentStep.value,dwellSeconds:getDwellSeconds(),isExited:true,isBreathingResponded:false})}disposed=true})
+onUnload(()=>{stopHeartbeatTimer();if(sessionId&&!isExited&&craftStore.status===1&&!progressSaving.value){isExited=true;sendHeartbeat({stepNo:currentStep.value,dwellSeconds:getDwellSeconds(),isExited:true,isBreathingResponded:false})}unregisterVisibilityEvents();unbindSessionEvents();disposed=true})
 
 // ── 退出确认（H5 / App 生效；微信小程序平台不支持拦截页面返回，见交付说明）──
 onBackPress(() => {
@@ -362,6 +405,47 @@ function getDwellSeconds() {
 	return Math.floor((Date.now() - stepStartTime) / 1000)
 }
 
+// BR：后端 LocalDateTime（ISO）→ 界面可读截止时间
+function formatDeadline(v) {
+	return String(v || '').replace('T', ' ').slice(0, 16)
+}
+
+// ── BS 可见性事件（只报生命周期，不报输入/触摸）──
+let visibilityBound = false
+function onDocVisibility() {
+	// #ifdef H5
+	const visible = !document.hidden
+	trackSessionEvent('visibility_change', { context: { visible } })
+	if (!visible) flushSessionEvents() // 切后台尽力 flush
+	// #endif
+}
+// #ifdef MP-WEIXIN
+function onMpHide() { trackSessionEvent('app_lifecycle', { context: { foreground: false } }); flushSessionEvents() }
+function onMpShow() { trackSessionEvent('app_lifecycle', { context: { foreground: true } }) }
+// #endif
+function registerVisibilityEvents() {
+	if (visibilityBound) return
+	visibilityBound = true
+	// #ifdef H5
+	document.addEventListener('visibilitychange', onDocVisibility)
+	// #endif
+	// #ifdef MP-WEIXIN
+	uni.onAppHide(onMpHide)
+	uni.onAppShow(onMpShow)
+	// #endif
+}
+function unregisterVisibilityEvents() {
+	if (!visibilityBound) return
+	visibilityBound = false
+	// #ifdef H5
+	document.removeEventListener('visibilitychange', onDocVisibility)
+	// #endif
+	// #ifdef MP-WEIXIN
+	uni.offAppHide(onMpHide)
+	uni.offAppShow(onMpShow)
+	// #endif
+}
+
 function sendHeartbeat(payload){
  const target=sessionId
  const task=heartbeatChain.then(async()=>{
@@ -380,17 +464,20 @@ async function retryProgress(){if(!retryPayload||progressSaving.value)return;pro
 // ── 步骤操作 ──
 
 function handlePrimary() {
-	if (statusBusy.value || progressSaving.value || loadError.value) return
+	if (craftStore.readOnly || statusBusy.value || progressSaving.value || loadError.value) return
 	if (craftStore.status === 2) return handleResume()
 	if (currentStep.value === totalSteps.value) return handleFinish()
 	handleNext()
 }
 
-const moreActions = computed(() => [
-	{ key: 'pause', label: craftStore.status === 2 ? '继续创作' : '暂停创作', tone: 'primary' },
-	{ key: 'abandon', label: '放弃本次创作', tone: 'danger' },
-	{ key: 'chat', label: '和小织聊聊', tone: 'default' },
-])
+// BR：只读回看无会话，暂停/放弃无意义，只留小织陪伴入口
+const moreActions = computed(() => craftStore.readOnly
+	? [{ key: 'chat', label: '和小织聊聊', tone: 'default' }]
+	: [
+		{ key: 'pause', label: craftStore.status === 2 ? '继续创作' : '暂停创作', tone: 'primary' },
+		{ key: 'abandon', label: '放弃本次创作', tone: 'danger' },
+		{ key: 'chat', label: '和小织聊聊', tone: 'default' },
+	])
 
 function showMore() {
 	moreSheetOpen.value = true
@@ -405,10 +492,12 @@ function onMoreSelect(key) {
 }
 
 async function moveStep(delta){
- if(craftStore.status!==1||progressSaving.value||statusBusy.value)return
  const next=currentStep.value+delta;if(next<1||next>totalSteps.value)return
+ // BR 只读回看：步骤纯本地浏览，不发心跳（后端闸口也会拒，3001）
+ if(craftStore.readOnly){craftStore.currentStep=next;return}
+ if(craftStore.status!==1||progressSaving.value||statusBusy.value)return
  progressSaving.value=true
- try{if(await sendHeartbeat({stepNo:next,dwellSeconds:0,isExited:false,isBreathingResponded:false})){if(!disposed){totalDwellSeconds+=getDwellSeconds();craftStore.currentStep=next;stepStartTime=Date.now();invalidate(TTL_KEYS.craftSessionActive)}}}finally{if(!disposed)progressSaving.value=false}
+ try{if(await sendHeartbeat({stepNo:next,dwellSeconds:0,isExited:false,isBreathingResponded:false})){if(!disposed){const dwell=getDwellSeconds();totalDwellSeconds+=dwell;trackSessionEvent('step_leave',{stepNo:currentStep.value,context:{dwellSeconds:dwell}});craftStore.currentStep=next;trackSessionEvent('step_enter',{stepNo:next});stepStartTime=Date.now();invalidate(TTL_KEYS.craftSessionActive)}}}finally{if(!disposed)progressSaving.value=false}
 }
 function handleNext(){return moveStep(1)}
 function handlePrev(){return moveStep(-1)}
@@ -455,6 +544,9 @@ async function handleFinish() {
 		stopHeartbeatTimer()
 		craftStore.setSession(vo)
 		craftStore.finish()
+		// BS：完成即离开当前步骤；确保事件队列 flush 完再进入成功页
+		trackSessionEvent('step_leave', { stepNo: currentStep.value, context: { dwellSeconds: getDwellSeconds() } })
+		await finishSessionEvents()
 		showSuccess.value = true
 	} catch (e) {
 		toast.care((e && e.message) || '操作失败')
@@ -473,6 +565,9 @@ async function confirmAbandon() {
 	try {
 		await http.put(`/api/craft/session/${sessionId}/status`, { action: 'abandon' })
 		invalidate(TTL_KEYS.craftSessionActive)
+		// BS：放弃即离开；flush 完事件队列再返回
+		trackSessionEvent('step_leave', { stepNo: currentStep.value, context: { dwellSeconds: getDwellSeconds() } })
+		await finishSessionEvents()
 		abandonSheetOpen.value = false
 		craftStore.reset()
 		uni.navigateBack()
@@ -488,6 +583,7 @@ async function confirmAbandon() {
 function onBreathingFinish() {
 	showBreathing.value = false
 	craftStore.needBreathing = false
+	trackSessionEvent('breathing_responded', { stepNo: currentStep.value })
 	sendHeartbeat({
 		stepNo: currentStep.value,
 		dwellSeconds: getDwellSeconds(),
@@ -522,7 +618,7 @@ function playGuide(source) {
   }
   const player = createMusicAudio()
   guideAudio = player
-  player.onPlay(() => { if (guideAudio === player) { guidePlaying.value = true; guideRetried = false } })
+  player.onPlay(() => { if (guideAudio === player) { guidePlaying.value = true; guideRetried = false; trackSessionEvent('audio_play', { stepNo: currentStep.value }) } })
   player.onEnded(() => { if (guideAudio === player) stopGuideAudio() })
   player.onError(async () => {
     if (guideAudio !== player) return
@@ -541,8 +637,9 @@ async function reloadStepsAudioUrl() {
   try {
     const projectId = route.projectId || craftStore.projectId
     if (!projectId) return null
-    const steps = await http.get('/api/craft/projects/' + projectId + '/steps')
-    craftStore.setSteps(steps)
+    // BR：结构化响应，同步包装字段（窗口状态可能变化）
+    const payload = await http.get('/api/craft/projects/' + projectId + '/steps')
+    craftStore.setStepsPayload(payload)
     const cur = currentStepData.value
     return (cur && cur.audioUrl) || null
   } catch (e) {
@@ -696,6 +793,27 @@ function handleBackHome() {
 .banner-warn {
 	background-color: var(--zy-bg, #f5f7f2);
 	border-left: 6rpx solid var(--zy-gold, #d9a441);
+}
+
+/* BR 只读回看条：暖底中性提示，notice 为后端原文（markdown 源文本，保留换行） */
+.banner-readonly {
+	flex-direction: column;
+	align-items: flex-start;
+	background-color: var(--zy-bg-tint-warm, #f7efd9);
+	border-left: 6rpx solid var(--zy-gold, #d9a441);
+}
+
+.banner-readonly .readonly-text {
+	white-space: pre-line;
+	color: var(--zy-warning-text, #8a6d1f);
+}
+
+.banner-sub {
+	font-size: 22rpx;
+	line-height: 1.7;
+	color: var(--zy-warning-text, #8a6d1f);
+	opacity: 0.9;
+	margin-top: 8rpx;
 }
 
 .banner-warn .banner-text { color: var(--zy-warning-text, #8a6d1f); }
