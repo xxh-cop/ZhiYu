@@ -35,6 +35,16 @@ public interface CraftSessionEventService {
                            Map<String, Object> context, Integer dwellSeconds);
 
     /**
+     * 独立事务（REQUIRES_NEW）写入服务端派生事件。
+     *
+     * <p>用于「业务以异常收尾」的证据事件：如下架闸口拒绝（3001 触发外层事务回滚），
+     * 证据事件必须独立提交才能存活。与 {@link #recordServerEvent} 同样失败只记日志。
+     */
+    void recordServerEventStandalone(Long sessionId, Long userId, Long projectId,
+                                     CraftSessionEventType type, Integer stepNo,
+                                     Map<String, Object> context, Integer dwellSeconds);
+
+    /**
      * 客户端批量上报事件（幂等）。
      *
      * @param userId    当前用户

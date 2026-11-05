@@ -207,6 +207,23 @@ public class CraftSessionServiceImpl implements CraftSessionService {
             var view = com.zhiyu.modules.craft.takedown.TakedownStateResolver.resolve(
                     project, takedownProperties, LocalDateTime.now());
             if (view.readOnly()) {
+                // 落服务端派生证据事件（幂等：每会话至多一条）——看板只读起点的精确档。
+                // 两点刻意为之：1) 去重计数走 JdbcTemplate 而非 Mapper——MyBatis 会话一级缓存会
+                //   缓存同语句的 0 计数，而事件是独立事务提交的，同会话内必须读真实库；
+                // 2) 必须独立事务：本方法随后抛 3001，外层 @Transactional 会回滚，同事务写入会随之消失。
+                // 事件落库失败不影响 3001 被拒响应本身（recordServerEvent 既有 warn 口径）
+                try {
+                    Integer marked = jdbc.queryForObject(
+                            "SELECT COUNT(*) FROM craft_session_event WHERE deleted=0 AND session_id=?"
+                                    + " AND event_type='step_gate_blocked'", Integer.class, sessionId);
+                    if (marked == null || marked == 0) {
+                        craftSessionEventService.recordServerEventStandalone(sessionId, userId, session.getProjectId(),
+                                CraftSessionEventType.STEP_GATE_BLOCKED, req.getStepNo(),
+                                Map.of("gate", "takedown", "effectiveStatus", view.effectiveStatus()), null);
+                    }
+                } catch (Exception e) {
+                    log.warn("闸口拒绝事件落库失败（已忽略，不影响被拒响应）: sessionId={}, err={}", sessionId, e.getMessage());
+                }
                 throw new BusinessException(ResultCode.BAD_STATE.getCode(),
                         "项目已下架，会话已转为只读，可回看历史步骤但无法继续推进");
             }

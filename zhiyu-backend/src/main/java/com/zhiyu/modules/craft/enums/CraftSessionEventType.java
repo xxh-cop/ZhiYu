@@ -47,7 +47,13 @@ public enum CraftSessionEventType {
     /** 会话放弃（结束钩子；仅服务端派生） */
     SESSION_ABANDON("session_abandon"),
     /** 项目归档导致会话转只读（结束钩子；仅服务端派生） */
-    SESSION_ARCHIVE("session_archive");
+    SESSION_ARCHIVE("session_archive"),
+    /**
+     * 心跳/推进被下架闸口拒绝（仅服务端派生，2026-11-05）。
+     * 只读起点的精确证据（被拒那一刻），看板剔除判定的第三档优先消费本事件，
+     * 无本事件时兜底用 session_archive。每会话至多一条（只读单调不可逆，幂等）。
+     */
+    STEP_GATE_BLOCKED("step_gate_blocked");
 
     private final String value;
 
@@ -59,7 +65,7 @@ public enum CraftSessionEventType {
         return value;
     }
 
-    /** 允许客户端上报的事件类型。 */
+    /** 允许客户端上报的事件类型。STEP_GATE_BLOCKED 为服务端证据事件，客户端不可上报（防伪造拒绝证据）。 */
     public static final Set<CraftSessionEventType> CLIENT_ALLOWED = EnumSet.of(
             STEP_ENTER, STEP_LEAVE, STEP_ADVANCE, STEP_BACKTRACK,
             HEARTBEAT, AUDIO_PLAY, VISIBILITY_CHANGE, APP_LIFECYCLE,

@@ -69,6 +69,19 @@ public class CraftSessionEventServiceImpl implements CraftSessionEventService {
         }
     }
 
+    /**
+     * 独立事务写入（2026-11-05 闸口证据事件）：REQUIRES_NEW 挂起外层事务独立提交，
+     * 使「业务以异常收尾」（如 3001 闸口拒绝回滚）时事件仍存活。
+     */
+    @Override
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void recordServerEventStandalone(Long sessionId, Long userId, Long projectId,
+                                            CraftSessionEventType type, Integer stepNo,
+                                            Map<String, Object> context, Integer dwellSeconds) {
+        recordServerEvent(sessionId, userId, projectId, type, stepNo, context, dwellSeconds);
+    }
+
     @Override
     public SessionEventBatchResult ingest(Long userId, Long sessionId, SessionEventBatchReq req) {
         // 1. 会话存在 + 所有权

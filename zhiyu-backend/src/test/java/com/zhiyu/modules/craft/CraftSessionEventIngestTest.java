@@ -139,6 +139,15 @@ class CraftSessionEventIngestTest {
     }
 
     @Test
+    @DisplayName("服务端证据类型（step_gate_blocked）客户端上报 → 1001（防伪造拒绝证据）")
+    void testIngest_GateBlockedNotClientReportable() {
+        Long sessionId = createSession();
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> eventService.ingest(USER_ID, sessionId, batch(item("step_gate_blocked", 1, 1L, null))));
+        assertEquals(1001, ex.getCode());
+    }
+
+    @Test
     @DisplayName("context 含嵌套结构 → 1001（防自由文本入口）")
     void testIngest_NestedContext() {
         Long sessionId = createSession();

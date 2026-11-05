@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS craft_session_event (
   session_id       BIGINT       NOT NULL COMMENT 'craft_session.id',
   user_id          BIGINT       NOT NULL COMMENT '归属用户（服务端按会话填充，不信任客户端）',
   craft_project_id BIGINT       NOT NULL COMMENT '所属项目（服务端按会话填充）',
-  event_type       VARCHAR(32)  NOT NULL COMMENT 'step_enter/step_leave/step_advance/step_backtrack/heartbeat/audio_play/visibility_change/app_lifecycle/dwell_stagnation/suspected_away/breathing_prompt/breathing_responded/export/session_finish/session_abandon/session_archive',
+  event_type       VARCHAR(32)  NOT NULL COMMENT 'step_enter/step_leave/step_advance/step_backtrack/heartbeat/audio_play/visibility_change/app_lifecycle/dwell_stagnation/suspected_away/breathing_prompt/breathing_responded/export/session_finish/session_abandon/session_archive/step_gate_blocked（服务端派生，心跳被下架闸口拒绝，每会话至多一条）',
   step_no          INT          DEFAULT NULL COMMENT '相关步骤序号（会话级事件为 NULL）',
   occurred_at      DATETIME(3)  NOT NULL COMMENT '事件发生时刻（客户端上报或服务端接收）',
   client_seq       BIGINT       DEFAULT NULL COMMENT '客户端序号（每会话单调），幂等去重；服务端派生事件为 NULL',

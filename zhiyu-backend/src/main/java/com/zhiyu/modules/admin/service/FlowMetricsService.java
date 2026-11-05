@@ -39,14 +39,16 @@ import java.util.TreeMap;
  *   <li>仅终态会话（status 3 完成 / 4 放弃）进入分布；在途会话、无 step_leave 事件的会话
  *       只在 totals 计数，不参与占比。</li>
  *   <li>剔除（分子分母同口径、会话级；判定优先级 readOnly → projectStatus+takedown_kind →
- *       事件流 session_archive 首次时点）：项目当前只读（合规下架窗口内/已归档/运营下架已到期，
+ *       事件流证据：精确档 step_gate_blocked，兜底档 session_archive）：项目当前只读（合规下架窗口内/已归档/运营下架已到期，
  *       与 {@link TakedownStateResolver} 同口径）且会话最后活动时间不早于只读起点 → 整会话剔除；
  *       待审项目（status=0）会话剔除（多为测试/演示数据，§9.3）。剔除明细在 exclusions 返回。</li>
  *   <li>运营下架未到期会话计入，但按 takedown_kind=operational 单独分面，不与常态并线（§9.2）。</li>
  *   <li>分层：craft_project.level 与活跃时长桶（&lt;5 / 5-15 / 15-30 / &gt;30 分钟）；
  *       单元去重用户数 &lt;10 → sparse=true（前端标灰，§3.3-2）。</li>
- *   <li>事件流中无 3001 拒绝事件类型（心跳闸口只抛异常不落库），只读起点的事件证据为
- *       服务端派生的 session_archive（归档 Worker 写入）；起点取 resolver 推导与事件时点的较早者。</li>
+ *   <li>事件证据分两档（2026-11-05）：<b>精确档</b> = step_gate_blocked（心跳被下架闸口
+ *       拒绝的真实时点，服务端派生、每会话至多一条）；<b>兜底档</b> = session_archive
+ *       （归档 Worker 派生，仅会话无 gate 事件时使用，如被拒后未再打开）。起点取 resolver
+ *       推导与事件证据的较早者；剔除明细 readOnlyEvidence 如实标注档位。</li>
  * </ul>
  */
 @Slf4j
@@ -111,7 +113,8 @@ public class FlowMetricsService {
                     "SELECT session_id,"
                             + " SUM(CASE WHEN event_type='step_leave' THEN COALESCE(dwell_seconds,0) ELSE 0 END) AS active_seconds,"
                             + " MAX(occurred_at) AS last_event_at,"
-                            + " MIN(CASE WHEN event_type='session_archive' THEN occurred_at END) AS first_archive_at"
+                            + " MIN(CASE WHEN event_type='session_archive' THEN occurred_at END) AS first_archive_at,"
+                            + " MIN(CASE WHEN event_type='step_gate_blocked' THEN occurred_at END) AS first_gate_blocked_at"
                             + " FROM craft_session_event WHERE deleted=0 AND session_id IN (" + in + ")"
                             + " GROUP BY session_id")
                     .forEach(row -> {
@@ -120,6 +123,7 @@ public class FlowMetricsService {
                         agg.activeSeconds = active == null ? 0 : ((Number) active).longValue();
                         agg.lastEventAt = toLdt(row.get("last_event_at"));
                         agg.firstArchiveAt = toLdt(row.get("first_archive_at"));
+                        agg.firstGateBlockedAt = toLdt(row.get("first_gate_blocked_at"));
                         eventAgg.put(((Number) row.get("session_id")).longValue(), agg);
                     });
         }
@@ -154,22 +158,31 @@ public class FlowMetricsService {
             LocalDateTime startTime = toLdt(row.get("start_time"));
             LocalDateTime endTime = toLdt(row.get("end_time"));
 
-            // 剔除判定（优先级：readOnly 标志 → projectStatus+kind → 事件流 session_archive）
+            // 剔除判定（优先级：readOnly 标志 → projectStatus+kind → 事件流证据）。
+            // 事件证据分档（2026-11-05）：精确档 = step_gate_blocked（心跳被闸口拒绝的真实时点），
+            // 兜底档 = session_archive（归档 Worker 派生，仅无 gate 事件的会话使用）。
             if (project != null && Integer.valueOf(0).equals(project.getStatus())) {
                 excludedPending++;
-                addExclusion(exclusionDetails, sessionId, projectId, "pending_project", null);
+                addExclusion(exclusionDetails, sessionId, projectId, "pending_project", null, null);
                 continue;
             }
             LocalDateTime readOnlySince = readOnlySince(project, now);
-            if (agg != null && agg.firstArchiveAt != null
-                    && (readOnlySince == null || agg.firstArchiveAt.isBefore(readOnlySince))) {
-                readOnlySince = agg.firstArchiveAt;
+            String readOnlyEvidence = readOnlySince != null ? "project_state" : null;
+            if (agg != null) {
+                LocalDateTime eventEvidence = agg.firstGateBlockedAt != null
+                        ? agg.firstGateBlockedAt : agg.firstArchiveAt;
+                String eventKind = agg.firstGateBlockedAt != null ? "step_gate_blocked"
+                        : (agg.firstArchiveAt != null ? "session_archive" : null);
+                if (eventEvidence != null && (readOnlySince == null || eventEvidence.isBefore(readOnlySince))) {
+                    readOnlySince = eventEvidence;
+                    readOnlyEvidence = eventKind;
+                }
             }
             if (readOnlySince != null) {
                 LocalDateTime lastActivity = lastActivity(startTime, endTime, agg);
                 if (lastActivity == null || !lastActivity.isBefore(readOnlySince)) {
                     excludedReadOnly++;
-                    addExclusion(exclusionDetails, sessionId, projectId, "read_only", readOnlySince);
+                    addExclusion(exclusionDetails, sessionId, projectId, "read_only", readOnlySince, readOnlyEvidence);
                     continue;
                 }
             }
@@ -248,7 +261,8 @@ public class FlowMetricsService {
         // ── 9. 行为信号事件计数（区间内全量，含在途会话） ──
         Map<String, Integer> events = new LinkedHashMap<>();
         for (String key : List.of("step_leave", "dwell_stagnation", "step_backtrack",
-                "breathing_prompt", "breathing_responded", "suspected_away", "export", "session_archive")) {
+                "breathing_prompt", "breathing_responded", "suspected_away", "export", "session_archive",
+                "step_gate_blocked")) {
             events.put(key, 0);
         }
         db.queryForList(
@@ -341,7 +355,7 @@ public class FlowMetricsService {
     }
 
     private void addExclusion(List<Map<String, Object>> details, long sessionId, Long projectId,
-                              String reason, LocalDateTime readOnlySince) {
+                              String reason, LocalDateTime readOnlySince, String readOnlyEvidence) {
         if (details.size() >= EXCLUSION_DETAIL_LIMIT) {
             return;
         }
@@ -351,6 +365,9 @@ public class FlowMetricsService {
         item.put("projectId", projectId == null ? null : String.valueOf(projectId));
         item.put("reason", reason);
         item.put("readOnlySince", readOnlySince == null ? null : readOnlySince.toString());
+        // 只读起点证据档：project_state（项目当前状态推导）/ step_gate_blocked（精确档，心跳被拒时刻）
+        // / session_archive（兜底档，归档 Worker 派生事件）；非只读剔除为 null
+        item.put("readOnlyEvidence", readOnlyEvidence);
         details.add(item);
     }
 
@@ -629,6 +646,7 @@ public class FlowMetricsService {
         private long activeSeconds;
         private LocalDateTime lastEventAt;
         private LocalDateTime firstArchiveAt;
+        private LocalDateTime firstGateBlockedAt;
     }
 
     /** 纳入分布的会话级占比记录。 */

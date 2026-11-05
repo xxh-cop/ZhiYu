@@ -328,6 +328,55 @@ class FlowMetricsTest {
         assertTrue(byBucket.stream().anyMatch(c -> "lt5".equals(c.get("key"))));
     }
 
+    // ── gate 事件精确档（2026-11-05） ──
+
+    private void gateEvent(long eventId, long sessionId, long projectId, LocalDateTime occurredAt) {
+        jdbc.update("INSERT INTO craft_session_event(id,session_id,user_id,craft_project_id,event_type,step_no,"
+                        + "occurred_at,client_seq,context,dwell_seconds,create_time,update_time,deleted)"
+                        + " VALUES(?,?,?,?,'step_gate_blocked',1,?,NULL,NULL,NULL,NOW(),NOW(),0)",
+                eventId, sessionId, STUDENT, projectId, Timestamp.valueOf(occurredAt));
+    }
+
+    @Test
+    @DisplayName("剔除起点精确档：step_gate_blocked 优先于晚到的 session_archive/迟到 archive_at，明细标 evidence")
+    void gateEventPreferredOverArchive() {
+        LocalDateTime base = LocalDateTime.now().withNano(0);
+        // 合规下架窗口已过：resolver 推导 = archive_at（Worker 迟到，now-30min）
+        project(P_COMPLIANCE, 2, "compliance", base.minusHours(4), base.minusMinutes(30), base.minusHours(1));
+        // gate 事件（now-55min）早于 archive_at → 精确档胜出；archive 事件（now-30min）同时在场也不抢
+        session(960270L, P_COMPLIANCE, 3, base.minusHours(5), base.minusMinutes(40), 100);
+        stepLeave(960370L, 960270L, P_COMPLIANCE, 1, base.minusHours(3), 1, 500);
+        gateEvent(960371L, 960270L, P_COMPLIANCE, base.minusMinutes(55));
+        archiveEvent(960372L, 960270L, P_COMPLIANCE, base.minusMinutes(30));
+
+        Map<String, Object> out = call();
+        assertEquals(1, totals(out).get("excludedReadOnly"));
+        List<Map<String, Object>> exclusions = (List<Map<String, Object>>) out.get("exclusions");
+        Map<String, Object> item = exclusions.stream()
+                .filter(x -> "960270".equals(x.get("sessionId"))).findFirst().orElseThrow();
+        assertEquals(base.minusMinutes(55).toString(), item.get("readOnlySince"), "起点取 gate 事件而非 archive");
+        assertEquals("step_gate_blocked", item.get("readOnlyEvidence"), "明细如实标精确档");
+    }
+
+    @Test
+    @DisplayName("剔除起点兜底档：无 gate 事件时退回 session_archive，明细标 session_archive")
+    void archiveFallbackWhenNoGateEvent() {
+        LocalDateTime base = LocalDateTime.now().withNano(0);
+        project(P_COMPLIANCE, 2, "compliance", base.minusHours(4), base.minusMinutes(30), base.minusHours(1));
+        // 只有 archive 事件（now-90min，早于迟到的 archive_at）→ 兜底档
+        session(960271L, P_COMPLIANCE, 3, base.minusHours(5), base.minusMinutes(40), 100);
+        stepLeave(960373L, 960271L, P_COMPLIANCE, 1, base.minusHours(3), 1, 500);
+        archiveEvent(960374L, 960271L, P_COMPLIANCE, base.minusMinutes(90));
+
+        Map<String, Object> out = call();
+        assertEquals(1, totals(out).get("excludedReadOnly"));
+        List<Map<String, Object>> exclusions = (List<Map<String, Object>>) out.get("exclusions");
+        Map<String, Object> item = exclusions.stream()
+                .filter(x -> "960271".equals(x.get("sessionId"))).findFirst().orElseThrow();
+        assertEquals(base.minusMinutes(90).toString(), item.get("readOnlySince"));
+        assertEquals("session_archive", item.get("readOnlyEvidence"), "无 gate 事件退回兜底档");
+    }
+
     @Test
     @DisplayName("事件信号计数：区间内全量按类型返回；无数据的类型为 0")
     void eventSignals() {
@@ -340,6 +389,7 @@ class FlowMetricsTest {
         assertEquals(1, events.get("step_leave"));
         assertEquals(0, events.get("breathing_prompt"));
         assertEquals(0, events.get("suspected_away"));
+        assertTrue(events.containsKey("step_gate_blocked"), "事件计数含新类型键");
         // 口径变更三条固定下发
         List<Map<String, Object>> changes = (List<Map<String, Object>>) out.get("definitionChanges");
         assertEquals(3, changes.size());

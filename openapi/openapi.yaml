@@ -231,7 +231,7 @@ components:
       properties:
         eventType:
           type: string
-          description: '事件类型（仅客户端白名单）：step_enter / step_leave / step_advance / step_backtrack / heartbeat / audio_play / visibility_change / app_lifecycle / breathing_responded / export；服务端派生类型（dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive）上报即 1001'
+          description: '事件类型（仅客户端白名单）：step_enter / step_leave / step_advance / step_backtrack / heartbeat / audio_play / visibility_change / app_lifecycle / breathing_responded / export；服务端派生类型（dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive / step_gate_blocked）上报即 1001'
         stepNo: { type: integer, nullable: true, description: 相关步骤序号（会话级事件可空） }
         occurredAt: { type: string, format: date-time, description: 事件发生时刻（允许 5 分钟时钟偏移，超前过多计 failed） }
         clientSeq: { type: integer, format: int64, minimum: 1, description: 客户端序号（每会话单调递增），与服务端组成 (session_id, client_seq) 幂等去重键 }
@@ -2536,7 +2536,7 @@ paths:
     post:
       operationId: craftSessionEventsIngest
       summary: 批量上报创作会话行为事件（幂等，2026-11-05 心流度量配套）
-      description: '客户端上报生命周期（visibility_change / app_lifecycle）、音频播放（audio_play）、步骤进入/离开（step_enter / step_leave）等行为信号，作为心流沉浸与疑似离席判定的数据源。幂等：同一 (session_id, client_seq) 重复上报计 deduped 不重复入库；仅白名单事件类型可上报，dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive 等服务端派生类型一律 1001。context 只允许脱敏标量键值（数字/布尔/≤64 字符字符串），禁止对话或自由文本。会话进行中（DOING）或已暂停（PAUSED）可上报，其余状态 3001。'
+      description: '客户端上报生命周期（visibility_change / app_lifecycle）、音频播放（audio_play）、步骤进入/离开（step_enter / step_leave）等行为信号，作为心流沉浸与疑似离席判定的数据源。幂等：同一 (session_id, client_seq) 重复上报计 deduped 不重复入库；仅白名单事件类型可上报，dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive / step_gate_blocked 等服务端派生类型一律 1001（step_gate_blocked 为心跳被下架闸口拒绝的服务端证据事件，客户端不可伪造）。context 只允许脱敏标量键值（数字/布尔/≤64 字符字符串），禁止对话或自由文本。会话进行中（DOING）或已暂停（PAUSED）可上报，其余状态 3001。'
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:
@@ -3838,10 +3838,14 @@ paths:
         仅终态会话（status 3 完成 / 4 放弃）进入分布；在途会话与无 step_leave 事件的会话
         （活跃时长不可得）只在 totals 计数返回，不参与占比。
         剔除（分子分母同口径、会话级；判定优先级 readOnly 标志 → projectStatus+takedown_kind →
-        事件流 session_archive 首次时点）：项目当前只读（合规下架窗口内 / 已归档 / 运营下架已到期，
+        事件流证据：精确档 step_gate_blocked（心跳被下架闸口拒绝的真实时点），
+        兜底档 session_archive（归档 Worker 派生，仅会话无 gate 事件时使用））：项目当前只读
+        （合规下架窗口内 / 已归档 / 运营下架已到期，
         与 TakedownStateResolver 同口径）且会话最后活动时间不早于只读起点 → 整会话剔除；
         待审项目（status=0）会话同样剔除（多为测试/演示数据，不混入分布，§9.3）；
-        剔除条数与明细在 exclusions 返回，不悄悄剔。
+        剔除条数与明细在 exclusions 返回，不悄悄剔；明细含 readOnlySince 与
+        readOnlyEvidence（project_state=项目当前状态推导 / step_gate_blocked=精确档 /
+        session_archive=兜底档）。
         运营下架未到期会话计入，但按 takedown_kind=operational 在 facets.byTakedownKind 单独分面，
         不与常态并线（§9.2）。
         分层：facets.byLevel（craft_project.level；项目缺失归 unknown，如实显示「未分层」）与
