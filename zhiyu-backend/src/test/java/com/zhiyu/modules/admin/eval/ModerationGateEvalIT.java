@@ -110,7 +110,8 @@ class ModerationGateEvalIT {
                 + " standardModel=" + aiClient.modelName()
                 + " routing=" + modelRouter.describe()
                 + " temperature=" + runtimeSettings.number("model", "temperature")
-                + " maxTokens=" + (int) runtimeSettings.number("model", "maxTokens"));
+                + " maxTokens=" + (int) runtimeSettings.number("model", "maxTokens")
+                + " softTier=" + System.getProperty("zhiyu.moderation.soft-tier.enabled", "false"));
         if (!"EXTERNAL".equals(aiClient.modelMode())) {
             throw new IllegalStateException("评测必须走真实模型，当前是 Mock");
         }
@@ -127,11 +128,12 @@ class ModerationGateEvalIT {
             boolean isWork = "work".equals(targetType);
             String title = isWork ? sample.get("title").asText() : "（评论，无标题）";
             String content = sample.get("content").asText();
-            String prompt = promptTemplate
-                    .replace("{targetType}", isWork ? "作品" : "评论")
-                    .replace("{title}", title)
-                    .replace("{content}", content)
-                    .replace("{mediaNote}", "无");
+            // 渲染直接走服务端静态 render（含软档指引块裁切 + tendency 枚举填充），
+            // 与 AdminModerationService.suggest 的提示词逐字节一致；开关取自同名系统属性。
+            boolean softTier = Boolean.parseBoolean(
+                    System.getProperty("zhiyu.moderation.soft-tier.enabled", "false"));
+            String prompt = com.zhiyu.modules.admin.service.AdminModerationService.render(
+                    promptTemplate, softTier, isWork ? "作品" : "评论", title, content, "无");
 
             long t0 = System.nanoTime();
             String raw = aiClient.moderationSuggest(prompt);
@@ -155,6 +157,7 @@ class ModerationGateEvalIT {
                     row.put("verdict", switch (parsed.get("tendency").toString()) {
                         case "HAS_CONCERNS" -> "BLOCK";
                         case "UNCERTAIN" -> "REVIEW";
+                        case "SOFT_CONCERN" -> "SOFT";
                         default -> "PASS";
                     });
                     row.put("tendency", parsed.get("tendency"));
@@ -227,35 +230,13 @@ class ModerationGateEvalIT {
         return jdbc.queryForMap(sql, EVAL_USER_ID, runStart);
     }
 
-    /** 与 AdminModerationService.parse 同口径：容忍 markdown 围栏；结构不合法返回 null。 */
+    /**
+     * 直接复用服务端静态解析（含软档窄门），评测口径与生产逐字节一致；
+     * 允许集合恒含 SOFT_CONCERN——评测需观察软档行为，不受生产开关影响
+     *（生产开关只控制提示词是否含软档指引，由渲染侧保证）。
+     */
     private Map<String, Object> parse(String raw) {
-        try {
-            String text = raw.trim()
-                    .replaceAll("(?s)^```(?:json)?\\s*", "")
-                    .replaceAll("(?s)\\s*```$", "")
-                    .trim();
-            JsonNode node = json.readTree(text);
-            String tendency = node.path("tendency").asText("");
-            if (!java.util.Set.of("NO_OBVIOUS_ISSUE", "HAS_CONCERNS", "UNCERTAIN").contains(tendency)) {
-                return null;
-            }
-            List<Map<String, String>> riskPoints = new ArrayList<>();
-            for (JsonNode rp : node.path("riskPoints")) {
-                String note = rp.path("note").asText("");
-                if (note.isBlank()) {
-                    return null;
-                }
-                String location = rp.path("location").asText("");
-                riskPoints.add(Map.of("location", location.isBlank() ? "content" : location,
-                        "note", note));
-            }
-            Map<String, Object> out = new LinkedHashMap<>();
-            out.put("tendency", tendency);
-            out.put("riskPoints", riskPoints);
-            out.put("uncertainty", node.path("uncertainty").asText(""));
-            return out;
-        } catch (Exception e) {
-            return null;
-        }
+        return com.zhiyu.modules.admin.service.AdminModerationService.parse(raw,
+                java.util.Set.of("NO_OBVIOUS_ISSUE", "HAS_CONCERNS", "UNCERTAIN", "SOFT_CONCERN"));
     }
 }

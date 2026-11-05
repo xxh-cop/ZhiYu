@@ -48,12 +48,35 @@ public class AdminModerationService {
 
     private static final Set<String> TENDENCIES = Set.of("NO_OBVIOUS_ISSUE", "HAS_CONCERNS", "UNCERTAIN");
 
+    /** 误杀软档值（2026-11-05 批次）：仅开关开启时出现在契约里。 */
+    static final String SOFT_CONCERN = "SOFT_CONCERN";
+
+    /** 提示词中软档指引块的标记（块文本整体在 moderation-suggest.st 内，Java 只负责按开关裁切）。 */
+    private static final java.util.regex.Pattern SOFT_TIER_BLOCK =
+            java.util.regex.Pattern.compile("(?s)\\s*\\{\\{SOFT_TIER_BEGIN\\}\\}.*?\\{\\{SOFT_TIER_END\\}\\}");
+    private static final String SOFT_BEGIN = "{{SOFT_TIER_BEGIN}}";
+    private static final String SOFT_END = "{{SOFT_TIER_END}}";
+    private static final String ENUM_BASE = "NO_OBVIOUS_ISSUE 或 HAS_CONCERNS 或 UNCERTAIN";
+    private static final String ENUM_SOFT = "NO_OBVIOUS_ISSUE 或 SOFT_CONCERN 或 HAS_CONCERNS 或 UNCERTAIN";
+    /** 软档开启时输出契约中的 narrative 字段片段（单选枚举；关闭时整体不出现）。 */
+    private static final String NARRATIVE_FIELD =
+            "\"narrative\":\"self_disclosure 或 risk_action 或 other_directed 或 none\",";
+    /** 窄门唯一放行的 narrative 枚举值（本人体验自述且无风险指代、无指向他人）。 */
+    static final String NARRATIVE_SELF_DISCLOSURE = "self_disclosure";
+    private static final ObjectMapper JSON = new ObjectMapper();
+
+    /**
+     * 误杀软档开关（zhiyu.moderation.soft-tier.enabled，默认 false）。
+     * 关闭 = 三档行为：提示词不含软档指引，解析器拒绝 SOFT_CONCERN（按格式不可用降级）。
+     */
+    @org.springframework.beans.factory.annotation.Value("${zhiyu.moderation.soft-tier.enabled:false}")
+    private boolean softTierEnabled;
+
     private final JdbcTemplate jdbc;
     private final AiClient aiClient;
     private final AiAuditLogService auditLog;
     private final ContentSafetyFilter contentSafetyFilter;
     private final String promptTemplate;
-    private final ObjectMapper json = new ObjectMapper();
 
     public AdminModerationService(JdbcTemplate jdbc, AiClient aiClient, AiAuditLogService auditLog,
                                   ContentSafetyFilter contentSafetyFilter,
@@ -104,11 +127,8 @@ public class AdminModerationService {
         // 输入检测（只检测 + 审计，绝不改写证据原文——审核必须看到真实内容）
         contentSafetyFilter.checkOutput(actor, "moderation", title + "\n" + content);
 
-        String prompt = promptTemplate
-                .replace("{targetType}", "work".equals(targetType) ? "作品" : "评论")
-                .replace("{title}", title)
-                .replace("{content}", content)
-                .replace("{mediaNote}", mediaNote);
+        String prompt = render(promptTemplate, softTierEnabled,
+                "work".equals(targetType) ? "作品" : "评论", title, content, mediaNote);
 
         String raw = aiClient.moderationSuggest(prompt);
         if (raw == null) {
@@ -150,15 +170,56 @@ public class AdminModerationService {
 
     /** 解析模型 JSON（容忍 markdown 围栏）；结构不合法返回 null。 */
     private Map<String, Object> parse(String raw) {
+        return parse(raw, allowedTendencies());
+    }
+
+    /** 当前允许的 tendency 集合：软档开关开启时含 {@link #SOFT_CONCERN}。 */
+    Set<String> allowedTendencies() {
+        return softTierEnabled
+                ? Set.of("NO_OBVIOUS_ISSUE", "HAS_CONCERNS", "UNCERTAIN", SOFT_CONCERN)
+                : TENDENCIES;
+    }
+
+    /**
+     * 渲染审核提示词（public 静态：供评测 harness 在不同包复用，保证评测与生产逐字节一致）。
+     * 软档关闭时整体裁掉 {{SOFT_TIER_BEGIN}}..{{SOFT_TIER_END}} 标记块（含前导空行），
+     * 并把输出契约的 tendency 枚举替换为当前生效值列表。
+     */
+    public static String render(String template, boolean softTierEnabled,
+                                String targetTypeText, String title, String content, String mediaNote) {
+        String t = softTierEnabled
+                ? template.replace(SOFT_BEGIN, "").replace(SOFT_END, "")
+                        .replace("{tendencyEnum}", ENUM_SOFT)
+                        .replace("{narrativeField}", NARRATIVE_FIELD)
+                : SOFT_TIER_BLOCK.matcher(template).replaceAll("")
+                        .replace("{tendencyEnum}", ENUM_BASE)
+                        .replace("{narrativeField}", "");
+        return t.replace("{targetType}", targetTypeText)
+                .replace("{title}", title)
+                .replace("{content}", content)
+                .replace("{mediaNote}", mediaNote);
+    }
+
+    /**
+     * 解析模型 JSON（public 静态：供评测 harness 复用同一口径，容忍 markdown 围栏）；
+     * tendency 不在允许集合或结构不合法返回 null；软档值额外过窄门（见 {@link #applySoftGate}）。
+     */
+    public static Map<String, Object> parse(String raw, Set<String> allowedTendencies) {
         try {
             String text = raw.trim()
                     .replaceAll("(?s)^```(?:json)?\\s*", "")
                     .replaceAll("(?s)\\s*```$", "")
                     .trim();
-            var node = json.readTree(text);
+            var node = JSON.readTree(text);
             String tendency = node.path("tendency").asText("");
-            if (!TENDENCIES.contains(tendency)) {
+            if (!allowedTendencies.contains(tendency)) {
                 return null;
+            }
+            // 软档窄门（2026-11-05 窄档批）：tendency=SOFT_CONCERN 且开关开启时，
+            // 必须 narrative 三键齐全且 personal=true、riskAction=false、otherDirected=false，
+            // 否则保守降为 UNCERTAIN（缺字段/结构不符同样降级，不静默归软档）。
+            if (SOFT_CONCERN.equals(tendency) && allowedTendencies.contains(SOFT_CONCERN)) {
+                tendency = applySoftGate(node.path("narrative"));
             }
             List<Map<String, String>> riskPoints = new ArrayList<>();
             for (var rp : node.path("riskPoints")) {
@@ -179,6 +240,17 @@ public class AdminModerationService {
             log.warn("审核建议 JSON 解析失败: {}", e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * 软档窄门判定（枚举版）：narrative 为文本且恰好取 {@link #NARRATIVE_SELF_DISCLOSURE}
+     * 才保留 SOFT_CONCERN；缺失、非文本、未知枚举值或取其他值一律降为 UNCERTAIN。
+     */
+    static String applySoftGate(com.fasterxml.jackson.databind.JsonNode narrative) {
+        if (narrative == null || !narrative.isTextual()) {
+            return "UNCERTAIN";
+        }
+        return NARRATIVE_SELF_DISCLOSURE.equals(narrative.asText()) ? SOFT_CONCERN : "UNCERTAIN";
     }
 
     private static String str(Object o) {

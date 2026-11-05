@@ -125,6 +125,13 @@ zhiyu:
       # 置 false 回到 AM2 原始口径（仅标签映射），行为与当时逐分一致。CLICK 语义不变。
       dismiss-spread-enabled: ${ZHIYU_RECOMMEND_FEEDBACK_DISMISS_SPREAD:true}
 
+  # ── 内容审核辅助（BL 2026-11-05）──
+  moderation:
+    # 误杀软档 SOFT_CONCERN（2026-11-05 批次）：默认关闭 = 三档行为。
+    # 处置（抽检池/曝光降权/SLA/回流）未实现前不得对生产开启，语义见 docs/moderation-soft-tier-20261105.md
+    soft-tier:
+      enabled: ${ZHIYU_MODERATION_SOFT_TIER_ENABLED:false}
+
   # ── 账号安全（2026-11-03：登录失败锁定 + 忘记密码） ──
   # 登录失败锁定：按账号维度计数（不存在的账号同样计数，避免探测注册状态），
   # 窗口内连续失败 max-failures 次锁定 lock-minutes 分钟；主存储 Redis，异常降级内存。

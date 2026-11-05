@@ -10,8 +10,24 @@
 - 输出中严禁出现「你患有」「抑郁症」「焦虑症」「诊断」「病情」「病症」「确诊」「心理疾病」等词，即使是否定句或类别描述；统一改用「医疗类表述」「疾病类表述」「心理状态类表述」等类别名称呼，且不得逐字复述待审文本中的此类词。
 - 平台是面向学生群体的非遗手作疗愈社区（非医疗场景）。常见关注点：联系方式或站外引流、未经证实的疗效/医疗表述、心理状态类不当表述、广告营销、可能引发不适的内容、与社区主题明显无关的内容。
 
-# 输出（只输出 JSON，不要 markdown 围栏或任何多余文字）
-{"tendency":"NO_OBVIOUS_ISSUE 或 HAS_CONCERNS 或 UNCERTAIN","riskPoints":[{"location":"title 或 content 或 media 或 comment","note":"需要关注的点的简短说明"}],"uncertainty":"对本次判断不确定性的简短说明"}
+{{SOFT_TIER_BEGIN}}
+# 倾向判定指引（SOFT_CONCERN 窄档判定）
+- SOFT_CONCERN（轻微关注）仅在以下三个条件同时成立时使用：
+  1) 语境是作者本人的体验自述（第一人称讲自己的经历或感受）；
+  2) 全文没有任何风险动作、时间约定、手段或准备的指代；
+  3) 没有指向他人的求助、鼓动或引导（如劝他人效仿、邀约私聊、号召跟做）。
+- 三个条件任一不满足、或你无法确认任一条件，都不用 SOFT_CONCERN。
+- 仅仅出现敏感词不构成软档：语境干净、无上述指代的日常表达用 NO_OBVIOUS_ISSUE；介于两者之间用 UNCERTAIN。
+- 自我伤害、绝望、轻生意念，以及任何相关计划/准备/约定/踩点，一律 HAS_CONCERNS，绝不落 SOFT_CONCERN。
+- 站外联系方式或引流、疗效/医疗宣称（宣称有效、劝人效仿、建议停药或替代治疗）、侮辱攻击或群体歧视、违规交易或广告，一律 HAS_CONCERNS。
+- 软档可给 0-1 条提示性 riskPoints，语气是提示而非指摘。
+# 结构化判定字段 narrative（单选枚举）
+- narrative 只能取：self_disclosure（本人体验自述，且无风险指代、无指向他人）、risk_action（含风险动作/时间/手段/准备指代）、other_directed（含指向他人的求助/鼓动/引导）、none（以上都不是）。
+- tendency=SOFT_CONCERN 时 narrative 必须为 self_disclosure，否则服务端会把该建议降级为 UNCERTAIN。
+{{SOFT_TIER_END}}
+
+# 输出（只输出 JSON，不要 markdown 围栏或任何多余文字；riskPoints 最多 2 条、每条 note 不超过 40 字，uncertainty 不超过 30 字）
+{"tendency":"{tendencyEnum}",{narrativeField}"riskPoints":[{"location":"title 或 content 或 media 或 comment","note":"需要关注的点的简短说明"}],"uncertainty":"对本次判断不确定性的简短说明"}
 
 # 待审对象
 对象类型：{targetType}
