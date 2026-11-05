@@ -5,6 +5,22 @@
 > 与**「从已有文档摘引」**（注明原文档与日期，本次未重跑）。
 > 静态核对与构建/单测通过不能代替真实环境验收。
 
+## 已订正结论索引（2026-11-05 起）
+
+> 本台账及关联文档的历史结论按原文保留；被后续实测/修复推翻或闭合的在此登记，原结论处加订正块。防重复踩坑，先读此表。
+
+| # | 原结论（所在处） | 一句话原因 | 订正日期 | 证据 |
+|---|---|---|---|---|
+| 1 | notice 文案指向不存在的「创作记录」页（会话报告口径，未落本文档原文） | 已由 `3d43901` 修正为「经会话页的『导出我的创作数据』入口」，`{exportEntry}` 占位符已停用 | 2026-11-05 | commit `3d43901` |
+| 2 | 「危机日志双重断链：无契约登记、管理端无页面」（本文 §2.4「危机留存策略的边界」；gap-audit-20261104 §1-2/A2/P0-3） | 实测不成立：`crisis-logs.vue` + 路由（「用户与关怀 › 危机日志」，ROLE_2/3）+ 端点均在，契约已登记（openapi L1143-1153）；原判断把**空库无数据**当成没入口 | 2026-11-05 | 真机实测批：咨询师 1 条 / admin 2 条（scope 过滤生效）、认领外查询 404+1004、学生 403、匿名 401、详情需确认审计 |
+| 3 | 「推荐反馈只有采集侧、不回灌排序」（本文 §2.4「情绪基线偏离提醒 / 推荐反馈回灌排序」；gap-audit-20261104 §1-4/P2-2） | 部分不成立：`RecommendFeedbackBoost` 一直挂在主链路 `CraftRecommendServiceImpl.selectCandidates`；真实缺口是**无标签项目免疫**（`therapy_tags` 为空即跳过） | 2026-11-05 | commit `dd61438`（自降权 + 同品类连带已修） |
+| 4 | 「忘记密码两端前端均无入口」（本文 §2.4「忘记密码前端入口」；gap-audit-20261104 §1-1/P0-2） | 不成立：两端页面/入口/路由均在（学生端 `pages/login/forgot.vue` + pages.json L16 + 登录页入口；管理端 `forgot-password.vue` + core.ts L62 + 登录页链接） | 2026-11-05 | 实测（18094）：`POST /api/auth/password/forgot` → 200 code=0 |
+| 5 | 「无音频上传端点」（gap-audit-20261104 §2 file 行/§4-B1；本文 §2.4 种子音频条引用） | 不成立：`POST /api/files/upload/audio` 已注册（FileUploadController L90），管理端 `AudioUpload.vue` 实际调用；魔数嗅探生效 | 2026-11-05 | 实测：无 token 401+1002、伪内容 400+1001、真 MP3 魔数 200+code=0（返回 `/api/media/{id}/content`）；注：空 multipart 返回 500+5000 属参数校验瑕疵（应为 1001），单列待修 |
+| 6 | 「无 bookingId→programId 解析端点」（gap-audit-20261104 §4-B2） | 不成立：`GET /api/admin/bookings/{id}` 已交付（AdminBookingController L24-25，role=3），管理端 programs.vue L346 已实际调用 | 2026-11-05 | 实测：admin → 404+1004（端点活、预约不存在）；student → 403+1003 |
+| 7 | 「情绪基线偏离提醒零代码证据」（gap-audit-20261104 §1-4②） | 不成立：`EmotionBaselineController`/`EmotionBaselineService` + 首页提示卡（home/index.vue L87-90/424-434）+ 设置开关（settings/index.vue L211/289-300）均在 | 2026-11-05 | 实测：`GET /api/emotion/baseline-nudge`（student01）200+code=0 `{nudge:false,enabled:true}`；匿名 401+1002 |
+
+共同根因：这些误报（notice 文案 / 危机日志 / 推荐回灌 / 忘记密码入口 / 音频端点 / bookingId 端点 / 基线提醒）均为**看代码或看空库就下结论**，缺实测数据佐证。审查硬性要求见 [review-checklist.md](file:///d:/develop/Zhi_Yu/docs/review-checklist.md)。
+
 ## 2026-11-05 部署前整体验证（HEAD 6655c70）
 
 > 本节为当日**第二轮**验证（晚间），基线已前进到 `dev` 的 `6655c70`；下文 §0/§1 为当日第一轮（HEAD `19502bb`）的原始记录，保持原样未改。本轮同样未 commit、未 push、未修改业务代码。
@@ -370,12 +386,12 @@
 | token usage 采集 | 流式与 chat 链路均不返回 usage，成本核算无数据；采集通道与费率配置未做 | eval-baseline-20261104 §4.3；gap-audit-20261104 P2-4。**→ 更新：`54949d7` 已落地 `AiCallMetrics` 埋点与 `ai_trace` 表（含 input_tokens/output_tokens），`/api/admin/ai-metrics` 第二轮冒烟 code=0（见 §B）、复验批次聚合与逐行求和精确吻合（见 §G）；**但分场景缺口：`llm-message`（寄语）tokens 仍为 NULL，寄语类成本无法按场景计价，待修（见 §H）**；费率配置与成本核算口径仍待决** |
 | 小程序订阅消息（通知二期） | 一期（站内通知）已交付；二期依赖一期真实运行数据，未启动 | gap-audit-20261104 P2-6 |
 | PSS-10 / PANAS / GSES 量表 | 中文版本授权与计分依据未核实，未启用；不能自行补写题目 | gap-audit-20261104 P2-1 |
-| 种子音频死引用 | [init-data.sql](file:///d:/develop/Zhi_Yu/sql/init-data.sql) L92-95 种了 `/static/audio/101-1..4.mp3`，但 `zhiyu-app/src/static/audio/` 目录**不存在**（第一轮核实）；且后端无音频上传端点，步骤音频仍靠手填 URL | 第一轮 grep/Glob 核实（2026-11-05）；gap-audit-20261104 B1。**→ 更新：已经 `1f67172`/`0b39378` 音频资产治理处理，第二轮冒烟实测 101 项目四步 `audioUrl` 全为 `null`（见 §B）；音频上传端点缺口仍按 B1 待决** |
-| 危机留存策略的边界 | 留存口径已定（不存原文、仅存脱敏摘要，privacy-policy L46）；但查询端 `GET /api/admin/crisis-logs` **未登记 openapi、管理端无页面**（契约先行纪律项）；留存期限等运营规则未明确 | gap-audit-20261104 §1-2 / P0-3；requirements-audit FR-70 行 |
+| 种子音频死引用 | [init-data.sql](file:///d:/develop/Zhi_Yu/sql/init-data.sql) L92-95 种了 `/static/audio/101-1..4.mp3`，但 `zhiyu-app/src/static/audio/` 目录**不存在**（第一轮核实）；且后端无音频上传端点，步骤音频仍靠手填 URL | 第一轮 grep/Glob 核实（2026-11-05）；gap-audit-20261104 B1。**→ 更新：已经 `1f67172`/`0b39378` 音频资产治理处理，第二轮冒烟实测 101 项目四步 `audioUrl` 全为 `null`（见 §B）；音频上传端点缺口亦已闭合（`POST /api/files/upload/audio` 实测可用，见顶部索引 #5；「手填 URL」已由管理端 AudioUpload 组件取代）** |
+| 危机留存策略的边界 | 留存口径已定（不存原文、仅存脱敏摘要，privacy-policy L46）；但查询端 `GET /api/admin/crisis-logs` **未登记 openapi、管理端无页面**（契约先行纪律项）；留存期限等运营规则未明确 | gap-audit-20261104 §1-2 / P0-3；requirements-audit FR-70 行。**【已订正 · 2026-11-05】「管理端无页面、契约未登记」不成立：页面/路由/端点/契约均在，实测 scope 过滤与越权分级正确，见顶部索引 #2。留存期限等运营规则未明确这点不变** |
 | 进行中创作会话在项目下架后是否强制中断 | **第一轮核实当时行为**：`CraftSessionServiceImpl` 仅在 `create` 校验项目上架（L54-56，非上架统一 1004）；`changeStatus`/`heartbeat`/`getProgress` 不再校验——即下架**不中断**进行中会话，只阻断新建 | [CraftSessionServiceImpl.java](file:///d:/develop/Zhi_Yu/zhiyu-backend/src/main/java/com/zhiyu/modules/craft/service/impl/CraftSessionServiceImpl.java)（2026-11-05 第一轮静态核实）。**→ 更新：`0b39378` 分层下架状态机已定义新行为——公开面即收、进行中/暂停会话转只读、72h 导出窗（`zhiyu.takedown`，application.yml L185-190）、窗口结束转归档；features/67 与单测覆盖（874 项全绿，见 §B）；真实下架流程的端到端演练未做** |
-| 忘记密码前端入口 | 后端闭环，两端均无页面入口；发送通道决策（校内可先走管理员人工通道）待拍板 | gap-audit-20261104 §1-1 / P0-2 |
+| 忘记密码前端入口 | 后端闭环，两端均无页面入口；发送通道决策（校内可先走管理员人工通道）待拍板 | gap-audit-20261104 §1-1 / P0-2。**【已订正 · 2026-11-05】「两端无页面入口」不成立：页面/入口/路由均在，端点实测 200+code=0，见顶部索引 #4。发送通道真实验收（短信/邮件触达）仍未做，这点不变** |
 | dialogue P3/P4（companion 并入统一入口、旧端点退役） | P0–P2 已实现但三个开关默认 false；P3/P4 按分期设计未启动；评测集 7 条 cmd-* 用例仍 SKIPPED | gap-audit-20261104 §1-3；eval-baseline-20261104 §Z.3 |
-| 情绪基线偏离提醒 / 推荐反馈回灌排序 | 前者零代码证据；后者只有采集侧不回灌排序（依赖真实点击数据积累口径） | gap-audit-20261104 §1-4 / P1-5 / P2-2 |
+| 情绪基线偏离提醒 / 推荐反馈回灌排序 | 前者零代码证据；后者只有采集侧不回灌排序（依赖真实点击数据积累口径） | gap-audit-20261104 §1-4 / P1-5 / P2-2。**【已订正 · 2026-11-05】「推荐反馈不回灌排序」部分不成立：回灌一直挂在主链路，真实缺口为无标签项目免疫，已由 `dd61438` 修复，见顶部索引 #3。情绪基线偏离提醒未做这点不变** |
 
 ## 3. 边界声明
 
