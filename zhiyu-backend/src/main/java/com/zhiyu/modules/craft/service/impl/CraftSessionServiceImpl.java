@@ -52,6 +52,7 @@ public class CraftSessionServiceImpl implements CraftSessionService {
     private final AwayDetectionService awayDetectionService;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    private final com.zhiyu.modules.craft.calibration.FlowCalibrationService flowCalibrationService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -145,6 +146,16 @@ public class CraftSessionServiceImpl implements CraftSessionService {
                             ? CraftSessionEventType.SESSION_FINISH
                             : CraftSessionEventType.SESSION_ABANDON,
                     null, context, null);
+        }
+
+        // 5c. 心流自评校准抽样（阶段 1-1）：finish 时按配置比例抽样落库（稳定可追溯）；
+        // 失败只记日志，不阻断结束流转
+        if (target == SessionStatus.FINISHED) {
+            try {
+                flowCalibrationService.onSessionFinished(session);
+            } catch (Exception e) {
+                log.warn("心流自评抽样失败（已忽略）: sessionId={}, err={}", sessionId, e.getMessage());
+            }
         }
 
         // 重新查 project（构建 VO 用）

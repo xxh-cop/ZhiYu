@@ -2129,10 +2129,11 @@ paths:
     post:
       operationId: dialogueChat
       x-status: 'implemented (gated)'
-      summary: '统一对话入口（AA 批 2026-11-04 已实现，开关 zhiyu.dialogue.commander 默认关闭）'
+      summary: '统一对话入口（AA 批 2026-11-04 已实现；2026-11-05 阶段 2 起开关默认开启）'
       description: |
-        双对话收敛（dialogue-unification-20261104 §C1）统一入口。**已实现但由开关
-        `zhiyu.dialogue.commander`（环境变量 ZHIYU_DIALOGUE_COMMANDER）门控，默认关闭。**
+        双对话收敛（dialogue-unification-20261104 §C1）统一入口。**由开关
+        `zhiyu.dialogue.commander`（环境变量 ZHIYU_DIALOGUE_COMMANDER）门控，2026-11-05 起默认开启，
+        置 false 一键回落（回落时本路径未注册）。**
         关闭时控制器不注册（@ConditionalOnProperty），已认证用户访问按未注册路径返回 1004、
         匿名访问返回 1002；开启时经调度层（入口安检 → 规则路由 → 子能力 → 三道闸）执行。
 
@@ -2177,8 +2178,9 @@ paths:
         **deprecated（2026-11-04 P0 契约登记，双对话收敛 C2）**：本端点进入兼容期，
         内部将转调度层（/api/dialogue/chat，见 C1）作为薄适配器，**协议不变，现有客户端无需改动**；
         删除前至少保留一个迭代周期并配合前端发版。
-        AA 批（2026-11-04）：开关 `zhiyu.dialogue.commander=true` 时本端点已委托调度层执行
-        （事件形状不变：live 走 chunk/revoke/done，legacy 走 data/done）；默认关闭走原实现。
+        AA 批（2026-11-04）：开关 `zhiyu.dialogue.listening-via-commander=true` 时本端点委托调度层执行
+        （事件形状不变：live 走 chunk/revoke/done，legacy 走 data/done）；2026-11-05 阶段 2 起默认开启，
+        置 false 一键回落原实现（旧实现保留）。
 
         身份、隐私同意和会话归属校验通过后返回 text/event-stream。
         前置校验失败使用标准 HTTP 错误；开始流后失败使用 error 事件。
@@ -2571,6 +2573,65 @@ paths:
                 type: object
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: '非会话归属者（code=1003；与既有会话端点口径一致）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/craft/session/{id}/calibration:
+    get:
+      operationId: craftSessionCalibrationGet
+      summary: 查询心流自评校准状态（阶段 1-1，2026-11-05）
+      description: '会话 finish 时按 zhiyu.flow.calibration.sample-rate（默认 0.2）抽样并落库（wellbeing_record，kind=FLOW_CAL，record_key=会话 ID），抽样结论稳定可追溯：同一会话重复查询得到同一结论。sampled=false 时前端不弹窗（此时无 question/scale 字段）；sampled=true 时返回 question 与 scale。量表选 1~7 七点李克特（比 1~5 分辨率高、比 0~10 负担小，序数口径与 Spearman 相关配套）。'
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '会话 ID（雪花，字符串）' } }
+      responses:
+        '200':
+          description: '校准状态：{ sampled, answered, skipped, score, question?, scale? }。sampled=true 时 scale={ min:1, max:7, minLabel:"完全没投入", maxLabel:"完全沉浸其中" }，question="刚才这段创作时间里，你的专注与沉浸程度如何？"；score 仅 answered=true 时有值'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          sampled: { type: boolean }
+                          answered: { type: boolean }
+                          skipped: { type: boolean }
+                          score: { type: integer, nullable: true, minimum: 1, maximum: 7 }
+                          question: { type: string }
+                          scale: { type: object, properties: { min: { type: integer }, max: { type: integer }, minLabel: { type: string }, maxLabel: { type: string } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: '非会话归属者（code=1003）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    post:
+      operationId: craftSessionCalibrationSubmit
+      summary: 提交单题自评或明确跳过（阶段 1-1）
+      description: 'body 二选一：{ "score": 1~7 } 作答，或 { "skip": true } 跳过。跳过同样落库（区分「没看到」与「看到了不答」），跳过之后仍允许补答；已作答后重复提交 → code=3001；未被抽中 → code=3001；评分越界或两字段都空 → code=1001。写入行为自评数据，挂隐私同意门（与心跳/事件同口径）。'
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, description: '会话 ID（雪花，字符串）' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score: { type: integer, minimum: 1, maximum: 7, description: '自评分数；与 skip 二选一' }
+                skip: { type: boolean, description: '明确跳过；与 score 二选一' }
+      responses:
+        '200':
+          description: '提交后的校准状态（同 GET）；已作答重复提交 / 未抽中返回 HTTP 200 + code=3001'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: '评分越界或 score/skip 都空（code=1001）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: '非会话归属者或未同意隐私政策（code=1003）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 会话不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -3748,6 +3809,61 @@ paths:
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/flow-calibration/stats:
+    get:
+      operationId: adminFlowCalibrationStats
+      summary: '管理员：心流自评校准效度聚合（阶段 1-1，2026-11-05）'
+      description: '对已作答样本计算 Spearman 等级相关：自评分数（1~7 序数量表，配等级相关而非 Pearson）× 会话「专注停留占比」（flow_seconds / 会话时长秒数，仅时长为正的会话）。样本量 < 30 → status=insufficient、rho=null、metricLabel 保守取「专注停留占比」（不假装有结论）；样本充足时 ρ ≥ 0.3 → metricLabel=「心流占时」，ρ < 0.3 → 降级「专注停留占比」。常数序列（无方差）按 ρ=0 保守处理。响应：{ method:"spearman", threshold:0.3, minSamples:30, sampleSize, status:"ok"|"insufficient", rho, metricLabel }。'
+      x-required-role: admin
+      responses:
+        '200': { description: 'Result，data 为上述聚合结构；样本不足时 rho 为 null', content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/flow-metrics/dashboard:
+    get:
+      operationId: adminFlowMetricsDashboard
+      summary: '管理员：心流/专注度量看板聚合（阶段 1-2，2026-11-05）'
+      description: >-
+        口径以 docs/flow-metrics-dashboard-literature-20261105.md §3/§9 为准，不另行发明。
+        分母=会话各步骤 step_leave.dwell_seconds 之和（活跃创作时长），分子=flow_seconds
+        （2026-11-05 起为「阈值后深度沉浸秒数」，此前存量每达标片段约多记 300s，前后结构性不可比）。
+        会话级占比=分子/分母；看板指标=人×周会话占比中位数（会话按 start_time 归周，Asia/Shanghai，
+        周一为周起点），报 p50/p90 与分桶样本数，不给单一均值大数字。
+        仅终态会话（status 3 完成 / 4 放弃）进入分布；在途会话与无 step_leave 事件的会话
+        （活跃时长不可得）只在 totals 计数返回，不参与占比。
+        剔除（分子分母同口径、会话级；判定优先级 readOnly 标志 → projectStatus+takedown_kind →
+        事件流 session_archive 首次时点）：项目当前只读（合规下架窗口内 / 已归档 / 运营下架已到期，
+        与 TakedownStateResolver 同口径）且会话最后活动时间不早于只读起点 → 整会话剔除；
+        待审项目（status=0）会话同样剔除（多为测试/演示数据，不混入分布，§9.3）；
+        剔除条数与明细在 exclusions 返回，不悄悄剔。
+        运营下架未到期会话计入，但按 takedown_kind=operational 在 facets.byTakedownKind 单独分面，
+        不与常态并线（§9.2）。
+        分层：facets.byLevel（craft_project.level；项目缺失归 unknown，如实显示「未分层」）与
+        facets.byDurationBucket（按会话活跃时长 <5 / 5-15 / 15-30 / >30 分钟入桶）；
+        单元去重用户数 <10 → sparse=true（前端标灰）。
+        自评校准：calibration 与 /api/admin/flow-calibration/stats 同口径
+        （metricLabel 由效度决定，insufficient 或 ρ<0.3 时为「专注停留占比」，不得写「心流占时」）；
+        selfReport 按 wellbeing_record(kind=FLOW_CAL) 的 create_time 落区间统计
+        sampled/answered/skipped/noResponse/responseRate（区分「没看到」与「看到不答」）。
+        definitionChanges 列出 2026-11-05 三处口径变更（归档态与 takedown_kind / 只读会话进入数据面并剔除 /
+        flow_seconds 语义变更），变更点前后数据不得跨期比较；unavailable[] 如实列出不可得指标
+        （自评相关系数样本不足、导出成功率、通知触达回执回流、音频被动段剔除、practice 专注时长），
+        不以 0 填充冒充有数据。
+      parameters:
+        - { name: from, in: query, required: false, schema: { type: string, format: date }, description: '起始日期（含），默认今天-29 天；与 to 跨度须 ≤90 天' }
+        - { name: to, in: query, required: false, schema: { type: string, format: date }, description: '截止日期（含），默认今天' }
+      x-required-role: admin
+      responses:
+        '200': { description: 'Result，data 为上述看板聚合结构', content: { application/json: { schema: { $ref: '#/components/schemas/Result' } } } }
+        '400': { description: '参数校验失败（code=1001：日期格式非法 / from 晚于 to / 跨度超 90 天）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 

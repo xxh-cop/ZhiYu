@@ -42,6 +42,7 @@ public class CraftController {
     private final CraftSessionService craftSessionService;
     private final CraftProjectService craftProjectService;
     private final CraftSessionEventService craftSessionEventService;
+    private final com.zhiyu.modules.craft.calibration.FlowCalibrationService flowCalibrationService;
     private final BusinessAccess access;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
@@ -129,6 +130,30 @@ public class CraftController {
         // 行为事件属行为信号写入，挂同意门（与心跳同口径）
         Long userId = access.consentedUser();
         return Result.success(craftSessionEventService.ingest(userId, id, req));
+    }
+
+    // ── 2026-11-05 心流自评校准（阶段 1-1） ──
+
+    /**
+     * 查询会话的自评校准状态。sampled=false 时前端不弹窗。
+     * 登录口径 access.user()（读自己的校准状态）；非本人 1003，会话不存在 1004。
+     */
+    @GetMapping("/session/{id}/calibration")
+    public Result<java.util.Map<String, Object>> getCalibration(@PathVariable Long id) {
+        return Result.success(flowCalibrationService.query(access.user(), id));
+    }
+
+    /**
+     * 提交单题自评（score 1~7）或明确跳过（skip=true，落「已跳过」记录）。
+     * 写入行为自评数据，挂同意门（与心跳/事件同口径）；重复作答 3001，未抽中 3001。
+     */
+    @PostMapping("/session/{id}/calibration")
+    public Result<java.util.Map<String, Object>> submitCalibration(
+            @PathVariable Long id,
+            @RequestBody com.zhiyu.modules.craft.dto.CalibrationSubmitDTO dto) {
+        Long userId = access.consentedUser();
+        return Result.success(flowCalibrationService.submit(
+                userId, id, dto.getScore(), Boolean.TRUE.equals(dto.getSkip())));
     }
 
     // ── 2026-11-05 下架窗口导出 ──

@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final com.zhiyu.modules.craft.calibration.FlowCalibrationService flowCalibrationService;
+    private final com.zhiyu.modules.admin.service.FlowMetricsService flowMetricsService;
 
     /**
      * 待审核内容队列（第一版只支持 craft_project 类型）。
@@ -84,6 +86,30 @@ public class AdminController {
     @GetMapping("/dashboard/stats")
     public Result<DashboardStatsVO> dashboardStats() {
         return Result.success(adminService.getDashboardStats());
+    }
+
+    /**
+     * 心流自评校准效度聚合（阶段 1-1，2026-11-05）。
+     * 自评 × 专注停留占比的 Spearman ρ；样本 &lt;30 返回 insufficient；
+     * ρ&lt;0.3 时 metricLabel 降级为「专注停留占比」。仅 role=3（/api/admin/** 兜底）。
+     */
+    @GetMapping("/flow-calibration/stats")
+    public Result<java.util.Map<String, Object>> flowCalibrationStats() {
+        return Result.success(flowCalibrationService.adminStats());
+    }
+
+    /**
+     * 心流/专注度量看板聚合（阶段 1-2，2026-11-05）。
+     * 口径见 docs/flow-metrics-dashboard-literature-20261105.md §3/§9：
+     * 分母=step_leave 活跃秒数，分子=阈值后深度沉浸秒数；人×周中位数 + p50/p90；
+     * 只读/归档/待审会话同口径剔除并返回剔除明细；operational 单独分面不并线。
+     * from/to 格式 YYYY-MM-DD，跨度 ≤90 天，非法 1001。仅 role=3（/api/admin/** 兜底）。
+     */
+    @GetMapping("/flow-metrics/dashboard")
+    public Result<java.util.Map<String, Object>> flowMetricsDashboard(
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+        return Result.success(flowMetricsService.dashboard(from, to));
     }
 
     /**
