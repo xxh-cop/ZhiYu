@@ -60,6 +60,126 @@
 
 ---
 
+## 2026-11-05 导出端点与真实 AI 复验（HEAD bbebbe2 时点登记）
+
+> 本节登记 2026-11-05 复验批次（导出端点 `3d43901` + 学生端入口 `bbebbe2`、真实 AI 复验在 `6951a9b` 上执行）的结论与数字。
+> 本节数字为该批次的执行结果登记；本轮在此基础上仅独立复核了管理端文案修改后的 `typecheck`（见本节末），未重跑该批次任何测试。
+
+### F. 下架窗口导出端点已建（`3d43901` + `bbebbe2`）
+
+- `GET /api/craft/session/{id}/export`：窗口内附件下载、`omitted[]` 如实标注、成功先落 `export` 事件。
+- 错误码纪律：`3001`（窗口过期/状态不符）/`1003`（非本人）/`1004`（不存在）/`1002`（未登录）按语义返回，**不伪装 404**。
+- 验证数字：导出单测 **6/6**；全量 **880 测试 0 失败**；真实 MySQL 冒烟 **840 字节附件下载通过**；学生端「导出我的创作数据」入口已接入只读会话（`bbebbe2`）。
+- **未验**：小程序真机下载、正式域名白名单、`3001` 过期场景（时间构造不出来，未构造非法数据强测）。
+
+### G. 真实 AI 复验（6951a9b，deepseek-reasoner 真实调用）
+
+| 指标 | 实测值 |
+|---|---|
+| 真实调用次数 / 结果 | 2 次，`result_status=OK` |
+| 延迟 | 1672ms / 1690ms，p50 = 1690ms |
+| `ai_trace` tokens（input/output） | 600/74、613/174（真实值，非估算） |
+| `ai-metrics` 聚合 tokens ↔ 逐行求和 | **精确吻合**（3001 / 1186） |
+
+据此：「审核 AI 辅助仅有单测」的状态更新为「**已真实验收（限两次样本）**」——样本量小、单模型单时段，不构成长期稳定性结论；管理端加载态文案已按此实测修正（`AiSuggestPanel.vue`，原「推理模型可能需要数十秒」改为「通常数秒，内容复杂时可能更久」，仅文案、未动行为）。
+
+### H. 新发现的分场景缺口（待修）
+
+- **tokens 上报不是全场景**：`llm-moderation` 场景有 usage 落库，但 `llm-message`（作品寄语）场景 tokens 仍为 **NULL**。
+- **影响**：按场景统计成本时，寄语类调用无法计价；**不得按调用次数均匀估算**分摊。
+- 状态：**待修**（本台账仅登记事实与影响，修复方案由后续任务定）。
+
+### I. 本轮独立复核
+
+| 项 | 命令 | 退出码 |
+|---|---|---|
+| 管理端类型检查（文案修改后） | `pnpm -F @vben/web-ele run typecheck` | 0 |
+
+---
+
+## 2026-11-05 心流度量与自评校准（工作区在途批次登记）
+
+> 本节登记 2026-11-05「心流度量与自评校准」批次（四件事）的会话报告结论。
+> 该批改动**当前为工作区未提交状态**（`craft/calibration/`、`FlowMetricsService.java`、`flow-metrics.vue`、features 70/71 等，见当时 `git status`）；本节数字均来自该批会话报告，**本台账未重跑任何测试/构建复核**。
+> 已完成事项与未验证/缺口严格分列，未闭合项不写成已解决。
+
+### J. 已完成的四件事（按会话报告登记）
+
+**J1. 心流自评校准（后端）**
+- 端点：`GET/POST /api/craft/session/{id}/calibration` 与 `GET /api/admin/flow-calibration/stats`。
+- 存储：复用 `wellbeing_record`（kind=`FLOW_CAL`），**未建新表**；1~7 李克特量表。
+- 抽样与降级：抽样率 `zhiyu.flow.calibration.sample-rate` 默认 0.2；跳过落记录、可补答；Spearman 相关、阈值 0.3、minSamples 30；ρ<0.3 或样本不足时降级为「专注停留占比」口径。
+- 验证：单测 6/6、全量 **886 测试 0 失败**；真库冒烟抓到 H2 测不出的 `Timestamp`/`LocalDateTime` 强转 500 并已修复。
+
+**J2. 自评弹窗（学生端）**
+- 行为：仅 `handleFinish` 成功后异步查询、`sampled && !answered && !skipped` 才渲染，未抽中零元素；✕ 走 `{skip:true}`；失败静默不卡页面。
+- 验证：13 项实测通过；顺手修复两处真实布局 bug（`.success-overlay` 缺 `flex-direction: column` 导致双卡并排溢出；7 个评分钮 `min-width:88rpx` 撑爆卡片）；`build:h5` / `build:mp-weixin` 均 exit 0。
+
+**J3. 专注度量看板（后端 + 管理端）**
+- 端点与入口：`GET /api/admin/flow-metrics/dashboard`；管理端「数据中心 › 专注度量」。
+- 口径：分母 = Σ `step_leave.dwell_seconds`，分子 = 阈值后深度沉浸秒数；同口径剔除（只读/归档、待审项目、无事件会话），剔除明细 `exclusions[]` 最多 50 条；占比先会话级再「人×周」中位数，只报 p50/p90 与分桶样本数；`byLevel` / `byDurationBucket` / `byTakedownKind` 三组独立分面；标题吃后端 `metricLabel`；页脚常驻「engagement ≠ 疗效」；`unavailable[]` 单列；11-05 口径变更 markLine。
+- 验证：单测 8/8、全量 **897 测试 0 失败**、管理端 typecheck/build 均 exit 0；真库冒烟 4 项目 5 会话与手算**精确吻合**；非法参数 400+1001、匿名 401+1002、role=1 403+1003；截图见 `output/playwright/admin-ui-fm/`。
+
+**J4. 提示语真实入口回填 + 导出端点前端接入（`3d43901` / `bbebbe2`，已入分支）**
+- `GET /api/craft/session/{id}/export`：窗口内下载 JSON 附件；窗口过期/开关关闭/非本人 → 3001/3001/1003；会话不存在 1004。
+- 学生端按钮仅在 `readOnly && canExport && sessionId` 三齐备时渲染；H5 走 fetch+Blob，小程序走 `downloadFile`+`saveFile`。
+- 验证：单测 6/6、全量 880 测试 0 失败。
+- 实现注意：cross-origin 读不到 `Content-Disposition`，已改为按内容识别（业务拒绝是带 `code` 的 Result、导出载荷无 `code`）。
+
+### K. 单列缺口（未验证/待决，不写成已解决）
+
+| # | 缺口 | 性质 |
+|---|---|---|
+| K1 | `craft_project.level` 19 个项目中 18 个 =1、1 个 =2：难度分面**数据本身无区分度**，代码正确但维度失效；补分级或下掉分面待产品决定 | 待产品决策 |
+| K2 | 「事件流首次 3001」**不存在该事件类型**（心跳闸口只抛异常不落库）：剔除起点实际退化为服务端派生的 `session_archive` 首次时间；要精确到心跳被拒时点需补落事件 | 待修（精度缺口） |
+| K3 | 跨周会话按 `start_time` 归周，未做跨周拆分（工程折中，已写入契约） | 已知折中 |
+| K4 | 真实样本规模：当前真实数据仅 1 个活跃用户、3 个纳入会话；p50/p90/IQR 的统计行为未经大样本检验；自评 ρ 当前必然为 null | 待真实数据积累 |
+| K5 | 真机下载、域名白名单、3001 窗口过期场景（含学生端 toast 原文）、并发 finish 去重、小程序自评弹窗，均未实测 | 未验证 |
+| K6 | 暗色逐元素对比度未做数值审计（本批未改设计令牌） | 未验证 |
+
+---
+
+## 2026-11-05 双对话收敛（阶段 2）（工作区在途批次登记）
+
+> 本节登记 2026-11-05「双对话收敛（阶段 2）」批次的会话报告结论。
+> 该批改动**当前为工作区未提交状态**（`application.yml` 开关翻动、`EmotionControllerViaCommanderTest.java` 等，与心流批同处一个工作区）；本节数字均来自该批会话报告，**本台账未重跑任何测试/冒烟复核**。
+
+### L. 已登记的六件事（按会话报告）
+
+**L1. 性质澄清：本批是「接续」而非从零写**
+`modules/dialogue` 15 个类、6 个测试类、DDL/迁移/erase/契约登记已在 `94b8571` 就位；本批只补三处：开关默认值、委托路径 HTTP 级 SSE 平价测试、文档措辞。
+
+**L2. 开关默认值变化（只翻三个，P3 保持关闭）**
+`commander` false→true、`listening-via-commander` false→true、`rolling-summary` false→true；`companion-adapter` 保持 false 不变。回落方式 = 环境变量置 false，旧实现未删。
+
+**L3. 既有测试行为变化为零**
+`application-test.yml` 显式钉住四开关 false + guard-store memory，既有测试（含「关闭态零 dialogue-route 记账」断言）仍在关闭态运行，未改任何既有断言。唯一修过的测试是本批自建的 `EmotionControllerViaCommanderTest`：首轮 2 失败系 MockMvc standalone 默认 ISO-8859-1 编码把中文 chunk 写成 `?`，判定为**测试设施编码问题**（非实现错误、非假设过时），以 UTF-8 消息转换器修复。
+
+**L4. 上下文参数**
+原文窗口 N=10（`zhiyu.emotion.max-history-turns`）；第 11 条起、每滑出 5 条做增量压缩（`summary-trigger-turn:11` / `summary-increment-turns:5`）；摘要走 standard 档、熔断 key `llm-summary`、AES 落 `dialogue_context_summary`、TTL 90 天、注销级联已覆盖。
+
+**L5. 防循环**
+深度上限 1（结构性，无二次路由代码路径，有单测断言）；重复意图规范化哈希 ≥3 次/600s 锁定；振荡 A→B→A 强制留 A；会话 30 轮预算、单轮墙钟 30s（超限只记账不阻断）；`RouteGuard` 双存储，Redis 失败 3 次冷却 30s 降级内存。
+
+**L6. 验证**
+- 全量 `mvn test`：**889 通过 / 0 失败 / 1 跳过**（exit 0；跳过为历史 `SpringAiLlmClientTest`）。
+- 新增 `EmotionControllerViaCommanderTest` 3/3：live chunk 序列+done 形状、legacy 无名 data 事件、危机零 LLM+不落库+done(crisis,revoked)。
+- Mock+真实 MySQL 冒烟（默认开）：`emotion/chat` 返回 2 chunk + done 且无 capability 字段；`/api/dialogue/chat` 的 R2/R4 路由均正常；`ai_trace` 仅元数据无明文。
+- 回落模式冒烟：`/api/dialogue/chat` 404+1004、旧实现正常、`ai_trace` 零新增 dialogue-route。
+
+### M. 单列缺口（未验证/待决，不写成已解决）
+
+| # | 缺口 |
+|---|---|
+| M1 | **默认开启组合只有冒烟覆盖，无测试守门**——全量套件跑在关闭态（application-test.yml 钉住），开启态行为变更若回归无自动化拦截 |
+| M2 | 真实模型多轮对话质量未验（全 Mock）；评测基线仍是 2026-11-04 历史报告，未重跑 |
+| M3 | 滚动摘要真实 LLM 端到端未产出（Mock 下走 FALLBACK 降级，仅验证不阻断对话） |
+| M4 | Redis 版 `RouteGuardStore` 仅单测，冒烟用 memory |
+| M5 | 多实例一致性、commander 路径首字延迟（NFR-02）、微信真机、P3 适配器接线与 P4 退役，均未覆盖 |
+| M6 | **文档内部张力**：§2.4「心流时长看板口径未定」与上一节 J3 的落地事实存在张力，因「既有一字不改」纪律未动，待统一收口 |
+
+---
+
 ## 0. 验证基线（第一轮：HEAD 19502bb）
 
 | 项 | 值 |
@@ -124,8 +244,8 @@
 | 事项 | 事实 | 出处 |
 |---|---|---|
 | 心流时长占比看板 | 口径未定（时间窗/分母/暂停归属未定），实现未启动 | gap-audit-20261104 P1-4；requirements-audit FR-60-03 行 |
-| 审核 AI 辅助（moderation 档位） | 档位与熔断 key 已预留，无 LLM 调用点；触发条件待拍板 | gap-audit-20261104 §1-4 / P2-3；model-routing-20261104 §2。**→ 更新：`54949d7` 已落地调用点（`AdminModerationService` + `moderation-suggest.st`）与管理端 `AiSuggestPanel.vue`（`6655c70`），features/65 与单测覆盖；真实 LLM 调用验收未做（见 §D），触发条件决策不变** |
-| token usage 采集 | 流式与 chat 链路均不返回 usage，成本核算无数据；采集通道与费率配置未做 | eval-baseline-20261104 §4.3；gap-audit-20261104 P2-4。**→ 更新：`54949d7` 已落地 `AiCallMetrics` 埋点与 `ai_trace` 表（含 input_tokens/output_tokens），`/api/admin/ai-metrics` 第二轮冒烟 code=0（见 §B）；费率配置与成本核算口径仍待决** |
+| 审核 AI 辅助（moderation 档位） | 档位与熔断 key 已预留，无 LLM 调用点；触发条件待拍板 | gap-audit-20261104 §1-4 / P2-3；model-routing-20261104 §2。**→ 更新：`54949d7` 已落地调用点（`AdminModerationService` + `moderation-suggest.st`）与管理端 `AiSuggestPanel.vue`（`6655c70`），features/65 与单测覆盖；真实 LLM 复验已于 2026-11-05 执行（两次 deepseek-reasoner 真实调用均 OK，tokens 真实落库且聚合精确吻合，见 §G）——**已真实验收（限两次样本）**，不构成长期稳定性结论；触发条件决策不变** |
+| token usage 采集 | 流式与 chat 链路均不返回 usage，成本核算无数据；采集通道与费率配置未做 | eval-baseline-20261104 §4.3；gap-audit-20261104 P2-4。**→ 更新：`54949d7` 已落地 `AiCallMetrics` 埋点与 `ai_trace` 表（含 input_tokens/output_tokens），`/api/admin/ai-metrics` 第二轮冒烟 code=0（见 §B）、复验批次聚合与逐行求和精确吻合（见 §G）；**但分场景缺口：`llm-message`（寄语）tokens 仍为 NULL，寄语类成本无法按场景计价，待修（见 §H）**；费率配置与成本核算口径仍待决** |
 | 小程序订阅消息（通知二期） | 一期（站内通知）已交付；二期依赖一期真实运行数据，未启动 | gap-audit-20261104 P2-6 |
 | PSS-10 / PANAS / GSES 量表 | 中文版本授权与计分依据未核实，未启用；不能自行补写题目 | gap-audit-20261104 P2-1 |
 | 种子音频死引用 | [init-data.sql](file:///d:/develop/Zhi_Yu/sql/init-data.sql) L92-95 种了 `/static/audio/101-1..4.mp3`，但 `zhiyu-app/src/static/audio/` 目录**不存在**（第一轮核实）；且后端无音频上传端点，步骤音频仍靠手填 URL | 第一轮 grep/Glob 核实（2026-11-05）；gap-audit-20261104 B1。**→ 更新：已经 `1f67172`/`0b39378` 音频资产治理处理，第二轮冒烟实测 101 项目四步 `audioUrl` 全为 `null`（见 §B）；音频上传端点缺口仍按 B1 待决** |
