@@ -45,9 +45,24 @@ public class CraftProject extends BaseEntity {
     /** 平台上传的教学视频引用；与项目一起审核。 */
     private String videoUrl;
 
-    /** 0 待审 / 1 上架 / 2 下架 */
+    /** 0 待审 / 1 上架 / 2 下架 / 3 归档（2/3 不可回 1，恢复上线走新建送审） */
     private Integer status;
 
     /** 审核/下架/删除理由（AY1 2026-11-05；驳回理由同列落库） */
     private String auditReason;
+
+    /** 下架类型：compliance 合规 / operational 运营（2026-11-05 分层下架） */
+    private String takedownKind;
+
+    /** 下架时间 */
+    private java.time.LocalDateTime takedownAt;
+
+    /** 归档时间/截止：运营下架必填；合规下架窗口结束转归档时回填 */
+    private java.time.LocalDateTime archiveAt;
+
+    /** 私有导出/只读窗口截止（合规下架 = takedownAt + 配置的导出窗口小时数） */
+    private java.time.LocalDateTime exportUntil;
+
+    /** 提示语模板 key，对应 resources/notices/<key>.md */
+    private String noticeKey;
 }

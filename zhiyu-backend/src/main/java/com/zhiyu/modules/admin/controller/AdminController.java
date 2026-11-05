@@ -87,13 +87,14 @@ public class AdminController {
     }
 
     /**
-     * AY1（2026-11-05）：下架已上架项目（status 1→2），理由必填。
+     * AY1（2026-11-05）+ 分层下架（2026-11-05）：下架已上架项目（status 1→2），理由必填。
+     * kind=compliance 走导出窗口（系统配置），kind=operational 必须给 archiveAt（≥7 天）。
      * 仅管理员（/api/admin/** 兜底 role=3）；落 admin_operation_log + 通知传承人。
      */
     @PutMapping("/projects/{id}/takedown")
     public Result<Void> takedownProject(@PathVariable Long id,
                                         @Valid @RequestBody com.zhiyu.modules.admin.dto.ProjectTakedownDTO req) {
-        adminService.takedownProject(id, req.getReason());
+        adminService.takedownProject(id, req.getReason(), req.getKind(), req.getArchiveAt());
         return Result.success();
     }
 

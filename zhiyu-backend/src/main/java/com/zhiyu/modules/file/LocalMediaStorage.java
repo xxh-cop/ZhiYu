@@ -12,4 +12,5 @@ public class LocalMediaStorage implements MediaStorage {
  public void put(String key,InputStream input)throws IOException{Files.createDirectories(root);Files.copy(input,path(key));}
  public Resource read(String key)throws IOException{Path p=path(key);if(!Files.isRegularFile(p))throw new FileNotFoundException();return new FileSystemResource(p);}
  public void remove(String key)throws IOException{Files.deleteIfExists(path(key));}
+ @Override public boolean exists(String key){return Files.isRegularFile(path(key));}
 }

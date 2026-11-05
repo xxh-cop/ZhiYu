@@ -110,22 +110,22 @@ class CraftSessionServiceHeartbeatTest {
     }
 
     @Test
-    @DisplayName("心跳：dwellSeconds=301 → inFlow=true, flow_seconds 累加 301")
+    @DisplayName("心跳：dwellSeconds=301 → inFlow=true, flow_seconds 累加 1（修复灌水：只计跨阈值后时长）")
     void testHeartbeat_FlowAccumulates() {
         Long sessionId = createSession();
 
         // 首次心跳初始化（stepNo=1, dwellSeconds=0）
         heartbeat(USER_ID, sessionId, 1, 0, false, false);
 
-        // 第二次心跳 dwellSeconds=301 → FLOW, delta=301
+        // 第二次心跳 dwellSeconds=301 → FLOW, delta=1（301-300，刚跨阈值不白送 300 秒）
         HeartbeatResult result = heartbeat(USER_ID, sessionId, 1, 301, false, false);
 
         assertTrue(result.isInFlow());
         assertFalse(result.isNeedBreathing());
 
-        // 验证 flow_seconds 已累加
+        // 验证 flow_seconds 已按新口径累加
         CraftSession session = craftSessionMapper.selectById(sessionId);
-        assertEquals(301, session.getFlowSeconds());
+        assertEquals(1, session.getFlowSeconds());
     }
 
     // ──────────────────────────────────────────────────────

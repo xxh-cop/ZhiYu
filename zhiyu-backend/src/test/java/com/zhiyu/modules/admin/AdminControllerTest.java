@@ -155,6 +155,20 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.code").value(1004));
     }
 
+    // ── BL（2026-11-05）：AI 审核建议端点权限闸（逻辑见 AdminModerationServiceTest） ──
+
+    @Test
+    @DisplayName("BL：非审核员请求 AI 建议 → 403（学生与咨询师）")
+    void testAiSuggest_NonAdmin403() throws Exception {
+        mockMvc.perform(post("/api/admin/works/999/ai-suggest")
+                        .header("Authorization", "Bearer " + token(4L, 0)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(1003));
+        mockMvc.perform(post("/api/admin/comments/999/ai-suggest")
+                        .header("Authorization", "Bearer " + token(3L, 2)))
+                .andExpect(status().isForbidden());
+    }
+
     // ── 接口 3：GET /api/admin/care-reminders ──
 
     @Test

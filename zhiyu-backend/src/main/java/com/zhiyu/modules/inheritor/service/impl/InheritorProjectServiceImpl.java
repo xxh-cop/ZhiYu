@@ -223,6 +223,20 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "音频地址格式不支持：请上传音频或使用 http(s) 外链");
     }
 
+    /**
+     * 音频资产字段随写入落值（2026-11-05）：有音频 → ready 待启动对账核对；
+     * 本站私有媒体引用为本人上传 → owned；外链/前端静态资源来源待内容方确认 → pending_review。
+     */
+    private void fillAudioAssetMeta(CraftStep step) {
+        if (step.getAudioUrl() == null) {
+            step.setAssetStatus(null);
+            step.setLicenseStatus("none");
+            return;
+        }
+        step.setAssetStatus("ready");
+        step.setLicenseStatus(step.getAudioUrl().startsWith("/api/media/") ? "owned" : "pending_review");
+    }
+
     @Override
     public Long addStep(Long userId, Long projectId, StepCreateDTO dto) {
         checkOwnershipAndStatus(userId, projectId);
@@ -233,6 +247,7 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         step.setTitle(dto.getTitle());
         step.setGuide(dto.getGuide());
         step.setAudioUrl(validateStepAudio(userId, dto.getAudioUrl()));
+        fillAudioAssetMeta(step);
         craftStepMapper.insert(step);
         log.info("传承人添加步骤: stepId={}, projectId={}", step.getId(), projectId);
         return step.getId();
@@ -251,7 +266,10 @@ public class InheritorProjectServiceImpl implements InheritorProjectService {
         step.setTitle(dto.getTitle());
         if (dto.getGuide() != null) step.setGuide(dto.getGuide());
         String oldAudio = step.getAudioUrl();
-        if (dto.getAudioUrl() != null) step.setAudioUrl(validateStepAudio(userId, dto.getAudioUrl()));
+        if (dto.getAudioUrl() != null) {
+            step.setAudioUrl(validateStepAudio(userId, dto.getAudioUrl()));
+            fillAudioAssetMeta(step);
+        }
         craftStepMapper.updateById(step);
         // AU3：替换旧音频不留孤儿文件——旧引用不再被任何步骤使用时退役（逻辑注销 + 登记清理）
         if (dto.getAudioUrl() != null && !java.util.Objects.equals(oldAudio, step.getAudioUrl())) {

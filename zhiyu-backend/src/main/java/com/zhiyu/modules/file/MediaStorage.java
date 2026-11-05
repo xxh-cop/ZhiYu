@@ -6,4 +6,6 @@ public interface MediaStorage {
  void put(String key, InputStream input) throws IOException;
  Resource read(String key) throws IOException;
  void remove(String key) throws IOException;
+ /** 资产是否存在（启动对账用）；默认经 read 探测，实现类可覆盖为更廉价的存在性检查。 */
+ default boolean exists(String key){try{return read(key).exists();}catch(Exception e){return false;}}
 }

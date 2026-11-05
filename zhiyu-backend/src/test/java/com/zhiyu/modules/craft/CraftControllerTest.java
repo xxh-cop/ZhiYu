@@ -190,7 +190,7 @@ class CraftControllerTest {
     }
 
     @Test
-    @DisplayName("查已上架项目的步骤 → 200 + 步骤列表")
+    @DisplayName("查已上架项目的步骤 → 200 + 结构化视图（分层下架后 data 为 CraftProjectStepsVO）")
     void testListSteps_Success_Returns200() throws Exception {
         String token = validToken(8004L, 0);
 
@@ -198,9 +198,12 @@ class CraftControllerTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].stepNo").value(1))
-                .andExpect(jsonPath("$.data[0].title").value("准备材料"));
+                .andExpect(jsonPath("$.data.steps").isArray())
+                .andExpect(jsonPath("$.data.steps[0].stepNo").value(1))
+                .andExpect(jsonPath("$.data.steps[0].title").value("准备材料"))
+                .andExpect(jsonPath("$.data.projectStatus").value(1))
+                .andExpect(jsonPath("$.data.readOnly").value(false))
+                .andExpect(jsonPath("$.data.canReview").value(true));
     }
 
     @Test
@@ -252,5 +255,81 @@ class CraftControllerTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.inFlow").exists())
                 .andExpect(jsonPath("$.data.needBreathing").exists());
+    }
+
+    // ── 2026-11-05 会话行为事件批量上报 ──
+
+    @Test
+    @DisplayName("事件批量上报 → 200 + accepted；重复上报同 client_seq → deduped 不重复入库")
+    void testIngestEvents_Idempotent() throws Exception {
+        String token = validToken(8007L, 0);
+
+        // 1. 创建 session
+        String createBody = objectMapper.writeValueAsString(Map.of("projectId", PROJECT_ID));
+        String response = mockMvc.perform(post("/api/craft/session")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createBody))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        Long sessionId = objectMapper.readTree(response).at("/data/sessionId").asLong();
+
+        // 2. 批量上报 2 条事件（occurredAt 用相对时间戳，避免时钟窗口误判）
+        String t1 = java.time.Instant.now().minusSeconds(60).toString();
+        String t2 = java.time.Instant.now().minusSeconds(55).toString();
+        String eventsBody = objectMapper.writeValueAsString(Map.of("events", List.of(
+                Map.of("eventType", "visibility_change", "occurredAt", t1,
+                        "clientSeq", 1, "context", Map.of("visible", false)),
+                Map.of("eventType", "audio_play", "stepNo", 1, "occurredAt", t2,
+                        "clientSeq", 2))));
+
+        mockMvc.perform(post("/api/craft/session/{id}/events", sessionId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventsBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.accepted").value(2))
+                .andExpect(jsonPath("$.data.deduped").value(0));
+
+        // 3. 原样重放 → deduped=2，不重复入库
+        mockMvc.perform(post("/api/craft/session/{id}/events", sessionId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventsBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.accepted").value(0))
+                .andExpect(jsonPath("$.data.deduped").value(2));
+
+        Integer count = authFixtureDb.queryForObject(
+                "SELECT COUNT(*) FROM craft_session_event WHERE session_id=? AND deleted=0",
+                Integer.class, sessionId);
+        org.junit.jupiter.api.Assertions.assertEquals(2, count);
+    }
+
+    @Test
+    @DisplayName("服务端派生事件类型（suspected_away）客户端上报 → 400 + 1001")
+    void testIngestEvents_ServerOnlyType_Returns1001() throws Exception {
+        String token = validToken(8008L, 0);
+        String createBody = objectMapper.writeValueAsString(Map.of("projectId", PROJECT_ID));
+        String response = mockMvc.perform(post("/api/craft/session")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createBody))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        Long sessionId = objectMapper.readTree(response).at("/data/sessionId").asLong();
+
+        String eventsBody = objectMapper.writeValueAsString(Map.of("events", List.of(
+                Map.of("eventType", "suspected_away",
+                        "occurredAt", java.time.Instant.now().minusSeconds(60).toString(), "clientSeq", 1))));
+
+        mockMvc.perform(post("/api/craft/session/{id}/events", sessionId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventsBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
     }
 }

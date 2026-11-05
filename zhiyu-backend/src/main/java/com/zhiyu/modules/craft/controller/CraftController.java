@@ -3,21 +3,21 @@ package com.zhiyu.modules.craft.controller;
 import com.zhiyu.common.result.Result;
 import com.zhiyu.modules.craft.dto.CreateSessionDTO;
 import com.zhiyu.modules.craft.dto.HeartbeatReq;
+import com.zhiyu.modules.craft.dto.SessionEventBatchReq;
 import com.zhiyu.modules.craft.dto.SessionStatusDTO;
 import com.zhiyu.modules.craft.service.CraftProjectService;
 import com.zhiyu.modules.craft.service.CraftRecommendService;
+import com.zhiyu.modules.craft.service.CraftSessionEventService;
 import com.zhiyu.modules.craft.service.CraftSessionService;
 import com.zhiyu.modules.craft.vo.CraftSessionVO;
-import com.zhiyu.modules.craft.vo.CraftStepVO;
 import com.zhiyu.modules.craft.vo.HeartbeatResult;
 import com.zhiyu.modules.craft.vo.RecommendVO;
+import com.zhiyu.modules.craft.vo.SessionEventBatchResult;
 import com.zhiyu.security.BusinessAccess;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 手作模块控制器（T1.5 / T1.6 / T1.9b-backend）。
@@ -41,6 +41,7 @@ public class CraftController {
     private final CraftRecommendService craftRecommendService;
     private final CraftSessionService craftSessionService;
     private final CraftProjectService craftProjectService;
+    private final CraftSessionEventService craftSessionEventService;
     private final BusinessAccess access;
 
     /**
@@ -64,13 +65,17 @@ public class CraftController {
     // ── T1.9b-backend 项目步骤 ──
 
     /**
-     * 查询项目步骤列表（按 stepNo 升序）。
+     * 查询项目步骤的结构化视图（2026-11-05 分层下架）。
+     *
+     * <p>上架项目正常下发；已下架/已归档返回步骤（可回看）+ 会话状态 +
+     * readOnly/canExport/canReview + 截止时间 + noticeKey/notice，不再 1004。
+     * 仅项目不存在或待审时 1004。
      *
      * @param id 项目 ID
-     * @return 步骤列表
+     * @return 结构化步骤视图
      */
     @GetMapping("/projects/{id}/steps")
-    public Result<List<CraftStepVO>> listSteps(@PathVariable Long id) {
+    public Result<com.zhiyu.modules.craft.vo.CraftProjectStepsVO> listSteps(@PathVariable Long id) {
         return Result.success(craftProjectService.listSteps(id));
     }
 
@@ -106,5 +111,22 @@ public class CraftController {
         // S1（2026-11-04）：心跳写入停留/焦躁等行为信号，挂同意门
         Long userId = access.consentedUser();
         return Result.success(craftSessionService.heartbeat(userId, id, req));
+    }
+
+    // ── 2026-11-05 会话行为事件批量上报（心流度量配套） ──
+
+    /**
+     * 批量上报会话行为事件（生命周期、音频播放等沉浸强信号）。
+     *
+     * <p>幂等：按 (session_id, client_seq) 去重，重复序号计 deduped 不算错误。
+     * 仅白名单事件类型可上报；服务端派生类型一律 1001。
+     */
+    @PostMapping("/session/{id}/events")
+    public Result<SessionEventBatchResult> ingestEvents(
+            @PathVariable Long id,
+            @Valid @RequestBody SessionEventBatchReq req) {
+        // 行为事件属行为信号写入，挂同意门（与心跳同口径）
+        Long userId = access.consentedUser();
+        return Result.success(craftSessionEventService.ingest(userId, id, req));
     }
 }

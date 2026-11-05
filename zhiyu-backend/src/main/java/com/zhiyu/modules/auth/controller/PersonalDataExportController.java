@@ -39,6 +39,7 @@ public class PersonalDataExportController {
             case "bookings" -> "SELECT b.id,b.program_id,b.status,b.create_time,b.update_time,p.kind AS program_kind,p.title AS program_title,p.location,p.start_time,p.end_time,p.status AS program_status FROM program_booking b LEFT JOIN learning_program p ON p.id=b.program_id AND p.deleted=0 WHERE b.user_id=? AND b.deleted=0 AND b.id>?";
             case "campus" -> "SELECT id,school,college,identity_cipher,status,review_reason,create_time,update_time FROM campus_verification WHERE user_id=? AND deleted=0 AND id>?";
             case "crafts" -> "SELECT id,project_id,status,flow_seconds,create_time,update_time FROM craft_session WHERE user_id=? AND deleted=0 AND id>?";
+            case "craft-events" -> "SELECT id,session_id,craft_project_id,event_type,step_no,occurred_at,client_seq,context,dwell_seconds,create_time FROM craft_session_event WHERE user_id=? AND deleted=0 AND id>?";
             case "lessons" -> "SELECT id,lesson_id,completed,create_time,update_time FROM lesson_progress WHERE user_id=? AND deleted=0 AND id>?";
             case "memberships" -> "SELECT id,group_id,role,create_time,update_time FROM group_member WHERE user_id=? AND deleted=0 AND id>?";
             case "group-messages" -> "SELECT id,group_id,content,create_time,update_time FROM group_message WHERE user_id=? AND deleted=0 AND id>?";
@@ -68,7 +69,7 @@ public class PersonalDataExportController {
                 }
             }
             row.remove("identity_cipher");
-            for (String key : List.of("id", "session_id", "project_id", "program_id", "lesson_id", "group_id", "booking_id", "work_id")) {
+            for (String key : List.of("id", "session_id", "project_id", "program_id", "lesson_id", "group_id", "booking_id", "work_id", "craft_project_id")) {
                 if (row.get(key) != null) row.put(key, row.get(key).toString());
             }
         }

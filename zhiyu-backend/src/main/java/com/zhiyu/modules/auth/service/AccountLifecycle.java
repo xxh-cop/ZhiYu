@@ -58,6 +58,8 @@ public class AccountLifecycle {
         db.update("UPDATE notification SET title='',content=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         // 推荐行为事件、小组作品关联——逻辑删除（严格按本人范围）
         db.update("UPDATE craft_recommend_event SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // 会话行为事件（2026-11-05 心流度量配套）——清上下文快照 + 逻辑删除
+        db.update("UPDATE craft_session_event SET context=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         db.update("UPDATE group_work SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE work_id IN (SELECT id FROM work WHERE user_id=?)",uid);
         // 推荐记录的敏感情绪标签（mood）与理由清空后再逻辑删除
         db.update("UPDATE craft_recommendation SET mood=NULL,reason=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);

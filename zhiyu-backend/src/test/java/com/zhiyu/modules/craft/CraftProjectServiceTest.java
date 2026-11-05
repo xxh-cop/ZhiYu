@@ -57,9 +57,10 @@ class CraftProjectServiceTest {
     }
 
     @Test
-    @DisplayName("listSteps 成功：返回 3 个步骤，按 stepNo 升序")
+    @DisplayName("listSteps 成功：返回 3 个步骤，按 stepNo 升序；上架项目非只读")
     void testListSteps_Success() {
-        List<CraftStepVO> steps = craftProjectService.listSteps(PROJECT_ID);
+        var view = craftProjectService.listSteps(PROJECT_ID);
+        List<CraftStepVO> steps = view.getSteps();
 
         assertEquals(3, steps.size());
         // 验证按 stepNo 升序
@@ -72,6 +73,13 @@ class CraftProjectServiceTest {
 
         assertEquals(3, steps.get(2).getStepNo());
         assertEquals("收尾整理", steps.get(2).getTitle());
+
+        // 上架项目：非只读、无提示语
+        assertEquals(1, view.getProjectStatus());
+        assertFalse(view.getReadOnly());
+        assertTrue(view.getCanReview());
+        assertFalse(view.getCanExport());
+        assertNull(view.getNoticeKey());
     }
 
     @Test
@@ -83,7 +91,7 @@ class CraftProjectServiceTest {
     }
 
     @Test
-    @DisplayName("listSteps 项目未上架 → 1004")
+    @DisplayName("listSteps 项目待审（status=0）→ 1004（不泄露存在性；下架/归档走结构化视图，见分层下架测试）")
     void testListSteps_Unpublished() {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> craftProjectService.listSteps(UNPUBLISHED_PROJECT_ID));

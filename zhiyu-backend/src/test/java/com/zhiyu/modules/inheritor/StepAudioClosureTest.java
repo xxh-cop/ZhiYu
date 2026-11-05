@@ -156,7 +156,7 @@ class StepAudioClosureTest {
         // 上架后学生可读
         jdbc.update("UPDATE craft_project SET status=1 WHERE id=?", projectId);
         UserContext.set(new LoginUser(student, 0));
-        var steps = craftProjectService.listSteps(projectId);
+        var steps = craftProjectService.listSteps(projectId).getSteps();
         assertEquals(3, steps.size());
         String signed = steps.get(0).getAudioUrl();
         assertTrue(signed.startsWith("/api/media/920031/content?")

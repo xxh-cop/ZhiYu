@@ -30,4 +30,13 @@ public class CraftStep extends BaseEntity {
 
     /** 引导语音频 URL */
     private String audioUrl;
+
+    /** 音频授权：none/cc0/owned/licensed/pending_review */
+    private String licenseStatus;
+
+    /** 音频署名信息（CC/授权来源） */
+    private String attribution;
+
+    /** 音频资产状态：ready 可播 / missing 缺失 / disabled 停用；NULL=无音频资产 */
+    private String assetStatus;
 }

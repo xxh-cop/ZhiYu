@@ -52,6 +52,7 @@ public class AdminServiceImpl implements AdminService {
     private final com.zhiyu.modules.notification.service.NotificationService notificationService;
     private final com.zhiyu.modules.care.OperationLog operationLog;
     private final com.zhiyu.modules.file.MediaService mediaService;
+    private final com.zhiyu.modules.craft.takedown.TakedownProperties takedownProperties;
 
     @Override
     public PageVO<AuditQueueItemVO> getAuditQueue(String type, Integer page) {
@@ -241,6 +242,11 @@ public class AdminServiceImpl implements AdminService {
         out.put("lastActionTime", lastActionTime);
         out.put("lastActorId", lastActorId);
         out.put("statusOrigin", statusOrigin);
+        // BT（2026-11-05）：下架三字段——键恒在，无值如实 null（不省略、不空串），
+        // 供管理端展示「合规下架至 X 归档」
+        out.put("takedownKind", project.getTakedownKind());
+        out.put("exportUntil", project.getExportUntil() == null ? null : project.getExportUntil().toString());
+        out.put("archiveAt", project.getArchiveAt() == null ? null : project.getArchiveAt().toString());
         out.put("createTime", project.getCreateTime() == null ? null : project.getCreateTime().toString());
         out.put("updateTime", project.getUpdateTime() == null ? null : project.getUpdateTime().toString());
         return out;
@@ -269,24 +275,67 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+    /** 运营下架截止时间的产品红线：距现在至少 7 天（与配置校验 @Min(7) 同口径）。 */
+    private static final int MIN_OPERATIONAL_DEADLINE_DAYS = 7;
+
     @Override
     @Transactional
-    public void takedownProject(Long projectId, String reason) {
+    public void takedownProject(Long projectId, String reason, String kind, LocalDateTime archiveAt) {
         String trimmed = requireReason(reason);
+        // 分层下架（2026-11-05）：类型必填，两类差异化行为见 TakedownStateResolver
+        String normalizedKind = normalizeKind(kind);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime exportUntil = null;
+        String noticeKey;
+        if (com.zhiyu.modules.craft.takedown.TakedownStateResolver.KIND_COMPLIANCE.equals(normalizedKind)) {
+            if (archiveAt != null) {
+                throw new BusinessException(ResultCode.PARAM_ERROR.getCode(),
+                        "合规下架不支持指定归档时间（导出窗口由系统配置）");
+            }
+            exportUntil = now.plusHours(takedownProperties.getCompliance().getExportWindowHours());
+            noticeKey = com.zhiyu.modules.craft.takedown.TakedownStateResolver.NOTICE_COMPLIANCE;
+        } else {
+            if (archiveAt == null) {
+                throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "运营下架必须填写截止时间");
+            }
+            if (archiveAt.isBefore(now.plusDays(MIN_OPERATIONAL_DEADLINE_DAYS))) {
+                throw new BusinessException(ResultCode.PARAM_ERROR.getCode(),
+                        "截止时间距现在至少 " + MIN_OPERATIONAL_DEADLINE_DAYS + " 天");
+            }
+            noticeKey = com.zhiyu.modules.craft.takedown.TakedownStateResolver.NOTICE_OPERATIONAL;
+        }
         CraftProject project = craftProjectMapper.selectById(projectId);
         if (project == null) {
             throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
         }
-        // 真实状态机：仅上架（1）→ 下架（2）；0 待审 / 2 已下架一律 3001，已下架不可再审核复活
+        // 真实状态机：仅上架（1）→ 下架（2）；0 待审 / 2 已下架 / 3 已归档一律 3001，不可再审核复活
         if (project.getStatus() == null || project.getStatus() != 1) {
             throw new BusinessException(ResultCode.BAD_STATE.getCode(), "仅上架中的项目可下架");
         }
         project.setStatus(2);
         project.setAuditReason(trimmed);
+        project.setTakedownKind(normalizedKind);
+        project.setTakedownAt(now);
+        project.setArchiveAt(archiveAt);
+        project.setExportUntil(exportUntil);
+        project.setNoticeKey(noticeKey);
         craftProjectMapper.updateById(project);
         operationLog.record("project.takedown", projectId);
         notifyProjectSafely(project.getInheritorId(), projectId, project.getTitle(), "takedown", trimmed);
-        log.info("项目已下架: projectId={}, operator={}", projectId, UserContext.getUserId());
+        log.info("项目已下架: projectId={}, kind={}, operator={}", projectId, normalizedKind, UserContext.getUserId());
+    }
+
+    /** 下架类型必填且只能 compliance / operational。 */
+    private static String normalizeKind(String kind) {
+        if (kind == null || kind.isBlank()) {
+            throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "必须选择下架类型（compliance 或 operational）");
+        }
+        String k = kind.trim().toLowerCase(java.util.Locale.ROOT);
+        if (!com.zhiyu.modules.craft.takedown.TakedownStateResolver.KIND_COMPLIANCE.equals(k)
+                && !com.zhiyu.modules.craft.takedown.TakedownStateResolver.KIND_OPERATIONAL.equals(k)) {
+            throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "下架类型只能为 compliance 或 operational");
+        }
+        return k;
     }
 
     @Override

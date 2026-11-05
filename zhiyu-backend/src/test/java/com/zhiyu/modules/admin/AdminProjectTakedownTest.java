@@ -79,12 +79,19 @@ class AdminProjectTakedownTest {
     }
 
     @Test
-    @DisplayName("AY1：下架成功——状态/理由落库/审计留痕/通知传承人（WORK_AUDIT refType=project 带理由）")
+    @DisplayName("AY1+分层：下架成功——状态/理由/类型/窗口/提示语落库，审计留痕，通知传承人（WORK_AUDIT refType=project 带理由）")
     void takedownSuccess() {
-        adminService.takedownProject(PROJECT, "内容需复核");
-        var row = jdbc.queryForMap("SELECT status,audit_reason FROM craft_project WHERE id=?", PROJECT);
+        adminService.takedownProject(PROJECT, "内容需复核", "compliance", null);
+        var row = jdbc.queryForMap(
+                "SELECT status,audit_reason,takedown_kind,takedown_at,archive_at,export_until,notice_key"
+                        + " FROM craft_project WHERE id=?", PROJECT);
         assertEquals(2, ((Number) row.get("status")).intValue());
         assertEquals("内容需复核", row.get("audit_reason"));
+        assertEquals("compliance", row.get("takedown_kind"));
+        assertNotNull(row.get("takedown_at"), "下架时间应落库");
+        assertNull(row.get("archive_at"), "合规下架不填归档时间");
+        assertNotNull(row.get("export_until"), "合规下架应有导出窗口截止");
+        assertEquals("craft-takedown-compliance", row.get("notice_key"));
         assertEquals(1, jdbc.queryForObject(
                 "SELECT COUNT(*) FROM admin_operation_log WHERE action='project.takedown' AND target_id=?", Integer.class, PROJECT));
         var n = jdbc.queryForMap(
@@ -97,27 +104,40 @@ class AdminProjectTakedownTest {
     }
 
     @Test
-    @DisplayName("AY1：非法状态流转——待审(0)/已下架(2)下架 → 3001；不存在 → 1004；空理由 → 1001")
+    @DisplayName("AY1+分层：非法状态流转——待审(0)/已下架(2)下架 → 3001；不存在 → 1004；空理由/空类型 → 1001")
     void takedownBadState() {
         assertEquals(1001, assertThrows(BusinessException.class,
-                () -> adminService.takedownProject(PROJECT, " ")).getCode());
+                () -> adminService.takedownProject(PROJECT, " ", "compliance", null)).getCode());
+        assertEquals(1001, assertThrows(BusinessException.class,
+                () -> adminService.takedownProject(PROJECT, "理由", null, null)).getCode(), "类型缺失应 1001");
+        assertEquals(1001, assertThrows(BusinessException.class,
+                () -> adminService.takedownProject(PROJECT, "理由", "other", null)).getCode(), "非法类型应 1001");
         assertEquals(1004, assertThrows(BusinessException.class,
-                () -> adminService.takedownProject(939999L, "理由")).getCode());
+                () -> adminService.takedownProject(939999L, "理由", "compliance", null)).getCode());
         jdbc.update("UPDATE craft_project SET status=0 WHERE id=?", PROJECT);
         assertEquals(3001, assertThrows(BusinessException.class,
-                () -> adminService.takedownProject(PROJECT, "理由")).getCode());
+                () -> adminService.takedownProject(PROJECT, "理由", "compliance", null)).getCode());
         jdbc.update("UPDATE craft_project SET status=2 WHERE id=?", PROJECT);
         assertEquals(3001, assertThrows(BusinessException.class,
-                () -> adminService.takedownProject(PROJECT, "理由")).getCode(), "重复下架应 3001");
+                () -> adminService.takedownProject(PROJECT, "理由", "compliance", null)).getCode(), "重复下架应 3001");
     }
 
     @Test
-    @DisplayName("AY1：下架后学生端（步骤/详情/会话）与传承人端详情均 1004；再审核 → 3001 不可复活")
+    @DisplayName("AY1+分层：合规下架后建会话/传承人详情仍 1004（不泄露存在性），"
+            + "但步骤列表改结构化只读视图；再审核 → 3001 不可复活")
     void takedownBlocksEverywhere() {
-        adminService.takedownProject(PROJECT, "违规内容");
+        adminService.takedownProject(PROJECT, "违规内容", "compliance", null);
         UserContext.set(new LoginUser(STUDENT, 0));
-        assertEquals(1004, assertThrows(BusinessException.class,
-                () -> craftProjectService.listSteps(PROJECT)).getCode(), "学生步骤列表应 1004");
+        // 分层下架（2026-11-05）：listSteps 不再 1004，返回只读结构化视图
+        var steps = craftProjectService.listSteps(PROJECT);
+        assertEquals(2, steps.getProjectStatus());
+        assertTrue(steps.getReadOnly(), "合规下架窗口内会话转只读");
+        assertTrue(steps.getCanReview(), "可回看历史步骤");
+        assertTrue(steps.getCanExport(), "窗口内可导出");
+        assertEquals(2, steps.getSteps().size(), "步骤仍可回看");
+        assertEquals("craft-takedown-compliance", steps.getNoticeKey());
+        assertNotNull(steps.getNotice(), "提示语应渲染");
+        assertNotNull(steps.getExportUntil());
         assertEquals(1004, assertThrows(BusinessException.class,
                 () -> craftSessionService.create(STUDENT, PROJECT, null)).getCode(), "学生建会话应 1004");
         UserContext.set(new LoginUser(INHERITOR, 1));
@@ -133,7 +153,7 @@ class AdminProjectTakedownTest {
     @Test
     @DisplayName("AY2：删除——级联逻辑删除步骤/材料，步骤音频与项目视频退役，审计+通知+理由")
     void deleteCascadeAndMediaRetired() {
-        adminService.takedownProject(PROJECT, "先下架");
+        adminService.takedownProject(PROJECT, "先下架", "compliance", null);
         adminService.deleteProject(PROJECT, "违规内容根除");
         assertEquals(1, jdbc.queryForObject("SELECT deleted FROM craft_project WHERE id=?", Integer.class, PROJECT));
         assertEquals("违规内容根除", jdbc.queryForObject("SELECT audit_reason FROM craft_project WHERE id=?", String.class, PROJECT));
@@ -200,7 +220,7 @@ class AdminProjectTakedownTest {
         var approved = adminService.projectDetail(p2);
         assertEquals("APPROVE", approved.get("lastAction"));
         assertNull(approved.get("statusOrigin"), "上架项目无来源推导");
-        adminService.takedownProject(p2, "事后抽检不合格");
+        adminService.takedownProject(p2, "事后抽检不合格", "compliance", null);
         var takenDown = adminService.projectDetail(p2);
         assertEquals("TAKEDOWN", takenDown.get("lastAction"));
         assertEquals("TAKEDOWN", takenDown.get("statusOrigin"), "最近一次是事后下架");
@@ -213,6 +233,38 @@ class AdminProjectTakedownTest {
         var historical = adminService.projectDetail(p3);
         assertNull(historical.get("lastAction"));
         assertEquals("REJECT", historical.get("statusOrigin"));
+    }
+
+    // ── BT（2026-11-05）：详情下发下架三字段 ──
+
+    @Test
+    @DisplayName("BT：详情下架三字段——未下架全 null（键恒在）；合规有 kind+exportUntil；运营有 archiveAt")
+    void projectDetailTakedownFields() {
+        // 未下架（上架中）：三键恒在且如实为 null（不省略、不空串）
+        var live = adminService.projectDetail(PROJECT);
+        assertTrue(live.containsKey("takedownKind") && live.containsKey("exportUntil") && live.containsKey("archiveAt"),
+                "三字段键必须恒存在");
+        assertNull(live.get("takedownKind"));
+        assertNull(live.get("exportUntil"));
+        assertNull(live.get("archiveAt"));
+
+        // 合规下架：kind=compliance，exportUntil 有值，archiveAt 为 null
+        adminService.takedownProject(PROJECT, "内容需复核", "compliance", null);
+        var compliance = adminService.projectDetail(PROJECT);
+        assertEquals("compliance", compliance.get("takedownKind"));
+        assertNotNull(compliance.get("exportUntil"), "合规下架应下发导出窗口截止");
+        assertNull(compliance.get("archiveAt"), "合规下架归档时间应为 null");
+
+        // 运营下架：archiveAt 有值
+        long p2 = 930104L;
+        jdbc.update("INSERT INTO craft_project(id,inheritor_id,title,level,category,status,create_time,update_time,deleted)"
+                + " VALUES(?,?,?,1,'纸艺',1,NOW(),NOW(),0)", p2, INHERITOR, "BT运营项目");
+        adminService.takedownProject(p2, "运营调整", "operational",
+                java.time.LocalDateTime.now().plusDays(10));
+        var operational = adminService.projectDetail(p2);
+        assertEquals("operational", operational.get("takedownKind"));
+        assertNotNull(operational.get("archiveAt"), "运营下架应下发归档截止");
+        assertNull(operational.get("exportUntil"), "运营下架无导出窗口");
     }
 
     @Test
@@ -340,7 +392,7 @@ class AdminProjectTakedownTest {
                 .thenThrow(new RuntimeException("通知存储挂了"));
         var svc = new com.zhiyu.modules.admin.service.impl.AdminServiceImpl(projects, null, null, null, null,
                 jdbc, failingNotify,
-                org.mockito.Mockito.mock(com.zhiyu.modules.care.OperationLog.class), null);
+                org.mockito.Mockito.mock(com.zhiyu.modules.care.OperationLog.class), null, null);
         var req = new com.zhiyu.modules.admin.dto.AuditRequest();
         req.setAction("approve");
         assertDoesNotThrow(() -> svc.auditProject(PROJECT, req), "通知失败不得阻断审核");
