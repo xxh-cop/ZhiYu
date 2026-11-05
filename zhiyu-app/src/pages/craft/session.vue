@@ -148,6 +148,35 @@
 					<AccessibleButton class="state-link" @click="handleBackHome">回到首页</AccessibleButton>
 				</view>
 			</view>
+			<!-- 心流自评校准（BU）：仅 finish 后抽中且未答未跳过时出现；
+			     关闭=跳过（同样发 skip:true，后端区分「没看到」与「看到不答」） -->
+			<view v-if="calibration" class="calibration-card" role="dialog" aria-label="专注体验小反馈">
+				<view class="cal-head">
+					<text class="cal-title">一分钟小反馈</text>
+					<AccessibleButton class="cal-close" aria-label="跳过这次反馈" :disabled="calibrationBusy" @click="skipCalibration">✕</AccessibleButton>
+				</view>
+				<text class="cal-question">{{ calibration.question }}</text>
+				<view class="cal-scale" role="radiogroup" :aria-label="calibration.question">
+					<AccessibleButton
+						v-for="n in calibration.scale.max"
+						:key="n"
+						class="cal-score"
+						:class="{ selected: calScore === n }"
+						:aria-pressed="calScore === n"
+						:disabled="calibrationBusy"
+						@click="calScore = n"
+					>{{ n }}</AccessibleButton>
+				</view>
+				<view class="cal-scale-labels">
+					<text>{{ calibration.scale.minLabel }}</text>
+					<text>{{ calibration.scale.maxLabel }}</text>
+				</view>
+				<view class="cal-actions">
+					<AccessibleButton class="cal-submit" :disabled="!calScore || calibrationBusy" :loading="calibrationBusy" @click="submitCalibration">提交评分</AccessibleButton>
+					<AccessibleButton class="cal-skip" :disabled="calibrationBusy" @click="skipCalibration">跳过</AccessibleButton>
+				</view>
+				<text class="cal-note">可回答也可跳过，都只是帮我们了解创作体验。本系统不能替代专业心理咨询。</text>
+			</view>
 		</view>
 
 		<!-- 加载中 -->
@@ -495,6 +524,42 @@ async function exportSessionData() {
 	}
 }
 
+// ── BU 心流自评校准（阶段 1-1）──
+// 仅 finish 成功后查询一次；sampled=false / 已答 / 已跳过 → 完全不渲染（无占位）。
+// 不产生 craft_session_event（校准不是会话事件）；失败静默，绝不阻塞主流程出口。
+const calibration = ref(null)
+const calScore = ref(0)
+const calibrationBusy = ref(false)
+async function loadCalibration() {
+	if (!sessionId) return
+	try {
+		const c = await http.get('/api/craft/session/' + sessionId + '/calibration')
+		if (c && c.sampled && !c.answered && !c.skipped) calibration.value = c
+	} catch (e) { /* 静默：校准是增强，失败不打扰 */ }
+}
+async function submitCalibration() {
+	if (calibrationBusy.value || !calScore.value || !sessionId) return
+	calibrationBusy.value = true
+	try {
+		await http.post('/api/craft/session/' + sessionId + '/calibration', { score: calScore.value })
+		calibration.value = null
+		toast.success('已收到，谢谢你')
+	} catch (e) {
+		// 业务拒绝（3001/1001 等）：后端 message 原文展示
+		toast.care((e && e.message) || '提交没有成功，可以稍后再试')
+	} finally {
+		calibrationBusy.value = false
+	}
+}
+async function skipCalibration() {
+	if (calibrationBusy.value || !sessionId) return
+	calibrationBusy.value = true
+	// 关闭等同跳过：必须发 skip:true（后端要区分「没看到」与「看到不答」）；失败也关闭，不卡页面
+	try { await http.post('/api/craft/session/' + sessionId + '/calibration', { skip: true }) } catch (e) { /* 静默 */ }
+	calibrationBusy.value = false
+	calibration.value = null
+}
+
 // ── BS 可见性事件（只报生命周期，不报输入/触摸）──
 let visibilityBound = false
 function onDocVisibility() {
@@ -633,6 +698,8 @@ async function handleFinish() {
 		trackSessionEvent('step_leave', { stepNo: currentStep.value, context: { dwellSeconds: getDwellSeconds() } })
 		await finishSessionEvents()
 		showSuccess.value = true
+		// BU：finish 后才查询自评校准（抽样已在服务端落库）；异步出现，不阻塞成功页
+		loadCalibration()
 	} catch (e) {
 		toast.care((e && e.message) || '操作失败')
 	}
@@ -923,6 +990,82 @@ function handleBackHome() {
 
 .banner-warn .banner-text { color: var(--zy-warning-text, #8a6d1f); }
 
+/* ── BU 校准卡片（成功层内第二块，温和非考核） ── */
+.calibration-card {
+	margin-top: 28rpx;
+	/* 与 success-card 同宽（overlay 为纵向 flex 容器，width 相对 overlay） */
+	width: 80%;
+	max-width: 640rpx;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	background: var(--zy-card-bg, #fff);
+	border: 1rpx solid var(--zy-border, #dfe7dc);
+	border-radius: 28rpx;
+	padding: 28rpx;
+	display: flex;
+	flex-direction: column;
+	gap: 18rpx;
+	text-align: left;
+}
+
+.cal-head { display: flex; align-items: center; justify-content: space-between; }
+.cal-title { font-size: 24rpx; color: var(--zy-text, #4a5f54); letter-spacing: 2rpx; }
+.cal-close {
+	margin: 0;
+	min-width: 88rpx;
+	min-height: 88rpx;
+	padding: 0;
+	background: transparent;
+	color: var(--zy-text, #4a5f54);
+	font-size: 30rpx;
+}
+
+.cal-question { font-size: 29rpx; line-height: 1.7; color: var(--zy-title, #233d34); font-weight: 500; }
+
+.cal-scale { display: flex; gap: 8rpx; justify-content: space-between; }
+.cal-score {
+	margin: 0;
+	flex: 1;
+	/* 390px 屏 7 钮物理极限：宽度均分（≈37px），高度保持 88rpx≈46px 触控达标，不再 min-width 硬撑溢出 */
+	min-width: 0;
+	min-height: 88rpx;
+	padding: 0;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-bg, #f5f7f2);
+	border: 2rpx solid var(--zy-border, #dfe7dc);
+	color: var(--zy-title, #233d34);
+	font-size: 28rpx;
+	font-weight: 600;
+}
+.cal-score.selected {
+	background: var(--zy-brand-600, #217e76);
+	border-color: var(--zy-brand-600, #217e76);
+	color: #fff;
+}
+
+.cal-scale-labels { display: flex; justify-content: space-between; font-size: 22rpx; color: var(--zy-text, #4a5f54); }
+
+.cal-actions { display: flex; gap: 20rpx; }
+.cal-submit {
+	flex: 1;
+	margin: 0;
+	min-height: 88rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-brand-600, #217e76);
+	color: #fff;
+	font-weight: 600;
+}
+.cal-skip {
+	flex-shrink: 0;
+	margin: 0;
+	min-height: 88rpx;
+	padding: 0 32rpx;
+	background: transparent;
+	color: var(--zy-text, #4a5f54);
+}
+
+.cal-note { font-size: 22rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); opacity: 0.85; }
+
 .banner-btn {
 	flex-shrink: 0;
 	margin: 0;
@@ -1189,8 +1332,13 @@ function handleBackHome() {
 	background-color: rgba(20, 32, 28, 0.5);
 	z-index: 9998;
 	display: flex;
+	/* BU：成功卡+校准卡纵向堆叠；内容超高时可滚动，杜绝横向溢出 */
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	overflow-y: auto;
+	padding: 40rpx 0;
+	box-sizing: border-box;
 	animation: fadeIn 0.25s ease;
 }
 
