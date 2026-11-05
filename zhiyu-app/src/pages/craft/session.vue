@@ -37,7 +37,13 @@
 		<!-- 状态条：只读回看（BR）/ 同步失败 / 已暂停 / 心流（同一位置轮替，不叠加） -->
 		<view v-if="craftStore.readOnly" class="banner banner-readonly" role="status">
 			<text class="banner-text readonly-text">{{ craftStore.notice }}</text>
-			<text v-if="craftStore.canExport && craftStore.exportUntil" class="banner-sub">可导出至 {{ formatDeadline(craftStore.exportUntil) }}（截止后转为归档，仅保留回看）</text>
+			<!-- 导出真实入口（文案与后端 notice 模板逐字一致）：仅只读+窗口内+有会话指针时渲染；
+			     窗口关闭/开关关闭/归档态（canExport=false）不渲染，由 notice 文本说明，不做禁用态占位 -->
+			<view v-if="craftStore.canExport && exportSessionId" class="export-row">
+				<AccessibleButton class="export-btn" :loading="exportBusy" :disabled="exportBusy" @click="exportSessionData">导出我的创作数据</AccessibleButton>
+				<text v-if="craftStore.exportUntil" class="banner-sub">可导出至 {{ formatDeadline(craftStore.exportUntil) }}（截止后转为归档，仅保留回看）</text>
+			</view>
+			<text v-else-if="craftStore.canExport && craftStore.exportUntil" class="banner-sub">可导出至 {{ formatDeadline(craftStore.exportUntil) }}（截止后转为归档，仅保留回看）</text>
 		</view>
 		<view v-else-if="craftStore.notice" class="banner banner-readonly" role="status">
 			<text class="banner-text readonly-text">{{ craftStore.notice }}</text>
@@ -204,7 +210,7 @@
 import MediaVideo from "../../components/MediaVideo.vue"
 import { ref, computed, watch } from 'vue'
 import { createMusicAudio } from '../../utils/music-audio'
-import { API_BASE_URL } from '../../utils/config'
+import { API_BASE_URL, TOKEN_KEY } from '../../utils/config'
 import { onLoad, onUnload, onShow, onHide, onBackPress } from '@dcloudio/uni-app'
 import { useCraftStore } from '../../stores/craft'
 import { http } from '../../utils/request'
@@ -312,7 +318,7 @@ const currentStepData = computed(() => {
 onLoad(query=>{route=query||{};initialize().then(loadTeaching)})
 async function initialize(){
  if(disposed)return
- pageLoading.value=true;loadError.value='';stopHeartbeatTimer();craftStore.reset();totalDwellSeconds=0;resumed.value=false
+ pageLoading.value=true;loadError.value='';stopHeartbeatTimer();craftStore.reset();totalDwellSeconds=0;resumed.value=false;exportSessionId=null
  try{
   let projectId=route.projectId
   if(!projectId)throw new Error('缺少项目参数')
@@ -329,6 +335,8 @@ async function initialize(){
    if(disposed)return
    craftStore.totalSteps=steps.length
    craftStore.currentStep=1
+   // 导出端点按会话寻址：用 listSteps 下发的最近会话指针（无会话则可导出标记也无意义，按钮不渲染）
+   exportSessionId=payload.sessionId?String(payload.sessionId):null
    stepStartTime=Date.now()
    return
   }
@@ -408,6 +416,83 @@ function getDwellSeconds() {
 // BR：后端 LocalDateTime（ISO）→ 界面可读截止时间
 function formatDeadline(v) {
 	return String(v || '').replace('T', ' ').slice(0, 16)
+}
+
+// ── 导出我的创作数据（合规下架窗口内真实入口）──
+// 只读回看下可用；导出请求不经过会话事件上报器（只读会话不绑定上报器，天然隔离）。
+let exportSessionId = null
+const exportBusy = ref(false)
+function readToken() {
+	try { return uni.getStorageSync(TOKEN_KEY) || '' } catch (e) { return '' }
+}
+async function exportSessionData() {
+	if (exportBusy.value || !exportSessionId) return
+	exportBusy.value = true
+	const url = API_BASE_URL + '/api/craft/session/' + exportSessionId + '/export'
+	const token = readToken()
+	try {
+		// #ifdef H5
+		// 附件下载需带 JWT（不能裸 a.download）。跨源 fetch 读不到 Content-Disposition（CORS 受限头），
+		// 故不靠响应头区分：业务拒绝（3001 等）body 为 Result JSON（code!==0），导出载荷无 code 字段。
+		const resp = await fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+		if (!resp.ok) {
+			const errBody = await resp.json().catch(() => null)
+			throw { code: errBody && errBody.code, message: (errBody && errBody.message) || '导出未完成，请稍后重试' }
+		}
+		const text = await resp.text()
+		let parsed = null
+		try { parsed = JSON.parse(text) } catch (e) { /* 非 JSON 按附件数据落盘 */ }
+		if (parsed && typeof parsed.code === 'number' && parsed.code !== 0) {
+			throw { code: parsed.code, message: parsed.message || '导出未完成，请稍后重试' }
+		}
+		const cd = resp.headers.get('content-disposition') || ''
+		const fname = (cd.match(/filename\*?=(?:UTF-8''|"?)([^";]+)"?/i) || [])[1]
+			|| `zhiyu-craft-session-${exportSessionId}-p${route.projectId || craftStore.projectId || ''}.json`
+		const blob = new Blob([text], { type: 'application/json;charset=UTF-8' })
+		const a = document.createElement('a')
+		a.href = URL.createObjectURL(blob)
+		a.download = decodeURIComponent(fname)
+		document.body.appendChild(a)
+		a.click()
+		a.remove()
+		setTimeout(() => URL.revokeObjectURL(a.href), 4000)
+		toast.success('已导出')
+		return
+		// #endif
+		// #ifdef MP-WEIXIN
+		await new Promise((resolve) => {
+			uni.downloadFile({
+				url,
+				header: { Authorization: 'Bearer ' + token },
+				success(r) {
+					if (r.statusCode !== 200) { toast.care('导出未完成（HTTP ' + r.statusCode + '）'); resolve(); return }
+					const fsm = uni.getFileSystemManager()
+					fsm.readFile({
+						filePath: r.tempFilePath,
+						encoding: 'utf8',
+						success(fr) {
+							let biz = null
+							try { const j = JSON.parse(fr.data); if (j && typeof j.code === 'number' && j.code !== 0) biz = j } catch (e) { /* 导出 JSON 无 code 字段，解析失败即视为数据 */ }
+							if (biz) { toast.care(biz.message || '导出未完成'); resolve(); return }
+							uni.saveFile({
+								tempFilePath: r.tempFilePath,
+								success() { toast.success('已导出，文件已保存') },
+								fail(e2) { toast.care('已下载但保存失败：' + ((e2 && e2.errMsg) || '未知原因')) },
+								complete() { resolve() },
+							})
+						},
+						fail() { toast.care('导出文件读取失败'); resolve() },
+					})
+				},
+				fail(e) { toast.care('导出失败：' + ((e && e.errMsg) || '请检查网络')); resolve() },
+			})
+		})
+		// #endif
+	} catch (e) {
+		toast.care((e && e.message) || '导出未完成，请稍后重试')
+	} finally {
+		exportBusy.value = false
+	}
 }
 
 // ── BS 可见性事件（只报生命周期，不报输入/触摸）──
@@ -814,6 +899,26 @@ function handleBackHome() {
 	color: var(--zy-warning-text, #8a6d1f);
 	opacity: 0.9;
 	margin-top: 8rpx;
+}
+
+/* 导出真实入口：主操作热区 ≥88rpx（≈44px） */
+.export-row {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 10rpx;
+	margin-top: 16rpx;
+}
+
+.export-btn {
+	margin: 0;
+	min-height: 88rpx;
+	padding: 20rpx 36rpx;
+	border-radius: var(--zy-radius-full, 9999rpx);
+	background: var(--zy-brand-600, #217e76);
+	color: #fff;
+	font-size: 27rpx;
+	font-weight: 600;
 }
 
 .banner-warn .banner-text { color: var(--zy-warning-text, #8a6d1f); }
