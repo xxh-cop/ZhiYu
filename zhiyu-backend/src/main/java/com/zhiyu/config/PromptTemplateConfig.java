@@ -43,6 +43,9 @@ public class PromptTemplateConfig {
     @Value("classpath:prompts/context-summary.st")
     private Resource contextSummaryPromptResource;
 
+    @Value("classpath:prompts/moderation-suggest.st")
+    private Resource moderationSuggestPromptResource;
+
     /**
      * 陪伴者系统提示词（companion.st 内容原文）。
      * 由 SpringAiLlmClient 在 streamChat 时作为第一条 system message 注入。
@@ -87,6 +90,16 @@ public class PromptTemplateConfig {
     @Bean("contextSummaryPrompt")
     public String contextSummaryPrompt() {
         return loadPrompt(contextSummaryPromptResource, "prompts/context-summary.st");
+    }
+
+    /**
+     * 审核辅助建议 Prompt 模板（BL 2026-11-05 引入）。
+     * 由 AdminModerationService 使用，占位符 {targetType}/{title}/{content}/{mediaNote}。
+     * 模板铁律：只给参考方向不裁决、不编造媒体内容、不确定就说不确定。
+     */
+    @Bean("moderationSuggestPrompt")
+    public String moderationSuggestPrompt() {
+        return loadPrompt(moderationSuggestPromptResource, "prompts/moderation-suggest.st");
     }
 
     private String loadPrompt(Resource resource, String desc) {

@@ -1,0 +1,22 @@
+# BL 批（2026-11-05）：AI 审核辅助建议（按需调用，人工裁决）
+Feature: BL AI 审核辅助建议
+
+  Scenario: 审核员按需获取作品建议
+    Given 一个待审作品（标题 + 寄语 + 含视频）
+    When 审核员 POST /api/admin/works/{id}/ai-suggest
+    Then 返回 available=true + tendency（NO_OBVIOUS_ISSUE/HAS_CONCERNS/UNCERTAIN）+ riskPoints（每条含 location/note）+ uncertainty + disclaimer
+    And riskPoints 不含「通过/驳回」等裁决词；含媒体时 media 位置提示人工核对
+    And ai_audit_log 落 scene=moderation 且 refType=work、refId=作品 id（raw 加密）
+    And 作品审核状态不被修改
+
+  Scenario: AI 不可用时的明确降级
+    Given 模型未配置或熔断中或输出未过安全过滤或返回格式不可用
+    When 审核员请求建议
+    Then HTTP 200 + code=0 + available=false + note 说明原因 + disclaimer 恒在
+    And 不抛出阻断人工审核的错误，也绝不显示 Mock/改写文本冒充建议
+
+  Scenario: 越权与频控
+    When 学生或咨询师请求 ai-suggest
+    Then 403/1003
+    When 同一审核员一小时内第 31 次请求
+    Then 400/1001（明确提示频控，不伪装成暂无建议）
