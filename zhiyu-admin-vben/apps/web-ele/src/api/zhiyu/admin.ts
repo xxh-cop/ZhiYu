@@ -128,3 +128,97 @@ export async function getWorkAiSuggestion(id: string) {
 export async function getCommentAiSuggestion(id: string) {
   return requestClient.post<AiSuggestion>(`/admin/comments/${id}/ai-suggest`);
 }
+
+/**
+ * 心流/专注度量看板（阶段 1-2，2026-11-05；GET /api/admin/flow-metrics/dashboard，仅 role=3）。
+ * 口径以 docs/flow-metrics-dashboard-literature-20261105.md §3/§9 为准：
+ * 分母=step_leave 活跃秒数，分子=阈值后深度沉浸秒数（2026-11-05 起新语义）；
+ * 人×周中位数 + p50/p90，不给均值大数字；只读/归档/待审会话剔除并在 exclusions 透明返回；
+ * operational 分面不并线；unavailable[] 如实列出不可得项，不得用 0 冒充。
+ */
+export interface FlowMetricsDashboard {
+  range: { days: number; from: string; to: string };
+  generatedAt: string;
+  /** 指标名由后端效度校准决定：「心流占时」或「专注停留占比」（insufficient/ρ<0.3 时后者） */
+  metricLabel: string;
+  calibration: {
+    method: string;
+    threshold: number;
+    minSamples: number;
+    sampleSize: number;
+    status: 'insufficient' | 'ok';
+    rho?: number | null;
+  };
+  selfReport: {
+    sampled: number;
+    answered: number;
+    skipped: number;
+    noResponse: number;
+    responseRate?: number | null;
+  };
+  totals: {
+    sessionsInRange: number;
+    inProgressSessions: number;
+    excludedReadOnly: number;
+    excludedPendingProject: number;
+    excludedNoEvents: number;
+    includedSessions: number;
+    activeSeconds: number;
+    flowSeconds: number;
+    activeUsers: number;
+  };
+  /** 剔除明细（雪花 ID 为字符串；限量返回，总数看 totals） */
+  exclusions: Array<{
+    sessionId: string;
+    projectId?: string | null;
+    reason: 'pending_project' | 'read_only' | string;
+    readOnlySince?: string | null;
+  }>;
+  distribution: {
+    personWeeks: number;
+    p50?: number | null;
+    p90?: number | null;
+    buckets: Array<{ index: number; min: number; max?: number | null; count: number }>;
+  };
+  weekly: Array<{
+    weekStart: string;
+    activeUsers: number;
+    sessionCount: number;
+    medianRatio?: number | null;
+    p25?: number | null;
+    p75?: number | null;
+    activeSeconds: number;
+    flowSeconds: number;
+  }>;
+  facets: {
+    byLevel: FlowMetricsFacetCell[];
+    byDurationBucket: FlowMetricsFacetCell[];
+    byTakedownKind: FlowMetricsFacetCell[];
+  };
+  /** 行为信号计数（区间内全量；无数据的类型为 0——这是计数，不是冒充有数据） */
+  events: Record<string, number>;
+  /** 口径变更点（变更前后数据不得跨期比较） */
+  definitionChanges: Array<{ date: string; key: string; note: string }>;
+  unavailable: Array<{ key: string; label: string; reason: string }>;
+}
+
+export interface FlowMetricsFacetCell {
+  key: string;
+  sessions: number;
+  users: number;
+  p50?: number | null;
+  p90?: number | null;
+  activeSeconds: number;
+  flowSeconds: number;
+  /** 单元去重用户数 <10 → 前端标灰（样本稀疏，中位数不稳定） */
+  sparse: boolean;
+}
+
+export async function getFlowMetricsDashboard(params?: {
+  from?: string;
+  to?: string;
+}) {
+  return requestClient.get<FlowMetricsDashboard>('/admin/flow-metrics/dashboard', {
+    params,
+  });
+}

@@ -224,6 +224,17 @@ const routes: RouteRecordRaw[] = [
           authority: ['ROLE_3'],
         },
       },
+      {
+        // 阶段 1-2（2026-11-05）：心流/专注度量看板；指标名由后端校准下发
+        name: 'ZhiyuFlowMetrics',
+        path: 'flow-metrics',
+        component: () => import('#/views/zhiyu/flow-metrics.vue'),
+        meta: {
+          icon: 'lucide:gauge',
+          title: '专注度量',
+          authority: ['ROLE_3'],
+        },
+      },
     ],
   },
   {

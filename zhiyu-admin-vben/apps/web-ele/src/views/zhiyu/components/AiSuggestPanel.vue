@@ -78,10 +78,10 @@ function giveUp() {
       </button>
     </div>
 
-    <!-- 加载态：可放弃（reasoner 可能数十秒） -->
+    <!-- 加载态：可放弃 -->
     <div v-else-if="phase === 'loading'" class="ai-suggest__loading" role="status">
       <span class="ai-suggest__spinner" aria-hidden="true"></span>
-      <span>正在生成 AI 建议…（推理模型可能需要数十秒）</span>
+      <span>正在生成 AI 建议…（通常数秒，内容复杂时可能更久）</span>
       <button type="button" class="ai-suggest__giveup" @click="giveUp">
         放弃
       </button>
