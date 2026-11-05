@@ -94,6 +94,32 @@ public interface LlmClient {
         return chatWithUsage(prompt);
     }
 
+    /**
+     * JSON 结构化输出（2026-11-05 健壮性批）：{@code response_format=json_object}，
+     * 由 provider 保证返回合法 JSON（修「模型输出未转义引号破坏 JSON」类降级）。
+     * 仅 moderation 链路使用；不支持该能力的实现（如 Mock）默认回退普通对话。
+     *
+     * @param model 目标模型名；{@code null} 表示默认模型
+     */
+    default LlmChatResult chatWithUsageJson(String prompt, String model) {
+        return model == null ? chatWithUsage(prompt) : chatWithUsage(prompt, model);
+    }
+
+    /** 推荐理由（带 usage 变体；默认包装 String 版，usage 为 null——拿不到不估算）。 */
+    default LlmChatResult recommendReasonWithUsage(String mood, List<String> craftNames) {
+        return new LlmChatResult(recommendReason(mood, craftNames), null, null);
+    }
+
+    /** 作品寄语（带 usage 变体；同上）。 */
+    default LlmChatResult workMessageWithUsage(String workTitle, String mood) {
+        return new LlmChatResult(workMessage(workTitle, mood), null, null);
+    }
+
+    /** 创作回顾（带 usage 变体；同上）。 */
+    default LlmChatResult reflectionSummaryWithUsage(String prompt) {
+        return new LlmChatResult(reflectionSummary(prompt), null, null);
+    }
+
     /** 当前模型名；未覆盖时返回 unknown，不得把 Mock 冒充真实模型。 */
     default String modelName() {
         return "unknown";

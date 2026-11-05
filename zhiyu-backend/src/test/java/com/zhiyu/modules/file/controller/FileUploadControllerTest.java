@@ -217,4 +217,21 @@ class FileUploadControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(1001));
     }
+
+    @Test
+    @DisplayName("2026-11-05 健壮性批：空表单（缺 file 字段）→ 400/1001 而非 500/5000（音频与图片同口径）")
+    void testUpload_MissingFilePart_Returns400() throws Exception {
+        mockMvc.perform(multipart("/api/files/upload/audio")
+                        .header("Authorization", "Bearer " + inheritorToken()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+        mockMvc.perform(multipart("/api/files/upload/image")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+        mockMvc.perform(multipart("/api/files/upload/video")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+    }
 }

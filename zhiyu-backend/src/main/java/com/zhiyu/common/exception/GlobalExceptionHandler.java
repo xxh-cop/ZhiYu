@@ -160,6 +160,28 @@ public class GlobalExceptionHandler {
                 Result.error(ResultCode.METHOD_NOT_ALLOWED));
     }
 
+    /**
+     * 上传请求缺少 file 字段（2026-11-05 健壮性批）：此前落到兜底 Exception → 500/5000。
+     * 空表单属调用方参数问题，固定 400 + 1001，不回显 part 细节。
+     */
+    @ExceptionHandler(org.springframework.web.multipart.support.MissingServletRequestPartException.class)
+    public void handleMissingRequestPart(
+            org.springframework.web.multipart.support.MissingServletRequestPartException e,
+            HttpServletResponse response) throws IOException {
+        log.warn("上传请求缺少必需字段：part={}", e.getRequestPartName());
+        writeResult(response, HttpStatus.BAD_REQUEST,
+                Result.error(ResultCode.PARAM_ERROR.getCode(), "请上传文件（缺少 file 字段）"));
+    }
+
+    /** multipart 请求本身畸形（缺 boundary/解析失败等）：同样按参数问题处理，400 + 1001。 */
+    @ExceptionHandler(org.springframework.web.multipart.MultipartException.class)
+    public void handleMultipartException(org.springframework.web.multipart.MultipartException e,
+                                         HttpServletResponse response) throws IOException {
+        log.warn("multipart 请求解析失败：{}", e.getMessage());
+        writeResult(response, HttpStatus.BAD_REQUEST,
+                Result.error(ResultCode.PARAM_ERROR.getCode(), "上传请求格式错误"));
+    }
+
     /** 兜底：记录完整堆栈，只向调用方暴露通用提示，固定 HTTP 500，不泄漏内部细节。 */
     @ExceptionHandler(Exception.class)
     public void handleException(Exception e, HttpServletResponse response) throws IOException {

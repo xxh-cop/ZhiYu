@@ -453,8 +453,10 @@ public class AiClient {
             return FALLBACK_RECOMMEND;
         }
         String result;
+        com.zhiyu.ai.client.LlmChatResult recommendGeneration = null;
         try {
-            result = llmClient.recommendReason(mood, craftNames);
+            recommendGeneration = llmClient.recommendReasonWithUsage(mood, craftNames);
+            result = recommendGeneration == null ? null : recommendGeneration.text();
             breaker.recordSuccess(KEY_RECOMMEND);
         } catch (Exception e) {
             breaker.recordFailure(KEY_RECOMMEND);
@@ -464,7 +466,8 @@ public class AiClient {
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return FALLBACK_RECOMMEND;
         }
-        metric(KEY_RECOMMEND, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null);
+        metric(KEY_RECOMMEND, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
+                recommendGeneration.inputTokens(), recommendGeneration.outputTokens());
         return applyOutputSafety("recommend", result);
     }
 
@@ -494,8 +497,10 @@ public class AiClient {
             return FALLBACK_MESSAGE;
         }
         String result;
+        com.zhiyu.ai.client.LlmChatResult messageGeneration = null;
         try {
-            result = llmClient.workMessage(workTitle, mood);
+            messageGeneration = llmClient.workMessageWithUsage(workTitle, mood);
+            result = messageGeneration == null ? null : messageGeneration.text();
             breaker.recordSuccess(KEY_MESSAGE);
         } catch (Exception e) {
             breaker.recordFailure(KEY_MESSAGE);
@@ -505,7 +510,8 @@ public class AiClient {
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return FALLBACK_MESSAGE;
         }
-        metric(KEY_MESSAGE, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null);
+        metric(KEY_MESSAGE, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
+                messageGeneration.inputTokens(), messageGeneration.outputTokens());
         return applyOutputSafety("message", result);
     }
 
@@ -534,8 +540,10 @@ public class AiClient {
             return null;
         }
         String result;
+        com.zhiyu.ai.client.LlmChatResult reflectionGeneration = null;
         try {
-            result = llmClient.reflectionSummary(prompt);
+            reflectionGeneration = llmClient.reflectionSummaryWithUsage(prompt);
+            result = reflectionGeneration == null ? null : reflectionGeneration.text();
             if (result == null || result.isBlank()) {
                 throw new IllegalStateException("empty reflection summary");
             }
@@ -553,12 +561,14 @@ public class AiClient {
         if (output.getAction() == SafetyAction.BLOCK) {
             metric(KEY_MESSAGE, llmClient::modelName, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                    com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED);
+                    com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                    reflectionGeneration.inputTokens(), reflectionGeneration.outputTokens());
             return null;
         }
         metric(KEY_MESSAGE, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
                 output.getAction() == SafetyAction.PASS ? null
-                        : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE);
+                        : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE,
+                reflectionGeneration.inputTokens(), reflectionGeneration.outputTokens());
         if (output.getAction() == SafetyAction.REWRITE
                 && output.getRewrittenText() != null
                 && !output.getRewrittenText().isBlank()) {
@@ -713,7 +723,8 @@ public class AiClient {
         var route = modelRouter.resolve("moderation");
         if (route.llmAllowed() && route.available() && breaker.allowRequest(KEY_MODERATION)) {
             try {
-                var generation = llmClient.chatWithUsage(prompt, route.model());
+                // JSON mode（2026-11-05 健壮性批）：provider 侧保证合法 JSON，修输出转义类 PARSE_FAIL
+                var generation = llmClient.chatWithUsageJson(prompt, route.model());
                 String out = generation == null ? null : generation.text();
                 if (out == null || out.isBlank()) {
                     throw new IllegalStateException("empty moderation suggestion");
@@ -746,7 +757,9 @@ public class AiClient {
             return null;
         }
         try {
-            String out = llmClient.chat(prompt);
+            // standard 档回落同样走 JSON mode，并顺带采集 usage（此前 chat() 无 usage 通道）
+            var standardGeneration = llmClient.chatWithUsageJson(prompt, null);
+            String out = standardGeneration == null ? null : standardGeneration.text();
             if (out == null || out.isBlank()) {
                 throw new IllegalStateException("empty moderation suggestion");
             }
@@ -755,7 +768,8 @@ public class AiClient {
             metric(KEY_MODERATION, llmClient::modelName, t1,
                     done != null ? com.zhiyu.ai.metrics.AiCallMetrics.OK
                             : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                    done != null ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED);
+                    done != null ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                    standardGeneration.inputTokens(), standardGeneration.outputTokens());
             return done;
         } catch (Exception e) {
             breaker.recordFailure(KEY_MODERATION);
@@ -813,7 +827,9 @@ public class AiClient {
             return null;
         }
         try {
-            String result = llmClient.chat(prompt);
+            // usage 覆盖（2026-11-05 健壮性批）：chat → chatWithUsage，tokens 进 ai_trace
+            var summaryGeneration = llmClient.chatWithUsage(prompt);
+            String result = summaryGeneration == null ? null : summaryGeneration.text();
             if (result == null || result.isBlank()) {
                 throw new IllegalStateException("empty context summary");
             }
@@ -825,12 +841,14 @@ public class AiClient {
                 breaker.recordSuccess(KEY_SUMMARY);
                 metric(KEY_SUMMARY, llmClient::modelName, t0,
                         com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                        com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED);
+                        com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                        summaryGeneration.inputTokens(), summaryGeneration.outputTokens());
                 return null;
             }
             breaker.recordSuccess(KEY_SUMMARY);
             metric(KEY_SUMMARY, llmClient::modelName, t0,
-                    com.zhiyu.ai.metrics.AiCallMetrics.OK, null);
+                    com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
+                    summaryGeneration.inputTokens(), summaryGeneration.outputTokens());
             return result.trim();
         } catch (Exception e) {
             breaker.recordFailure(KEY_SUMMARY);

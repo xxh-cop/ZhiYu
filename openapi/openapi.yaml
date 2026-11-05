@@ -1430,6 +1430,18 @@ paths:
         '200': {description: 视频内容}
         '206': {description: 视频分段内容}
         '403': {description: 签名过期或权限已撤销}
+  /api/media/{id}:
+    delete:
+      operationId: mediaByIdDelete
+      summary: '本人删除自己上传的媒体（2026-11-05 健壮性批）'
+      description: '仅媒体上传者本人可删，且仅当媒体未被任何内容引用。删除语义与孤儿退役一致：逻辑注销 media_asset + 登记 file_cleanup_job（PRIVATE），物理删除由 FileCleanupWorker 异步重试。被引用（craft_step.audio_url / craft_project.video_url|cover_url / work.video_url|cover_url）时不删除并返回 3001（HTTP 200 业务失败）。'
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, description: '媒体 ID（雪花，字符串）'}}
+      responses:
+        '200': {description: 'Result 包装，data.deleted=true；被引用时 code=3001'}
+        '401': {description: 未登录或登录已过期（code=1002）, content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResult'}}}}
+        '403': {description: 非本人上传（code=1003）, content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResult'}}}}
+        '404': {description: 媒体不存在（code=1004）, content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResult'}}}}
   /api/admin/dashboard/operations:
     get:
       operationId: adminDashboardOperationsGet
@@ -4227,7 +4239,7 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, description: '作品 ID（雪花，字符串）' } }
       responses:
-        '200': { description: 'Result，data 为建议结构（available/tendency/riskPoints/uncertainty/note/disclaimer）' }
+        '200': { description: 'Result，data 为建议结构（available/tendency/narrative/riskPoints/uncertainty/note/disclaimer）。tendency 取值：NO_OBVIOUS_ISSUE / HAS_CONCERNS / UNCERTAIN；仅当服务端开启 zhiyu.moderation.soft-tier.enabled（默认关）时可能出现第四值 SOFT_CONCERN（轻微关注：通过但进抽检池+曝光降权，语义见 docs/moderation-soft-tier-20261105.md）。开关开启时响应另带 narrative 单选枚举（self_disclosure=本人体验自述且无风险指代 / risk_action=含风险动作、时间、手段或准备指代 / other_directed=含指向他人的求助、鼓动或引导 / none=以上都不是）；软档窄门：tendency=SOFT_CONCERN 且 narrative=self_disclosure 才成立，缺字段、未知枚举值或取其他值由服务端保守降为 UNCERTAIN。旧前端对未知 tendency 必须按「无法判断」兜底展示，不得显示英文原串' }
         '400': { description: '频控超限（code=1001）' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003，仅审核员 role=3）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -4237,12 +4249,12 @@ paths:
     post:
       operationId: adminCommentAiSuggest
       summary: '审核员：评论 AI 辅助建议（按需调用，BL 2026-11-05）'
-      description: '同 /api/admin/works/{id}/ai-suggest，对象为评论（refType=comment）。'
+      description: '同 /api/admin/works/{id}/ai-suggest，对象为评论（refType=comment）。tendency 取值与 SOFT_CONCERN 出现条件同作品端点'
       x-required-role: admin
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, description: '评论 ID（雪花，字符串）' } }
       responses:
-        '200': { description: 'Result，data 为建议结构' }
+        '200': { description: 'Result，data 为建议结构（tendency 取值见作品端点说明）' }
         '400': { description: '频控超限（code=1001）' }
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }

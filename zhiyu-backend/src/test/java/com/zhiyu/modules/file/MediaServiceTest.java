@@ -88,6 +88,42 @@ class MediaServiceTest {
   assertEquals(1,db.queryForObject("SELECT deleted FROM media_asset WHERE id=?",Integer.class,id),"全引用解除后退役");
  }
 
+ // ── 2026-11-05 健壮性批：本人删除自己上传的媒体 ──
+
+ @Test void deleteOwnedSuccessSchedulesCleanup(){
+  String ref=service.uploadAudio(4L,audio());long id=id(ref);
+  service.deleteOwned(4L,id);
+  assertEquals(1,db.queryForObject("SELECT deleted FROM media_asset WHERE id=?",Integer.class,id));
+  assertEquals(1,db.queryForObject("SELECT COUNT(*) FROM file_cleanup_job WHERE storage_kind='PRIVATE'",Integer.class));
+  // 幂等：重复删除按「不存在」处理（已逻辑删除）
+  assertEquals(1004,assertThrows(BusinessException.class,()->service.deleteOwned(4L,id)).getCode());
+ }
+
+ @Test void deleteOwnedForbiddenForOthersAndMissing(){
+  String ref=service.uploadAudio(4L,audio());long id=id(ref);
+  assertEquals(1003,assertThrows(BusinessException.class,()->service.deleteOwned(2L,id)).getCode());
+  assertEquals(1004,assertThrows(BusinessException.class,()->service.deleteOwned(4L,999999L)).getCode());
+  assertEquals(1002,assertThrows(BusinessException.class,()->service.deleteOwned(null,id)).getCode());
+  assertEquals(0,db.queryForObject("SELECT deleted FROM media_asset WHERE id=?",Integer.class,id),"他人/不存在不得删除");
+ }
+
+ @Test void deleteOwnedRejectedWhenReferenced(){
+  String ref=service.uploadAudio(4L,audio());long id=id(ref);
+  db.update("INSERT INTO craft_project(id,video_url,status,deleted) VALUES(81,NULL,1,0)");
+  db.update("INSERT INTO craft_step(id,project_id,audio_url,deleted) VALUES(9101,81,?,0)",ref);
+  var denied=assertThrows(BusinessException.class,()->service.deleteOwned(4L,id));
+  assertEquals(3001,denied.getCode());
+  assertEquals(0,db.queryForObject("SELECT deleted FROM media_asset WHERE id=?",Integer.class,id),"被引用时不得删除");
+  assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM file_cleanup_job",Integer.class),"被引用时不得登记清理");
+  // 作品视频引用同口径拒绝；解除引用后可删
+  db.update("UPDATE craft_step SET deleted=1 WHERE id=9101");
+  db.update("INSERT INTO work(id,video_url,status,visible,deleted) VALUES(7101,?,1,1,0)",ref);
+  assertEquals(3001,assertThrows(BusinessException.class,()->service.deleteOwned(4L,id)).getCode());
+  db.update("UPDATE work SET deleted=1 WHERE id=7101");
+  service.deleteOwned(4L,id);
+  assertEquals(1,db.queryForObject("SELECT deleted FROM media_asset WHERE id=?",Integer.class,id));
+ }
+
  @Test void playbackIfMediaRefRewritesOrPassesThrough(){
   String ref=service.uploadAudio(4L,audio());
   // 授权不通过 → 降级 null（不抛异常拖垮列表装配）；外链/静态资源/空值原样透传

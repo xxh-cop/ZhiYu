@@ -39,21 +39,22 @@ class AiClientModerationTest {
     }
 
     @Test
-    @DisplayName("BL：strong 档正常生成（llm-moderation 计数，不走 llm-chat）")
+    @DisplayName("BL：strong 档正常生成（JSON mode，llm-moderation 计数，不走 standard）")
     void strongTierSuccess() {
-        when(llm.chatWithUsage(anyString(), eq("deepseek-reasoner")))
+        when(llm.chatWithUsageJson(anyString(), eq("deepseek-reasoner")))
                 .thenReturn(new LlmChatResult("{\"tendency\":\"NO_OBVIOUS_ISSUE\",\"riskPoints\":[]}", 1, 2));
         String out = client(llm).moderationSuggest("prompt");
         assertNotNull(out);
         assertTrue(out.contains("NO_OBVIOUS_ISSUE"));
-        verify(llm, never()).chat(anyString());
+        verify(llm, never()).chatWithUsageJson(anyString(), isNull());
     }
 
     @Test
-    @DisplayName("BL：strong 档失败显式回落 standard 档")
+    @DisplayName("BL：strong 档失败显式回落 standard 档（回落同样 JSON mode）")
     void strongFailsFallsBackToStandard() {
-        when(llm.chatWithUsage(anyString(), anyString())).thenThrow(new RuntimeException("reasoner 挂了"));
-        when(llm.chat(anyString())).thenReturn("{\"tendency\":\"UNCERTAIN\",\"riskPoints\":[]}");
+        when(llm.chatWithUsageJson(anyString(), anyString())).thenThrow(new RuntimeException("reasoner 挂了"));
+        when(llm.chatWithUsageJson(anyString(), isNull()))
+                .thenReturn(new LlmChatResult("{\"tendency\":\"UNCERTAIN\",\"riskPoints\":[]}", 3, 4));
         String out = client(llm).moderationSuggest("prompt");
         assertNotNull(out);
         assertTrue(out.contains("UNCERTAIN"));
@@ -67,8 +68,7 @@ class AiClientModerationTest {
         assertNull(mockBacked.moderationSuggest("p"), "Mock 实现必须返回不可用（诚实降级）");
 
         // 真实熔断：llm-moderation 连败 5 次熔断，llm-chat 不受影响（隔离）
-        when(llm.chatWithUsage(anyString(), anyString())).thenThrow(new RuntimeException("x"));
-        when(llm.chat(anyString())).thenThrow(new RuntimeException("x"));
+        when(llm.chatWithUsageJson(anyString(), any())).thenThrow(new RuntimeException("x"));
         AiClient c = client(llm);
         for (int i = 0; i < 5; i++) {
             assertNull(c.moderationSuggest("p"));
@@ -81,7 +81,7 @@ class AiClientModerationTest {
     @Test
     @DisplayName("BL：输出未过安全过滤（REWRITE）→ 降级不可用，不把改写文本当建议")
     void outputRewriteDegrades() {
-        when(llm.chatWithUsage(anyString(), anyString()))
+        when(llm.chatWithUsageJson(anyString(), anyString()))
                 .thenReturn(new LlmChatResult("{\"tendency\":\"HAS_CONCERNS\"}", 1, 2));
         AiClient c = client(llm); // 先注册兜底 PASS 桩
         when(filter.checkOutput(any(), eq("moderation"), anyString()))

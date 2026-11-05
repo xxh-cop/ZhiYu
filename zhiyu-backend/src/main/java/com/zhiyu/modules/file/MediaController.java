@@ -19,5 +19,10 @@ public class MediaController {
  private final BusinessAccess access;
  @GetMapping("/mine") public Result<?> mine(@RequestParam(required=false) Long before){return Result.success(media.mine(access.consentedUser(),before));}
  @GetMapping("/{id}/playback") public Result<Map<String,String>> playback(@PathVariable long id){return Result.success(Map.of("url",media.playback(UserContext.getUserId(),id)));}
+ /**
+  * 本人删除自己上传的媒体（2026-11-05 健壮性批）：只删未引用媒体，被引用 → 3001。
+  * 权限语义在 MediaService.deleteOwned：未登录 1002 / 非本人 1003 / 不存在 1004。
+  */
+ @DeleteMapping("/{id}") public Result<Map<String,Boolean>> delete(@PathVariable long id){media.deleteOwned(UserContext.getUserId(),id);return Result.success(Map.of("deleted",true));}
  @GetMapping("/{id}/content") public ResponseEntity<Resource> content(@PathVariable long id,@RequestParam Long uid,@RequestParam long expires,@RequestParam String signature){Resource resource=media.content(id,uid,expires,signature);return ResponseEntity.ok().contentType(MediaType.valueOf(media.contentType(id))).cacheControl(CacheControl.noStore()).header("X-Content-Type-Options","nosniff").body(resource);}
 }

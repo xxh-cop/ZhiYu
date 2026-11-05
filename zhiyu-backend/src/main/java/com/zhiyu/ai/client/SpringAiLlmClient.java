@@ -72,22 +72,40 @@ public class SpringAiLlmClient implements LlmClient {
 
     @Override
     public String recommendReason(String mood, List<String> craftNames) {
+        return recommendReasonWithUsage(mood, craftNames).text();
+    }
+
+    @Override
+    public LlmChatResult recommendReasonWithUsage(String mood, List<String> craftNames) {
         // T1.5：Prompt 外置到 prompts/recommend.st，占位符 {mood} / {craftNames} 渲染
         String promptText = recommendPrompt
                 .replace("{mood}", mood)
                 .replace("{craftNames}", String.join("、", craftNames));
-        return chatClient.prompt().options(options()).system(safetyPrompt).user(promptText+"\n"+settings.prompt("recommendation")).call().content();
+        return toResult(chatClient.prompt().options(options()).system(safetyPrompt)
+                .user(promptText + "\n" + settings.prompt("recommendation")).call().chatResponse());
     }
 
     @Override
     public String workMessage(String workTitle, String mood) {
-        String promptText=workPrompt.replace("{workTitle}",workTitle).replace("{mood}",mood);
-        return chatClient.prompt().options(options()).system(safetyPrompt).user(promptText+"\n"+settings.prompt("work")).call().content();
+        return workMessageWithUsage(workTitle, mood).text();
+    }
+
+    @Override
+    public LlmChatResult workMessageWithUsage(String workTitle, String mood) {
+        String promptText = workPrompt.replace("{workTitle}", workTitle).replace("{mood}", mood);
+        return toResult(chatClient.prompt().options(options()).system(safetyPrompt)
+                .user(promptText + "\n" + settings.prompt("work")).call().chatResponse());
     }
 
     @Override
     public String reflectionSummary(String prompt) {
-        return chatClient.prompt().options(options()).system(safetyPrompt).user(prompt).call().content();
+        return reflectionSummaryWithUsage(prompt).text();
+    }
+
+    @Override
+    public LlmChatResult reflectionSummaryWithUsage(String prompt) {
+        return toResult(chatClient.prompt().options(options()).system(safetyPrompt)
+                .user(prompt).call().chatResponse());
     }
 
     @Override
@@ -102,16 +120,8 @@ public class SpringAiLlmClient implements LlmClient {
 
     @Override
     public LlmChatResult chatWithUsage(String prompt) {
-        ChatResponse response = chatClient.prompt().options(options()).system(safetyPrompt)
-                .user(prompt).call().chatResponse();
-        String text = response == null || response.getResult() == null
-                || response.getResult().getOutput() == null
-                ? "" : response.getResult().getOutput().getText();
-        var usage = response == null || response.getMetadata() == null
-                ? null : response.getMetadata().getUsage();
-        return new LlmChatResult(text,
-                usage == null ? null : usage.getPromptTokens(),
-                usage == null ? null : usage.getCompletionTokens());
+        return toResult(chatClient.prompt().options(options()).system(safetyPrompt)
+                .user(prompt).call().chatResponse());
     }
 
     /**
@@ -128,8 +138,31 @@ public class SpringAiLlmClient implements LlmClient {
                 .maxTokens((int) settings.number("model", "maxTokens"))
                 .model(model)
                 .build();
-        ChatResponse response = chatClient.prompt().options(modelOptions).system(safetyPrompt)
-                .user(prompt).call().chatResponse();
+        return toResult(chatClient.prompt().options(modelOptions).system(safetyPrompt)
+                .user(prompt).call().chatResponse());
+    }
+
+    /**
+     * JSON 结构化输出（2026-11-05 健壮性批）：{@code response_format=json_object}，
+     * provider 侧保证合法 JSON。仅 moderation 链路调用；model 为 null 时用默认模型。
+     */
+    @Override
+    public LlmChatResult chatWithUsageJson(String prompt, String model) {
+        var builder = org.springframework.ai.openai.OpenAiChatOptions.builder()
+                .temperature(settings.number("model", "temperature"))
+                .maxTokens((int) settings.number("model", "maxTokens"))
+                .responseFormat(org.springframework.ai.openai.api.ResponseFormat.builder()
+                        .type(org.springframework.ai.openai.api.ResponseFormat.Type.JSON_OBJECT)
+                        .build());
+        if (model != null) {
+            builder.model(model);
+        }
+        return toResult(chatClient.prompt().options(builder.build()).system(safetyPrompt)
+                .user(prompt).call().chatResponse());
+    }
+
+    /** 统一抽取文本与 usage；usage 缺失留 null，不估算。 */
+    private LlmChatResult toResult(ChatResponse response) {
         String text = response == null || response.getResult() == null
                 || response.getResult().getOutput() == null
                 ? "" : response.getResult().getOutput().getText();

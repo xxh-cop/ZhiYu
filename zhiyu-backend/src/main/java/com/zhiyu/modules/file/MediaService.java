@@ -98,8 +98,29 @@ public class MediaService {
   if(refs!=null&&refs>0)return;
   var rows=db.queryForList("SELECT storage_key FROM media_asset WHERE id=? AND deleted=0",id);
   if(rows.isEmpty())return;
+  markDeletedAndScheduleCleanup(id,rows.get(0).get("storage_key").toString());
+ }
+ /**
+  * 本人删除自己上传的媒体（2026-11-05 健壮性批，DELETE /api/media/{id}）。
+  * 仅未引用媒体可删：引用计数口径与 {@link #retireOrphanedMedia} 完全一致
+  *（步骤音频 / 项目视频封面 / 作品视频封面）；被引用时不得物理删除，业务拒绝 3001。
+  * 删除语义与退役一致：逻辑注销 + file_cleanup_job 登记，物理删除由 FileCleanupWorker 异步重试。
+  */
+ public void deleteOwned(Long uid,long id){
+  requireUser(uid);
+  var rows=db.queryForList("SELECT user_id,storage_key FROM media_asset WHERE id=? AND deleted=0",id);
+  if(rows.isEmpty())throw new BusinessException(1004,"媒体不存在");
+  if(((Number)rows.get(0).get("user_id")).longValue()!=uid.longValue())throw new BusinessException(1003,"只能删除本人上传的媒体");
+  String ref=reference(id);
+  Long refs=db.queryForObject("SELECT (SELECT COUNT(*) FROM craft_step WHERE audio_url=? AND deleted=0)"
+          + "+(SELECT COUNT(*) FROM craft_project WHERE (video_url=? OR cover_url=?) AND deleted=0)"
+          + "+(SELECT COUNT(*) FROM work WHERE (video_url=? OR cover_url=?) AND deleted=0)",Long.class,ref,ref,ref,ref,ref);
+  if(refs!=null&&refs>0)throw new BusinessException(3001,"该媒体正被作品或项目引用，请先解除引用后再删除");
+  markDeletedAndScheduleCleanup(id,rows.get(0).get("storage_key").toString());
+ }
+ /** 逻辑注销媒体并登记 PRIVATE 清理任务（退役与本人删除共用；幂等，物理删除异步重试）。 */
+ private void markDeletedAndScheduleCleanup(long id,String key){
   db.update("UPDATE media_asset SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE id=?",id);
-  String key=rows.get(0).get("storage_key").toString();
   if(db.queryForObject("SELECT COUNT(*) FROM file_cleanup_job WHERE storage_kind='PRIVATE' AND storage_key=?",Integer.class,key)==0)
    db.update("INSERT INTO file_cleanup_job(id,storage_kind,storage_key) VALUES(?,'PRIVATE',?)",IdWorker.getId(),key);
  }

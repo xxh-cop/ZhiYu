@@ -58,12 +58,14 @@ class AiClientMetricsTest {
 
     @Test
     void recommendReasonSuccessRecordsOk() {
-        when(llm.recommendReason(anyString(), anyList())).thenReturn("因为你最近有些焦虑，试试扎染");
+        when(llm.recommendReasonWithUsage(anyString(), anyList()))
+                .thenReturn(new LlmChatResult("因为你最近有些焦虑，试试扎染", 11, 7));
 
         ai.recommendReason("焦虑", List.of("扎染", "赣绣"));
 
+        // usage 覆盖（2026-11-05 健壮性批）：拿到 tokens 必须如实透传进 ai_trace
         verify(metrics).record(any(), eq("llm-recommend"), eq("deepseek-chat"), anyLong(),
-                eq(AiCallMetrics.OK), isNull(), isNull(), isNull());
+                eq(AiCallMetrics.OK), isNull(), eq(11), eq(7));
     }
 
     @Test
@@ -78,7 +80,7 @@ class AiClientMetricsTest {
 
     @Test
     void recommendReasonProviderErrorRecordsFallback() {
-        when(llm.recommendReason(anyString(), anyList())).thenThrow(new RuntimeException("timeout"));
+        when(llm.recommendReasonWithUsage(anyString(), anyList())).thenThrow(new RuntimeException("timeout"));
 
         ai.recommendReason("焦虑", List.of("扎染"));
 
@@ -138,7 +140,8 @@ class AiClientMetricsTest {
     void noopMetricsKeepsOldConstructorSemantics() {
         // 旧 3 参构造函数：metrics 为 no-op，任何路径都不应抛异常
         AiClient legacy = new AiClient(llm, breaker, filter);
-        when(llm.recommendReason(anyString(), anyList())).thenReturn("ok");
+        when(llm.recommendReasonWithUsage(anyString(), anyList()))
+                .thenReturn(new LlmChatResult("ok", null, null));
         legacy.recommendReason("焦虑", List.of("扎染"));
         verify(metrics, never()).record(any(), anyString(), any(), anyLong(),
                 anyString(), any(), any(), any());

@@ -50,7 +50,8 @@ class AiClientTest {
     @DisplayName("推荐理由：LlmClient 正常返回 → 走 recordSuccess")
     void testRecommend_Success() {
         when(breaker.allowRequest("llm-recommend")).thenReturn(true);
-        when(llmClient.recommendReason("焦虑", List.of("扎染"))).thenReturn("扎染很适合焦虑时做");
+        when(llmClient.recommendReasonWithUsage("焦虑", List.of("扎染")))
+                .thenReturn(new LlmChatResult("扎染很适合焦虑时做", null, null));
         when(contentSafetyFilter.checkOutput(any(), anyString(), anyString()))
                 .thenReturn(SafetyResult.pass("通过"));
 
@@ -65,7 +66,7 @@ class AiClientTest {
     @DisplayName("推荐理由：LlmClient 抛异常 → 返回降级文案，走 recordFailure")
     void testRecommend_LlmThrows_FallsBack() {
         when(breaker.allowRequest("llm-recommend")).thenReturn(true);
-        when(llmClient.recommendReason("焦虑", List.of("扎染")))
+        when(llmClient.recommendReasonWithUsage("焦虑", List.of("扎染")))
                 .thenThrow(new RuntimeException("API timeout"));
 
         String result = aiClient.recommendReason("焦虑", List.of("扎染"));
@@ -83,7 +84,7 @@ class AiClientTest {
         String result = aiClient.recommendReason("焦虑", List.of("扎染"));
 
         assertTrue(result.contains("暂时无法生成"), "应返回降级文案");
-        verify(llmClient, never()).recommendReason(any(), any());
+        verify(llmClient, never()).recommendReasonWithUsage(any(), any());
         verify(breaker, never()).recordSuccess(any());
         verify(breaker, never()).recordFailure(any());
     }
@@ -95,7 +96,8 @@ class AiClientTest {
         when(contentSafetyFilter.checkInput(42L, null, "reflection", "用户自填文本"))
                 .thenReturn(SafetyResult.pass("通过"));
         when(breaker.allowRequest("llm-message")).thenReturn(true);
-        when(llmClient.reflectionSummary("prompt")).thenReturn("你完成了四个步骤。");
+        when(llmClient.reflectionSummaryWithUsage("prompt"))
+                .thenReturn(new LlmChatResult("你完成了四个步骤。", null, null));
         when(contentSafetyFilter.checkOutput(42L, "reflection", "你完成了四个步骤。"))
                 .thenReturn(SafetyResult.pass("通过"));
 
@@ -114,7 +116,7 @@ class AiClientTest {
                 .thenReturn(SafetyResult.block("命中高危", "请寻求支持"));
 
         assertNull(aiClient.reflectionSummary("prompt", "高危文本"));
-        verify(llmClient, never()).reflectionSummary(anyString());
+        verify(llmClient, never()).reflectionSummaryWithUsage(anyString());
         verify(breaker, never()).allowRequest(any());
     }
 
@@ -125,7 +127,7 @@ class AiClientTest {
         when(contentSafetyFilter.checkInput(42L, null, "reflection", "文本"))
                 .thenReturn(SafetyResult.pass("通过"));
         when(breaker.allowRequest("llm-message")).thenReturn(true);
-        when(llmClient.reflectionSummary("prompt")).thenThrow(new RuntimeException("timeout"));
+        when(llmClient.reflectionSummaryWithUsage("prompt")).thenThrow(new RuntimeException("timeout"));
 
         assertNull(aiClient.reflectionSummary("prompt", "文本"));
         verify(breaker).recordFailure("llm-message");
