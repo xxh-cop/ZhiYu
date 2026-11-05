@@ -120,6 +120,10 @@ zhiyu:
       dismiss-weight: 0.15       # 负反馈权重（DISMISS）
       decay-per-day: 0.98        # 按事件年龄（天）衰减
       cap: 0.6                   # 单项目加权上限（防一条反馈翻掉整个列表）
+      # DISMISS 强化（2026-11-05 缺口修复）：负反馈叠加被点项目自降权 + 同品类降权；
+      # 无 therapy_tags 的项目此前连自身都不降（「换一个」对它们完全无效）。
+      # 置 false 回到 AM2 原始口径（仅标签映射），行为与当时逐分一致。CLICK 语义不变。
+      dismiss-spread-enabled: ${ZHIYU_RECOMMEND_FEEDBACK_DISMISS_SPREAD:true}
 
   # ── 账号安全（2026-11-03：登录失败锁定 + 忘记密码） ──
   # 登录失败锁定：按账号维度计数（不存在的账号同样计数，避免探测注册状态），

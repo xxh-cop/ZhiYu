@@ -23,9 +23,12 @@ import java.util.Map;
  *   projectBoost(p) = Σ 事件 on p:  sign × weight × decayPerDay ^ 事件年龄(天)
  *   tagScore(t)     = Σ 含标签 t 的被反馈项目的 projectBoost
  *   boost(候选 c)    = min(cap, Σ c.therapy_tags 的 tagScore)
+ *   dismissSpreadEnabled=true 时对负反馈净额额外叠加（2026-11-05 缺口修复）：
+ *     boost(c) += projectBoost(c)（c 为被 DISMISS 项目本身——无标签项目不再免疫）
+ *             +  categoryScore(c.category)（Σ 同品类被 DISMISS 项目的负净额）
  * </pre>
  * 反馈不足 {@code min-events} 条时返回空表（调用方跳过加权，排序与原规则逐条一致）；
- * 开关关闭时同样返回空表。
+ * 开关关闭时同样返回空表。CLICK 语义不变（只经标签映射，不自加权、不入品类分）。
  *
  * <p><b>数据边界</b>：只读本人 craft_recommend_event；不把便签/对话等敏感内容作为特征。
  */
@@ -53,6 +56,14 @@ public class RecommendFeedbackBoost {
     private double decayPerDay;
     @Value("${zhiyu.recommend.feedback.cap:0.6}")
     private double cap;
+    /**
+     * DISMISS 强化开关（2026-11-05 核实缺口后补）：负反馈除标签映射外，
+     * 叠加「被点项目自降权」（无 therapy_tags 的项目此前完全免疫，连自身都不降）
+     * 与「同 category 降权」（同类横向抑制）。false 时回到 AM2 原始口径（仅标签映射），
+     * 与既有行为逐分一致。CLICK 语义不变（仍只经标签映射）。
+     */
+    @Value("${zhiyu.recommend.feedback.dismiss-spread-enabled:true}")
+    private boolean dismissSpreadEnabled;
 
     public boolean enabled() {
         return enabled;
@@ -95,12 +106,14 @@ public class RecommendFeedbackBoost {
             projectBoost.merge(pid, w, Double::sum);
         }
 
-        // 项目标签映射（被反馈项目才需要）
+        // 项目标签与品类映射（被反馈项目才需要标签；品类用于 DISMISS 同类降权）
         Map<Long, String> projectTags = new HashMap<>();
+        Map<Long, String> projectCategory = new HashMap<>();
         for (var row : jdbc.queryForList(
-                "SELECT id, therapy_tags FROM craft_project WHERE deleted=0")) {
-            projectTags.put(((Number) row.get("id")).longValue(),
-                    row.get("therapy_tags") == null ? "" : row.get("therapy_tags").toString());
+                "SELECT id, therapy_tags, category FROM craft_project WHERE deleted=0")) {
+            long pid = ((Number) row.get("id")).longValue();
+            projectTags.put(pid, row.get("therapy_tags") == null ? "" : row.get("therapy_tags").toString());
+            projectCategory.put(pid, row.get("category") == null ? "" : row.get("category").toString());
         }
 
         // 标签分 → 映射回每个候选项目（按标签聚合）
@@ -114,11 +127,38 @@ public class RecommendFeedbackBoost {
                 tagScore.merge(tag.trim(), entry.getValue(), Double::sum);
             }
         }
+
+        // DISMISS 强化（dismissSpreadEnabled）：负反馈净额叠加被点项目自降权 + 同品类降权
+        Map<String, Double> categoryScore = new HashMap<>();
+        if (dismissSpreadEnabled) {
+            for (var entry : projectBoost.entrySet()) {
+                if (entry.getValue() >= 0) {
+                    continue; // 只强化负反馈；CLICK 语义不变
+                }
+                String category = projectCategory.get(entry.getKey());
+                if (category != null && !category.isBlank()) {
+                    categoryScore.merge(category.trim(), entry.getValue(), Double::sum);
+                }
+            }
+        }
+
         Map<Long, Double> result = new HashMap<>();
         for (var pe : projectTags.entrySet()) {
             double boost = 0;
             for (String tag : pe.getValue().split(",")) {
                 boost += tagScore.getOrDefault(tag.trim(), 0.0);
+            }
+            if (dismissSpreadEnabled) {
+                // 自降权：被 DISMISS 的项目自身必降（修复无标签项目免疫的缺口）
+                Double direct = projectBoost.get(pe.getKey());
+                if (direct != null && direct < 0) {
+                    boost += direct;
+                }
+                // 同品类降权
+                String category = projectCategory.get(pe.getKey());
+                if (category != null && !category.isBlank()) {
+                    boost += categoryScore.getOrDefault(category.trim(), 0.0);
+                }
             }
             if (boost != 0) {
                 result.put(pe.getKey(), Math.max(-cap, Math.min(cap, boost)));
