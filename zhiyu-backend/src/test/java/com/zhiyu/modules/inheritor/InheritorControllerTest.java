@@ -163,6 +163,33 @@ class InheritorControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    @DisplayName("传承人创建项目 level 越界 → 400 + 1001")
+    void testInheritor_CreateProject_LevelOutOfRange_Returns1001() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "title", "越界难度", "level", 4, "category", "扎染"));
+
+        mockMvc.perform(post("/api/inheritor/projects")
+                        .header("Authorization", "Bearer " + token(inheritorUserId, 1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+    }
+
+    @Test
+    @DisplayName("传承人编辑项目 level 越界 → 400 + 1001")
+    void testInheritor_UpdateProject_LevelOutOfRange_Returns1001() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("level", 0));
+
+        mockMvc.perform(put("/api/inheritor/projects/{id}", projectId)
+                        .header("Authorization", "Bearer " + token(inheritorUserId, 1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(1001));
+    }
+
     // ── 接口 2：GET /api/inheritor/projects ──
 
     @Test

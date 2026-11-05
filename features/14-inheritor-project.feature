@@ -21,6 +21,11 @@ Feature: 传承人项目管理（M2 批 5A）
     Then 返回 HTTP 403
     And 返回 code=1003
 
+  Scenario: 传承人创建项目难度越界被拒
+    When 传承人发起创建项目请求，title="越界难度" level=4 category="扎染"
+    Then 返回 HTTP 400
+    And 返回 code=1001
+
   Scenario: 传承人查看自己的项目列表
     When 传承人查询项目列表
     Then 返回 code=0

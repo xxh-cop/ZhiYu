@@ -69,9 +69,9 @@ ON DUPLICATE KEY UPDATE
 -- category     = 技艺品类，取值见 sql/dict-category.sql 的 label，仅展示用
 -- therapy_tags = 疗愈效果标签，取值见 sql/dict-therapy-tags.sql 的 label，参与推荐匹配
 INSERT INTO craft_project (id, inheritor_id, title, intro, culture_bg, level, est_minutes, category, therapy_tags, cover_url, status, create_time, update_time, deleted) VALUES
-(101, 2, '解压扎染方巾', '用扎染的自然晕染，把焦虑折进布里、染在手中。',   '扎染是国家级非遗，通过捆扎、浸染形成不可预测的纹样。',           1, 45, '扎染', '放空,触觉安抚',          '/static/covers/zharan.jpg',  1, NOW(), NOW(), 0),
-(102, 2, '赣绣小书签',   '一针一线，在缓慢的穿引中把注意力拉回当下。',   '赣绣是江西地方刺绣，针法细腻、色彩温润。',                       1, 60, '赣绣', '专注,静心,情绪稳定',     '/static/covers/ganxiu.jpg',  1, NOW(), NOW(), 0),
-(103, 2, '剪纸释压团花', '一刀一纸，把烦恼剪进对称的纹样里。',           '剪纸在江西多地节庆中广泛使用，讲究对称与节奏。',                 1, 30, '剪纸', '成就感,创造表达,专注',   '/static/covers/jianzhi.jpg', 1, NOW(), NOW(), 0),
+(101, 2, '解压扎染方巾', '用扎染的自然晕染，把焦虑折进布里、染在手中。',   '扎染是国家级非遗，通过捆扎、浸染形成不可预测的纹样。',           2, 45, '扎染', '放空,触觉安抚',          '/static/covers/zharan.jpg',  1, NOW(), NOW(), 0),
+(102, 2, '赣绣小书签',   '一针一线，在缓慢的穿引中把注意力拉回当下。',   '赣绣是江西地方刺绣，针法细腻、色彩温润。',                       2, 60, '赣绣', '专注,静心,情绪稳定',     '/static/covers/ganxiu.jpg',  1, NOW(), NOW(), 0),
+(103, 2, '剪纸释压团花', '一刀一纸，把烦恼剪进对称的纹样里。',           '剪纸在江西多地节庆中广泛使用，讲究对称与节奏。',                 2, 30, '剪纸', '成就感,创造表达,专注',   '/static/covers/jianzhi.jpg', 1, NOW(), NOW(), 0),
 (104, 2, '陶艺捏塑杯垫', '双手与泥土对话，在揉捏中释放紧绷。',           '陶艺手工塑形，触觉反馈强，适合情绪焦躁时使用。',                 2, 50, '陶艺', '物理宣泄,释放,触觉安抚', '/static/covers/taoyi.jpg',   1, NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   inheritor_id = new.inheritor_id,
@@ -189,7 +189,7 @@ INSERT INTO craft_material(id,project_id,name,qty,create_time,update_time,delete
 INSERT INTO craft_material(id,project_id,name,qty,create_time,update_time,deleted) SELECT 94000352,940003,'纸胶带','少量',NOW(),NOW(),0 WHERE EXISTS(SELECT 1 FROM craft_project WHERE id=940003) AND NOT EXISTS(SELECT 1 FROM craft_material WHERE id=94000352);
 INSERT INTO craft_material(id,project_id,name,qty,create_time,update_time,deleted) SELECT 94000353,940003,'圆头剪刀','1 把',NOW(),NOW(),0 WHERE EXISTS(SELECT 1 FROM craft_project WHERE id=940003) AND NOT EXISTS(SELECT 1 FROM craft_material WHERE id=94000353);
 INSERT INTO craft_safety(id,project_id,medium,level,hazards,guidance,source,create_time,update_time,deleted) SELECT 940003,940003,'纸','GUIDED','剪刀可能划伤；请坐稳操作，不熟悉工具时请带领者协助。','桌面保持干燥整洁，手部不适时暂停；不用刀片、热胶枪或明火。','织愈编辑材料风险提示，未经专业安全认证',NOW(),NOW(),0 WHERE EXISTS(SELECT 1 FROM craft_project WHERE id=940003) AND NOT EXISTS(SELECT 1 FROM craft_safety WHERE project_id=940003);
-INSERT INTO craft_project(id,inheritor_id,title,intro,culture_bg,level,est_minutes,category,therapy_tags,status,create_time,update_time,deleted) SELECT 940004,@starter_owner,'双色纸编书签','织愈原创入门练习 · 编辑估时 · 非传承人认证课程','背景参考：MassArt Art Museum：纸编原理（背景参考）。本练习是独立编写的入门活动，不代表相关机构认证。',1,20,'纸艺','',1,NOW(),NOW(),0 WHERE @starter_owner IS NOT NULL AND NOT EXISTS(SELECT 1 FROM craft_project WHERE id=940004);
+INSERT INTO craft_project(id,inheritor_id,title,intro,culture_bg,level,est_minutes,category,therapy_tags,status,create_time,update_time,deleted) SELECT 940004,@starter_owner,'双色纸编书签','织愈原创入门练习 · 编辑估时 · 非传承人认证课程','背景参考：MassArt Art Museum：纸编原理（背景参考）。本练习是独立编写的入门活动，不代表相关机构认证。',2,20,'纸艺','',1,NOW(),NOW(),0 WHERE @starter_owner IS NOT NULL AND NOT EXISTS(SELECT 1 FROM craft_project WHERE id=940004);
 INSERT INTO craft_step(id,project_id,step_no,title,guide,create_time,update_time,deleted) SELECT 94000401,940004,1,'选两组颜色','准备 3 条长纸条和 6 条短纸条，宽约 1.5 厘米；旧纸可按深浅分组。
 遇到困难：没有彩纸就用纸张正反面或不同笔迹的背面。',NOW(),NOW(),0 WHERE EXISTS(SELECT 1 FROM craft_project WHERE id=940004) AND NOT EXISTS(SELECT 1 FROM craft_step WHERE project_id=940004 AND step_no=1);
 INSERT INTO craft_step(id,project_id,step_no,title,guide,create_time,update_time,deleted) SELECT 94000402,940004,2,'固定一端','把长纸条并排，在顶端贴胶带，形成书签的纵向骨架。

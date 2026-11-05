@@ -126,7 +126,7 @@ public class InheritorController {
     }
 
     @PutMapping("/projects/{id}")
-    public Result<Void> updateProject(@PathVariable Long id, @RequestBody ProjectUpdateDTO dto) {
+    public Result<Void> updateProject(@PathVariable Long id, @Valid @RequestBody ProjectUpdateDTO dto) {
         inheritorProjectService.updateProject(UserContext.getUserId(), id, dto);
         return Result.success();
     }
