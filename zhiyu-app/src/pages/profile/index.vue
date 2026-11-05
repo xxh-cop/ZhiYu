@@ -32,8 +32,8 @@
 		<!-- ② 我做过什么：旅程三指标（与首页「连续记录」同源：/api/user/stats） -->
 		<view class="stats-row" role="group" aria-label="我的创作旅程">
 			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 0">
-				<text class="stat-num">{{ stats.streakDays }}</text>
-				<text class="stat-label">连续创作天数</text>
+				<text class="stat-num">{{ stats.daysHere }}</text>
+				<text class="stat-label">来到这里（天）</text>
 			</view>
 			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 1">
 				<text class="stat-num">{{ stats.totalWorks }}</text>
@@ -179,20 +179,22 @@ const signature = computed(() => {
 	return '把今天的疲惫放一放'
 })
 
-/* 旅程三指标：与首页「连续记录」同一接口、同一字段宽容读取 */
-const stats = ref({ streakDays: '—', totalWorks: '—', totalMinutes: '—' })
-const statsRaw = ref({ streakDays: 0, totalWorks: 0, totalMinutes: 0 })
+/* 旅程三指标：全部真实累计口径。
+   2026-11-05 修正：原「连续创作天数」读的后端 streakDays 字段并不存在（恒 0），
+   且连续口径本身是断签惩罚机制，与「按自己的节奏」基调冲突——
+   改为后端真实累计字段 daysSinceRegister（来到这里的天数，无断签压力）。
+   徽章同步删除 streak-3/streak-7 连续类，只保留累计类。 */
+const stats = ref({ daysHere: '—', totalWorks: '—', totalMinutes: '—' })
+const statsRaw = ref({ daysHere: 0, totalWorks: 0, totalMinutes: 0 })
 const statsReady = ref(false)
 const profileError = ref('')
 
 const badges = computed(() => {
-	const { streakDays, totalWorks, totalMinutes } = statsRaw.value
+	const { totalWorks, totalMinutes } = statsRaw.value
 	const ready = statsReady.value
 	const progress = (current, target) => (ready ? `进行中 ${Math.min(current, target)} / ${target}` : '等待数据载入')
 	return [
 		{ key: 'first-work', mark: '初', name: '初作', desc: '发布了第一份作品', earned: ready && totalWorks >= 1, progress: progress(totalWorks, 1) },
-		{ key: 'streak-3', mark: '叁', name: '三日不断', desc: '连续创作 3 天', earned: ready && streakDays >= 3, progress: progress(streakDays, 3) },
-		{ key: 'streak-7', mark: '柒', name: '七日成习', desc: '连续创作 7 天', earned: ready && streakDays >= 7, progress: progress(streakDays, 7) },
 		{ key: 'focus-60', mark: '光', name: '拾光', desc: '专注累计满 60 分钟', earned: ready && totalMinutes >= 60, progress: progress(totalMinutes, 60) },
 		{ key: 'focus-300', mark: '闲', name: '半日闲', desc: '专注累计满 300 分钟', earned: ready && totalMinutes >= 300, progress: progress(totalMinutes, 300) },
 		{ key: 'works-10', mark: '拾', name: '十作', desc: '发布了 10 份作品', earned: ready && totalWorks >= 10, progress: progress(totalWorks, 10) },
@@ -224,17 +226,22 @@ async function loadCurrentUser() {
 
 async function loadStats() {
 	try {
-		const data = await request({ url: '/api/user/stats', method: 'GET' })
+		// /api/user/stats：daysSinceRegister/workCount/noteCount（全真累计）；
+		// 专注分钟后端 stats 无字段，取 /api/growth/journey 的 flowSeconds（journey 页同源真值），失败则 0
+		const [data, journey] = await Promise.all([
+			request({ url: '/api/user/stats', method: 'GET' }),
+			request({ url: '/api/growth/journey', method: 'GET' }).catch(() => null),
+		])
 		statsRaw.value = {
-			streakDays: Number(data.streakDays ?? data.continuousDays) || 0,
-			totalWorks: Number(data.totalWorks ?? data.workCount) || 0,
-			totalMinutes: Number(data.totalMinutes ?? data.focusMinutes) || 0,
+			daysHere: Number(data.daysSinceRegister) || 0,
+			totalWorks: Number(data.workCount) || 0,
+			totalMinutes: journey && Number.isFinite(Number(journey.flowSeconds)) ? Math.floor(Number(journey.flowSeconds) / 60) : 0,
 		}
 		stats.value = { ...statsRaw.value }
 		statsReady.value = true
 		profileError.value = ''
 	} catch (e) {
-		stats.value = { streakDays: '—', totalWorks: '—', totalMinutes: '—' }
+		stats.value = { daysHere: '—', totalWorks: '—', totalMinutes: '—' }
 		statsReady.value = false
 		profileError.value = '统计暂时无法读取，请重试'
 	}

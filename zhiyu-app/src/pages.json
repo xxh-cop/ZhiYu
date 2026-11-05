@@ -180,9 +180,7 @@
     {
       "path": "pages/mindfulness/index",
       "style": {
-        "navigationBarTitleText": "正念片刻",
-        "navigationBarBackgroundColor": "#1E3A5F",
-        "navigationBarTextStyle": "white"
+        "navigationBarTitleText": "正念片刻"
       }
     },
     {
