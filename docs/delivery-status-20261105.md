@@ -5,7 +5,62 @@
 > 与**「从已有文档摘引」**（注明原文档与日期，本次未重跑）。
 > 静态核对与构建/单测通过不能代替真实环境验收。
 
-## 0. 验证基线（本次实际跑在什么上）
+## 2026-11-05 部署前整体验证（HEAD 6655c70）
+
+> 本节为当日**第二轮**验证（晚间），基线已前进到 `dev` 的 `6655c70`；下文 §0/§1 为当日第一轮（HEAD `19502bb`）的原始记录，保持原样未改。本轮同样未 commit、未 push、未修改业务代码。
+
+### A. 验证基线
+
+| 核对项 | 结果 |
+|---|---|
+| 分支 / HEAD | `dev` @ `6655c70`（feat(admin): 项目分层下架适配与审核 AI 建议面板） |
+| 上游同步 | `git status -sb` 显示 `## dev...origin/dev`，**无领先落后** |
+| 工作区 | **仅剩**根目录《详细设计说明书（上篇）`.docx`（M）与 `output/`（??），未 stage、未改 `.gitignore`；**无任何源码级未提交改动**，HEAD 与工作区一致，验证结果可信 |
+| 5 条提交确认 | `1f67172`（契约/结构）→ `0b39378`（下架状态机+事件度量）→ `54949d7`（AI 指标+审核建议）→ `9245549`（学生端）→ `6655c70`（管理端），与任务清单一致；其下为 `1c9d24f`（本台账首轮提交）与 `3508e21`（通知 reftype，首轮的在途改动已入分支） |
+
+### B. 逐项结果（全部在 HEAD 6655c70 上执行）
+
+| 项 | 命令 | 退出码 | 关键数字 / 证据 | 结论 |
+|---|---|---|---|---|
+| 后端全量测试 | `mvn test "-Dmaven.repo.local=../.ai-tmp/m2"`（zhiyu-backend/） | 0 | **Tests run: 874, Failures: 0, Errors: 0, Skipped: 1**；Total time 01:56 min；唯一跳过仍为 `SpringAiLlmClientTest`（需真实密钥，历史口径一致）；较第一轮 800 项新增 74 项来自本轮 5 条提交 | ✅ |
+| 后端启动冒烟（真实 MySQL） | `.env` 注入后 `mvn spring-boot:run "-Dspring-boot.run.arguments=--server.port=18081"`，**另起 18081 端口** | 启动成功 | `Started ZhiyuApplication in 5.219 seconds`；`SchemaCompatibilityCheck` 通过（该 Runner 仅在缺字段时抛 `IllegalStateException`，应用正常 Started 即通过，[SchemaCompatibilityCheck.java](file:///d:/develop/Zhi_Yu/zhiyu-backend/src/main/java/com/zhiyu/config/SchemaCompatibilityCheck.java)）；日志落 `.ai-tmp/smoke-18081.log` | ✅ |
+| ├ 抽查步骤接口 | `GET /api/craft/projects/101/steps`（student01 登录，code=0） | — | HTTP 200，code=0，**4 步全部 `audioUrl: null`**（id 1001–1004，音频资产治理生效，原 101-*.mp3 死引用已清除） | ✅ |
+| ├ 抽查 AI 指标 | `GET /api/admin/ai-metrics`（admin 登录，code=0） | — | HTTP 200，code=0，data 含 `window/generatedAt/scenes/note/latencySampleTruncated` | ✅ |
+| └ 实例处置 | StopCommand 停止 | — | 18081 端口确认已释放（fetch 不可达）；用户 8080 实例全程未动（验证前探测其本就未运行） | ✅ |
+| 管理端类型检查 | `pnpm -F @vben/web-ele run typecheck` | 0 | vue-tsc 无输出，0 类型错误 | ✅ |
+| 管理端生产构建 | `pnpm run build:ele` | 0 | turbo **11/11 tasks successful**，总 2m8.937s；产物 `apps/web-ele/dist.zip`（1,724,827 字节） | ✅ |
+| 学生端 H5 构建 | `npm run build:h5` | 0 | `DONE Build complete.`；94 行警告全部仍为历史既有 Sass deprecation（App.vue @import + wot-design-uni 依赖），无新增 | ✅ |
+| 学生端小程序构建 | `npm run build:mp-weixin` | 0 | `DONE Build complete.`，产物 `dist/build/mp-weixin`；94 行历史警告 + 1 条既有 `Circular chunk: utils/request ↔ stores/user` 提示（历史提交引入的结构提醒） | ✅ |
+
+### C. 5 条提交 ↔ 验证项对应关系
+
+| 提交 | 内容 | 本轮对应验证 |
+|---|---|---|
+| `1f67172` feat(sql) | openapi +193 行、schema.sql/schema-h2、3 件 20261105 迁移、SchemaCompatibilityCheck 扩列、init-data 音频治理 | mvn test（含 `SchemaCompatibilityCheckTest`）；冒烟启动 SchemaCompatibilityCheck 通过；steps 抽查 `audioUrl:null` |
+| `0b39378` feat(craft) | 分层下架状态机、音频资产治理、会话行为事件度量（features 67/68） | mvn test 874 项含该批服务/状态机测试；冒烟 steps 接口结构化返回 |
+| `54949d7` feat(ai) | AiClient 指标埋点、`AiCallMetrics`、`/api/admin/ai-metrics`、审核辅助建议（features 65/66） | mvn test 含 `AiClientMetricsTest`/`AiClientModerationTest`/`AiCallMetricsTest`；冒烟 ai-metrics 抽查 code=0 |
+| `9245549` feat(app) | 学生端 `session.vue` 事件上报 + `stores/craft.js` + `utils/session-events.js` | `build:h5` / `build:mp-weixin` 均 exit 0（仅证明可构建，见 §D） |
+| `6655c70` feat(admin) | 管理端下架适配 + 新 `AiSuggestPanel.vue` + audit/review-center/my-projects | typecheck 0 错误 + `build:ele` 11/11 成功（仅证明类型与构建，见 §D） |
+
+### D. 本次验证不能证明什么
+
+- **单机验证**：单实例、本机回环；不代表多实例/生产部署形态。
+- **数据库口径**：874 项测试跑在 **H2**；冒烟使用**本机开发 MySQL 8**（dev profile + `.env`），非生产 MySQL/Redis 环境的真实验收。
+- **AI 路径**：单测为 Mock/规则断言；冒烟实例虽经 `.env` 注入密钥，但抽查的 `ai-metrics` 是聚合读接口，**未实际发起 LLM 调用**；真实模型质量仍以 [eval-baseline-20261104.md](file:///d:/develop/Zhi_Yu/docs/eval-baseline-20261104.md) 历史报告为准，本次未重跑评测。
+- **审核 AI 建议链路**（moderation-suggest）本次未以真实 LLM 调用验收，仅有单测与构建证据。
+- **微信真机**未覆盖：SSE 分块（enableChunked/fallback）、InnerAudioContext、tabBar、键盘行为均无真机证据。
+- **HTTPS 与正式域名白名单**未覆盖。
+- **并发压测**未做：>20 并发与 100 人口径仍无证据（历史口径见 perf-baseline-20261102 §5）。
+- **`suspected_away` 等会话行为事件依赖前端上报**（9245549 的 `session-events.js`）：本次仅验证其可构建，**尚未产生任何真实上报数据**，事件度量链路未形成闭环证据。
+- 冒烟为单点接口抽查，不等于端到端业务流程回归。
+
+### E. 结论
+
+**HEAD 6655c70 整体验证通过**：全部验证项退出码 0，无失败项。通过口径限于 §D 所列边界之内；真实环境验收缺口维持 §2.3（下表）原判不变。
+
+---
+
+## 0. 验证基线（第一轮：HEAD 19502bb）
 
 | 项 | 值 |
 |---|---|
@@ -69,13 +124,13 @@
 | 事项 | 事实 | 出处 |
 |---|---|---|
 | 心流时长占比看板 | 口径未定（时间窗/分母/暂停归属未定），实现未启动 | gap-audit-20261104 P1-4；requirements-audit FR-60-03 行 |
-| 审核 AI 辅助（moderation 档位） | 档位与熔断 key 已预留，无 LLM 调用点；触发条件待拍板 | gap-audit-20261104 §1-4 / P2-3；model-routing-20261104 §2 |
-| token usage 采集 | 流式与 chat 链路均不返回 usage，成本核算无数据；采集通道与费率配置未做 | eval-baseline-20261104 §4.3；gap-audit-20261104 P2-4 |
+| 审核 AI 辅助（moderation 档位） | 档位与熔断 key 已预留，无 LLM 调用点；触发条件待拍板 | gap-audit-20261104 §1-4 / P2-3；model-routing-20261104 §2。**→ 更新：`54949d7` 已落地调用点（`AdminModerationService` + `moderation-suggest.st`）与管理端 `AiSuggestPanel.vue`（`6655c70`），features/65 与单测覆盖；真实 LLM 调用验收未做（见 §D），触发条件决策不变** |
+| token usage 采集 | 流式与 chat 链路均不返回 usage，成本核算无数据；采集通道与费率配置未做 | eval-baseline-20261104 §4.3；gap-audit-20261104 P2-4。**→ 更新：`54949d7` 已落地 `AiCallMetrics` 埋点与 `ai_trace` 表（含 input_tokens/output_tokens），`/api/admin/ai-metrics` 第二轮冒烟 code=0（见 §B）；费率配置与成本核算口径仍待决** |
 | 小程序订阅消息（通知二期） | 一期（站内通知）已交付；二期依赖一期真实运行数据，未启动 | gap-audit-20261104 P2-6 |
 | PSS-10 / PANAS / GSES 量表 | 中文版本授权与计分依据未核实，未启用；不能自行补写题目 | gap-audit-20261104 P2-1 |
-| 种子音频死引用 | [init-data.sql](file:///d:/develop/Zhi_Yu/sql/init-data.sql) L92-95 种了 `/static/audio/101-1..4.mp3`，但 `zhiyu-app/src/static/audio/` 目录**不存在**（本次核实）；且后端无音频上传端点，步骤音频仍靠手填 URL | 本次 grep/Glob 核实（2026-11-05）；gap-audit-20261104 B1 |
+| 种子音频死引用 | [init-data.sql](file:///d:/develop/Zhi_Yu/sql/init-data.sql) L92-95 种了 `/static/audio/101-1..4.mp3`，但 `zhiyu-app/src/static/audio/` 目录**不存在**（第一轮核实）；且后端无音频上传端点，步骤音频仍靠手填 URL | 第一轮 grep/Glob 核实（2026-11-05）；gap-audit-20261104 B1。**→ 更新：已经 `1f67172`/`0b39378` 音频资产治理处理，第二轮冒烟实测 101 项目四步 `audioUrl` 全为 `null`（见 §B）；音频上传端点缺口仍按 B1 待决** |
 | 危机留存策略的边界 | 留存口径已定（不存原文、仅存脱敏摘要，privacy-policy L46）；但查询端 `GET /api/admin/crisis-logs` **未登记 openapi、管理端无页面**（契约先行纪律项）；留存期限等运营规则未明确 | gap-audit-20261104 §1-2 / P0-3；requirements-audit FR-70 行 |
-| 进行中创作会话在项目下架后是否强制中断 | **本次核实当前行为**：`CraftSessionServiceImpl` 仅在 `create` 校验项目上架（L54-56，非上架统一 1004）；`changeStatus`/`heartbeat`/`getProgress` 不再校验——即下架**不中断**进行中会话，只阻断新建。是否符合产品预期待决策 | [CraftSessionServiceImpl.java](file:///d:/develop/Zhi_Yu/zhiyu-backend/src/main/java/com/zhiyu/modules/craft/service/impl/CraftSessionServiceImpl.java)（2026-11-05 静态核实） |
+| 进行中创作会话在项目下架后是否强制中断 | **第一轮核实当时行为**：`CraftSessionServiceImpl` 仅在 `create` 校验项目上架（L54-56，非上架统一 1004）；`changeStatus`/`heartbeat`/`getProgress` 不再校验——即下架**不中断**进行中会话，只阻断新建 | [CraftSessionServiceImpl.java](file:///d:/develop/Zhi_Yu/zhiyu-backend/src/main/java/com/zhiyu/modules/craft/service/impl/CraftSessionServiceImpl.java)（2026-11-05 第一轮静态核实）。**→ 更新：`0b39378` 分层下架状态机已定义新行为——公开面即收、进行中/暂停会话转只读、72h 导出窗（`zhiyu.takedown`，application.yml L185-190）、窗口结束转归档；features/67 与单测覆盖（874 项全绿，见 §B）；真实下架流程的端到端演练未做** |
 | 忘记密码前端入口 | 后端闭环，两端均无页面入口；发送通道决策（校内可先走管理员人工通道）待拍板 | gap-audit-20261104 §1-1 / P0-2 |
 | dialogue P3/P4（companion 并入统一入口、旧端点退役） | P0–P2 已实现但三个开关默认 false；P3/P4 按分期设计未启动；评测集 7 条 cmd-* 用例仍 SKIPPED | gap-audit-20261104 §1-3；eval-baseline-20261104 §Z.3 |
 | 情绪基线偏离提醒 / 推荐反馈回灌排序 | 前者零代码证据；后者只有采集侧不回灌排序（依赖真实点击数据积累口径） | gap-audit-20261104 §1-4 / P1-5 / P2-2 |
