@@ -1,0 +1,12 @@
+# 开启态测试剖面（2026-11-05）：与 application-test.yml 叠加使用——
+#   @ActiveProfiles({"test", "dialogue-on-test"})（本文件后加载，覆盖同名键）。
+# 目的：让关键对话用例跑在「生产默认」路径上（commander 开 + 倾听委托开 + 滚动摘要开），
+# 堵住「配置一改测试全绿、但测的不是实际路径」的缺口。
+# 纪律：不改 application-test.yml 的任何既有钉住值（既有全量测试仍以关闭态运行）；
+#       guard-store 维持 test profile 的 memory（不引入 Redis 依赖）；
+#       companion-adapter 保持 false（P3 未接线）。
+zhiyu:
+  dialogue:
+    commander: true                # /api/dialogue/chat 注册
+    listening-via-commander: true  # /api/emotion/chat 委托调度层
+    rolling-summary: true          # 滚动摘要（Mock 下 contextSummary 返回 null → FALLBACK 降级）
