@@ -595,7 +595,7 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 button::after { border: 0; }
 button:active { opacity: .82; }
 button:focus-visible { outline: 3px solid var(--zy-primary); outline-offset: 3px; }
-.motion-reduced view, .motion-reduced text, .motion-reduced image, .motion-reduced button, .motion-reduced input, .motion-reduced textarea, .motion-reduced label, .motion-reduced scroll-view, .motion-reduced video, .motion-reduced camera, .motion-reduced canvas, .motion-reduced slider, .motion-reduced checkbox, .motion-reduced checkbox-group, .motion-reduced br, .motion-reduced svg, .motion-reduced g, .motion-reduced path, .motion-reduced ellipse, .motion-reduced circle, .motion-reduced defs, .motion-reduced clippath, .motion-reduced lineargradient, .motion-reduced radialgradient, .motion-reduced stop { animation: none !important; transition: none !important; }
+.motion-reduced view, .motion-reduced text, .motion-reduced image, .motion-reduced button, .motion-reduced input, .motion-reduced textarea, .motion-reduced label, .motion-reduced scroll-view, .motion-reduced video, .motion-reduced camera, .motion-reduced canvas, .motion-reduced slider, .motion-reduced checkbox, .motion-reduced checkbox-group, .motion-reduced svg, .motion-reduced g, .motion-reduced path, .motion-reduced ellipse, .motion-reduced circle, .motion-reduced defs, .motion-reduced clippath, .motion-reduced lineargradient, .motion-reduced radialgradient, .motion-reduced stop { animation: none !important; transition: none !important; }
 
 @media (min-width: 850px) {
 	.home-page { padding: 28px 48px; }
