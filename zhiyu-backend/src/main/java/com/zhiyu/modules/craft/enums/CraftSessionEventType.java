@@ -53,7 +53,13 @@ public enum CraftSessionEventType {
      * 只读起点的精确证据（被拒那一刻），看板剔除判定的第三档优先消费本事件，
      * 无本事件时兜底用 session_archive。每会话至多一条（只读单调不可逆，幂等）。
      */
-    STEP_GATE_BLOCKED("step_gate_blocked");
+    STEP_GATE_BLOCKED("step_gate_blocked"),
+    /**
+     * 卡点引导触点已下发（仅服务端派生，2026-11-05 卡点引导）。
+     * 在 DWELL_STAGNATION 触发且通过开关/频率门后写入，是每会话/每用户频率上限的
+     * 计数证据；引导语本体走心跳响应 stuckGuide 字段异步下发，不入事件表。
+     */
+    STUCK_GUIDE_SHOWN("stuck_guide_shown");
 
     private final String value;
 

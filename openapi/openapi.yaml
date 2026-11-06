@@ -223,6 +223,7 @@ components:
               properties:
                 inFlow: { type: boolean, description: 是否处于心流状态（连续 5 分钟无步骤切换且未主动退出） }
                 needBreathing: { type: boolean, description: 是否需要呼吸引导（焦躁：同一步骤反复停留>3 次且未响应呼吸提醒） }
+                stuckGuide: { type: string, nullable: true, description: '卡点引导文案（2026-11-05 卡点引导，可空）。仅在 DWELL_STAGNATION 触发后的后续心跳携带一次：轻提示、不阻塞、可一键收起、可经 PUT /api/craft/stuck-guide/setting 永久关闭；null 表示本次无引导。AI 生成失败/超时/熔断时为静态模板文案，永不为空串。文案为可选动作建议，非诊断、非状态判定。' }
 
     SessionEventItem:
       type: object
@@ -231,7 +232,7 @@ components:
       properties:
         eventType:
           type: string
-          description: '事件类型（仅客户端白名单）：step_enter / step_leave / step_advance / step_backtrack / heartbeat / audio_play / visibility_change / app_lifecycle / breathing_responded / export；服务端派生类型（dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive / step_gate_blocked）上报即 1001'
+          description: '事件类型（仅客户端白名单）：step_enter / step_leave / step_advance / step_backtrack / heartbeat / audio_play / visibility_change / app_lifecycle / breathing_responded / export；服务端派生类型（dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive / step_gate_blocked / stuck_guide_shown）上报即 1001'
         stepNo: { type: integer, nullable: true, description: 相关步骤序号（会话级事件可空） }
         occurredAt: { type: string, format: date-time, description: 事件发生时刻（允许 5 分钟时钟偏移，超前过多计 failed） }
         clientSeq: { type: integer, format: int64, minimum: 1, description: 客户端序号（每会话单调递增），与服务端组成 (session_id, client_seq) 幂等去重键 }
@@ -2519,6 +2520,36 @@ paths:
         '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/craft/stuck-guide/setting:
+    get:
+      operationId: craftStuckGuideSettingGet
+      summary: 卡点引导开关查询（2026-11-05 卡点引导，用户级）
+      description: 返回 { enabled }。关闭后任何路径不再出现卡点引导（轻提示可永久拒绝，属产品红线）。
+      tags: [Craft]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 'code=0；data={enabled}' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+    put:
+      operationId: craftStuckGuideSettingPut
+      summary: 卡点引导开关设置（用户级，永久关闭/开启）
+      description: '{ enabled: true|false }，写 user.stuck_guide_enabled；登录即可调用。'
+      tags: [Craft]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean, description: true 开启 / false 永久关闭 }
+      responses:
+        '200': { description: 设置成功 }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   /api/craft/session/{id}/heartbeat:
     post:
       operationId: craftSessionHeartbeat
@@ -2548,7 +2579,7 @@ paths:
     post:
       operationId: craftSessionEventsIngest
       summary: 批量上报创作会话行为事件（幂等，2026-11-05 心流度量配套）
-      description: '客户端上报生命周期（visibility_change / app_lifecycle）、音频播放（audio_play）、步骤进入/离开（step_enter / step_leave）等行为信号，作为心流沉浸与疑似离席判定的数据源。幂等：同一 (session_id, client_seq) 重复上报计 deduped 不重复入库；仅白名单事件类型可上报，dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive / step_gate_blocked 等服务端派生类型一律 1001（step_gate_blocked 为心跳被下架闸口拒绝的服务端证据事件，客户端不可伪造）。context 只允许脱敏标量键值（数字/布尔/≤64 字符字符串），禁止对话或自由文本。会话进行中（DOING）或已暂停（PAUSED）可上报，其余状态 3001。'
+      description: '客户端上报生命周期（visibility_change / app_lifecycle）、音频播放（audio_play）、步骤进入/离开（step_enter / step_leave）等行为信号，作为心流沉浸与疑似离席判定的数据源。幂等：同一 (session_id, client_seq) 重复上报计 deduped 不重复入库；仅白名单事件类型可上报，dwell_stagnation / suspected_away / breathing_prompt / session_finish / session_abandon / session_archive / step_gate_blocked / stuck_guide_shown 等服务端派生类型一律 1001（step_gate_blocked 为心跳被下架闸口拒绝的服务端证据事件，客户端不可伪造；stuck_guide_shown 为卡点引导触点的频率计数证据）。context 只允许脱敏标量键值（数字/布尔/≤64 字符字符串），禁止对话或自由文本。会话进行中（DOING）或已暂停（PAUSED）可上报，其余状态 3001。'
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       requestBody:

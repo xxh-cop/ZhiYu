@@ -61,7 +61,7 @@ class SchemaCompatibilityCheckTest {
     "notification",java.util.List.of("id","user_id","type","title","ref_id","sub_ref_id","dedupe_key","read_flag","create_time","update_time","deleted"),
     "dialogue_context_summary",java.util.List.of("id","user_id","session_id","covered_end_turn","summary_cipher","create_time","update_time","deleted"),
     "crisis_session_log",java.util.List.of("id","user_id","scene","risk_level","summary_cipher","create_time","update_time","deleted"),
-    "user",java.util.List.of("baseline_nudge_enabled","baseline_nudge_last_at","baseline_nudge_last_level"),
+    "user",java.util.List.of("baseline_nudge_enabled","baseline_nudge_last_at","baseline_nudge_last_level","stuck_guide_enabled"),
     "admin_export_log",java.util.List.of("id","actor_id","target_type","field_list","batch_no","create_time"),
     "heritage_catalog_version",java.util.List.of("id","version_no","payload","note","actor_id","create_time","update_time","deleted")).entrySet()){
    var rows=mock(ResultSet.class);var position=new java.util.concurrent.atomic.AtomicInteger(-1);

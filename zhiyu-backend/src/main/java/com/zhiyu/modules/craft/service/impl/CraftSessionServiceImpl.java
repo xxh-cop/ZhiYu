@@ -53,6 +53,7 @@ public class CraftSessionServiceImpl implements CraftSessionService {
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
     private final com.zhiyu.modules.craft.calibration.FlowCalibrationService flowCalibrationService;
+    private final StuckGuideService stuckGuideService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -258,6 +259,17 @@ public class CraftSessionServiceImpl implements CraftSessionService {
             log.warn("疑似离席判定失败（已忽略）: sessionId={}, err={}", sessionId, e.getMessage());
         }
 
+        // 3d. 卡点引导（2026-11-05）：消费既有 DWELL_STAGNATION 信号，异步生成、下一拍就绪。
+        // 开关/频率门在 StuckGuideService 内部；失败只记日志，不影响心跳主链路。
+        try {
+            if (detection.signals().contains(FlowSignal.DWELL_STAGNATION)) {
+                stuckGuideService.onStagnation(session, req.getStepNo(),
+                        project != null ? project.getTitle() : null);
+            }
+        } catch (Exception e) {
+            log.warn("卡点引导触发失败（已忽略）: sessionId={}, err={}", sessionId, e.getMessage());
+        }
+
         // 4. 更新 current_step（如果 stepNo 变了）——只更新这一个字段，避免覆盖 flow_seconds
         if (!req.getStepNo().equals(session.getCurrentStep())) {
             craftSessionMapper.updateCurrentStep(sessionId, req.getStepNo());
@@ -270,10 +282,17 @@ public class CraftSessionServiceImpl implements CraftSessionService {
             log.info("心流累加: sessionId={}, delta={}, state={}", sessionId, detection.flowDelta(), detection.state());
         }
 
-        // 6. 返回心流判定信号
+        // 6. 返回心流判定信号 + 卡点引导文案（就绪/超时降级模板才携带，否则 null）
         boolean inFlow = detection.state() == FlowState.FLOW;
         boolean needBreathing = detection.state() == FlowState.ANXIOUS;
-        return new HeartbeatResult(inFlow, needBreathing);
+        String stuckGuide;
+        try {
+            stuckGuide = stuckGuideService.poll(sessionId);
+        } catch (Exception e) {
+            log.warn("卡点引导取回失败（已忽略）: sessionId={}, err={}", sessionId, e.getMessage());
+            stuckGuide = null;
+        }
+        return new HeartbeatResult(inFlow, needBreathing, stuckGuide);
     }
 
     // ──────────────────────────────────────────────────────

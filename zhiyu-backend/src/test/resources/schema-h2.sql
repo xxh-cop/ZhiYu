@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS user (
   privacy_agreed    TINYINT      NOT NULL DEFAULT 0,  baseline_nudge_enabled TINYINT NOT NULL DEFAULT 1,
   baseline_nudge_last_at DATETIME DEFAULT NULL,
   baseline_nudge_last_level VARCHAR(16) DEFAULT NULL,
+  stuck_guide_enabled TINYINT NOT NULL DEFAULT 1,
 
   role              TINYINT      NOT NULL DEFAULT 0,
   status            TINYINT      NOT NULL DEFAULT 1,

@@ -136,7 +136,7 @@ class CraftGateBlockedEventTest {
                         Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
         var svc = new CraftSessionServiceImpl(sessionMapper, projectMapper, null, null,
-                new TakedownProperties(), eventService, null, jdbc, null, null);
+                new TakedownProperties(), eventService, null, jdbc, null, null, null);
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> svc.heartbeat(STUDENT, 990400L, req()));
         assertEquals(3001, ex.getCode(), "事件失败不得改变 3001 被拒语义");

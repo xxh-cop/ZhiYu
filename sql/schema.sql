@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS user (
   privacy_agreed TINYINT   NOT NULL DEFAULT 0 COMMENT '隐私政策是否同意：0未同意 1已同意',  baseline_nudge_enabled TINYINT NOT NULL DEFAULT 1 COMMENT '情绪基线偏离提醒开关（1 开 0 关，AM1）',
   baseline_nudge_last_at DATETIME DEFAULT NULL COMMENT '基线提醒上次提示时间（冷却用）',
   baseline_nudge_last_level VARCHAR(16) DEFAULT NULL COMMENT '基线提醒上次提示档位',
+  stuck_guide_enabled TINYINT NOT NULL DEFAULT 1 COMMENT '卡点引导开关（1 开 0 关；同一步骤反复停留时给出可选动作建议的轻提示，2026-11-05）',
 
   role        TINYINT      NOT NULL DEFAULT 0 COMMENT '0学生 1传承人 2咨询师 3管理员',
   status      TINYINT      NOT NULL DEFAULT 1 COMMENT '0禁用 1正常',

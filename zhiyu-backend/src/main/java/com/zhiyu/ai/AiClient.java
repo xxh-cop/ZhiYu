@@ -577,6 +577,75 @@ public class AiClient {
         return result;
     }
 
+    /**
+     * 卡点引导语生成（2026-11-05 卡点引导，设计稿 docs/stuck-guidance-design-20261105.md §3）。
+     *
+     * <p>复用 {@code llm-message} 熔断 key（寄语档，与对话/推荐隔离）；standard 档，
+     * 不新开档位。异步线程调用：<b>必须显式传 userId</b>（worker 线程无 UserContext）。
+     * 只写一条输出审计（scene=stuck-guide，粒度沿用寄语口径：推荐/寄语只写输出一条）。
+     *
+     * <p>失败语义一律返回 {@code null}：Mock 降级实现、熔断中、调用异常、输出为空、
+     * 输出被 BLOCK——由业务层降级为静态模板文案，用户永远收到完整可用的提示。
+     * REWRITE 时使用改写后的安全文本。
+     *
+     * @param userId 归属用户（审计与指标归属；异步线程必须显式传）
+     * @param prompt 渲染后的引导语 prompt（stuck-guide.st，含项目名与步骤序号）
+     * @return 可用文案；任何不可用返回 null
+     */
+    public String stuckGuide(Long userId, String prompt) {
+        long t0 = System.nanoTime();
+        // Mock 是本地降级实现，不冒充真实生成（同 listeningSummary 的诚实口径）
+        if (llmClient instanceof MockLlmClient) {
+            metric(KEY_MESSAGE, llmClient::modelName, t0,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
+            return null;
+        }
+        if (!breaker.allowRequest(KEY_MESSAGE)) {
+            log.warn("卡点引导熔断中，降级静态模板: key={}", KEY_MESSAGE);
+            metric(KEY_MESSAGE, llmClient::modelName, t0,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+            return null;
+        }
+        try {
+            var generation = llmClient.chatWithUsage(prompt);
+            String result = generation == null ? null : generation.text();
+            if (result == null || result.isBlank()) {
+                throw new IllegalStateException("empty stuck guide");
+            }
+            SafetyResult output = contentSafetyFilter.checkOutput(userId, "stuck-guide", result);
+            if (output.getAction() == SafetyAction.BLOCK) {
+                log.warn("卡点引导输出被拦截，降级静态模板: userId={}", userId);
+                breaker.recordSuccess(KEY_MESSAGE);
+                metric(KEY_MESSAGE, llmClient::modelName, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                        generation.inputTokens(), generation.outputTokens());
+                return null;
+            }
+            breaker.recordSuccess(KEY_MESSAGE);
+            metric(KEY_MESSAGE, llmClient::modelName, t0,
+                    com.zhiyu.ai.metrics.AiCallMetrics.OK,
+                    output.getAction() == SafetyAction.PASS ? null
+                            : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE,
+                    generation.inputTokens(), generation.outputTokens());
+            if (output.getAction() == SafetyAction.REWRITE
+                    && output.getRewrittenText() != null
+                    && !output.getRewrittenText().isBlank()) {
+                return output.getRewrittenText().trim();
+            }
+            return result.trim();
+        } catch (Exception e) {
+            breaker.recordFailure(KEY_MESSAGE);
+            log.warn("卡点引导生成失败（已记熔断，降级静态模板）: err={}", e.getMessage());
+            metric(KEY_MESSAGE, llmClient::modelName, t0,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+            return null;
+        }
+    }
+
     public record ListeningResult(String text, boolean generated, boolean blocked) {
     }
 

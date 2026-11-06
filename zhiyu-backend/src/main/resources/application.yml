@@ -95,6 +95,10 @@ zhiyu:
   # 生产/演示环境必须通过环境变量 FIELD_ENCRYPT_SECRET 覆盖。
   crypto:
     secret: ${FIELD_ENCRYPT_SECRET:}
+    # 是否允许使用仓库内置的开发/测试默认密钥（application-dev.yml / application-test.yml）。
+    # 默认 false：命中内置默认密钥即启动失败，防止把公开密钥带进生产/演示环境（上线阻塞项）。
+    # 仅本地开发或单测可显式设置 ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET=true。
+    allow-default-secret: ${ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET:false}
 
   # ── 情绪对话配置（T1.3a） ──
   emotion:
@@ -197,6 +201,17 @@ zhiyu:
       floor-seconds: 300
       # P95 样本截取上限（按发生时刻倒序）
       sample-limit: 500
+
+  # ── 卡点引导（2026-11-05，设计稿 docs/stuck-guidance-design-20261105.md） ──
+  # 消费既有 DWELL_STAGNATION 信号（dwell 反复回落，纯挂机/真沉浸不触发），
+  # 异步生成、下一拍心跳下发；AI 失败/超时降级静态模板，永不让用户白屏。
+  stuck-guide:
+    # 每会话触点上限（信号本身每步骤至多一次，此处再兜一层会话总量）
+    session-max: 2
+    # 每用户每日触点上限
+    daily-max: 3
+    # 异步生成等待预算（毫秒）：超时未就绪直接下发静态模板
+    async-timeout-ms: 5000
 
   # ── 分层下架状态机（2026-11-05） ──
   # 合规下架：公开面即收，进行中/暂停会话转只读，export-window-hours 内可导出，窗口结束转归档。
