@@ -51,7 +51,7 @@ class DialogueContextServiceTest {
             ScriptUtils.executeSqlScript(c, new FileSystemResource("src/test/resources/schema-h2.sql"));
         }
         db = new JdbcTemplate(source);
-        crypto = new AesEncryptor("dGhpcy1pcy1hLXRlc3Qtb25seS1rZXktMzJieXRlcyE=");
+        crypto = new AesEncryptor("dGhpcy1pcy1hLXRlc3Qtb25seS1rZXktMzJieXRlcyE=", true);
         aiClient = mock(AiClient.class);
         trace = mock(CompanionTraceService.class);
         when(aiClient.modelName()).thenReturn("deepseek-chat");

@@ -24,7 +24,7 @@ class GrowthServiceTest {
         var source=new DriverManagerDataSource("jdbc:h2:mem:growth"+UUID.randomUUID()+";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER","sa","");
         try(var connection=source.getConnection()){ScriptUtils.executeSqlScript(connection,new FileSystemResource("src/test/resources/schema-h2.sql"));}
         db=new JdbcTemplate(source);tx=new TransactionTemplate(new DataSourceTransactionManager(source));
-        service=new GrowthService(db,new ObjectMapper().findAndRegisterModules(),new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32])),scales,
+        service=new GrowthService(db,new ObjectMapper().findAndRegisterModules(),new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32]),false),scales,
                 org.mockito.Mockito.mock(com.zhiyu.modules.notification.service.NotificationService.class));
         for(long id=1;id<=4;id++) db.update("INSERT INTO user(id,username,password,nickname,role,status,privacy_agreed,deleted) VALUES(?,?,?,?,?,1,1,0)",id,"u"+id,"hash","测试"+id,id==1?1:0);
         login(2);
@@ -70,7 +70,7 @@ class GrowthServiceTest {
     @Test void reflectionSavesAiSummaryInEncryptedPayload(){
         db.update("INSERT INTO craft_project(id,inheritor_id,title,status,deleted) VALUES(701,1,'折扇小景',1,0)");
         db.update("INSERT INTO craft_session(id,user_id,project_id,status,current_step,deleted) VALUES(702,2,701,3,4,0)");
-        var crypto=new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32]));
+        var crypto=new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32]),false);
         var req=new GrowthRequests.Reflection(702L,"期末周的一片叶子",2,4,"平静","数着折线慢慢安静下来","你完成了四个步骤。",true);
         tx.executeWithoutResult(s->service.reflection(req));
         String payload=db.queryForObject("SELECT payload FROM wellbeing_record WHERE user_id=2 AND kind='REFLECTION'",String.class);
@@ -78,7 +78,7 @@ class GrowthServiceTest {
         assertFalse(payload.contains("期末周的一片叶子"));
     }
     @Test void journeyExplicitlyReportsTruncationAndStableOrdering(){
-        var crypto=new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32]));
+        var crypto=new AesEncryptor(Base64.getEncoder().encodeToString(new byte[32]),false);
         for(int i=0;i<366;i++)db.update("INSERT INTO wellbeing_record(id,user_id,kind,record_key,payload,create_time,update_time,deleted) VALUES(?,2,'MOOD',?,?,CURRENT_TIMESTAMP,'2026-10-01 12:00:00',0)",990000+i,"key"+i,crypto.encrypt("{\"mood\":3}"));
         var result=service.journey();var records=(List<Map<String,Object>>)result.get("records");
         assertEquals(true,result.get("truncated"));assertEquals(365,records.size());assertEquals("990365",records.get(0).get("id"));assertEquals("990001",records.get(364).get("id"));

@@ -10,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Set;
 
 /**
  * AES-256-GCM 字段级加密工具（T1.3a）。
@@ -25,6 +26,11 @@ import java.util.Base64;
  *
  * <p>密钥从 {@code zhiyu.crypto.secret} 读取（Base64 编码的 32 字节）。
  * 密钥为空或长度不为 32 字节 → 构造即抛异常，应用启动失败（fail-fast）。
+ *
+ * <p>仓库内置的开发/测试默认密钥（application-dev.yml / application-test.yml）属于公开值，
+ * 默认被拒绝：仅当 {@code zhiyu.crypto.allow-default-secret=true}
+ * （环境变量 {@code ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET}）显式开启时才允许使用，
+ * 防止默认密钥被静默带进生产/演示环境。
  */
 @Slf4j
 @Component
@@ -35,13 +41,29 @@ public class AesEncryptor {
     private static final int IV_LENGTH = 12;
     private static final int TAG_LENGTH_BITS = 128;
 
+    /**
+     * 仓库内公开的默认密钥（base64）：application-dev.yml 本地开发默认值、
+     * application-test.yml 单测默认值。生产/演示环境禁止使用。
+     */
+    private static final Set<String> WELL_KNOWN_DEFAULT_SECRETS = Set.of(
+            "dGhpcy1pcy1hLWRldi1vbmx5LWtleS0zMmJ5dGVzISE=",
+            "dGhpcy1pcy1hLXRlc3Qtb25seS1rZXktMzJieXRlcyE=");
+
     private final SecretKeySpec keySpec;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public AesEncryptor(@Value("${zhiyu.crypto.secret:}") String secretBase64) {
+    public AesEncryptor(@Value("${zhiyu.crypto.secret:}") String secretBase64,
+                        @Value("${zhiyu.crypto.allow-default-secret:false}") boolean allowDefaultSecret) {
         if (secretBase64 == null || secretBase64.isBlank()) {
             throw new IllegalStateException(
                     "zhiyu.crypto.secret 为空，请通过环境变量 FIELD_ENCRYPT_SECRET 设置加密密钥");
+        }
+        if (!allowDefaultSecret && WELL_KNOWN_DEFAULT_SECRETS.contains(secretBase64.trim())) {
+            throw new IllegalStateException(
+                    "zhiyu.crypto.secret 命中仓库内置的开发/测试默认密钥，禁止直接使用："
+                            + "生产/演示环境必须通过环境变量 FIELD_ENCRYPT_SECRET 设置独立密钥；"
+                            + "仅本地开发或单测可显式设置 zhiyu.crypto.allow-default-secret=true"
+                            + "（环境变量 ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET=true）后沿用默认密钥");
         }
         byte[] keyBytes = Base64.getDecoder().decode(secretBase64);
         if (keyBytes.length != 32) {
@@ -49,7 +71,11 @@ public class AesEncryptor {
                     "zhiyu.crypto.secret 解码后必须为 32 字节，实际 " + keyBytes.length + " 字节");
         }
         this.keySpec = new SecretKeySpec(keyBytes, ALGORITHM);
-        log.info("AesEncryptor 初始化完成（AES-256-GCM）");
+        if (WELL_KNOWN_DEFAULT_SECRETS.contains(secretBase64.trim())) {
+            log.warn("AesEncryptor 正在使用仓库内置的开发/测试默认密钥（allow-default-secret 已显式开启），仅限本地开发/单测");
+        } else {
+            log.info("AesEncryptor 初始化完成（AES-256-GCM）");
+        }
     }
 
     /**

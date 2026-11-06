@@ -63,6 +63,8 @@ zhiyu:
   crypto:
     # 单测专用密钥（32 字节 base64）
     secret: dGhpcy1pcy1hLXRlc3Qtb25seS1rZXktMzJieXRlcyE=
+    # 单测显式允许使用内置默认密钥（H2 内存库、无真实数据；生产/演示环境严禁开启）
+    allow-default-secret: true
   emotion:
     max-history-turns: 10
   auth:

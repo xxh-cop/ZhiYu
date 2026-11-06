@@ -103,7 +103,8 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 | --- | --- |
 | `DB_URL`、`DB_USERNAME`、`DB_PASSWORD` | 数据库连接，以 `application-dev.yml` 为准 |
 | `JWT_SECRET` | JWT 签名密钥，至少 32 字节 |
-| `FIELD_ENCRYPT_SECRET` | 敏感字段加密密钥，格式要求见后端配置；已有数据的密钥不可随意更换 |
+| `FIELD_ENCRYPT_SECRET` | 敏感字段加密密钥（base64 编码的 32 字节）；**上线阻塞项**，生产/演示必须独立设置，缺失或命中内置默认密钥即启动失败；已有数据的密钥不可随意更换 |
+| `ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET` | 仅本地开发/单测：`true` 时允许沿用仓库内置开发密钥（默认 `false`）；生产必须保持不设置或为 `false` |
 | `DEEPSEEK_API_KEY` | 云端对话能力；未配置有效服务时使用降级路径 |
 | `DOUBAO_API_KEY` | 当前配置的向量模型服务密钥 |
 | `ZHIYU_RAG_STORE_PATH` | 本地向量存储文件位置 |
