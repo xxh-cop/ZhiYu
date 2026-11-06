@@ -59,6 +59,17 @@
 			<text class="banner-text">专注中，保持自己的节奏就好</text>
 		</view>
 
+		<!-- 卡点引导轻提示条（2026-11-05 卡点引导）：心跳一次性下发，内嵌在正常流里，
+		     不遮挡步骤操作区；可一键收起（本会话不再出现）、可永久关闭（写用户级开关）。
+		     只读回看会话不起心跳，天然不会出现。 -->
+		<StuckGuideBar
+			v-if="stuckGuideText"
+			:text="stuckGuideText"
+			:busy="stuckGuideBusy"
+			@dismiss="dismissStuckGuide"
+			@disable="disableStuckGuide"
+		/>
+
 		<!-- 步骤内容区 -->
 		<scroll-view v-if="!loadError" class="step-area" scroll-y>
 			<MediaVideo v-if="teachingVideo" :src="teachingVideo" caption="边看边做 · 可暂停后操作" />
@@ -250,6 +261,7 @@ import XiaotuanPet from '../../components/XiaotuanPet.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
 import CompanionNudge from '../../components/CompanionNudge.vue'
+import StuckGuideBar from '../../components/StuckGuideBar.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
 import { useIdleNudge } from '../../composables/useIdleNudge'
@@ -300,6 +312,11 @@ let hidden = false
 let route = {}
 let retryPayload = null
 const loadError=ref(''),syncError=ref(''),progressSaving=ref(false),starter=ref(null),resumed=ref(false)
+// ── 卡点引导轻提示（2026-11-05）：状态全部限定在本页面实例内，离开页面即随实例销毁 ──
+const stuckGuideText=ref('')        // 非空才渲染；空值即隐藏，不留空气泡
+const stuckGuideBusy=ref(false)     // 「不再提示」写入中
+let stuckGuideDismissed=false       // 本会话内收起后，同类提示不再弹出
+let stuckGuideOff=false             // 本会话内已永久关闭（写库成功后不再渲染）
 const starterStep=computed(()=>starter.value?.steps?.[currentStep.value-1])
 let isExited = false
 
@@ -347,7 +364,7 @@ const currentStepData = computed(() => {
 onLoad(query=>{route=query||{};initialize().then(loadTeaching)})
 async function initialize(){
  if(disposed)return
- pageLoading.value=true;loadError.value='';stopHeartbeatTimer();craftStore.reset();totalDwellSeconds=0;resumed.value=false;exportSessionId=null
+ pageLoading.value=true;loadError.value='';stopHeartbeatTimer();craftStore.reset();totalDwellSeconds=0;resumed.value=false;exportSessionId=null;resetStuckGuide()
  try{
   let projectId=route.projectId
   if(!projectId)throw new Error('缺少项目参数')
@@ -601,7 +618,7 @@ function sendHeartbeat(payload){
  const task=heartbeatChain.then(async()=>{
   try{
    const res=await http.post('/api/craft/session/'+target+'/heartbeat',payload)
-   if(!disposed&&!hidden&&craftStore.status===1){craftStore.setFlowState(res.inFlow||false,res.needBreathing||false);if(res.needBreathing)showBreathing.value=true}
+   if(!disposed&&!hidden&&craftStore.status===1){craftStore.setFlowState(res.inFlow||false,res.needBreathing||false);if(res.needBreathing)showBreathing.value=true;consumeStuckGuide(res.stuckGuide)}
    if(!disposed){syncError.value='';retryPayload=null}return true
   }catch{
    if(!disposed){syncError.value='进度暂未保存，请保持当前步骤并重试。';retryPayload=payload}return false
@@ -610,6 +627,39 @@ function sendHeartbeat(payload){
  heartbeatChain=task;return task
 }
 async function retryProgress(){if(!retryPayload||progressSaving.value)return;progressSaving.value=true;const payload=retryPayload;try{if(await sendHeartbeat(payload)){craftStore.currentStep=payload.stepNo;stepStartTime=Date.now();invalidate(TTL_KEYS.craftSessionActive)}}finally{progressSaving.value=false}}
+
+// ── 卡点引导轻提示（一次性消费，幂等）──
+// 后端三道门（用户开关/会话上限/日上限）已挡绝大多数情况；前端只负责：
+// 空值即隐藏、同文案去重、收起后本会话不再弹、永久关闭后本节不再渲染。
+function consumeStuckGuide(raw){
+ if(craftStore.readOnly||stuckGuideDismissed||stuckGuideOff)return
+ const text=typeof raw==='string'?raw.trim():''
+ if(!text)return
+ if(text===stuckGuideText.value)return // 同一次下发不因重渲染/多处监听重复展示
+ stuckGuideText.value=text
+}
+function dismissStuckGuide(){
+ stuckGuideText.value=''
+ stuckGuideDismissed=true // 一键收起：本会话内同类提示不再弹出
+}
+async function disableStuckGuide(){
+ if(stuckGuideBusy.value)return
+ stuckGuideBusy.value=true
+ try{
+  await http.put('/api/craft/stuck-guide/setting',{enabled:false})
+  stuckGuideOff=true
+  stuckGuideDismissed=true
+  stuckGuideText.value=''
+  toast.success('已关闭这类提示，可在个人设置中重新开启')
+ }catch(e){
+  toast.care((e&&e.message)||'保存失败，请重试')
+ }finally{
+  stuckGuideBusy.value=false
+ }
+}
+function resetStuckGuide(){
+ stuckGuideText.value='';stuckGuideBusy.value=false;stuckGuideDismissed=false;stuckGuideOff=false
+}
 
 // ── 步骤操作 ──
 

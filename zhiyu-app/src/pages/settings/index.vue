@@ -226,6 +226,25 @@
 			>{{ nudgeBusy ? '正在保存…' : nudgeEnabled ? '已开启 · 点按关闭' : '已关闭 · 点按开启' }}</AccessibleButton>
 		</view>
 
+		<!-- 卡点引导开关（2026-11-05 卡点引导）：创作中同一步骤反复停留时的一句轻提示。
+		     与情绪关怀提醒同属「可拒绝的关心」，放在相邻位置便于发现；关闭后任何路径不再出现。 -->
+		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 6">
+			<view class="card-head">
+				<view class="card-icon-wrap card-icon-memory">
+					<wd-icon name="sparkles" size="32rpx" color="#FFFFFF" />
+				</view>
+				<text class="section-heading">陪伴小提示</text>
+			</view>
+			<text class="memory-entry-text">创作中如果在同一步骤停留较久，小织会轻轻给一句可选的小建议。它从不打断你，也随时可以收起。这只是陪伴，不是任何判断。</text>
+			<AccessibleButton
+				class="nudge-toggle"
+				:aria-pressed="stuckGuideEnabled"
+				:disabled="stuckGuideBusy"
+				:aria-label="stuckGuideEnabled ? '关闭陪伴小提示' : '开启陪伴小提示'"
+				@click="toggleStuckGuide"
+			>{{ stuckGuideBusy ? '正在保存…' : stuckGuideEnabled ? '已开启 · 点按关闭' : '已关闭 · 点按开启' }}</AccessibleButton>
+		</view>
+
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 		<Toast />
@@ -307,6 +326,32 @@ async function toggleNudge() {
 	}
 }
 
+/* ── 卡点引导开关（用户级，持久；与提示条上的「不再提示」写同一开关）── */
+const stuckGuideEnabled = ref(true)
+const stuckGuideBusy = ref(false)
+async function loadStuckGuideSetting() {
+	try {
+		const data = await request({ url: '/api/craft/stuck-guide/setting', method: 'GET' })
+		stuckGuideEnabled.value = !data || data.enabled !== false
+	} catch (e) {
+		/* 读取失败保持默认开（后端默认开启），不打扰 */
+	}
+}
+async function toggleStuckGuide() {
+	if (stuckGuideBusy.value) return
+	const next = !stuckGuideEnabled.value
+	stuckGuideBusy.value = true
+	try {
+		await request({ url: '/api/craft/stuck-guide/setting', method: 'PUT', data: { enabled: next } })
+		stuckGuideEnabled.value = next
+		toast.success(next ? '已开启陪伴小提示' : '已关闭，创作中不会再出现这类提示')
+	} catch (e) {
+		toast.care((e && e.message) || '保存失败，请重试')
+	} finally {
+		stuckGuideBusy.value = false
+	}
+}
+
 const roleLabel = computed(() => {
 	const role = form.value.role
 	if (role === null || role === undefined) return '未设置'
@@ -331,6 +376,7 @@ onShow(() => {
 	}
 	loadUserInfo()
 	loadNudgeSetting()
+	loadStuckGuideSetting()
 })
 
 async function loadUserInfo() {
