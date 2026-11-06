@@ -149,6 +149,14 @@ class ModerationGateEvalIT {
             if (raw == null) {
                 row.put("verdict", "UNAVAILABLE");
             } else {
+                // narrative 原样记录（评测侧观测用；判定仍以服务端 parse 口径为准）
+                try {
+                    JsonNode nv = json.readTree(raw).path("narrative");
+                    row.put("narrative", nv.isMissingNode() ? null
+                            : nv.isTextual() ? nv.asText() : nv.toString());
+                } catch (Exception e) {
+                    row.put("narrative", null);
+                }
                 Map<String, Object> parsed = parse(raw);
                 if (parsed == null) {
                     row.put("verdict", "PARSE_FAIL");

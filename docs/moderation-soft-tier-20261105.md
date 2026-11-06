@@ -70,6 +70,14 @@
   解析器拒绝 `SOFT_CONCERN`（视为格式不可用 → available=false 降级），线上行为与三档完全一致。
 - OpenAPI 契约已登记该值的出现条件（见 §5 改动清单）。
 
+> **订正（2026-11-06，原文保留不删）**：上一条「线上行为与三档完全一致」表述不精确。
+> 关闭开关时提示词仍含第三批（修输出截断）加入的「输出篇幅上限」子句
+> （riskPoints ≤2 条、每条 ≤40 字、uncertainty ≤30 字）——该子句无条件生效、不随开关裁切，
+> 故关闭态 ≠ 软档改动前（54949d7 版）的逐字节行为。
+> 实测证据：SHA-256 归一化比对 old=b5c197b456ddb30d ≠ off=e90452fab4e75f11（唯一差异即该子句），
+> 见 [moderation-soft-tier-baseline-20261106.md](file:///d:/develop/Zhi_Yu/docs/moderation-soft-tier-baseline-20261106.md) §0.3。
+> 语义修正：关闭 =「三档行为 + 篇幅上限子句」。
+
 ## 5. 改动清单（仅后端，先 openapi 后代码）
 
 | 文件 | 改动 |
