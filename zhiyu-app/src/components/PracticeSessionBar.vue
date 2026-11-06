@@ -104,7 +104,7 @@ const hint = computed(() => {
 	font-size: 23rpx;
 	line-height: 44px;
 }
-.practice-bar-button[disabled] {
+.practice-bar-button.is-disabled {
 	opacity: 0.6;
 }
 .practice-bar-error {

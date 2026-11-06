@@ -353,7 +353,7 @@ function leave() {
 .primary-action,
 .secondary-action { min-height: 88rpx; margin-top: 14rpx; border-radius: 999rpx; font-size: 27rpx; line-height: 2.9; }
 .primary-action { background: var(--zy-primary, #217e76); color: #fff; }
-.primary-action[disabled] { opacity: 0.55; }
+.primary-action.is-disabled { opacity: 0.55; }
 .secondary-action { border: 1rpx solid var(--zy-primary, #217e76); background: transparent; color: var(--zy-primary, #217e76); }
 .primary-action::after,
 .secondary-action::after { border: 0; }

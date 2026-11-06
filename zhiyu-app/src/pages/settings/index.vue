@@ -41,12 +41,15 @@
 					<input
 						:id="id"
 						class="form-input"
+						:class="{ 'is-focused': focusedField === 'nickname' }"
 						v-model="form.nickname"
 						:aria-describedby="ariaDescribedby"
 						:aria-invalid="ariaInvalid"
 						placeholder="请输入昵称"
 						:maxlength="50"
 						@input="profileErrors.nickname = ''"
+						@focus="focusedField = 'nickname'"
+						@blur="focusedField = ''"
 					/>
 				</template>
 			</FormField>
@@ -73,12 +76,15 @@
 					<input
 						:id="id"
 						class="form-input"
+						:class="{ 'is-focused': focusedField === 'school' }"
 						v-model="form.school"
 						:aria-describedby="ariaDescribedby"
 						:aria-invalid="ariaInvalid"
 						placeholder="请输入学校名称"
 						:maxlength="100"
 						@input="profileErrors.school = ''"
+						@focus="focusedField = 'school'"
+						@blur="focusedField = ''"
 					/>
 				</template>
 			</FormField>
@@ -88,6 +94,7 @@
 					<textarea
 						:id="id"
 						class="form-textarea"
+						:class="{ 'is-focused': focusedField === 'intro' }"
 						v-model="form.intro"
 						:aria-describedby="ariaDescribedby"
 						:aria-invalid="ariaInvalid"
@@ -96,6 +103,8 @@
 						:auto-height="true"
 						:style="{ minHeight: '120rpx' }"
 						@input="profileErrors.intro = ''"
+						@focus="focusedField = 'intro'"
+						@blur="focusedField = ''"
 					/>
 				</template>
 			</FormField>
@@ -129,6 +138,7 @@
 					<input
 						:id="id"
 						class="form-input"
+						:class="{ 'is-focused': focusedField === 'oldPassword' }"
 						v-model="pwdForm.oldPassword"
 						:aria-describedby="ariaDescribedby"
 						:aria-invalid="ariaInvalid"
@@ -136,6 +146,8 @@
 						password
 						:maxlength="32"
 						@input="pwdErrors.old = ''"
+						@focus="focusedField = 'oldPassword'"
+						@blur="focusedField = ''"
 					/>
 				</template>
 			</FormField>
@@ -145,6 +157,7 @@
 					<input
 						:id="id"
 						class="form-input"
+						:class="{ 'is-focused': focusedField === 'newPassword' }"
 						v-model="pwdForm.newPassword"
 						:aria-describedby="ariaDescribedby"
 						:aria-invalid="ariaInvalid"
@@ -152,6 +165,8 @@
 						password
 						:maxlength="32"
 						@input="pwdErrors.new = ''"
+						@focus="focusedField = 'newPassword'"
+						@blur="focusedField = ''"
 					/>
 				</template>
 			</FormField>
@@ -161,6 +176,7 @@
 					<input
 						:id="id"
 						class="form-input"
+						:class="{ 'is-focused': focusedField === 'confirmPassword' }"
 						v-model="pwdForm.confirmPassword"
 						:aria-describedby="ariaDescribedby"
 						:aria-invalid="ariaInvalid"
@@ -168,6 +184,8 @@
 						password
 						:maxlength="32"
 						@input="pwdErrors.confirm = ''"
+						@focus="focusedField = 'confirmPassword'"
+						@blur="focusedField = ''"
 					/>
 				</template>
 			</FormField>
@@ -219,6 +237,7 @@
 			<text class="memory-entry-text">当最近的低落时刻比平时多时，在首页温和提醒你一次。这只是提醒，不是任何判断。</text>
 			<AccessibleButton
 				class="nudge-toggle"
+				:class="{ 'is-off': !nudgeEnabled }"
 				:aria-pressed="nudgeEnabled"
 				:disabled="nudgeBusy"
 				:aria-label="nudgeEnabled ? '关闭情绪关怀提醒' : '开启情绪关怀提醒'"
@@ -238,6 +257,7 @@
 			<text class="memory-entry-text">创作中如果在同一步骤停留较久，小织会轻轻给一句可选的小建议。它从不打断你，也随时可以收起。这只是陪伴，不是任何判断。</text>
 			<AccessibleButton
 				class="nudge-toggle"
+				:class="{ 'is-off': !stuckGuideEnabled }"
 				:aria-pressed="stuckGuideEnabled"
 				:disabled="stuckGuideBusy"
 				:aria-label="stuckGuideEnabled ? '关闭陪伴小提示' : '开启陪伴小提示'"
@@ -294,6 +314,7 @@ const savingPassword = ref(false)
 const loadingMe = ref(false)
 const loadError = ref('')
 const profileErrors = ref({ nickname: '', school: '', intro: '' })
+const focusedField = ref('')
 const pwdErrors = ref({ old: '', new: '', confirm: '' })
 
 function goMemory() {
@@ -668,7 +689,7 @@ async function handleChangePassword() {
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
-.form-input:focus {
+.form-input.is-focused {
 	border-color: var(--zy-primary, #217e76);
 }
 
@@ -688,7 +709,7 @@ async function handleChangePassword() {
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
-.form-textarea:focus {
+.form-textarea.is-focused {
 	border-color: var(--zy-primary, #217e76);
 }
 
@@ -806,7 +827,7 @@ async function handleChangePassword() {
 	background: var(--zy-bg-tint-mint, #e8efe4);
 	border-radius: 999rpx;
 }
-.nudge-toggle[aria-pressed="false"] {
+.nudge-toggle.is-off {
 	color: var(--zy-text, #4a5f54);
 	background: var(--zy-bg, #f5f7f2);
 }

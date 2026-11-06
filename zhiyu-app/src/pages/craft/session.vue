@@ -974,7 +974,7 @@ function handleBackHome() {
 }
 
 .more-btn::after { border: 0; }
-.more-btn[disabled] { opacity: 0.5; }
+.more-btn.is-disabled { opacity: 0.5; }
 
 /* ── 状态条 ── */
 .banner {

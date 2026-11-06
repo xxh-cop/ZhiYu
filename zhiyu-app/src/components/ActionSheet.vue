@@ -184,7 +184,7 @@ onBeforeUnmount(release)
 .sheet-action.tone-primary { background: var(--zy-brand-600, #217e76); color: #fff; }
 .sheet-action.tone-danger { background: transparent; border: 1rpx solid var(--zy-care, #a64842); color: var(--zy-care, #a64842); }
 .sheet-action.disabled { opacity: .5; }
-.sheet-action[disabled] { opacity: .55; }
+.sheet-action.is-disabled { opacity: .55; }
 .action-label { font-size: var(--zy-font-base, 28rpx); font-weight: 600; }
 .action-description { font-size: var(--zy-font-sm, 24rpx); opacity: .85; }
 .sheet-cancel {

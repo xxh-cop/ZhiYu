@@ -96,7 +96,7 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 .loading-title { font-weight: 400; color: var(--zy-text, #4a5f54); font-size: var(--zy-font-sm, 24rpx); }
 .state-description {
 	font-size: var(--zy-font-sm, 24rpx);
-	color: var(--zy-text-secondary, var(--zy-text, #4a5f54));
+	color: var(--zy-text-secondary, #4a5f54);
 	line-height: 1.7;
 	overflow-wrap: anywhere;
 }
@@ -115,7 +115,7 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 	color: var(--zy-brand-700, #1a645e);
 }
 .state-action::after { border: 0; }
-.state-action[disabled] { opacity: .55; }
+.state-action.is-disabled { opacity: .55; }
 .state-action:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 3px; }
 
 @keyframes zy-shimmer {

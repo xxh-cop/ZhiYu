@@ -40,7 +40,7 @@
 							<view v-if="msg.done && speechAvailable && msg.text" class="msg-actions">
 								<button
 									class="speak-btn"
-									:class="{ speaking: speakingIndex === idx }"
+									:class="{ speaking: speakingIndex === idx, 'is-pressed': speakingIndex === idx, 'is-disabled': speechBusy === idx }"
 									:aria-pressed="speakingIndex === idx ? 'true' : 'false'"
 									:disabled="speechBusy === idx"
 									:aria-label="speakingIndex === idx ? '停止朗读这条回复' : '朗读这条回复'"
@@ -602,12 +602,12 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 	border: 0;
 }
 
-.speak-btn[aria-pressed='true'] {
+.speak-btn.is-pressed {
 	background: var(--zy-primary, #217e76);
 	color: #fff;
 }
 
-.speak-btn[disabled] {
+.speak-btn.is-disabled {
 	opacity: 0.6;
 }
 

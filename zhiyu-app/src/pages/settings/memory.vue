@@ -39,6 +39,7 @@
 				<text class="growth-card-title">开启前，请确认</text>
 				<AccessibleButton
 					class="memory-consent"
+					:class="{ 'is-checked': consent }"
 					role="checkbox"
 					:aria-checked="consent ? 'true' : 'false'"
 					aria-label="同意小织保存练习偏好，不保存对话原文"
@@ -355,7 +356,7 @@ async function confirmDeleteAll() {
 	font-size: 23rpx;
 	line-height: 1.6;
 }
-.memory-consent[aria-checked='true'] {
+.memory-consent.is-checked {
 	border-color: var(--zy-primary, #217e76);
 	background: var(--zy-bg-tint-mint, #e8efe4);
 	color: var(--zy-primary, #217e76);

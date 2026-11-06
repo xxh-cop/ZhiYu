@@ -1,5 +1,5 @@
 <template>
-  <button ref="root" role="button" :tabindex="blocked ? -1 : 0"
+  <button ref="root" role="button" :tabindex="blocked ? -1 : 0" :class="{ 'is-disabled': blocked }"
     :disabled="blocked" :loading="loading" :aria-disabled="blocked" :aria-busy="loading"
     :aria-label="ariaLabel" :aria-pressed="ariaPressed" @click="activate">
     <slot />
@@ -33,5 +33,5 @@ onBeforeUnmount(() => element?.removeEventListener('keydown', keydown))
 button{min-height:44px;box-sizing:border-box;line-height:1.5;display:flex;align-items:center;justify-content:center;gap:8px}
 button::after{border:0}
 button:focus-visible{outline:3px solid var(--zy-brand-700,#1a645e);outline-offset:3px}
-button[disabled]{opacity:.55;cursor:not-allowed}
+button.is-disabled{opacity:.55;cursor:not-allowed}
 </style>

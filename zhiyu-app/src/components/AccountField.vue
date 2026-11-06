@@ -1,8 +1,8 @@
 <template>
   <view class="account-field">
     <label :for="id" class="field-label" @click="focus"><text>{{label}}</text><text v-if="optional" class="optional">选填</text></label>
-    <view class="field-control" :class="{invalid:!!error,disabled}">
-      <input ref="control" :id="id" :value="modelValue" :password="secret&&!visible" :disabled="disabled" :maxlength="maxlength" :focus="focused" :placeholder="placeholder" :aria-label="label" :aria-invalid="!!error" :aria-describedby="error||hint?id+'-hint':undefined" :confirm-type="confirmType" @input="$emit('update:modelValue',$event.detail.value)" @blur="focused=false;$emit('blur')" @confirm="$emit('confirm')"/>
+    <view class="field-control" :class="{invalid:!!error,disabled,'is-focused':isFocused}">
+      <input ref="control" :id="id" :value="modelValue" :password="secret&&!visible" :disabled="disabled" :maxlength="maxlength" :focus="focused" :placeholder="placeholder" :aria-label="label" :aria-invalid="!!error" :aria-describedby="error||hint?id+'-hint':undefined" :confirm-type="confirmType" @input="$emit('update:modelValue',$event.detail.value)" @focus="isFocused=true" @blur="isFocused=false;focused=false;$emit('blur')" @confirm="$emit('confirm')"/>
       <AccessibleButton v-if="secret" class="field-reveal" :aria-label="(visible?'隐藏':'显示')+label" :aria-pressed="visible" :disabled="disabled" @click="visible=!visible">{{visible?'隐藏':'显示'}}</AccessibleButton>
     </view>
     <text :id="id+'-hint'" v-if="error||hint" :class="['field-hint',{error:!!error}]" :role="error?'alert':undefined">{{error||hint}}</text>
@@ -13,7 +13,7 @@ import {ref,nextTick,onMounted,watch} from 'vue'
 import AccessibleButton from './AccessibleButton.vue'
 const props=defineProps({id:String,label:String,modelValue:String,placeholder:String,hint:String,error:String,secret:Boolean,disabled:Boolean,optional:Boolean,maxlength:{type:Number,default:100},autocomplete:{type:String,default:'off'},confirmType:{type:String,default:'next'}})
 defineEmits(['update:modelValue','blur','confirm'])
-const control=ref(null),visible=ref(false),focused=ref(false)
+const control=ref(null),visible=ref(false),focused=ref(false),isFocused=ref(false)
 async function focus(){if(props.disabled)return;focused.value=false;await nextTick();focused.value=true;
 // #ifdef H5
 const el=control.value?.$el||control.value;el?.querySelector('input')?.focus()
@@ -27,5 +27,5 @@ onMounted(annotate);watch(()=>[props.error,props.disabled,props.autocomplete,vis
 defineExpose({focus})
 </script>
 <style scoped>
-.account-field{margin-bottom:18px}.field-label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:550;color:#233d34;margin-bottom:8px}.optional{font-size:11px;color:#4a5f54;font-weight:400}.field-control{display:flex;align-items:center;min-height:50px;border:1px solid var(--zy-border, #dfe7dc);border-radius:10px;background:#fff;padding:0 12px;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}.field-control:focus-within{border-color:#217e76;box-shadow:0 0 0 3px #217e761a}.field-control.invalid{border-color:var(--zy-care, #a64842)}.field-control.disabled{background:var(--zy-bg, #f5f7f2)}.field-control input{flex:1;min-width:0;height:48px;font-size:16px;color:#233d34}.field-reveal{margin:0 0 0 6px;padding:0 4px;min-width:44px;background:transparent;font-size:12px;color:var(--zy-brand-700, #1a645e)}.field-hint{display:block;margin-top:7px;font-size:12px;line-height:1.6;color:#4a5f54}.field-hint.error{color:var(--zy-care, #a64842)}@media(prefers-reduced-motion:reduce){.field-control{transition:none}}
+.account-field{margin-bottom:18px}.field-label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:550;color:#233d34;margin-bottom:8px}.optional{font-size:11px;color:#4a5f54;font-weight:400}.field-control{display:flex;align-items:center;min-height:50px;border:1px solid var(--zy-border, #dfe7dc);border-radius:10px;background:#fff;padding:0 12px;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}.field-control.is-focused{border-color:#217e76;box-shadow:0 0 0 3px #217e761a}.field-control.invalid{border-color:var(--zy-care, #a64842)}.field-control.disabled{background:var(--zy-bg, #f5f7f2)}.field-control input{flex:1;min-width:0;height:48px;font-size:16px;color:#233d34}.field-reveal{margin:0 0 0 6px;padding:0 4px;min-width:44px;background:transparent;font-size:12px;color:var(--zy-brand-700, #1a645e)}.field-hint{display:block;margin-top:7px;font-size:12px;line-height:1.6;color:#4a5f54}.field-hint.error{color:var(--zy-care, #a64842)}@media(prefers-reduced-motion:reduce){.field-control{transition:none}}
 </style>

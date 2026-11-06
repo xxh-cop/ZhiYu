@@ -34,6 +34,7 @@
 				<AccessibleButton
 					v-if="sessionStatus === 1 && !safetyHold"
 					class="summary-consent"
+					:class="{ 'is-checked': consent }"
 					role="checkbox"
 					:aria-checked="consent ? 'true' : 'false'"
 					aria-label="同意读取本次已结束对话中的用户发言并发送给 AI"
@@ -207,7 +208,7 @@ watch(summary, (value) => {
 .summary-input { display: block; width: 100%; min-height: 160rpx; margin-top: 14rpx; box-sizing: border-box; }
 .summary-hint { display: block; margin-top: 8rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); }
 .summary-consent { display: flex; align-items: flex-start; gap: 10rpx; width: 100%; margin: 14rpx 0 0; padding: 12rpx 14rpx; text-align: left; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 22rpx; line-height: 1.6; }
-.summary-consent[aria-checked="true"] { border-color: var(--zy-primary, #217e76); color: var(--zy-primary, #217e76); }
+.summary-consent.is-checked { border-color: var(--zy-primary, #217e76); color: var(--zy-primary, #217e76); }
 .summary-consent-box { display: inline-flex; align-items: center; justify-content: center; width: 30rpx; height: 30rpx; flex-shrink: 0; border: 1rpx solid currentColor; border-radius: 8rpx; font-size: 18rpx; }
 .summary-actions { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 14rpx; }
 .summary-actions .growth-button { margin: 0; }

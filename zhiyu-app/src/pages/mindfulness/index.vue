@@ -147,7 +147,7 @@ onUnload(pause)
 	color: var(--zy-brand-700, #1a645e);
 	font-weight: 600;
 }
-.duration-row button[disabled] { opacity: .7; }
+.duration-row button.is-disabled { opacity: .7; }
 
 button::after { border: 0; }
 .orb-area { height: 410rpx; display: flex; align-items: center; justify-content: center; }

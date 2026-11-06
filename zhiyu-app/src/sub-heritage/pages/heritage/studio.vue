@@ -121,6 +121,7 @@
 				<view class="studio-ai-form">
 					<AccessibleButton
 						class="studio-consent"
+						:class="{ 'is-checked': aiConsent }"
 						role="checkbox"
 						:aria-checked="aiConsent ? 'true' : 'false'"
 						aria-label="同意本次将纹样名称与主题发送给 AI，授权不保存"
@@ -242,6 +243,7 @@
 					/>
 					<AccessibleButton
 						class="studio-consent"
+						:class="{ 'is-checked': artifactConsent }"
 						role="checkbox"
 						:aria-checked="artifactConsent ? 'true' : 'false'"
 						aria-label="同意把这次练习的文化卡、色板与备注加密保存到成长旅程"
@@ -782,7 +784,7 @@ onMounted(() => {
 .studio-ai-form { max-width: 760px; }
 .studio-ai-badge { flex-shrink: 0; padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #217e76); font-size: 20rpx; }
 .studio-consent { display: flex; align-items: flex-start; gap: 12rpx; width: 100%; margin: 16rpx 0 4rpx; padding: 14rpx 16rpx; text-align: left; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 23rpx; line-height: 1.6; }
-.studio-consent[aria-checked="true"] { border-color: var(--zy-primary, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #217e76); }
+.studio-consent.is-checked { border-color: var(--zy-primary, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #217e76); }
 .studio-consent-box { display: inline-flex; align-items: center; justify-content: center; width: 34rpx; height: 34rpx; flex-shrink: 0; margin-top: 2rpx; border: 1rpx solid currentColor; border-radius: 8rpx; font-size: 20rpx; }
 .studio-ai-label { display: block; margin: 16rpx 0 0; font-size: 23rpx; color: var(--zy-title, #233d34); }
 .studio-ai-input { box-sizing: border-box; width: 100%; height: 78rpx; margin: 8rpx 0 16rpx; padding: 0 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-title, #233d34); font-size: 24rpx; }

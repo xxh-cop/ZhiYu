@@ -93,7 +93,7 @@ defineEmits(['dismiss', 'disable'])
 	background: transparent;
 	color: var(--zy-content, #4a5f54);
 }
-.stuck-guide-btn[disabled] { opacity: 0.5; }
+.stuck-guide-btn.is-disabled { opacity: 0.5; }
 button:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
 	.stuck-guide { animation: none; }

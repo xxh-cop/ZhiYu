@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
 	min-height: 44px;
 	margin: 0;
 }
-.companion-send[disabled] {
+.companion-send.is-disabled {
 	opacity: 0.55;
 }
 .companion-foot {

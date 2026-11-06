@@ -38,7 +38,7 @@
 
 		<!-- 搜索框 -->
 		<view class="search-bar zy-slide-up zy-stagger" style="--stagger-i: 2">
-			<view class="search-input-wrap">
+			<view class="search-input-wrap" :class="{ 'is-focused': searchFocused }">
 				<wd-icon name="search" size="32rpx" color="var(--zy-text, #4a5f54)" />
 				<input
 					class="search-input"
@@ -48,6 +48,8 @@
 					:value="keyword"
 					@confirm="onSearch"
 					@input="onKeywordInput"
+					@focus="searchFocused = true"
+					@blur="searchFocused = false"
 					confirm-type="search"
 				/>
 			</view>
@@ -159,6 +161,7 @@ const page = ref(1)
 const total = ref(0)
 const size = 10
 const keyword = ref('')
+const searchFocused = ref(false)
 const storyList = ref([])
 const storyLoading = ref(false)
 const storyError = ref('')
@@ -309,7 +312,7 @@ loadStories()
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
-.search-input-wrap:focus-within {
+.search-input-wrap.is-focused {
 	border-color: var(--zy-primary, #217e76);
 }
 
