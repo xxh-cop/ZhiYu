@@ -26,4 +26,7 @@ public class WorkComment extends BaseEntity {
 
     /** 1展示 0隐藏 */
     private Integer status;
+
+    /** 软档降权截止（2026-11-07 处置链）：NULL=不降权；处置链开关关闭时读侧忽略本列。 */
+    private java.time.LocalDateTime softDemoteUntil;
 }

@@ -46,6 +46,15 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
     private final UserMapper userMapper;
     private final ContentSafetyFilter contentSafetyFilter;
 
+    /**
+     * 软档处置链读侧开关（2026-11-07）：关闭 = 评论列表纯时间序（回滚点，忽略 soft_demote_until）；
+     * 开启 = 位次降权版（WorkCommentMapper.selectCommentPageDemoted）。
+     */
+    @org.springframework.beans.factory.annotation.Value("${zhiyu.moderation.soft-tier.disposition.enabled:false}")
+    private boolean softDispositionEnabled;
+    @org.springframework.beans.factory.annotation.Value("${zhiyu.moderation.soft-tier.disposition.demote-position:20}")
+    private int softDemotePosition;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LikeVO toggleLike(Long userId, Long workId, Integer type) {
@@ -126,12 +135,20 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
         int pageSize = (size == null || size < 1) ? 10 : Math.min(size, 50);
 
         // 2. 分页查评论 where work_id=? AND status=1 AND deleted=0，按 create_time asc
-        LambdaQueryWrapper<WorkComment> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(WorkComment::getWorkId, workId)
-                .and(q -> q.eq(WorkComment::getStatus,1).or(com.zhiyu.security.UserContext.getUserId()!=null).eq(com.zhiyu.security.UserContext.getUserId()!=null,WorkComment::getUserId,com.zhiyu.security.UserContext.getUserId()))
-                .orderByAsc(WorkComment::getCreateTime);
-
-        IPage<WorkComment> pageResult = workCommentMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+        // 处置链开启时走位次降权版（软档评论落在第 N 条普通评论之后）；关闭保持纯时间序（回滚点）
+        IPage<WorkComment> pageResult;
+        if (softDispositionEnabled) {
+            Long uid = com.zhiyu.security.UserContext.getUserId();
+            Page<WorkComment> commentPage = new Page<>(pageNum, pageSize, false);
+            pageResult = workCommentMapper.selectCommentPageDemoted(commentPage, workId, uid, softDemotePosition);
+            pageResult.setTotal(workCommentMapper.selectCommentCount(workId, uid));
+        } else {
+            LambdaQueryWrapper<WorkComment> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(WorkComment::getWorkId, workId)
+                    .and(q -> q.eq(WorkComment::getStatus,1).or(com.zhiyu.security.UserContext.getUserId()!=null).eq(com.zhiyu.security.UserContext.getUserId()!=null,WorkComment::getUserId,com.zhiyu.security.UserContext.getUserId()))
+                    .orderByAsc(WorkComment::getCreateTime);
+            pageResult = workCommentMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+        }
 
         // 3. 批量查昵称
         Set<Long> userIds = pageResult.getRecords().stream()
@@ -200,6 +217,10 @@ public class WorkInteractionServiceImpl implements WorkInteractionService {
         vo.setId(comment.getId());
         vo.setStatus(comment.getStatus());
         vo.setMine(Objects.equals(comment.getUserId(),com.zhiyu.security.UserContext.getUserId()));
+        // 软档降权状态（2026-11-07 处置链）：三条件同时成立才下发——处置链开启 + 本人评论 + 降权未过期
+        vo.setSoftDemoteUntil(vo.isMine() && softDispositionEnabled
+                && comment.getSoftDemoteUntil() != null && comment.getSoftDemoteUntil().isAfter(LocalDateTime.now())
+                ? comment.getSoftDemoteUntil() : null);
         vo.setContent(comment.getContent());
         vo.setAuthorName(nickname != null ? nickname : "未知用户");
         vo.setCreateTime(comment.getCreateTime());

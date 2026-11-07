@@ -135,6 +135,21 @@ zhiyu:
     # 处置（抽检池/曝光降权/SLA/回流）未实现前不得对生产开启，语义见 docs/moderation-soft-tier-20261105.md
     soft-tier:
       enabled: ${ZHIYU_MODERATION_SOFT_TIER_ENABLED:false}
+      # 软档处置链（2026-11-07）：抽检池/位次降权/SLA/回流。独立于软档开关，默认 false。
+      # 开启前提与灰度路径见 docs/moderation-soft-tier-disposition-chain-20261107.md（G1 影子→G2 小流量→G3 全量）；
+      # 学生端通知类型/徽标/申诉页先行发布之前不得对生产开启（防「静默折叠」红线）。
+      disposition:
+        enabled: ${ZHIYU_MODERATION_SOFT_TIER_DISPOSITION_ENABLED:false}
+        # 位次降权：软档内容排在第 N 条非软档内容之后（默认 20 = 社区流首两屏 size=10×2）
+        demote-position: ${ZHIYU_MODERATION_SOFT_TIER_DEMOTE_POSITION:20}
+        # 未抽中者的降权窗口（小时），到期读侧自动恢复
+        unsampled-demote-hours: ${ZHIYU_MODERATION_SOFT_TIER_UNSAMPLED_DEMOTE_HOURS:72}
+        # 抽中者复核 SLA（小时）；超时升级 ESCALATED 并通知管理员，默认行为偏保守：维持降权不自动恢复
+        sla-hours: ${ZHIYU_MODERATION_SOFT_TIER_SLA_HOURS:24}
+        # 随机层抽样比例（全覆盖层 mandatory_* 恒 100% 入池，不受此比例与 daily-cap 约束）
+        sample-rate: ${ZHIYU_MODERATION_SOFT_TIER_SAMPLE_RATE:0.33}
+        # 日入池软上限（只约束 random 与 mandatory_author_first 层；溢出转未抽中并保留降权窗口）
+        daily-cap: ${ZHIYU_MODERATION_SOFT_TIER_DAILY_CAP:50}
 
   # ── 账号安全（2026-11-03：登录失败锁定 + 忘记密码） ──
   # 登录失败锁定：按账号维度计数（不存在的账号同样计数，避免探测注册状态），

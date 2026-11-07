@@ -18,5 +18,13 @@ public interface AdminWorkService {
     /** 带审核理由的状态变更（I1，2026-11-04）：下架/驳回必须携带 reason。 */
     void updateWorkStatus(Long id, Integer status, String reason);
 
+    /**
+     * 带软档标记的状态变更（2026-11-07 处置链）：softTier=true 仅允许随 status=1（通过）使用，
+     * 通过后由 {@code SoftTierRecordService} 落台账+抽样+降权+通知（同一事务）。
+     * narrative / riskPointsNonEmpty 为管理端回显的 AI 建议信息（抽样信号与留证，可空）。
+     */
+    void updateWorkStatus(Long id, Integer status, String reason, Boolean softTier,
+                          String narrative, Boolean riskPointsNonEmpty);
+
     void deleteWork(Long id);
 }

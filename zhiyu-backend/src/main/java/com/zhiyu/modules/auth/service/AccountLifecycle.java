@@ -56,6 +56,9 @@ public class AccountLifecycle {
         db.update("UPDATE practice_session SET context_cipher=NULL,mood_code=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         // 通知（接收者维度）——清正文+逻辑删除；发给咨询师的关怀通知不含学生信息且接收者非本人，不在此范围
         db.update("UPDATE notification SET title='',content=NULL,deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
+        // 软档处置台账（2026-11-07 处置链）——随作者内容注销级联逻辑删除
+        // （台账不含内容原文；reviewer_id 是管理员不是被注销者，无需处理）
+        db.update("UPDATE moderation_soft_review SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE author_id=?",uid);
         // 推荐行为事件、小组作品关联——逻辑删除（严格按本人范围）
         db.update("UPDATE craft_recommend_event SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         // 会话行为事件（2026-11-05 心流度量配套）——清上下文快照 + 逻辑删除

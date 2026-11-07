@@ -51,6 +51,15 @@ public class WorkServiceImpl implements WorkService {
 
     private static final String ANONYMOUS_NAME = "匿名同学";
 
+    /**
+     * 软档处置链读侧开关（2026-11-07）：关闭 = 社区流纯时间序（回滚点，完全忽略 soft_demote_until）；
+     * 开启 = 位次降权版查询（WorkMapper.selectFeedPage）。
+     */
+    @org.springframework.beans.factory.annotation.Value("${zhiyu.moderation.soft-tier.disposition.enabled:false}")
+    private boolean softDispositionEnabled;
+    @org.springframework.beans.factory.annotation.Value("${zhiyu.moderation.soft-tier.disposition.demote-position:20}")
+    private int softDemotePosition;
+
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
     public WorkVO publish(Long userId, WorkPublishReq req) {
@@ -156,12 +165,21 @@ public class WorkServiceImpl implements WorkService {
         int pageSize = (size == null || size < 1) ? 10 : Math.min(size, 50);
 
         // 分页查 work where status=1 AND visible=1 AND deleted=0
-        LambdaQueryWrapper<Work> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Work::getStatus, 1)
-                .eq(Work::getVisible, 1)
-                .orderByDesc(Work::getCreateTime);
-
-        IPage<Work> pageResult = workMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+        // 处置链开启时走位次降权版（软档内容落在第 N 条非软档之后）；关闭保持纯时间序（回滚点）
+        IPage<Work> pageResult;
+        if (softDispositionEnabled) {
+            // Page 第三参 false：不自动 count（自动 count 会把 ORDER BY 包进聚合子查询，H2 拒绝）；
+            // total 由独立计数回填，口径与排序无关
+            Page<Work> feedPage = new Page<>(pageNum, pageSize, false);
+            pageResult = workMapper.selectFeedPage(feedPage, softDemotePosition);
+            pageResult.setTotal(workMapper.selectFeedCount());
+        } else {
+            LambdaQueryWrapper<Work> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Work::getStatus, 1)
+                    .eq(Work::getVisible, 1)
+                    .orderByDesc(Work::getCreateTime);
+            pageResult = workMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+        }
 
         // 批量查 user 昵称
         Set<Long> userIds = pageResult.getRecords().stream()
@@ -214,6 +232,11 @@ public class WorkServiceImpl implements WorkService {
         WorkVO vo = buildVO(work, nickname);
         // AE2（2026-11-04）：审核理由仅作者本人可见；他人不下发（未审核/已通过天然为 null）
         vo.setAuditReason(isAuthor ? work.getAuditReason() : null);
+        // 软档降权状态（2026-11-07 处置链）：三条件同时成立才下发——处置链开启 + 作者本人 + 降权未过期
+        // （开关关闭或已过期时徽标必须消失，否则是「告诉你受限但其实没有」的反向静默）
+        vo.setSoftDemoteUntil(isAuthor && softDispositionEnabled
+                && work.getSoftDemoteUntil() != null && work.getSoftDemoteUntil().isAfter(LocalDateTime.now())
+                ? work.getSoftDemoteUntil() : null);
 
         // 4. 查 commentCount
         LambdaQueryWrapper<WorkComment> commentWrapper = new LambdaQueryWrapper<>();

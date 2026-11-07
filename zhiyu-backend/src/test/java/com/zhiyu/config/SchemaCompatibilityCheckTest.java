@@ -29,8 +29,8 @@ class SchemaCompatibilityCheckTest {
    when(metadata.getColumns("zhiyu",null,entry.getKey(),null)).thenReturn(rows);
   }
   for(String table:java.util.List.of("program_collaborator","guidance_channel","guidance_message","group_companion","group_work","runtime_config","file_cleanup_job")){var rows=mock(ResultSet.class);when(rows.next()).thenReturn(true,true,true,true,false);when(rows.getString("COLUMN_NAME")).thenReturn("id","create_time","update_time","deleted");when(metadata.getColumns("zhiyu",null,table,null)).thenReturn(rows);}
-  var work=mock(ResultSet.class);when(work.next()).thenReturn(true,upgraded,upgraded,false);when(work.getString("COLUMN_NAME")).thenReturn(upgraded?"media_type":"id","video_url","audit_reason");
-  var comment=mock(ResultSet.class);when(comment.next()).thenReturn(upgraded,false);when(comment.getString("COLUMN_NAME")).thenReturn("audit_reason");when(metadata.getColumns("zhiyu",null,"work_comment",null)).thenReturn(comment);
+  var work=mock(ResultSet.class);when(work.next()).thenReturn(true,upgraded,upgraded,upgraded,false);when(work.getString("COLUMN_NAME")).thenReturn(upgraded?"media_type":"id","video_url","audit_reason","soft_demote_until");
+  var comment=mock(ResultSet.class);when(comment.next()).thenReturn(upgraded,upgraded,false);when(comment.getString("COLUMN_NAME")).thenReturn("audit_reason","soft_demote_until");when(metadata.getColumns("zhiyu",null,"work_comment",null)).thenReturn(comment);
   var session=mock(ResultSet.class);when(session.next()).thenReturn(true,false);when(session.getString("COLUMN_NAME")).thenReturn("emotion_session_id");
   var project=mock(ResultSet.class);var projectPos=new java.util.concurrent.atomic.AtomicInteger(-1);var projectCols=upgraded?java.util.List.of("video_url","audit_reason","takedown_kind","takedown_at","archive_at","export_until","notice_key"):java.util.List.of("video_url");when(project.next()).thenAnswer(i->projectPos.incrementAndGet()<projectCols.size());when(project.getString("COLUMN_NAME")).thenAnswer(i->projectCols.get(projectPos.get()));var media=mock(ResultSet.class);when(media.next()).thenReturn(true,true,false);when(media.getString("COLUMN_NAME")).thenReturn("storage_key","user_id");when(metadata.getColumns("zhiyu",null,"craft_project",null)).thenReturn(project);when(metadata.getColumns("zhiyu",null,"media_asset",null)).thenReturn(media);
   // 2026-11-05 分层下架：craft_step 音频资产三字段
@@ -51,6 +51,12 @@ class SchemaCompatibilityCheckTest {
   when(sessionEvent.next()).thenAnswer(i->sessionEventPos.incrementAndGet()<sessionEventCols.size());
   when(sessionEvent.getString("COLUMN_NAME")).thenAnswer(i->sessionEventCols.get(sessionEventPos.get()));
   when(metadata.getColumns("zhiyu",null,"craft_session_event",null)).thenReturn(sessionEvent);
+  // 2026-11-07 软档处置链：moderation_soft_review 必检表
+  var softReviewCols=upgraded?java.util.List.of("id","target_type","target_id","author_id","sampled","pool_status","appeal_reason","create_time","update_time","deleted"):java.util.List.<String>of();
+  var softReview=mock(ResultSet.class);var softReviewPos=new java.util.concurrent.atomic.AtomicInteger(-1);
+  when(softReview.next()).thenAnswer(i->softReviewPos.incrementAndGet()<softReviewCols.size());
+  when(softReview.getString("COLUMN_NAME")).thenAnswer(i->softReviewCols.get(softReviewPos.get()));
+  when(metadata.getColumns("zhiyu",null,"moderation_soft_review",null)).thenReturn(softReview);
   when(metadata.getColumns("zhiyu",null,"work",null)).thenReturn(work);when(metadata.getColumns("zhiyu",null,"craft_session",null)).thenReturn(session);
   // L4 批次新增必检表（practice_session / user_ai_memory / ai_trace / heritage_catalog_version）
   // 2026-11-04 通知系统新增必检表 notification

@@ -33,6 +33,13 @@ public class WorkVO {
      * （历史驳回/下架理由）；他人不可见（非公开作品对他人本来就 1004）；未审核/已通过为 null。
      */
     private String auditReason;
+    /**
+     * 软档降权截止（2026-11-07 处置链）：仅 GET /api/works/{id} 对<b>作者本人</b>下发
+     * （与 auditReason 同口径；「展示受限」徽标数据源——反静默折叠要求作者始终可见自身状态）；
+     * 他人视角与社区流列表不下发（NON_NULL）。
+     */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private java.time.LocalDateTime softDemoteUntil;
     private Integer likeCount;
     private Integer commentCount;
     private LocalDateTime createTime;

@@ -44,7 +44,7 @@ public class NotificationService {
     /** 合法通知类型（非法值列表接口返回 1001）。 */
     public static final Set<String> TYPES = Set.of(
             "WORK_AUDIT", "COMMENT_AUDIT", "BOOKING_REPLY", "GROUP_JOIN", "CARE_REMINDER",
-            "CAMPUS_AUDIT");
+            "CAMPUS_AUDIT", "SOFT_TIER_NOTICE");
 
     /**
      * 合法 refType 筛选值（BJ，2026-11-05）——取自全部 notify* 事件侧真实写入值，
@@ -52,7 +52,7 @@ public class NotificationService {
      */
     public static final Set<String> REF_TYPES = Set.of(
             "work", "comment", "booking", "group", "care_reminder", "campus_verification",
-            "project", "inheritor_profile");
+            "project", "inheritor_profile", "soft_review");
 
     /** 未读数缓存 TTL（毫秒）：首页轮询高频，5 秒内复用计数。 */
     private static final long UNREAD_CACHE_TTL_MS = 5_000L;
@@ -361,6 +361,68 @@ public class NotificationService {
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHH"));
         return push(leaderUserId, "GROUP_JOIN", title, content, "group", groupId,
                 "group:" + groupId + ":status:" + (enabled ? "OPEN" : "CLOSED") + ":" + window);
+    }
+
+    // ── 软档处置链（2026-11-07，设计 docs/moderation-soft-tier-disposition-chain-20261107.md §2.3） ──
+
+    /**
+     * 软档降权开始（反静默折叠红线的作者侧可见承诺）。接收者=作者本人。
+     * 文案纪律：基调「保护」而非「惩罚」，禁用「违规/处罚/降权」字眼；明确时限与申诉通道；
+     * 评论不含原文（与 COMMENT_AUDIT 同口径）；refId 复用 work/comment 跳转约定
+     * （comment 时 refId=所属作品、subRefId=评论锚点，与 COMMENT_AUDIT 一致）。
+     *
+     * @param sampled      true=已抽中进人工复核（复核期间受限）；false=固定窗口后自动恢复
+     * @param demoteHours  未抽中者的恢复窗口（小时，文案必须与实际窗口一致）
+     */
+    public boolean notifySoftTierDemote(Long ownerUserId, String targetType, Long targetId, Long workId,
+                                        String targetTitle, boolean sampled, int demoteHours) {
+        if (ownerUserId == null || targetId == null) {
+            return false;
+        }
+        boolean isWork = "work".equals(targetType);
+        String title = isWork ? "你的作品已公开，展示将暂时靠后" : "你的评论已公开，展示将暂时靠后";
+        StringBuilder content = new StringBuilder();
+        if (isWork) {
+            content.append("你的作品《").append(abbreviate(targetTitle, 60)).append("》");
+        } else {
+            content.append("你的评论");
+        }
+        content.append("已通过审核并公开展示。因内容涉及情绪敏感表达，");
+        content.append(sampled
+                ? "将在复核期间排序靠后展示，复核完成后恢复。"
+                : "将在约 ").append(sampled ? "" : demoteHours + " 小时内排序靠后展示，之后自动恢复。");
+        content.append("这是为了保护社区氛围的临时措施，不代表内容有问题。如认为有误判，可提交申诉。");
+        Long refId = isWork ? targetId : workId;
+        Long subRefId = isWork ? null : targetId;
+        return push(ownerUserId, "SOFT_TIER_NOTICE", title, content.toString(), targetType, refId, subRefId,
+                "soft:" + targetType + ":" + targetId + ":demote");
+    }
+
+    /** 软档复核通过（CLEAR）恢复曝光。接收者=作者本人。 */
+    public boolean notifySoftTierRestore(Long ownerUserId, String targetType, Long targetId, Long workId) {
+        if (ownerUserId == null || targetId == null) {
+            return false;
+        }
+        boolean isWork = "work".equals(targetType);
+        String title = isWork ? "你的作品已恢复正常展示" : "你的评论已恢复正常展示";
+        String content = "经人工复核，你的" + (isWork ? "作品" : "评论")
+                + "展示受限已解除，感谢你的耐心与理解。";
+        Long refId = isWork ? targetId : workId;
+        Long subRefId = isWork ? null : targetId;
+        return push(ownerUserId, "SOFT_TIER_NOTICE", title, content, targetType, refId, subRefId,
+                "soft:" + targetType + ":" + targetId + ":restore");
+    }
+
+    /**
+     * 软档处置链管理员触达（SLA 升级/逾期提醒/申诉升级）。接收者=role=3 管理员。
+     * refType=soft_review，refId=复核单 id；dedupeKey 由调用方按事件+日期窗口给出（防刷屏）。
+     */
+    public boolean notifySoftTierAdmin(Long adminUserId, Long reviewId, String title, String content,
+                                       String dedupeKey) {
+        if (adminUserId == null || reviewId == null) {
+            return false;
+        }
+        return push(adminUserId, "SOFT_TIER_NOTICE", title, content, "soft_review", reviewId, dedupeKey);
     }
 
     // ── 内部 ──

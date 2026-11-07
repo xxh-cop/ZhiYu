@@ -284,6 +284,7 @@ CREATE TABLE IF NOT EXISTS work (
   like_count  INT          NOT NULL DEFAULT 0,
   status      TINYINT      NOT NULL DEFAULT 1,
   audit_reason VARCHAR(255) DEFAULT NULL,
+  soft_demote_until TIMESTAMP DEFAULT NULL,
   create_time TIMESTAMP    DEFAULT NULL,
   update_time TIMESTAMP    DEFAULT NULL,
   deleted     TINYINT      NOT NULL DEFAULT 0,
@@ -297,6 +298,7 @@ CREATE TABLE IF NOT EXISTS work_comment (
   content     VARCHAR(255) NOT NULL,
   status      TINYINT      NOT NULL DEFAULT 1,
   audit_reason VARCHAR(255) DEFAULT NULL,
+  soft_demote_until TIMESTAMP DEFAULT NULL,
   create_time TIMESTAMP    DEFAULT NULL,
   update_time TIMESTAMP    DEFAULT NULL,
   deleted     TINYINT      NOT NULL DEFAULT 0,
@@ -535,4 +537,33 @@ CREATE TABLE IF NOT EXISTS crisis_session_log (
   PRIMARY KEY (id),
   KEY idx_crisis_user (user_id, deleted),
   KEY idx_crisis_created (create_time)
+);
+
+-- ---------- 审核软档处置链（2026-11-07：软档台账 + 抽检池一体） ----------
+CREATE TABLE IF NOT EXISTS moderation_soft_review (
+  id            BIGINT       NOT NULL,
+  target_type   VARCHAR(10)  NOT NULL,
+  target_id     BIGINT       NOT NULL,
+  author_id     BIGINT       NOT NULL,
+  ai_tendency   VARCHAR(20)  NOT NULL DEFAULT 'SOFT_CONCERN',
+  narrative     VARCHAR(20)  DEFAULT NULL,
+  audit_log_id  BIGINT       DEFAULT NULL,
+  sampled       TINYINT      NOT NULL DEFAULT 0,
+  sample_layer  VARCHAR(30)  DEFAULT NULL,
+  pool_status   VARCHAR(20)  NOT NULL DEFAULT 'NOT_SAMPLED',
+  reviewer_id   BIGINT       DEFAULT NULL,
+  reason        VARCHAR(255) DEFAULT NULL,
+  sla_due_at    TIMESTAMP    DEFAULT NULL,
+  reviewed_at   TIMESTAMP    DEFAULT NULL,
+  demote_until  TIMESTAMP    DEFAULT NULL,
+  appeal_status VARCHAR(20)  DEFAULT NULL,
+  appeal_reason VARCHAR(200) DEFAULT NULL,
+  notified      TINYINT      NOT NULL DEFAULT 0,
+  create_time   TIMESTAMP    DEFAULT NULL,
+  update_time   TIMESTAMP    DEFAULT NULL,
+  deleted       TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT uk_soft_target UNIQUE (target_type, target_id),
+  KEY idx_pool_sla (pool_status, sla_due_at),
+  KEY idx_soft_author (author_id)
 );

@@ -49,7 +49,8 @@ public class AdminWorkController {
     public Result<Void> updateWorkStatus(
             @PathVariable Long id,
             @Valid @RequestBody WorkStatusDTO dto) {
-        adminWorkService.updateWorkStatus(id, dto.getStatus(), dto.getReason());
+        adminWorkService.updateWorkStatus(id, dto.getStatus(), dto.getReason(),
+                dto.getSoftTier(), dto.getNarrative(), dto.getRiskPointsNonEmpty());
         return Result.success();
     }
 

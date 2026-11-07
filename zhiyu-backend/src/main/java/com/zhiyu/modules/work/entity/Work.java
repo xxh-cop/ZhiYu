@@ -55,4 +55,10 @@ public class Work extends BaseEntity {
 
     /** 审核理由（I1，2026-11-04）：下架/驳回必填，通过可空；历史数据为 NULL（读取兼容）。 */
     private String auditReason;
+
+    /**
+     * 软档降权截止（2026-11-07 处置链）：NULL=不降权；台账 moderation_soft_review 为事实源，
+     * 本列是社区流排序的读优化冗余；处置链开关关闭时读侧忽略本列。
+     */
+    private java.time.LocalDateTime softDemoteUntil;
 }

@@ -15,6 +15,7 @@ public class CommentModerationService {
     private final BusinessAccess access;
     private final OperationLog log;
     private final com.zhiyu.modules.notification.service.NotificationService notificationService;
+    private final SoftTierRecordService softTierRecordService;
     public Map<String,Object> list(int page,int status){return list(page,status,null);}
     /** 评论列表（O2 2026-11-04 新增可选 workId 过滤；管理端视角不受学生端 WorkAudience 限制）。 */
     public Map<String,Object> list(int page,int status,Long workId){
@@ -63,6 +64,21 @@ public class CommentModerationService {
         // S2（2026-11-04）：通知 ref_id=所属作品（跳转目标），sub_ref_id=评论锚点
         try{notificationService.notifyCommentAudit(((Number)rows.get(0).get("user_id")).longValue(),id,((Number)rows.get(0).get("work_id")).longValue(),status,reason);}
         catch(Exception e){org.slf4j.LoggerFactory.getLogger(CommentModerationService.class).warn("评论审核通知写入失败（不阻断审核）: commentId={}, err={}",id,e.getMessage());}
+    }
+    /**
+     * 软档标记重载（2026-11-07 处置链）：softTier=true 只能随 status=1（通过）使用。
+     * 状态机与通知完全复用 {@link #review(long, int, int, String)}；
+     * 通过后同事务落软档台账+抽样+降权+降权通知。处置链关闭时 record 抛 1001，事务回滚。
+     */
+    @Transactional public void review(long id,int status,int expected,String reason,Boolean softTier,String narrative,Boolean riskPointsNonEmpty){
+        if(Boolean.TRUE.equals(softTier)&&status!=1)throw new BusinessException(1001,"软档标记只能随通过动作使用");
+        review(id,status,expected,reason);
+        if(Boolean.TRUE.equals(softTier)){
+            var rows=db.queryForList("SELECT user_id,content FROM work_comment WHERE id=?",id);
+            long authorId=((Number)rows.get(0).get("user_id")).longValue();
+            String content=java.util.Objects.toString(rows.get(0).get("content"),"");
+            softTierRecordService.record("comment",id,authorId,content,narrative,Boolean.TRUE.equals(riskPointsNonEmpty),null);
+        }
     }
     @Transactional public void remove(long workId,long id){
         long uid=access.user();

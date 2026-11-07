@@ -20,4 +20,17 @@ public class WorkStatusDTO {
     /** 审核理由；status=2（下架/驳回）时必填，status=1 可空。 */
     @Size(max = 255, message = "审核理由不能超过 255 字")
     private String reason;
+
+    /**
+     * 软档标记（2026-11-07 处置链）：true 仅允许随 status=1（通过）使用——
+     * 审核员基于 AI 建议 SOFT_CONCERN 选择「通过并标记软档」，服务端落台账+抽样+降权+通知。
+     */
+    private Boolean softTier;
+
+    /** 管理端回显的 AI 建议 narrative 值（软档窄门留证，可空）。 */
+    @Size(max = 20, message = "narrative 长度非法")
+    private String narrative;
+
+    /** 管理端回显的 AI 建议 riskPoints 是否非空（抽样全覆盖层信号，可空）。 */
+    private Boolean riskPointsNonEmpty;
 }

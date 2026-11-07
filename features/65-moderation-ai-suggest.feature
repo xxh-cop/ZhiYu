@@ -15,6 +15,14 @@ Feature: BL AI 审核辅助建议
     Then HTTP 200 + code=0 + available=false + note 说明原因 + disclaimer 恒在
     And 不抛出阻断人工审核的错误，也绝不显示 Mock/改写文本冒充建议
 
+  Scenario: 模型输出非法 JSON 时受控重试一次（2026-11-07，p37 转义故障）
+    Given 模型首次输出未通过 JSON 语法解析（如 note 内未转义的英文双引号）
+    When 审核员请求建议
+    Then 客户端层以同 prompt + 重试告知片段重试恰好 1 次（同模型、同 JSON mode）
+    And 重试输出合法 → 正常返回 available=true；两次 tokens 求和落 ai_trace，最终输出审计 1 次
+    And 重试输出仍非法 → 原文原样交回业务层，按「格式不可用」降级（available=false + 人工兜底）
+    And 任何情况下都不用正则/启发式修补模型输出，也不把解析失败吞掉当成功
+
   Scenario: 越权与频控
     When 学生或咨询师请求 ai-suggest
     Then 403/1003

@@ -80,7 +80,7 @@ components:
       description: '通知条目；正文为脱敏内容，id 以字符串传递（雪花 ID）'
       properties:
         id: { type: string, description: 通知 ID（雪花，字符串） }
-        type: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT] }
+        type: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT, SOFT_TIER_NOTICE] }
         title: { type: string }
         content: { type: string, nullable: true, description: '脱敏正文；关怀类只含引导语，不含敏感内容' }
         refType: { type: string, nullable: true, description: '关联对象类型：work/comment/booking/group/care_reminder/campus_verification/project/inheritor_profile（project：AY1 起下架/删除、BE 起审核结果；inheritor_profile：BG1 起传承人入驻核验结果，类型复用 CAMPUS_AUDIT）' }
@@ -355,6 +355,7 @@ components:
         shareable: { type: boolean, description: 仅审核通过且公开的作品可分享，接收者仍需登录且重新校验访问权限 }
         status: { type: integer, enum: [0, 1, 2], description: '审核状态（N1 先审后发）：0 待审（仅作者可见）/ 1 已公开 / 2 已下架；他人访问非 1 的作品返回 1004（不泄露存在性），与 auditReason 可见性口径一致' }
         auditReason: { type: string, nullable: true, description: '审核理由（AE2 2026-11-04）：仅 GET /api/works/{id} 对作者本人下发；他人不下发（非公开作品对他人为 1004）；未审核/已通过为 null' }
+        softDemoteUntil: { type: string, format: date-time, nullable: true, description: '软档降权截止（2026-11-07 处置链）：作者本人视角下发（GET /api/works/{id} 与 GET /api/works/mine），「展示受限」徽标数据源（反静默折叠）；仅在处置链开关开启 + 本人 + 降权未过期三条件同时成立时下发，其余情况为 null 或不出现' }
         likeCount: { type: integer }
         commentCount: { type: integer }
         createTime: { type: string, format: date-time }
@@ -376,6 +377,7 @@ components:
         id: { type: integer, format: int64 }
         status: {type: integer, enum: [0, 1, 2], description: '0 待审核，1 已公开，2 已隐藏'}
         mine: {type: boolean, description: 是否为当前用户的评论}
+        softDemoteUntil: { type: string, format: date-time, nullable: true, description: '软档降权截止（2026-11-07 处置链）：口径与作品侧完全一致——仅当前用户本人评论 + 处置链开关开启 + 降权未过期三条件同时成立时下发；他人评论与已过期不下发' }
         content: { type: string }
         authorName: { type: string }
         createTime: { type: string, format: date-time }
@@ -852,7 +854,7 @@ paths:
         - {in: query, name: page, schema: {type: integer, minimum: 1, default: 1}}
         - {in: query, name: status, schema: {type: integer, enum: [0, 1, 2]}}
       responses:
-        '200': {description: 'Result.data 含 records、total、counts。每页 12 条，id 为字符串；状态 0 待审核、1 正常、2 已下架；visible=0 仅自己可见。'}
+        '200': {description: 'Result.data 含 records、total、counts。每页 12 条，id 为字符串；状态 0 待审核、1 正常、2 已下架；visible=0 仅自己可见。records 含 softDemoteUntil（2026-11-07 处置链，仅处置链开启且降权未过期时有值，「展示受限」徽标数据源）。'}
         '401': {description: 未登录}
   /api/works/{id}/withdraw:
     post:
@@ -909,6 +911,9 @@ paths:
                 status: {type: integer, enum: [1, 2]}
                 expectedStatus: {type: integer, enum: [0, 1, 2]}
                 reason: {type: string, maxLength: 255, description: '审核理由；status=2（隐藏/驳回）时必填，缺失返回 1001；status=1 可空。落库到 work_comment.audit_reason 并随通知正文送达评论作者'}
+                softTier: {type: boolean, description: '软档标记（2026-11-07 处置链）：true 仅允许随 status=1 使用；处置链开关关闭时返回 1001 且状态变更整体回滚'}
+                narrative: {type: string, maxLength: 20, description: '管理端回显的 AI 建议 narrative 值（可空）'}
+                riskPointsNonEmpty: {type: boolean, description: '管理端回显的 AI 建议 riskPoints 是否非空（抽样信号，可空）'}
       responses:
         '200': {description: 'Result，0 成功，3001 状态已变化，1001 驳回缺少理由；已删除或下架作品不可通过评论'}
         '403': {description: 仅管理员可访问}
@@ -2040,10 +2045,10 @@ paths:
         - { in: query, name: size, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
         - in: query
           name: type
-          schema: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT] }
+          schema: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT, SOFT_TIER_NOTICE] }
         - in: query
           name: refType
-          schema: { type: string, enum: [work, comment, booking, group, care_reminder, campus_verification, project, inheritor_profile] }
+          schema: { type: string, enum: [work, comment, booking, group, care_reminder, campus_verification, project, inheritor_profile, soft_review] }
           description: 'BJ：按关联对象类型细分（取自事件侧真实写入集合）；空值/不传=不筛选'
       responses:
         '200':
@@ -2076,7 +2081,7 @@ paths:
       tags: [Notification]
       security: [{ bearerAuth: [] }]
       parameters:
-        - { in: query, name: type, schema: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT] } }
+        - { in: query, name: type, schema: { type: string, enum: [WORK_AUDIT, COMMENT_AUDIT, BOOKING_REPLY, GROUP_JOIN, CARE_REMINDER, CAMPUS_AUDIT, SOFT_TIER_NOTICE] } }
       responses:
         '200': { description: 'code=0；data.deleted 为实际删除条数（JSON number）' }
         '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
@@ -4340,6 +4345,9 @@ paths:
               properties:
                 status: { type: integer, enum: [1, 2], description: '1发布 2下架' }
                 reason: { type: string, maxLength: 255, description: '审核理由；status=2（下架/驳回）时必填，缺失返回 1001；status=1 可空。落库到 work.audit_reason 并随通知正文送达作者' }
+                softTier: { type: boolean, description: '软档标记（2026-11-07 处置链）：true 仅允许随 status=1 使用——审核员基于 AI 建议 SOFT_CONCERN 选择「通过并标记软档」，服务端同事务落台账+抽样+降权+通知；处置链开关（zhiyu.moderation.soft-tier.disposition.enabled，默认 false）关闭时请求返回 1001 且状态变更整体回滚' }
+                narrative: { type: string, maxLength: 20, description: '管理端回显的 AI 建议 narrative 值（软档窄门留证，可空）' }
+                riskPointsNonEmpty: { type: boolean, description: '管理端回显的 AI 建议 riskPoints 是否非空（抽样 mandatory_riskpoint 层信号，可空）' }
       responses:
         '200':
           description: 状态变更成功
@@ -4350,6 +4358,131 @@ paths:
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '404': { description: 资源不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  # ── 软档处置链（2026-11-07，设计 docs/moderation-soft-tier-disposition-chain-20261107.md） ──
+  # 处置链开关 zhiyu.moderation.soft-tier.disposition.enabled 默认 false：
+  # 关闭时以下端点全部返回 1001「软档处置链未开启」；学生端通知类型/徽标/申诉页先行发布前不得对生产开启。
+
+  /api/admin/soft-tier-pool:
+    get:
+      operationId: adminSoftTierPoolList
+      summary: '管理员：软档复核队列（ESCALATED 置顶、sla_due_at 升序）'
+      x-required-role: admin-only
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: status, in: query, required: false, schema: { type: string, enum: [OPEN, PENDING, ESCALATED, CLEAR, UPHOLD, BLOCK, NOT_SAMPLED, APPEAL] }, description: '缺省 OPEN = PENDING + ESCALATED；APPEAL = 按申诉过滤（appeal_status=FILED，与 /api/admin/soft-tier-appeals 同口径）' }
+      responses:
+        '200':
+          description: 'code=0；data.records 为复核单数组（雪花 id/targetId/authorId 以字符串传递），data.total 为 JSON number'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 参数或状态筛选无效（code=1001，含处置链未开启）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/soft-tier-pool/{id}:
+    get:
+      operationId: adminSoftTierPoolDetail
+      summary: '管理员：软档复核详情（含内容节选与 ai_audit_log 关联；池内含原文，仅 role=3）'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 'code=0；data 为复核单全字段（含 appealReason）+ authorNickname（脱敏口径同既有管理端评论详情）+ work/comment 节选（作品含 coverUrl：经既有私有媒体授权读取的 1h 签名临时地址，失效引用降级 null，绝不下发可长期访问的私有媒体 URL）'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 处置链未开启（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 复核单不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/soft-tier-pool/{id}/verdict:
+    post:
+      operationId: adminSoftTierPoolVerdict
+      summary: '管理员：软档复核裁决（CLEAR 恢复曝光 / UPHOLD 维持至窗口结束 / BLOCK 改判拦截）'
+      x-required-role: admin-only
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [CLEAR, UPHOLD, BLOCK], description: 'BLOCK 走既有下架/隐藏状态机（含审核结果通知），理由必填' }
+                reason: { type: string, maxLength: 255, description: '裁决理由；action=BLOCK 时必填，缺失返回 1001' }
+      responses:
+        '200':
+          description: 'code=0 成功；3001 复核单已终裁（幂等防并发）；1001 参数/理由缺失'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '404': { description: 复核单不存在（code=1004）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/soft-tier-appeals:
+    post:
+      operationId: softTierAppealCreate
+      summary: '学生：软档申诉（对「展示受限」处置的逃生通道，申诉即升人工必审）'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetType, targetId, reason]
+              properties:
+                targetType: { type: string, enum: [work, comment] }
+                targetId: { type: integer, format: int64, description: '对象 id（雪花，前端按字符串处理）' }
+                reason: { type: string, maxLength: 200, description: '申诉理由（必填，纯文本）：过既有输入侧内容安全过滤（命中高危词 1001 拒绝并触发关怀流程），落库到 moderation_soft_review.appeal_reason 并写 ai_audit_log（scene=soft-appeal）' }
+      responses:
+        '200':
+          description: 'code=0 成功（幂等：已申诉直接成功）；1003 只能对自己的内容申诉；1004 无进行中的软档处置；3001 复核已终裁；1001 处置链未开启/理由缺失或命中安全过滤'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 参数校验失败（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/soft-tier-appeals:
+    get:
+      operationId: adminSoftTierAppealList
+      summary: '管理员：软档申诉单分页列表（appeal_status=FILED，按更新时间倒序）'
+      x-required-role: admin-only
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+      responses:
+        '200':
+          description: 'code=0；data.records 为申诉单数组（含 appealReason、台账字段，雪花 id/targetId/authorId 以字符串传递），data.total 为 JSON number'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 参数无效或处置链未开启（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/soft-tier-pool/stats:
+    get:
+      operationId: adminSoftTierPoolStats
+      summary: '管理员：软档处置链看板聚合（当日入池量/待复核量/超时数/申诉数/裁决分布，一次返回）'
+      x-required-role: admin-only
+      responses:
+        '200':
+          description: 'code=0；data={todaySampled, todayRecorded, pending, escalated, overdue, appeals, verdicts:{CLEAR,UPHOLD,BLOCK}}，全为 JSON number；today* 按服务端自然日，verdicts 为全量累计'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: 处置链未开启（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   # ── P1-B1：小组管理（4 个接口） ──
 

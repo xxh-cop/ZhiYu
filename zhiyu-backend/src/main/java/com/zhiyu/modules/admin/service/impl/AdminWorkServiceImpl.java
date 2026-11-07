@@ -35,6 +35,7 @@ public class AdminWorkServiceImpl implements AdminWorkService {
     private final WorkMapper workMapper;
     private final UserMapper userMapper;
     private final com.zhiyu.modules.notification.service.NotificationService notificationService;
+    private final com.zhiyu.modules.work.service.SoftTierRecordService softTierRecordService;
 
     @Override
     public PageVO<WorkListItemVO> listWorks(Integer page, Integer pageSize, Integer status, Integer visible, String keyword) {
@@ -125,6 +126,28 @@ public class AdminWorkServiceImpl implements AdminWorkService {
             notificationService.notifyWorkAudit(work.getUserId(), work.getId(), work.getTitle(), status, reason);
         } catch (Exception e) {
             log.warn("作品审核通知写入失败（不阻断审核）: workId={}, err={}", id, e.getMessage());
+        }
+    }
+
+    /**
+     * 软档标记重载（2026-11-07 处置链）：softTier=true 只能随 status=1（通过）使用。
+     * 状态机与通知完全复用 {@link #updateWorkStatus(Long, Integer, String)}；
+     * 通过后同事务落软档台账+抽样+降权+降权通知（SoftTierRecordService.record）。
+     * 处置链开关关闭时 record 抛 1001，整个状态变更回滚——管理员侧表现与「链未开启不可标记」一致。
+     */
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void updateWorkStatus(Long id, Integer status, String reason, Boolean softTier,
+                                 String narrative, Boolean riskPointsNonEmpty) {
+        if (Boolean.TRUE.equals(softTier) && !java.util.Objects.equals(status, 1)) {
+            throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "软档标记只能随通过动作使用");
+        }
+        updateWorkStatus(id, status, reason);
+        if (Boolean.TRUE.equals(softTier)) {
+            Work work = workMapper.selectById(id);
+            softTierRecordService.record("work", id, work.getUserId(),
+                    work.getTitle() + "\n" + java.util.Objects.toString(work.getMessage(), ""),
+                    narrative, Boolean.TRUE.equals(riskPointsNonEmpty), work.getTitle());
         }
     }
 
