@@ -193,9 +193,9 @@ public class FlowCalibrationService {
                 continue;
             }
             var s = sessions.get(0);
-            // MySQL Connector/J 8.0.23+ 对 DATETIME 返回 LocalDateTime，H2 返回 Timestamp——两类都收
-            LocalDateTime start = toLdt(s.get("start_time"));
-            LocalDateTime end = toLdt(s.get("end_time"));
+            // MySQL Connector/J 8.0.23+ 对 DATETIME 返回 LocalDateTime，H2 返回 Timestamp——统一走 JdbcTimes（联调 F1 根因类）
+            LocalDateTime start = com.zhiyu.common.util.JdbcTimes.toLocalDateTime(s.get("start_time"));
+            LocalDateTime end = com.zhiyu.common.util.JdbcTimes.toLocalDateTime(s.get("end_time"));
             if (start == null || end == null) {
                 continue;
             }
@@ -230,17 +230,6 @@ public class FlowCalibrationService {
     }
 
     // ── 内部 ──
-
-    /** H2（Timestamp）与 MySQL（LocalDateTime，Connector/J 8.0.23+）时间类型兼容。 */
-    private static LocalDateTime toLdt(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof LocalDateTime ldt) {
-            return ldt;
-        }
-        return ((java.sql.Timestamp) value).toLocalDateTime();
-    }
 
     private CraftSession requireOwnedSession(Long userId, Long sessionId) {
         CraftSession session = craftSessionMapper.selectById(sessionId);

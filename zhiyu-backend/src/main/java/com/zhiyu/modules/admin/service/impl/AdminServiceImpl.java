@@ -99,7 +99,7 @@ public class AdminServiceImpl implements AdminService {
             vo.setAuthorId(((Number) row.get("user_id")).longValue());
             vo.setRefId(((Number) row.get("id")).longValue());
             vo.setExcerpt("媒体类型：" + row.get("media_type"));
-            vo.setCreateTime(toLdt(row.get("create_time")));
+            vo.setCreateTime(com.zhiyu.common.util.JdbcTimes.toLocalDateTime(row.get("create_time")));
             fillAiAudits(vo, "work", vo.getRefId());
             return vo;
         }).collect(Collectors.toList());
@@ -125,7 +125,7 @@ public class AdminServiceImpl implements AdminService {
             vo.setAuthorId(((Number) row.get("user_id")).longValue());
             vo.setRefId(((Number) row.get("work_id")).longValue());
             vo.setExcerpt((String) row.get("content"));
-            vo.setCreateTime(toLdt(row.get("create_time")));
+            vo.setCreateTime(com.zhiyu.common.util.JdbcTimes.toLocalDateTime(row.get("create_time")));
             fillAiAudits(vo, "comment", vo.getId());
             return vo;
         }).collect(Collectors.toList());
@@ -153,15 +153,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private static LocalDateTime toLdt(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof java.time.LocalDateTime ldt) {
-            return ldt;
-        }
-        return ((java.sql.Timestamp) value).toLocalDateTime();
-    }
+    // 时间列转换统一走 com.zhiyu.common.util.JdbcTimes（MySQL 返回 LocalDateTime、H2 返回 Timestamp——联调 F1 根因类）
 
     @Override
     public AuditQueueItemVO auditProject(Long projectId, AuditRequest req) {

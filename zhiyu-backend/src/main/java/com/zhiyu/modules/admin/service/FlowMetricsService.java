@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhiyu.common.crypto.AesEncryptor;
 import com.zhiyu.common.exception.BusinessException;
 import com.zhiyu.common.result.ResultCode;
+import com.zhiyu.common.util.JdbcTimes;
 import com.zhiyu.modules.craft.calibration.FlowCalibrationService;
 import com.zhiyu.modules.craft.entity.CraftProject;
 import com.zhiyu.modules.craft.takedown.TakedownProperties;
@@ -121,9 +122,9 @@ public class FlowMetricsService {
                         EventAgg agg = new EventAgg();
                         Object active = row.get("active_seconds");
                         agg.activeSeconds = active == null ? 0 : ((Number) active).longValue();
-                        agg.lastEventAt = toLdt(row.get("last_event_at"));
-                        agg.firstArchiveAt = toLdt(row.get("first_archive_at"));
-                        agg.firstGateBlockedAt = toLdt(row.get("first_gate_blocked_at"));
+                        agg.lastEventAt = JdbcTimes.toLocalDateTime(row.get("last_event_at"));
+                        agg.firstArchiveAt = JdbcTimes.toLocalDateTime(row.get("first_archive_at"));
+                        agg.firstGateBlockedAt = JdbcTimes.toLocalDateTime(row.get("first_gate_blocked_at"));
                         eventAgg.put(((Number) row.get("session_id")).longValue(), agg);
                     });
         }
@@ -155,8 +156,8 @@ public class FlowMetricsService {
             }
             CraftProject project = projectId == null ? null : projects.get(projectId);
             EventAgg agg = eventAgg.get(sessionId);
-            LocalDateTime startTime = toLdt(row.get("start_time"));
-            LocalDateTime endTime = toLdt(row.get("end_time"));
+            LocalDateTime startTime = JdbcTimes.toLocalDateTime(row.get("start_time"));
+            LocalDateTime endTime = JdbcTimes.toLocalDateTime(row.get("end_time"));
 
             // 剔除判定（优先级：readOnly 标志 → projectStatus+kind → 事件流证据）。
             // 事件证据分档（2026-11-05）：精确档 = step_gate_blocked（心跳被闸口拒绝的真实时点），
@@ -600,9 +601,9 @@ public class FlowMetricsService {
                     CraftProject p = new CraftProject();
                     p.setStatus(row.get("status") == null ? null : ((Number) row.get("status")).intValue());
                     p.setTakedownKind((String) row.get("takedown_kind"));
-                    p.setTakedownAt(toLdt(row.get("takedown_at")));
-                    p.setArchiveAt(toLdt(row.get("archive_at")));
-                    p.setExportUntil(toLdt(row.get("export_until")));
+                    p.setTakedownAt(JdbcTimes.toLocalDateTime(row.get("takedown_at")));
+                    p.setArchiveAt(JdbcTimes.toLocalDateTime(row.get("archive_at")));
+                    p.setExportUntil(JdbcTimes.toLocalDateTime(row.get("export_until")));
                     p.setLevel(row.get("level") == null ? null : ((Number) row.get("level")).intValue());
                     projects.put(((Number) row.get("id")).longValue(), p);
                 });
@@ -620,16 +621,7 @@ public class FlowMetricsService {
         }
     }
 
-    /** H2（Timestamp）与 MySQL（LocalDateTime，Connector/J 8.0.23+）时间类型兼容。 */
-    private static LocalDateTime toLdt(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof LocalDateTime ldt) {
-            return ldt;
-        }
-        return ((java.sql.Timestamp) value).toLocalDateTime();
-    }
+    // 时间列转换统一走 JdbcTimes（MySQL 返回 LocalDateTime、H2 返回 Timestamp——联调 F1 根因类）
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> decode(String value) {
