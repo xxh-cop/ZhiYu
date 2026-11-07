@@ -32,10 +32,16 @@ import java.util.stream.Collectors;
 @ConditionalOnExpression("'${spring.ai.openai.api-key:}' != '' and '${spring.ai.openai.api-key:}' != 'sk-placeholder'")
 public class SpringAiLlmClient implements LlmClient {
 
+    /** 仅用于 moderation JSON 的语法级可解析性校验（不做业务结构判断，不修补文本）。 */
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON =
+            new com.fasterxml.jackson.databind.ObjectMapper();
+
     private final ChatClient chatClient;
     private final com.zhiyu.modules.admin.service.RuntimeSettings settings;
     private final String modelName;
     private final String workPrompt;
+    /** moderation JSON 重试告知片段（外置 moderation-json-retry.st，AGENTS.md §4 不硬编码 prompt）。 */
+    private final String jsonRetryPrompt;
     private org.springframework.ai.chat.prompt.ChatOptions options(){return org.springframework.ai.chat.prompt.ChatOptions.builder().temperature(settings.number("model","temperature")).maxTokens((int)settings.number("model","maxTokens")).build();}
     private final String companionPrompt;
     private final String safetyPrompt;
@@ -52,6 +58,7 @@ public class SpringAiLlmClient implements LlmClient {
         this.settings=settings;
         this.modelName = modelName;
         try(var in=new org.springframework.core.io.ClassPathResource("prompts/work_message.st").getInputStream()){this.workPrompt=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}catch(java.io.IOException e){throw new IllegalStateException("寄语模板读取失败",e);}
+        try(var in=new org.springframework.core.io.ClassPathResource("prompts/moderation-json-retry.st").getInputStream()){this.jsonRetryPrompt=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}catch(java.io.IOException e){throw new IllegalStateException("moderation JSON 重试模板读取失败",e);}
         this.companionPrompt = companionPrompt;
         this.safetyPrompt = safetyPrompt;
         this.recommendPrompt = recommendPrompt;
@@ -143,8 +150,16 @@ public class SpringAiLlmClient implements LlmClient {
     }
 
     /**
-     * JSON 结构化输出（2026-11-05 健壮性批）：{@code response_format=json_object}，
-     * provider 侧保证合法 JSON。仅 moderation 链路调用；model 为 null 时用默认模型。
+     * JSON 结构化输出（2026-11-05 健壮性批）：{@code response_format=json_object}。
+     * 仅 moderation 链路调用；model 为 null 时用默认模型。
+     *
+     * <p>受控重试（2026-11-07，p37 转义故障）：{@code json_object} 只是指令级约束，
+     * 挡不住字符串值内未转义的英文双引号。首次输出未通过 JSON 语法解析时，
+     * 以「同 prompt + 重试告知片段（moderation-json-retry.st）」原样重试 1 次；
+     * 仍不合法则把原文原样返回，由业务层按既有口径降级（PARSE_FAIL → 人工兜底）——
+     * 本层只做语法校验，绝不用正则/启发式修补或猜结构补全模型输出。
+     * 重试发生时两次调用的 tokens 求和后随 {@link LlmChatResult} 透传（任一侧缺失记 null，
+     * 不估算），保证记账不漏；最终输出仍由门面统一走安全过滤与审计。
      */
     @Override
     public LlmChatResult chatWithUsageJson(String prompt, String model) {
@@ -157,8 +172,43 @@ public class SpringAiLlmClient implements LlmClient {
         if (model != null) {
             builder.model(model);
         }
-        return toResult(chatClient.prompt().options(builder.build()).system(safetyPrompt)
+        var options = builder.build();
+        LlmChatResult first = toResult(chatClient.prompt().options(options).system(safetyPrompt)
                 .user(prompt).call().chatResponse());
+        if (isParseableJson(first.text())) {
+            return first;
+        }
+        log.warn("moderation JSON 输出未通过语法解析，按受控策略同 prompt 重试 1 次: model={}", model);
+        LlmChatResult second = toResult(chatClient.prompt().options(options).system(safetyPrompt)
+                .user(prompt + "\n\n" + jsonRetryPrompt).call().chatResponse());
+        if (!isParseableJson(second.text())) {
+            log.warn("moderation JSON 重试后仍非合法 JSON，原样交回业务层按 PARSE_FAIL 降级: model={}", model);
+        }
+        return new LlmChatResult(second.text(),
+                sumTokens(first.inputTokens(), second.inputTokens()),
+                sumTokens(first.outputTokens(), second.outputTokens()));
+    }
+
+    /** JSON 语法校验（围栏容忍口径与业务层解析一致）；只校验，不修补文本。 */
+    private static boolean isParseableJson(String text) {
+        if (text == null) {
+            return false;
+        }
+        try {
+            String stripped = text.trim()
+                    .replaceAll("(?s)^```(?:json)?\\s*", "")
+                    .replaceAll("(?s)\\s*```$", "")
+                    .trim();
+            JSON.readTree(stripped);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** tokens 求和：任一侧缺失则整体记 null（拿不到不估算，与 AiCallMetrics 口径一致）。 */
+    private static Integer sumTokens(Integer a, Integer b) {
+        return a == null || b == null ? null : a + b;
     }
 
     /** 统一抽取文本与 usage；usage 缺失留 null，不估算。 */

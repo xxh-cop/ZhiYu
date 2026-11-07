@@ -96,8 +96,13 @@ public interface LlmClient {
 
     /**
      * JSON 结构化输出（2026-11-05 健壮性批）：{@code response_format=json_object}，
-     * 由 provider 保证返回合法 JSON（修「模型输出未转义引号破坏 JSON」类降级）。
+     * 由 provider 尽量保证返回合法 JSON（指令级约束，非受限解码）。
      * 仅 moderation 链路使用；不支持该能力的实现（如 Mock）默认回退普通对话。
+     *
+     * <p>受控重试契约（2026-11-07）：真实实现（{@code SpringAiLlmClient}）在首次输出
+     * 未通过 JSON 语法解析时，以同 prompt + 重试告知片段重试 1 次；仍不合法则原样返回，
+     * 由业务层按 PARSE_FAIL 降级。重试两次调用的 tokens 求和后透传（任一侧缺失记 null）。
+     * 默认实现不重试（Mock 已被门面排除在 moderation 链路外）。
      *
      * @param model 目标模型名；{@code null} 表示默认模型
      */
