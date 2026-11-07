@@ -18,6 +18,16 @@
 .author-status.status-2 .status-badge{background:var(--zy-care,#a64842)}
 .author-status .status-reason{flex-basis:100%;font-size:23rpx;color:var(--zy-title,#233d34);line-height:1.7}
 
+/* 作者本人视角：「展示受限」保护提示条（2026-11-07 处置链；仅作者可见，读者零标记） */
+.soft-notice{display:flex;flex-direction:column;gap:14rpx;padding:24rpx 28rpx;background:var(--zy-bg-tint-warm,#f7efd9);border-bottom:1rpx solid var(--zy-border,#dfe7dc)}
+.soft-notice-head{display:flex;align-items:center;gap:16rpx;flex-wrap:wrap}
+.soft-badge{flex-shrink:0;padding:6rpx 18rpx;border-radius:var(--zy-radius-full,9999rpx);background:var(--zy-warning-text,#8a6d1f);color:#fff;font-size:22rpx;font-weight:600}
+.soft-remain{font-size:22rpx;color:var(--zy-warning-text,#8a6d1f);line-height:1.6}
+.soft-help{font-size:23rpx;color:var(--zy-text,#4a5f54);line-height:1.7;overflow-wrap:anywhere}
+.soft-entry{align-self:flex-start;margin:0;padding:10rpx 28rpx;min-height:44px;border-radius:var(--zy-radius-full,9999rpx);background:var(--zy-brand-600,#217e76);color:#fff;font-size:24rpx;line-height:1.5}
+.soft-entry::after{border:0}
+.soft-entry:focus-visible{outline:3px solid var(--zy-brand-700,#1a645e);outline-offset:3px}
+
 .work-media{position:relative;background:var(--zy-bg-tint-mint,#e8efe4);min-height:300rpx}
 .work-cover{width:100%;height:520rpx;display:block}
 .media-label{position:absolute;left:24rpx;bottom:24rpx;padding:8rpx 18rpx;border-radius:999rpx;background:rgba(255,255,255,.92);color:var(--zy-brand-600,#217e76);font-size:22rpx}

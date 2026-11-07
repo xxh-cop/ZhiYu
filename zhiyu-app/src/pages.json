@@ -290,6 +290,12 @@
       "style": {
         "navigationBarTitleText": "我的作品"
       }
+    },
+    {
+      "path": "pages/work/soft-appeal",
+      "style": {
+        "navigationBarTitleText": "展示说明"
+      }
     }
   ],
   "subPackages": [

@@ -27,6 +27,16 @@
 					<text v-if="authorStatus === '2' && authorAuditReason" class="status-reason">原因：{{ authorAuditReason }}</text>
 				</view>
 
+				<!-- 作者本人视角：「展示受限」保护提示（softDemoteUntil 仅作者本人下发；他人与开关关闭时此处不渲染） -->
+				<view v-if="softProtected" class="soft-notice" role="status">
+					<view class="soft-notice-head">
+						<text class="soft-badge">展示受限 · 保护中</text>
+						<text class="soft-remain">{{ softRemain }}</text>
+					</view>
+					<text class="soft-help">因内容涉及情绪表达，这条作品暂时排在社区较靠后的位置；这是保护性的临时安排，不代表内容有问题，也只有你能看到这条提示。</text>
+					<AccessibleButton class="soft-entry" @click="openSoftAppeal">了解详情或说说你的想法</AccessibleButton>
+				</view>
+
 				<view class="work-media">
 					<MediaVideo v-if="work.mediaType === 'video' && work.videoUrl" :src="work.videoUrl" caption="社区创作视频" />
 					<image
@@ -222,6 +232,7 @@ import { onLoad, onShareAppMessage, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config'
 import { workPath, workLoginUrl, workShareUrl } from '../../utils/work-navigation'
+import { softActive, softRemainText } from '../../utils/soft-tier'
 
 const toast = useToast()
 
@@ -247,6 +258,14 @@ const authorStatusLabel = computed(() => {
 const authorStatusHelp = computed(() => AUTHOR_STATUS[authorStatus.value]?.help || '')
 // 下架原因：后端详情接口（WorkVO）暂未下发 auditReason，字段到位后此处自动展示（留位）。
 const authorAuditReason = computed(() => String((work.value && work.value.auditReason) || '').trim())
+
+/* 「展示受限」保护提示（2026-11-07 处置链）：softDemoteUntil 仅作者本人下发，
+ * 他人视角与开关关闭时字段缺省 → softProtected 为 false，零渲染零占位。 */
+const softProtected = computed(() => softActive(work.value && work.value.softDemoteUntil))
+const softRemain = computed(() => (softProtected.value ? softRemainText(work.value.softDemoteUntil) : ''))
+function openSoftAppeal() {
+	uni.navigateTo({ url: `/pages/work/soft-appeal?targetType=work&targetId=${workId}` })
+}
 
 const notFoundTitle = computed(() => (fromMine.value ? '这份作品暂时无法查看详情' : '这份作品暂时无法查看'))
 const notFoundDescription = computed(() => {

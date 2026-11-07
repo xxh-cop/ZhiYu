@@ -138,6 +138,7 @@ const TYPE_LABEL = {
 	GROUP_JOIN: '小组动态',
 	CARE_REMINDER: '关怀提醒',
 	CAMPUS_AUDIT: '身份核验',
+	SOFT_TIER_NOTICE: '展示提醒',
 }
 const filters = [
 	{ label: '全部', value: '' },
@@ -147,6 +148,7 @@ const filters = [
 	{ label: '小组动态', value: 'GROUP_JOIN' },
 	{ label: '关怀提醒', value: 'CARE_REMINDER' },
 	{ label: '身份核验', value: 'CAMPUS_AUDIT' },
+	{ label: '展示提醒', value: 'SOFT_TIER_NOTICE' },
 ]
 const REF_ICON = { work: '作', comment: '言', booking: '约', group: '组', care_reminder: '怀', campus_verification: '核' }
 
@@ -237,6 +239,17 @@ function chooseType(value) {
 
 function routeFor(item) {
 	const refId = String(item.refId || '')
+	// 「展示提醒」（2026-11-07 处置链）：直达展示说明与申诉页——作者在这里看到原文、
+	// 当前状态、期限与申诉入口；refType 为 soft_review 的仅供管理员，学生端不出现。
+	if (item.type === 'SOFT_TIER_NOTICE') {
+		const subRefId = String(item.subRefId || item.sub_ref_id || '')
+		if (item.refType === 'work' && refId) return `/pages/work/soft-appeal?targetType=work&targetId=${refId}`
+		if (item.refType === 'comment' && refId && subRefId) {
+			return `/pages/work/soft-appeal?targetType=comment&targetId=${subRefId}&workId=${refId}`
+		}
+		if (item.refType === 'comment' && refId) return `/pages/work/detail?id=${refId}`
+		return ''
+	}
 	switch (item.refType) {
 		case 'work':
 			return refId ? `/pages/work/detail?id=${refId}` : '/pages/work/list'
