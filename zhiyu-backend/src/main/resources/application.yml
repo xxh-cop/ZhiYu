@@ -113,6 +113,18 @@ zhiyu:
         api-key: ${OLLAMA_API_KEY:ollama-local}
         model: ${OLLAMA_CHAT_MODEL:deepseek-r1:8b}
 
+  # ── 管理端「AI 模型路由」面板（2026-11-08） ──
+  admin:
+    ai-routing:
+      # 历史事故锚点：修复提交 ffbcd7c（2026-11-07 22:12:48 +0800）之前，
+      # 本地联调期间 LlmClientRegistry 按父类型注入把 OllamaLlmClient 误认云端，
+      # cloud-only 能力（审核建议等）曾被本地顶替；修复后云槽精确排除子类
+      # （LlmClientRegistryTest 钉死）。锚点前的 ollama 记录为已修复事故的证据
+      # （按只追加约定保留），不计入面板「现行红线」。
+      # 锚点是声明的运维事实（非自动计算），仅影响面板呈现口径，不影响路由策略；
+      # 运维可按实际部署时间用环境变量覆盖，面板也可传 anchor 参数临时调整。
+      incident-fixed-at: ${AI_ROUTING_INCIDENT_FIXED_AT:2026-11-07T22:12:48}
+
   # ── 字段加密密钥（T1.3a） ──
   # Base64 编码的 32 字节密钥。为空时启动失败（fail-fast）。
   # 生产/演示环境必须通过环境变量 FIELD_ENCRYPT_SECRET 覆盖。

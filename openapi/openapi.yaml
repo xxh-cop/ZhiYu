@@ -11,7 +11,7 @@ info:
     - 除 SSE 接口外，所有接口的响应 body 统一包 Result。
     - SSE 接口（/api/emotion/chat）不使用 HTTP 层错误码，失败通过 `event: error` 推送，由前端降级。
     - 类型口径（S3 2026-11-04 统一）：雪花 ID 一律为字符串；列表接口的分页元数据（total/page/size/pageNum/pageSize）与列表内嵌计数（如 journey 的 completed/works、mine 的 counts、programs 的 booked）一律为 JSON number。
-    - 例外（保持字符串，属只读展示统计指标而非列表分页元数据）：/api/admin/dashboard/stats、/api/admin/dashboard/operations、/api/admin/dashboard/therapy-funnel、/api/admin/ops/health、/api/admin/ai-governance/overview、/api/admin/ai-metrics 中的聚合计数按字符串返回（全局 Long→String 序列化策略）。前端展示可直接渲染；如需计算请先 Number() 转换。
+    - 例外（保持字符串，属只读展示统计指标而非列表分页元数据）：/api/admin/dashboard/stats、/api/admin/dashboard/operations、/api/admin/dashboard/therapy-funnel、/api/admin/ops/health、/api/admin/ai-governance/overview、/api/admin/ai-metrics、/api/admin/ai-routing/overview 中的聚合计数按字符串返回（全局 Long→String 序列化策略）。前端展示可直接渲染；如需计算请先 Number() 转换。
 servers:
   - url: http://localhost:8080
     description: 本地开发
@@ -4142,6 +4142,29 @@ paths:
       responses:
         '200':
           description: 'Result.data 含 window（from/to）、generatedAt、scenes（scene/calls/okCount/fallbackCount/errorCount/blockedCount/successRate/fallbackRate/errorRate/avgLatencyMs/p50LatencyMs/p95LatencyMs/inputTokens/outputTokens/models）、latencySampleTruncated、note；scenes 为空数组表示区间内无记录'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: '参数非法：from 不早于 to 或区间超过 90 天（code=1001）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 非管理员（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '405': { description: 请求方法不支持（code=1005）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '500': { description: 服务器内部错误（code=5000）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/admin/ai-routing/overview:
+    get:
+      operationId: adminAiRoutingOverviewGet
+      tags: [Admin]
+      summary: '管理员：AI 模型路由只读总览（配置呈现 + provider 维度纯计数）'
+      description: '2026-11-08 装配层批新增。回答三个问题：① 现在谁在干活——capabilities 列出每个能力（task）的档位 tier、云模型 cloudModel、cloud-only 硬约束、本地兜底生效值 fallbackAllowed、是否允许 LLM（crisis=false）与记账场景 sceneKeys，数据来自 ModelRouter/LlmClientRegistry 生效状态，是配置呈现不是统计；② 最近实际走了谁——distribution 为 ai_trace 按 scene+provider+result_status 聚合的纯计数（trace 粒度，不含内容），并按事故锚点分 period=preFix/postFix 两桶；③ 异常——cloudOnlyLocalCheck 直接给出权威数字：只统计「独占 scene」（归属能力全部 cloud-only，无共享歧义）的 ollama 记录，postFixLocalCalls 为修复后窗口的现行值（应为 0，非 0 即 verdict=VIOLATION），preFixLocalCalls 为锚点前已修复事故（LlmClientRegistry 父类型注入歧义，ffbcd7c 起云槽精确排除子类）的历史证据，不计入现行红线；其余异常（云端失败转本地、兜底占比等）由调用方用 ①+② 推导。sceneKeys 语义：一个能力可对应多个 scene（listening_summary=llm-strong 主路径 + llm-message 回落路径；summary=llm-summary + 编排层 dialogue-summary）；一个 scene 也可被多个能力共用（llm-message 由 message/stuck_guide/listening_summary 回落共用，按能力汇总时该 scene 计数会在各能力间重叠，归属以 scene 为准不重复拆分）；moderation_shadow 判定走 ai_audit_log 与影子台账，不在 ai_trace（sceneKeys 为空不代表未运行）；crisis 红线不走 LLM，无 trace。distribution[].provider 值域 deepseek/ollama/mock，null 为编排层 trace（CompanionTraceService 不记 provider）、语音或加列前存量。事故锚点是声明的运维事实（非自动计算）：默认取服务端配置 zhiyu.admin.ai-routing.incident-fixed-at（默认值为修复提交 ffbcd7c 时间 2026-11-07T22:12:48），运维可按部署实际覆盖；也可用 anchor 查询参数临时调整（incidentAnchor.source 标记 config/override）。只读端点：不提供任何配置写入，切换走启动参数。聚合计数遵循全局 Long→String 序列化。'
+      x-required-role: admin-only
+      parameters:
+        - { name: from, in: query, required: false, schema: { type: string, format: date-time, example: '2026-11-01T00:00:00' }, description: '区间起（含）；缺省取 to-7天' }
+        - { name: to, in: query, required: false, schema: { type: string, format: date-time, example: '2026-11-05T23:59:59' }, description: '区间止（含）；缺省取当前时间' }
+        - { name: anchor, in: query, required: false, schema: { type: string, format: date-time, example: '2026-11-07T22:12:48' }, description: '事故锚点临时覆盖（含边界：早于 anchor 记 preFix）；缺省取服务端配置' }
+      responses:
+        '200':
+          description: 'Result.data 含 window（from/to）、generatedAt、incidentAnchor（at/source/note）、registry（cloudAvailable/cloudProvider/localAvailable/localModel/mockAvailable/localDemoMode/shadowLocalEffective）、capabilities（task/tier/cloudModel/llmAllowed/cloudOnly/fallbackAllowed/sceneKeys）、distribution（scene/provider/period/calls/okCount/fallbackCount/errorCount/blockedCount/otherCount）、cloudOnlyLocalCheck（anchor/exclusiveScenes/preFixLocalCalls/postFixLocalCalls/verdict）、note；distribution 为空数组表示区间内无记录'
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Result' }

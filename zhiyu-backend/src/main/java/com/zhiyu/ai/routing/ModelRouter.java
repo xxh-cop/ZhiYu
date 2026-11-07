@@ -174,6 +174,70 @@ public class ModelRouter {
         return localModel;
     }
 
+    // ── 可观测只读出口（2026-11-08，管理端「AI 模型路由」面板） ──
+    // 以下方法只暴露生效状态，不改变任何路由/兜底策略语义。
+
+    /**
+     * 全部已知能力（固定展示顺序，含 crisis）。新能力接入路由时必须同步本清单，
+     * {@link ProviderRoutingValidator} 只复核 cloud-only 子集，不兜本清单的底。
+     */
+    private static final List<String> KNOWN_TASKS = List.of(
+            "chat", "recommend", "message", "rag", "stuck_guide",
+            "listening_summary", "summary", "companion", "lineart",
+            "moderation", "moderation_shadow", "crisis");
+
+    /**
+     * 能力 → ai_trace 记账场景（scene，即熔断资源 key）的观测口径，<b>不参与路由决策</b>。
+     * 一个能力可对应多个 scene；一个 scene 也可被多个能力共用。口径来源：
+     * <ul>
+     *   <li>chat/recommend/message/rag/lineart/moderation —— AiClient 各自 KEY_* 单场景</li>
+     *   <li>stuck_guide —— AiClient.stuckGuide 与 message 共用 {@code llm-message}</li>
+     *   <li>listening_summary —— strong 档主路径记 {@code llm-strong}，
+     *       显式回落 standard 档时记 {@code llm-message}（AiClient.listeningSummary）</li>
+     *   <li>summary —— AiClient.contextSummary 记 {@code llm-summary}；
+     *       编排层 DialogueContextService 经 CompanionTraceService 记 {@code dialogue-summary}</li>
+     *   <li>companion —— 编排层 CompanionOrchestrator 记 {@code companion}
+     *       （CompanionTraceService 不写 provider 列，该场景 provider 恒为 null）</li>
+     *   <li>moderation_shadow —— 影子判定走 ai_audit_log 与影子台账，<b>不落 ai_trace</b>，
+     *       故无 scene（空清单不代表未运行）</li>
+     *   <li>crisis —— 红线：不走 LLM，无任何 trace</li>
+     * </ul>
+     * AiClient/编排层新增或改记 scene 时必须同步本表。
+     */
+    private static final Map<String, List<String>> TASK_SCENE_KEYS = Map.ofEntries(
+            Map.entry("chat", List.of("llm-chat")),
+            Map.entry("recommend", List.of("llm-recommend")),
+            Map.entry("message", List.of("llm-message")),
+            Map.entry("rag", List.of("llm-rag")),
+            Map.entry("stuck_guide", List.of("llm-message")),
+            Map.entry("listening_summary", List.of("llm-strong", "llm-message")),
+            Map.entry("summary", List.of("llm-summary", "dialogue-summary")),
+            Map.entry("companion", List.of("companion")),
+            Map.entry("lineart", List.of("llm-lineart")),
+            Map.entry("moderation", List.of("llm-moderation")),
+            Map.entry("moderation_shadow", List.of()),
+            Map.entry("crisis", List.of()));
+
+    /** 全部已知能力（固定展示顺序）。 */
+    public List<String> knownTasks() {
+        return KNOWN_TASKS;
+    }
+
+    /** 该能力是否 cloud-only 硬约束（D1/D4：无任何把兜底指向本地的配置键）。 */
+    public boolean cloudOnly(String task) {
+        return CLOUD_ONLY_TASKS.contains(task);
+    }
+
+    /** 该能力在 ai_trace 的记账场景清单（观测口径，见 {@link #TASK_SCENE_KEYS}）。 */
+    public List<String> sceneKeys(String task) {
+        return TASK_SCENE_KEYS.getOrDefault(task, List.of());
+    }
+
+    /** 本地演示总闸原始值（D8 双开关之一；生效口径见 {@link #shadowLocalEffective()}）。 */
+    public boolean localDemoMode() {
+        return localDemoMode;
+    }
+
     /** 可观测描述：用于运营页/日志展示当前路由表（不含任何密钥）。 */
     public String describe() {
         return "standard=" + standardModel + ", strong=" + strongModel

@@ -279,6 +279,17 @@ const routes: RouteRecordRaw[] = [
           authority: ['ROLE_3'],
         },
       },
+      {
+        // AI 模型路由只读面板（2026-11-08）：配置呈现 + provider 分布 + 异常自查
+        name: 'ZhiyuAiRouting',
+        path: '/zhiyu/ai/routing',
+        component: () => import('#/views/zhiyu/ai-routing.vue'),
+        meta: {
+          icon: 'lucide:route',
+          title: '模型路由',
+          authority: ['ROLE_3'],
+        },
+      },
     ],
   },
   {
