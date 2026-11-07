@@ -83,6 +83,17 @@ const routes: RouteRecordRaw[] = [
           authority: ['ROLE_3'],
         },
       },
+      {
+        // 软档处置链复核队列（2026-11-07）；SLA 升级/申诉通知（refType=soft_review）的跳转落点
+        name: 'ZhiyuSoftTierPool',
+        path: '/zhiyu/business/soft-tier-pool',
+        component: () => import('#/views/zhiyu/soft-tier-pool.vue'),
+        meta: {
+          icon: 'lucide:shield-question',
+          title: '软档复核',
+          authority: ['ROLE_3'],
+        },
+      },
     ],
   },
   {

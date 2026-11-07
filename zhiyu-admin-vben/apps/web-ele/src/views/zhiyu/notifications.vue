@@ -132,6 +132,10 @@ function targetFor(item: NotificationApi.NotificationItem): RouteLocationRaw | n
     case 'project': {
       return { path: '/my-inheritance/projects' };
     }
+    case 'soft_review': {
+      // 软档处置链（2026-11-07）：refId 为复核单 id，落复核页直达详情抽屉
+      return { path: '/zhiyu/business/soft-tier-pool', query: { reviewId: id } };
+    }
     case 'work': {
       return isAdmin.value
         ? { path: '/zhiyu/business/works', query: { workId: id } }
@@ -149,6 +153,7 @@ const targetLabels: Record<string, string> = {
   comment: '去评论审核页',
   group: '查看小组',
   project: '查看我的项目',
+  soft_review: '去软档复核',
   work: '查看作品',
 };
 

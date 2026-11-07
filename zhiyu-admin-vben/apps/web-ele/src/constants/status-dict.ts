@@ -107,12 +107,14 @@ export const NOTIFICATION_TYPE: StatusDict = {
   CARE_REMINDER: { label: '关怀提醒', tag: 'danger' },
   COMMENT_AUDIT: { label: '评论审核', tag: 'warning' },
   GROUP_JOIN: { label: '小组动态', tag: 'info' },
+  // 软档处置链（2026-11-07）：作者侧=展示受限/恢复通知；管理员侧=SLA 升级与申诉提醒
+  SOFT_TIER_NOTICE: { label: '软档处置', tag: 'warning' },
   WORK_AUDIT: { label: '作品审核', tag: 'warning' },
 };
 
 /**
  * 通知关联对象类型（notification.ref_type，BK 筛选用）。
- * 与 openapi /api/notifications 的 refType 参数 8 个合法值一一对应（BJ），
+ * 与 openapi /api/notifications 的 refType 参数 9 个合法值一一对应（BJ + 2026-11-07 处置链增 soft_review），
  * 取自事件侧真实写入集合；「全部」= 不传参，不含占位值。
  */
 export const NOTIFICATION_REF_TYPE: StatusDict = {
@@ -123,6 +125,7 @@ export const NOTIFICATION_REF_TYPE: StatusDict = {
   group: { label: '小组', tag: 'info' },
   inheritor_profile: { label: '传承人资料', tag: 'info' },
   project: { label: '项目', tag: 'warning' },
+  soft_review: { label: '软档复核', tag: 'warning' },
   work: { label: '作品', tag: 'warning' },
 };
 
@@ -242,4 +245,44 @@ export const HEALTH_STATUS: StatusDict = {
   DOWN: { label: 'DOWN', tag: 'danger' },
   UP: { label: 'UP', tag: 'success' },
   WARN: { label: 'WARN', tag: 'warning' },
+};
+
+/**
+ * 软档复核单状态（moderation_soft_review.pool_status，2026-11-07 处置链）。
+ * 文案纪律：禁用「违规/处罚/降权」，基调是「保护」——BLOCK 用「拦截」、降权用「展示受限」。
+ * EXPIRED 列存在于表设计但当前无代码路径产生，不入字典（出现即原值透传，不猜）。
+ */
+export const SOFT_TIER_POOL_STATUS: StatusDict = {
+  PENDING: { label: '待复核', tag: 'warning' },
+  ESCALATED: { label: '已升级待审', tag: 'danger' },
+  NOT_SAMPLED: { label: '未抽中（窗口期）', tag: 'info' },
+  CLEAR: { label: '已恢复展示', tag: 'success' },
+  UPHOLD: { label: '维持展示受限', tag: 'info' },
+  BLOCK: { label: '已拦截', tag: 'danger' },
+};
+
+/**
+ * 软档抽样分层（sample_layer，与后端 SoftTierRecordService.decideLayer 一一对应）。
+ * overflow_* 为日入池达软上限后转未抽中（仍处 72h 展示受限窗口，次日队列优先补足）。
+ */
+export const SOFT_TIER_SAMPLE_LAYER: StatusDict = {
+  mandatory_lexicon: { label: '词库命中', tag: 'danger' },
+  mandatory_riskpoint: { label: '风险点', tag: 'warning' },
+  mandatory_author_first: { label: '作者首条', tag: 'warning' },
+  random: { label: '随机抽检', tag: 'info' },
+  overflow_author_first: { label: '作者首条 · 溢出未抽中', tag: 'info' },
+  overflow_random: { label: '随机 · 溢出未抽中', tag: 'info' },
+};
+
+/** 软档申诉状态（appeal_status；FILED 即「申诉逃生通道」已触发，复核单升 ESCALATED） */
+export const SOFT_TIER_APPEAL_STATUS: StatusDict = {
+  NONE: { label: '未申诉', tag: 'info' },
+  FILED: { label: '已申诉', tag: 'danger' },
+  RESOLVED: { label: '申诉已处理', tag: 'success' },
+};
+
+/** 软档对象类型（target_type） */
+export const SOFT_TIER_TARGET_TYPE: StatusDict = {
+  work: { label: '作品', tag: 'warning' },
+  comment: { label: '评论', tag: 'primary' },
 };

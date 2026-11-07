@@ -11,9 +11,11 @@ export namespace NotificationApi {
   /** 与后端 notification.type 枚举一一对应 */
   export type NotificationType =
     | 'BOOKING_REPLY'
+    | 'CAMPUS_AUDIT'
     | 'CARE_REMINDER'
     | 'COMMENT_AUDIT'
     | 'GROUP_JOIN'
+    | 'SOFT_TIER_NOTICE'
     | 'WORK_AUDIT';
 
   export type RefType =
@@ -24,6 +26,7 @@ export namespace NotificationApi {
     | 'group'
     | 'inheritor_profile'
     | 'project'
+    | 'soft_review'
     | 'work';
 
   export interface NotificationItem {
@@ -42,7 +45,7 @@ export namespace NotificationApi {
     /** 服务端参数名为 size（非 pageSize） */
     size: number;
     type?: string;
-    /** BJ：按关联对象类型细分（8 个合法值见契约）；不传 = 不筛选（不传空串） */
+    /** BJ：按关联对象类型细分（9 个合法值见契约）；不传 = 不筛选（不传空串） */
     refType?: string;
   }
 
