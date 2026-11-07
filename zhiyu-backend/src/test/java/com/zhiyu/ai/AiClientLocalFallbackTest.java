@@ -128,6 +128,54 @@ class AiClientLocalFallbackTest {
     }
 
     @Test
+    @DisplayName("推荐：云 401 经 Spring AI NonTransientAiException 包装 → 仍兜底（D2 彩排批回归：同步路径不再判 FATAL）")
+    void recommendFallsBackOnSpringAiAuthError() {
+        when(cloud.recommendReasonWithUsage(anyString(), anyList()))
+                .thenThrow(new org.springframework.ai.retry.NonTransientAiException(
+                        "HTTP 401 - {\"error\":{\"message\":\"Authentication Fails\"}}"));
+        when(local.recommendReasonWithUsage(anyString(), anyList()))
+                .thenReturn(new LlmChatResult("本地兜底文本", 3, 2));
+
+        String result = aiClient(cloud, local, fallbackRouter()).recommendReason("焦虑", List.of("扎染"));
+
+        assertEquals("本地兜底文本", result);
+        verify(local).recommendReasonWithUsage(anyString(), anyList());
+    }
+
+    @Test
+    @DisplayName("寄语：云 401 经 Spring AI NonTransientAiException 包装 → 仍兜底（同步路径回归）")
+    void workMessageFallsBackOnSpringAiAuthError() {
+        when(cloud.workMessageWithUsage(anyString(), any()))
+                .thenThrow(new org.springframework.ai.retry.NonTransientAiException("HTTP 401 - {\"error\":{}}"));
+        when(local.workMessageWithUsage(anyString(), any()))
+                .thenReturn(new LlmChatResult("本地寄语", 3, 2));
+
+        String result = aiClient(cloud, local, fallbackRouter()).workMessage("蓝晒书签", "平静");
+
+        assertEquals("本地寄语", result);
+        verify(local).workMessageWithUsage(anyString(), any());
+    }
+
+    @Test
+    @DisplayName("对话（缓冲流）：云 401 经 Spring AI 包装 → 本地整段兜底（与 WebClient 通道同归宿）")
+    void streamChatFallsBackOnSpringAiAuthError() {
+        doThrow(new org.springframework.ai.retry.NonTransientAiException("HTTP 401 - {\"error\":{}}"))
+                .when(cloud).streamChat(anyList(), any());
+        doAnswer(inv -> {
+            java.util.function.Consumer<String> cb = inv.getArgument(1);
+            cb.accept("本地兜底回复");
+            return null;
+        }).when(local).streamChat(anyList(), any());
+
+        StringBuilder served = new StringBuilder();
+        var result = aiClient(cloud, local, fallbackRouter())
+                .streamChat(1L, "你好", List.of(), served::append);
+
+        assertEquals("本地兜底回复", result.reply());
+        verify(local).streamChat(anyList(), any());
+    }
+
+    @Test
     @DisplayName("推荐：策略关停（env=none）后云失败不兜底")
     void recommendNoFallbackWhenSwitchOff() {
         ModelRouter off = new ModelRouter("deepseek-chat", "deepseek-reasoner", true, "deepseek-r1:8b",
