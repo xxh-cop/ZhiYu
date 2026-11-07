@@ -57,6 +57,20 @@ class ModerationShadowServiceTest {
     private static final long AUTHOR = 887001L;
     private static final long VICTIM = 887002L;
 
+    /**
+     * 统计窗口锚定日（2026-11-08 跨午夜抖动修复）：本类所有送审/判定时间与 stats 查询区间
+     * 都从它派生，两侧同源即与墙钟解耦。此前数据时间取 {@code now().minusHours(h)}、窗口取
+     * {@code LocalDate.now()}——凌晨（00:00–09:00）运行时数据落回昨天，被 stats 的自然日窗口
+     * （target_create_time ∈ [from, to]）排除，统计计数全为 0（4 个用例 00:55 实证失败）。
+     */
+    private static final LocalDate ANCHOR_DAY = LocalDate.now();
+    /**
+     * 当日正午：距两个日界各 12h，本类最大回拨 9h 保证数据不跨日。
+     * scan 回扫仅有 72h 下界、无上界（ModerationShadowService.processNewTargets），
+     * 凌晨运行时锚点相对真实时刻是未来时间也同样被扫入，不受影响。
+     */
+    private static final LocalDateTime ANCHOR_NOON = ANCHOR_DAY.atTime(12, 0);
+
     private static final String SOFT_JSON =
             "{\"tendency\":\"SOFT_CONCERN\",\"narrative\":\"self_disclosure\",\"riskPoints\":[],\"uncertainty\":\"\"}";
     private static final String CLEAN_JSON =
@@ -139,12 +153,12 @@ class ModerationShadowServiceTest {
         assertEquals(2, ((Number) row.get("attempts")).intValue());
         verify(aiClient, times(2)).moderationShadowSuggestWithAttribution(anyString());
         // UNAVAILABLE 单独统计，不进分子分母；反向排除口径下 unknown 归属计入默认（生产）统计
-        var stats = shadowService.stats(LocalDate.now(), LocalDate.now());
+        var stats = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY);
         assertEquals(1L, stats.get("unavailableTotal"));
         assertEquals(0L, stats.get("judgedTotal"));
         assertNull(stats.get("softRate"));
         assertEquals(0L, stats.get("demoJudgedInWindow")); // 无演示归属行
-        var unknownScope = shadowService.stats(LocalDate.now(), LocalDate.now(), "unknown");
+        var unknownScope = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY, "unknown");
         assertEquals(1L, unknownScope.get("unavailableTotal")); // 显式取数能力保留
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> byProvider = (List<Map<String, Object>>) stats.get("byProvider");
@@ -193,7 +207,7 @@ class ModerationShadowServiceTest {
 
             assertEquals(1, count("SELECT COUNT(*) FROM moderation_soft_shadow"));
             verify(aiClient, times(1)).moderationShadowSuggestWithAttribution(anyString());
-            var stats = shadowService.stats(LocalDate.now(), LocalDate.now());
+            var stats = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY);
             @SuppressWarnings("unchecked")
             Map<String, Object> budget = (Map<String, Object>) stats.get("dailyBudget");
             assertEquals(1, budget.get("limit"));
@@ -233,7 +247,7 @@ class ModerationShadowServiceTest {
                 """, IdWorker.getId(), AUTHOR, "测试大学");
 
         // 默认口径：反向排除演示（ollama/mock），deepseek 与 unknown 存量都计入；演示判定被排除并标注
-        var stats = shadowService.stats(LocalDate.now(), LocalDate.now());
+        var stats = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY);
         assertEquals("production", stats.get("providerScope"));
         assertEquals(List.of("ollama", "mock"), stats.get("excludedDemoProviders"));
         assertEquals(1L, stats.get("demoJudgedInWindow")); // ollama 的 OK 行被排除且显式标注
@@ -285,7 +299,7 @@ class ModerationShadowServiceTest {
         assertNull(bucket.get("unknown").get("softRate"));
 
         // 演示数据单独取：?provider=ollama 仅该归属
-        var demo = shadowService.stats(LocalDate.now(), LocalDate.now(), "ollama");
+        var demo = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY, "ollama");
         assertEquals("ollama", demo.get("providerScope"));
         assertEquals(1L, demo.get("judgedTotal"));
         assertEquals(1L, demo.get("softTotal"));
@@ -293,7 +307,7 @@ class ModerationShadowServiceTest {
         assertEquals(true, demo.get("degraded")); // coverage=0.1 < 0.8
 
         // all 不过滤：含演示与存量
-        var all = shadowService.stats(LocalDate.now(), LocalDate.now(), "all");
+        var all = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY, "all");
         assertEquals("all", all.get("providerScope"));
         assertEquals(9L, all.get("judgedTotal"));
         assertEquals(3L, all.get("softTotal"));
@@ -302,7 +316,7 @@ class ModerationShadowServiceTest {
         // 评审 c：再送审 2 条未判定 → coverage=8/12≈0.667 < 0.8 → 显式降级
         insertWork(AUTHOR, "未判一", 0, hoursAgo(0));
         insertWork(AUTHOR, "未判二", 0, hoursAgo(0));
-        var degraded = shadowService.stats(LocalDate.now(), LocalDate.now());
+        var degraded = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY);
         assertEquals(12L, degraded.get("submittedTotal"));
         assertEquals(true, degraded.get("degraded"));
         assertEquals(8.0 / 12, (Double) degraded.get("coverageRate"), 1e-9);
@@ -323,7 +337,7 @@ class ModerationShadowServiceTest {
         insertShadow("work", w3, AUTHOR, "OK", "NO_OBVIOUS_ISSUE", "none", "unknown", "unknown", 1, hoursAgo(2));
         insertShadow("work", w4, AUTHOR, "OK", "NO_OBVIOUS_ISSUE", "none", "ollama", "qwen2.5-local", 1, hoursAgo(1));
 
-        var stats = shadowService.stats(LocalDate.now(), LocalDate.now());
+        var stats = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY);
         assertEquals("production", stats.get("providerScope"));
         assertEquals(4L, stats.get("submittedTotal"));
         // unknown 存量计入分子：judged=3（ollama 被排除），覆盖率=3/4=0.75 不被压成 0 或 1/4
@@ -345,7 +359,7 @@ class ModerationShadowServiceTest {
         insertShadow("work", w2, AUTHOR, "OK", "NO_OBVIOUS_ISSUE", "none", "aliyun", "qwen-max", 1, hoursAgo(2));
         insertShadow("work", w3, AUTHOR, "OK", "NO_OBVIOUS_ISSUE", "none", "aliyun", "qwen-plus", 1, hoursAgo(1));
 
-        var stats = shadowService.stats(LocalDate.now(), LocalDate.now());
+        var stats = shadowService.stats(ANCHOR_DAY, ANCHOR_DAY);
         assertEquals(3L, stats.get("submittedTotal"));
         assertEquals(3L, stats.get("judgedTotal")); // 非 deepseek 的云端归属照样计入，不归零
         assertEquals(1L, stats.get("softTotal"));
@@ -433,7 +447,8 @@ class ModerationShadowServiceTest {
                 Timestamp.valueOf(LocalDateTime.now()), Timestamp.valueOf(LocalDateTime.now()));
     }
 
+    /** 从锚点正午回拨 h 小时（不是真实 now——见 ANCHOR_DAY 注释）。 */
     private static LocalDateTime hoursAgo(int h) {
-        return LocalDateTime.now().minusHours(h);
+        return ANCHOR_NOON.minusHours(h);
     }
 }
