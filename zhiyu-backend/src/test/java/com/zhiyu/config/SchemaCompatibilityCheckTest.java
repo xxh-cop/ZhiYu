@@ -57,13 +57,19 @@ class SchemaCompatibilityCheckTest {
   when(softReview.next()).thenAnswer(i->softReviewPos.incrementAndGet()<softReviewCols.size());
   when(softReview.getString("COLUMN_NAME")).thenAnswer(i->softReviewCols.get(softReviewPos.get()));
   when(metadata.getColumns("zhiyu",null,"moderation_soft_review",null)).thenReturn(softReview);
+  // 2026-11-07 软档影子模式：moderation_soft_shadow 必检表
+  var shadowCols=upgraded?java.util.List.of("id","target_type","target_id","author_id","judge_status","provider","model","attempts","target_create_time","create_time","update_time","deleted"):java.util.List.<String>of();
+  var shadow=mock(ResultSet.class);var shadowPos=new java.util.concurrent.atomic.AtomicInteger(-1);
+  when(shadow.next()).thenAnswer(i->shadowPos.incrementAndGet()<shadowCols.size());
+  when(shadow.getString("COLUMN_NAME")).thenAnswer(i->shadowCols.get(shadowPos.get()));
+  when(metadata.getColumns("zhiyu",null,"moderation_soft_shadow",null)).thenReturn(shadow);
   when(metadata.getColumns("zhiyu",null,"work",null)).thenReturn(work);when(metadata.getColumns("zhiyu",null,"craft_session",null)).thenReturn(session);
   // L4 批次新增必检表（practice_session / user_ai_memory / ai_trace / heritage_catalog_version）
   // 2026-11-04 通知系统新增必检表 notification
   for(var entry:java.util.Map.of(
     "practice_session",java.util.List.of("id","user_id","kind","status","minutes_budget","current_step","create_time","update_time","deleted"),
     "user_ai_memory",java.util.List.of("id","user_id","memory_key","value_cipher","consent_version","create_time","update_time","deleted"),
-    "ai_trace",java.util.List.of("id","trace_id","user_id","scene","model","latency_ms","input_tokens","output_tokens","result_status","fallback_reason","create_time"),
+    "ai_trace",java.util.List.of("id","trace_id","user_id","scene","model","provider","latency_ms","input_tokens","output_tokens","result_status","fallback_reason","create_time"),
     "notification",java.util.List.of("id","user_id","type","title","ref_id","sub_ref_id","dedupe_key","read_flag","create_time","update_time","deleted"),
     "dialogue_context_summary",java.util.List.of("id","user_id","session_id","covered_end_turn","summary_cipher","create_time","update_time","deleted"),
     "crisis_session_log",java.util.List.of("id","user_id","scene","risk_level","summary_cipher","create_time","update_time","deleted"),

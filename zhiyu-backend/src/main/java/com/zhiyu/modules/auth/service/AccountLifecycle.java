@@ -59,6 +59,8 @@ public class AccountLifecycle {
         // 软档处置台账（2026-11-07 处置链）——随作者内容注销级联逻辑删除
         // （台账不含内容原文；reviewer_id 是管理员不是被注销者，无需处理）
         db.update("UPDATE moderation_soft_review SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE author_id=?",uid);
+        // 软档影子观测台账（2026-11-07 影子模式）——同口径级联逻辑删除（表内同样不含内容原文）
+        db.update("UPDATE moderation_soft_shadow SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE author_id=?",uid);
         // 推荐行为事件、小组作品关联——逻辑删除（严格按本人范围）
         db.update("UPDATE craft_recommend_event SET deleted=1,update_time=CURRENT_TIMESTAMP WHERE user_id=?",uid);
         // 会话行为事件（2026-11-05 心流度量配套）——清上下文快照 + 逻辑删除

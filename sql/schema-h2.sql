@@ -567,3 +567,27 @@ CREATE TABLE IF NOT EXISTS moderation_soft_review (
   KEY idx_pool_sla (pool_status, sla_due_at),
   KEY idx_soft_author (author_id)
 );
+
+-- 软档影子模式观测台账（2026-11-07：只观测不处置；shadow.enabled 默认 false）
+CREATE TABLE IF NOT EXISTS moderation_soft_shadow (
+  id            BIGINT       NOT NULL,
+  target_type   VARCHAR(10)  NOT NULL,
+  target_id     BIGINT       NOT NULL,
+  author_id     BIGINT       NOT NULL,
+  judge_status  VARCHAR(12)  NOT NULL DEFAULT 'PENDING',
+  tendency      VARCHAR(20)  DEFAULT NULL,
+  narrative     VARCHAR(20)  DEFAULT NULL,
+  audit_log_id  BIGINT       DEFAULT NULL,
+  provider      VARCHAR(30)  NOT NULL DEFAULT 'unknown',
+  model         VARCHAR(80)  NOT NULL DEFAULT 'unknown',
+  attempts      INT          NOT NULL DEFAULT 0,
+  last_attempt_at TIMESTAMP  DEFAULT NULL,
+  target_create_time TIMESTAMP DEFAULT NULL,
+  create_time   TIMESTAMP    DEFAULT NULL,
+  update_time   TIMESTAMP    DEFAULT NULL,
+  deleted       TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT uk_shadow_target UNIQUE (target_type, target_id),
+  KEY idx_shadow_target_ct (target_create_time),
+  KEY idx_shadow_retry (judge_status, attempts)
+);

@@ -4484,6 +4484,25 @@ paths:
         '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
+  /api/admin/moderation/shadow-stats:
+    get:
+      operationId: adminModerationShadowStats
+      summary: '管理员：软档影子模式统计（只读观测「若开启软档会怎样」，不随影子开关 gated——关闭后仍需能读已采集窗口）'
+      x-required-role: admin-only
+      parameters:
+        - { name: from, in: query, required: false, schema: { type: string, format: date }, description: '窗口起始日（按对象送审时间，缺省 = to 前 6 天）' }
+        - { name: to, in: query, required: false, schema: { type: string, format: date }, description: '窗口截止日（含当日，缺省 = 今天）' }
+        - { name: provider, in: query, required: false, schema: { type: string }, description: '判定归属过滤：缺省 = production（反向排除演示来源清单 demo-providers，默认 ollama/mock；其余含 unknown 存量都算生产——云端换供应商不会静默归零）；传具体 provider 值单独取该归属；传 all 不过滤。ratio 定义与分母口径、degraded 判定不随本参数变化（仅总体集合过滤）' }
+      responses:
+        '200':
+          description: 'code=0；data 口径：submittedTotal=窗口内业务表实际送审条数（分母底座，不随 provider 过滤变化）；judgedTotal=judge_status=OK 条数；softTotal=若开启会被判软档条数；softRate=soft/judged（主指标）；coverageRate=judged/submitted；softRateOnSubmitted=soft/submitted（保守下界）；degraded=coverageRate 低于 coverage-warn-threshold（默认 0.8）或无数据时为 true（防低覆盖数字被当发生率用）；unavailableTotal/pendingRetryTotal 为终态不可用与待重试计数（不进分子分母）；softReviewed={approved,rejected,pending,harmlessRate}（落软档样本实时 JOIN 业务表的人工终审分布，harmlessRate=approved/(approved+rejected)，无审结样本为 null）；byTargetType/bySchool 分层（校园取 campus_verification.school，未认证落「未认证」桶）；byProvider 为全窗归属分桶 [{provider,rows,judged,soft,softRate}]（unknown 单独成桶：2026-11-07 加列前存量或尚无成功判定）；providerScope 回显实际过滤值（production/具体值/all）；excludedDemoProviders 回显默认口径实际排除的演示来源清单；demoJudgedInWindow 为窗口内被默认口径排除的演示判定条数（>0 时覆盖率如实偏低的原因，分子分母不同源在此显式标注：scope=all 时分子分母完全同源；production 口径分子排除演示判定、分母含全部送审；具体 provider 口径为「该来源覆盖率」）；dailyBudget={limit,usedToday,truncated}（日预算用量与当日截断标记）。全为计数与比率，不含内容原文'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Result' }
+        '400': { description: '日期格式非法或 from 晚于 to（code=1001）', content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '401': { description: 未登录或登录已过期（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+        '403': { description: 无权限（code=1003）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
   # ── P1-B1：小组管理（4 个接口） ──
 
   /api/admin/groups:

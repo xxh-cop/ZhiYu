@@ -173,7 +173,22 @@ zhiyu:
         sample-rate: ${ZHIYU_MODERATION_SOFT_TIER_SAMPLE_RATE:0.33}
         # 日入池软上限（只约束 random 与 mandatory_author_first 层；溢出转未抽中并保留降权窗口）
         daily-cap: ${ZHIYU_MODERATION_SOFT_TIER_DAILY_CAP:50}
+      # 软档影子模式（2026-11-07）：只统计「若开启软档会怎样」，绝不改变线上判定与可见性。
+      # 独立于上面两个开关，默认 false；开启后定时扫描已送审内容按「若开启」口径评测并落
+      # moderation_soft_shadow，不写 work/work_comment 软档字段、不影响审核结论、不入抽检池、不发通知。
       shadow:
+        enabled: ${ZHIYU_MODERATION_SOFT_TIER_SHADOW_ENABLED:false}
+        # 回扫窗口（小时）：只判送审时间在窗口内且未判过的内容（防首次开启回溯历史全量烧穿预算）
+        lookback-hours: ${ZHIYU_MODERATION_SOFT_TIER_SHADOW_LOOKBACK_HOURS:72}
+        # 每轮（60s）每类新送审内容的判定上限（重试优先于新判定，共享当日预算）
+        batch-size: ${ZHIYU_MODERATION_SOFT_TIER_SHADOW_BATCH_SIZE:10}
+        # 单条判定尝试上限：熔断窗失败不一次定终态，达到上限才落 UNAVAILABLE（防分母被系统性低估）
+        max-attempts: ${ZHIYU_MODERATION_SOFT_TIER_SHADOW_MAX_ATTEMPTS:3}
+        # 日级 AI 调用预算硬上限（计数源 ai_audit_log scene='moderation_shadow'，与审核员频控同源做法）；
+        # 到达上限当日即停并在统计接口标记 truncated
+        daily-budget: ${ZHIYU_MODERATION_SOFT_TIER_SHADOW_DAILY_BUDGET:2000}
+        # 覆盖率告警阈值：统计接口 coverageRate 低于此值时返回 degraded=true（防低覆盖数字被当发生率用）
+        coverage-warn-threshold: ${ZHIYU_MODERATION_SOFT_TIER_SHADOW_COVERAGE_WARN_THRESHOLD:0.8}
         # 演示归属清单（原 @Value 默认值登记入册，2026-11-08）：清单内 provider 的判定
         # 一律视为演示口径，/shadow-stats 默认反向排除；与 zhiyu.ai.routing.local-demo-mode
         # 组成影子判定走本地的双开关（只开一个不生效）。
