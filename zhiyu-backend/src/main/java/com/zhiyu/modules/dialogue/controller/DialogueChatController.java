@@ -82,6 +82,11 @@ public class DialogueChatController {
                 done.put("crisis", result.crisis());
                 done.put("revoked", result.revoked());
                 done.put("toolUsed", result.toolUsed());
+                // 2026-11-08 装配层批：可选归属字段（与 ai_trace.provider 同源同词表）；
+                // 非模型产出（危机话术/安全改写/闸口锁定文案）为 null 不下发
+                if (result.provider() != null && !result.provider().isBlank()) {
+                    done.put("provider", result.provider());
+                }
                 emitter.send(SseEmitter.event().name("done").data(objectMapper.writeValueAsString(done)));
                 emitter.complete();
             } catch (Exception e) {

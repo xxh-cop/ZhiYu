@@ -36,6 +36,8 @@
 								<text class="bubble-text text-ai">{{ msg.text }}</text>
 								<text v-if="!msg.done" class="typing"></text>
 							</view>
+							<!-- 2026-11-08 装配层批：一次性归属标注——仅本条确为本地模型产出时出现，后续不重复 -->
+							<text v-if="msg.done && msg.provider === 'ollama'" class="msg-provider">本条由校内本地模型生成</text>
 							<text v-if="msg.done" class="msg-time">{{ formatTime(msg) }}</text>
 							<view v-if="msg.done && speechAvailable && msg.text" class="msg-actions">
 								<button
@@ -116,6 +118,12 @@
 		</view>
 	</scroll-view>
 
+		<!-- 2026-11-08 装配层批：本地兜底持续轻注（云端正常时不出现；危机出口常驻） -->
+		<view v-if="localMode" class="local-note">
+			<text class="local-note__text">当前为本地陪伴模式，回复会朴素一些。紧急情况请随时点</text>
+			<text class="local-note__link" @click="goCrisisPage">「寻求支持」</text>
+		</view>
+
 		<!-- 输入区（固定底部） -->
 		<view class="input-area">
 			<wd-input
@@ -180,7 +188,7 @@ const toast = useToast()
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
-const { messages, streaming, errorMsg, errorCode, scrollSignal, crisisTriggered } = storeToRefs(emotionStore)
+const { messages, streaming, errorMsg, errorCode, scrollSignal, crisisTriggered, localMode } = storeToRefs(emotionStore)
 
 // Q2：撤回隐私同意后，情绪接口返回 1003「请先阅读并同意隐私政策」。
 // 此时展示「去重新同意」引导态（不自动弹同意、不阻断用户选择），替代裸错误 + 无效重试。
@@ -578,6 +586,36 @@ async function endConversation(){if(streaming.value||!emotionStore.sessionId)ret
 
 .msg-time--user {
 	text-align: right;
+}
+
+/* 2026-11-08 装配层批：本地兜底归属与持续轻注（WXSS 方言内，仅类选择器） */
+.msg-provider {
+	display: block;
+	margin-top: 6rpx;
+	font-size: 22rpx;
+	color: var(--zy-aid, #4a5f54);
+	opacity: 0.75;
+}
+
+.local-note {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	padding: 10rpx 24rpx;
+	background: var(--zy-primary-bg, #eef6f3);
+	border-top: 1rpx solid var(--zy-border, #d8e5de);
+}
+
+.local-note__text {
+	font-size: 24rpx;
+	color: var(--zy-content, #4a5f54);
+}
+
+.local-note__link {
+	font-size: 24rpx;
+	color: var(--zy-primary, #217e76);
+	font-weight: 600;
 }
 
 .msg-actions {

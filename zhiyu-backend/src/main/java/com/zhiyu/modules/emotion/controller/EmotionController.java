@@ -161,7 +161,7 @@ public class EmotionController {
                 // 5. done 事件（携带 crisis 标志）
                 emitter.send(SseEmitter.event()
                         .name("done")
-                        .data(donePayload(sessionId, chat.crisis(), false)));
+                        .data(donePayload(sessionId, chat.crisis(), false, chat.provider())));
                 emitter.complete();
 
             } catch (Exception e) {
@@ -225,7 +225,7 @@ public class EmotionController {
                 emitter.send(SseEmitter.event()
                         .name("done")
                         .data(donePayload(result.sessionId() != null ? result.sessionId() : sessionId,
-                                result.crisis(), result.revoked())));
+                                result.crisis(), result.revoked(), result.provider())));
                 emitter.complete();
             } catch (Exception e) {
                 log.error("SSE 对话异常（委托路径）: {}", e.getMessage(), e);
@@ -307,7 +307,7 @@ public class EmotionController {
         }
         emitter.send(SseEmitter.event()
                 .name("done")
-                .data(donePayload(sessionId, result.crisis(), result.revoked())));
+                .data(donePayload(sessionId, result.crisis(), result.revoked(), result.provider())));
         emitter.complete();
     }
 
@@ -318,10 +318,22 @@ public class EmotionController {
      * 输出示例：{@code {"sessionId":123,"crisis":false,"revoked":false}}
      */
     private String donePayload(Long sessionId, boolean crisis, boolean revoked) {
+        return donePayload(sessionId, crisis, revoked, null);
+    }
+
+    /**
+     * 带归属的 done payload（2026-11-08 装配层批）：{@code provider} 非空时才写入——
+     * 与 ai_trace 同源同词表（deepseek/ollama/mock），前端据此做归属标注；
+     * 危机话术/安全改写等非模型产出的回包为 null，前端不得显示任何归属字样。
+     */
+    private String donePayload(Long sessionId, boolean crisis, boolean revoked, String provider) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("sessionId", sessionId);
         payload.put("crisis", crisis);
         payload.put("revoked", revoked);
+        if (provider != null && !provider.isBlank()) {
+            payload.put("provider", provider);
+        }
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (Exception e) {

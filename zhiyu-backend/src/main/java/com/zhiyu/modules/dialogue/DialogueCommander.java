@@ -155,7 +155,8 @@ public class DialogueCommander {
         }
         guard.incrementTurns(guardKey);
         return new DialogueTurnResult(result.sessionId() != null ? result.sessionId() : sessionKey,
-                finalCapability, result.reply(), result.crisis(), result.revoked(), result.toolUsed());
+                finalCapability, result.reply(), result.crisis(), result.revoked(), result.toolUsed(),
+                result.provider());
     }
 
     private void trace(Long userId, String fallbackReason, String capability, int latencyMs) {

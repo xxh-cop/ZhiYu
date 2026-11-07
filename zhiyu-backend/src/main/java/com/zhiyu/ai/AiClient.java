@@ -283,11 +283,19 @@ public class AiClient {
     /**
      * 流式对话的返回结果。
      *
-     * @param input  输入侧过滤结果（BLOCK 时不调 LLM）
-     * @param output 完整回复的输出侧过滤结果；输入被 BLOCK 时为 {@code null}
-     * @param reply  可安全展示给用户的最终文本：正常回复 / 输出改写文本 / 关怀话术
+     * @param input    输入侧过滤结果（BLOCK 时不调 LLM）
+     * @param output   完整回复的输出侧过滤结果；输入被 BLOCK 时为 {@code null}
+     * @param reply    可安全展示给用户的最终文本：正常回复 / 输出改写文本 / 关怀话术
+     * @param provider 实际产出该回复的 provider（2026-11-08 装配层批：deepseek/ollama/mock；
+     *                 未发起模型调用——输入拦截或全失败时为 null，不得冒充归属）。
+     *                 与 ai_trace 同源同词表，不另造第二套真相
      */
-    public record StreamChatResult(SafetyResult input, SafetyResult output, String reply) {
+    public record StreamChatResult(SafetyResult input, SafetyResult output, String reply,
+                                   String provider) {
+        /** 旧 3 参构造（既有调用点兼容）：provider=null（未知/未记录）。 */
+        public StreamChatResult(SafetyResult input, SafetyResult output, String reply) {
+            this(input, output, reply, null);
+        }
         /** 输入命中高危，未调用 LLM。 */
         public boolean blocked() {
             return input != null && input.getAction() == SafetyAction.BLOCK;
@@ -410,7 +418,9 @@ public class AiClient {
                 output.getAction() == SafetyAction.PASS ? null
                         : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE);
         onToken.accept(reply);
-        return new StreamChatResult(input, output, reply);
+        // 归属仅当展示文本确为模型产出（PASS 未被改写/撤回）才给出；安全模板/关怀话术不标 provider
+        return new StreamChatResult(input, output, reply,
+                output.getAction() == SafetyAction.PASS ? client.providerName() : null);
     }
 
     // ── 句级真流式对话（SSE A 方案，2026-11-02 拍板，docs/project-plan-20261102.md §2.1） ──
@@ -424,7 +434,13 @@ public class AiClient {
      * @param reply   最终安全文本（revoked=true 时即替换文本；revoked=false 时等于已流出的全文）
      */
     public record LiveChatResult(SafetyResult input, SafetyResult output, String reply,
-                                 boolean blocked, boolean crisis, boolean revoked) {
+                                 boolean blocked, boolean crisis, boolean revoked,
+                                 String provider) {
+        /** 旧 6 参构造（既有调用点兼容）：provider=null（未知/未记录）。 */
+        public LiveChatResult(SafetyResult input, SafetyResult output, String reply,
+                              boolean blocked, boolean crisis, boolean revoked) {
+            this(input, output, reply, blocked, crisis, revoked, null);
+        }
     }
 
     /** 句级安全检命中时用于中断 LLM 流的内部信号。 */
@@ -597,7 +613,8 @@ public class AiClient {
         metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
                 output.getAction() == SafetyAction.PASS ? null
                         : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE);
-        return new LiveChatResult(input, output, reply, false, crisis, revoked);
+        return new LiveChatResult(input, output, reply, false, crisis, revoked,
+                output.getAction() == SafetyAction.PASS && !revoked ? client.providerName() : null);
     }
 
     // ── 推荐理由：走熔断 ──

@@ -88,12 +88,14 @@ public class ListeningCapability implements DialogueCapability {
             AiClient.LiveChatResult r = aiClient.streamChatLive(
                     sessionId, req.text(), history, req.chunkSink(), precheckedInput);
             persistAssistant(sessionId, userId, r.reply());
-            result = new DialogueTurnResult(sessionId, id(), r.reply(), r.crisis(), r.revoked(), false);
+            result = new DialogueTurnResult(sessionId, id(), r.reply(), r.crisis(), r.revoked(), false,
+                    r.provider());
         } else {
             AiClient.StreamChatResult r = aiClient.streamChat(
                     sessionId, req.text(), history, ignored -> { }, precheckedInput);
             persistAssistant(sessionId, userId, r.reply());
-            result = new DialogueTurnResult(sessionId, id(), r.reply(), r.crisis(), false, false);
+            result = new DialogueTurnResult(sessionId, id(), r.reply(), r.crisis(), false, false,
+                    r.provider());
         }
         return result;
     }

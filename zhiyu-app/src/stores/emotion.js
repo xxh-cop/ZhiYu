@@ -41,6 +41,12 @@ export const useEmotionStore = defineStore('emotion', {
 		preserveMessages: false,
 		/** 危机干预触发标记——SSE done 后检测关怀话术命中 */
 		crisisTriggered: false,
+		/**
+		 * 当前是否处于本地兜底模式（2026-11-08 装配层批）：
+		 * 由 SSE done 的可选 provider 字段驱动——ollama=true、云端值=false、
+		 * 不下发（危机话术等非模型产出）时保持原值。只作展示提示，不影响任何流程。
+		 */
+		localMode: false,
 	}),
 
 	actions: {
@@ -270,6 +276,13 @@ export const useEmotionStore = defineStore('emotion', {
 					// 灰度评估，渲染层不展示（倾听页无该信息位，不改变用户看到的内容结构）
 					if (data.capability) lastMsg.capability = data.capability
 					if (data.toolUsed) lastMsg.toolUsed = data.toolUsed
+					// 2026-11-08 装配层批：归属标注只对「真实走了本地」成立。
+					// 后端仅在展示文本确为模型产出时下发 provider（危机话术/安全改写不下发）——
+					// 无 provider 时本条不标，localMode 维持原值；云端值（deepseek 等）明确复位。
+					if (data.provider) {
+						lastMsg.provider = data.provider
+						this.localMode = data.provider === 'ollama'
+					}
 				}
 				if (data && data.sessionId) {
 					this.setSessionId(data.sessionId)

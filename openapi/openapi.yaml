@@ -2163,8 +2163,10 @@ paths:
         返回 text/event-stream。P2 实现外发的事件：
         - chunk / revoke：句级流式与安全撤回（语义同 /api/emotion/chat mode=live）；
           陪伴/知识能力的整段回复以单 chunk 下发
-        - done：`{ sessionId, capability, crisis, revoked, toolUsed }`（capability 为
-          LISTENING / PRACTICE_COMPANION / KNOWLEDGE / CRISIS）
+        - done：`{ sessionId, capability, crisis, revoked, toolUsed, provider? }`（capability 为
+          LISTENING / PRACTICE_COMPANION / KNOWLEDGE / CRISIS；provider 为 2026-11-08 装配层新增的
+          可选归属字段，值域 deepseek/ollama/mock，仅当展示文本确为模型产出时出现，
+          与 ai_trace.provider 同源同词表；危机话术/安全改写等非模型产出不下发）
         - error：`{ code, message }`（SSE 故障不使用 HTTP 层错误码，AGENTS §3 注）
         stage / message / tool / citation 富事件在 P2 协议中不外发，仍由
         /api/companion/sessions/{id}/message 与 /api/heritage/** 原端点承载（P3 适配器处理）。
@@ -2209,7 +2211,9 @@ paths:
           事件：
           - chunk: { "text": "我在这里陪着你。" }
           - revoke: { "text": "安全替换文本", "reason": "safety" }（仅终检/句级命中时出现，整体替换最后一条回复）
-          - done: { "sessionId": 123, "crisis": false, "revoked": false }
+          - done: { "sessionId": 123, "crisis": false, "revoked": false, "provider": "deepseek" }
+            （provider 为 2026-11-08 装配层新增的可选归属字段：deepseek/ollama/mock，
+            仅当展示文本确为模型产出时出现，与 ai_trace.provider 同源同词表；非模型产出不下发）
           - error: { "code": 5000, "message": "服务暂时不可用" }
           句级命中高危：立即中断生成，revoke 为关怀话术，done 的 crisis=true；危机干预与审计照常触发。
           输入侧命中高危时不调模型，直接以 chunk（关怀话术）+ done(crisis=true) 结束。
