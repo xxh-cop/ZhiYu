@@ -14,3 +14,8 @@ pre-commit:
     - name: git-diff-check
       # 校验暂存内容中的空白错误与冲突标记；git 自带，无需额外工具。
       run: git diff --cached --check
+    - name: jdbc-timestamp-cast-check
+      # 生产代码禁止裸 (Timestamp) 强转（DATETIME 驱动分叉 ClassCastException 三次实证；
+      # 时间列行值一律走 com.zhiyu.common.util.JdbcTimes）。零依赖 node 脚本，秒级。
+      # 构建期同规则闸口：zhiyu-backend JdbcCastGuardTest（mvn test / CI backend job）。
+      run: node zhiyu-backend/scripts/check-jdbc-timestamp-cast.js
