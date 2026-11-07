@@ -2,6 +2,7 @@ package com.zhiyu.ai;
 
 import com.zhiyu.ai.client.ChatMessage;
 import com.zhiyu.ai.client.LlmClient;
+import com.zhiyu.ai.client.LlmClientRegistry;
 import com.zhiyu.ai.client.MockLlmClient;
 import com.zhiyu.ai.resilience.CircuitBreakerStore;
 import com.zhiyu.ai.safety.ContentSafetyFilter;
@@ -52,7 +53,7 @@ import java.util.function.Consumer;
 @Component
 public class AiClient {
 
-    private final LlmClient llmClient;
+    private final LlmClientRegistry registry;
     private final CircuitBreakerStore breaker;
     private final ContentSafetyFilter contentSafetyFilter;
     private final com.zhiyu.ai.routing.ModelRouter modelRouter;
@@ -67,7 +68,7 @@ public class AiClient {
     public String transcribe(byte[] audio,String mimeType) {
         long t0=System.nanoTime();
         if(!speechAvailable()){
-            metric("asr",null,t0,com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+            metric("asr",(LlmClient) null,t0,com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
                     com.zhiyu.ai.metrics.AiCallMetrics.SPEECH_UNAVAILABLE);
             throw new com.zhiyu.common.exception.BusinessException(4001,"语音服务尚未配置，请使用文字输入或文字引导");
         }
@@ -93,7 +94,7 @@ public class AiClient {
     public byte[] synthesize(String text) {
         long t0=System.nanoTime();
         if(!speechAvailable()){
-            metric("tts",null,t0,com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+            metric("tts",(LlmClient) null,t0,com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
                     com.zhiyu.ai.metrics.AiCallMetrics.SPEECH_UNAVAILABLE);
             throw new com.zhiyu.common.exception.BusinessException(4001,"语音服务尚未配置，请使用文字输入或文字引导");
         }
@@ -129,11 +130,11 @@ public class AiClient {
      * strong 档是否启用由 {@code zhiyu.ai.routing.strong-enabled} 决定。
      */
     @org.springframework.beans.factory.annotation.Autowired
-    public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
+    public AiClient(LlmClientRegistry registry, CircuitBreakerStore breaker,
                     ContentSafetyFilter contentSafetyFilter,
                     com.zhiyu.ai.routing.ModelRouter modelRouter,
                     com.zhiyu.ai.metrics.AiCallMetrics metrics) {
-        this.llmClient = llmClient;
+        this.registry = registry;
         this.breaker = breaker;
         this.contentSafetyFilter = contentSafetyFilter;
         // Mockito @InjectMocks 等场景可能传 null：按 strong 档关闭处理（与分档前行为一致）
@@ -145,12 +146,23 @@ public class AiClient {
     }
 
     /**
+     * 测试便捷装配（5 参旧签名）：单客户端包装进 registry（Mock 入 mock 槽），
+     * local=null（无兜底），不改变既有单测语义。
+     */
+    public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
+                    ContentSafetyFilter contentSafetyFilter,
+                    com.zhiyu.ai.routing.ModelRouter modelRouter,
+                    com.zhiyu.ai.metrics.AiCallMetrics metrics) {
+        this(LlmClientRegistry.single(llmClient), breaker, contentSafetyFilter, modelRouter, metrics);
+    }
+
+    /**
      * 测试便捷装配（4 参）：不记录用量指标（no-op），不改变既有单测语义。
      */
     public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
                     ContentSafetyFilter contentSafetyFilter,
                     com.zhiyu.ai.routing.ModelRouter modelRouter) {
-        this(llmClient, breaker, contentSafetyFilter, modelRouter,
+        this(LlmClientRegistry.single(llmClient), breaker, contentSafetyFilter, modelRouter,
                 com.zhiyu.ai.metrics.AiCallMetrics.noop());
     }
 
@@ -160,8 +172,9 @@ public class AiClient {
      */
     public AiClient(LlmClient llmClient, CircuitBreakerStore breaker,
                     ContentSafetyFilter contentSafetyFilter) {
-        this(llmClient, breaker, contentSafetyFilter,
-                new com.zhiyu.ai.routing.ModelRouter("deepseek-chat", "deepseek-reasoner", false));
+        this(LlmClientRegistry.single(llmClient), breaker, contentSafetyFilter,
+                new com.zhiyu.ai.routing.ModelRouter("deepseek-chat", "deepseek-reasoner", false),
+                com.zhiyu.ai.metrics.AiCallMetrics.noop());
     }
 
     // ── 用量与质量指标（BO 批 2026-11-05）：异步旁路落 ai_trace，失败不影响业务 ──
@@ -174,19 +187,91 @@ public class AiClient {
      * <p>no-op 记录器（旧测试装配）下整体短路：模型标识用 {@link java.util.function.Supplier}
      * 延迟求值，避免对 {@link LlmClient} 产生额外交互（既有 verifyNoInteractions 语义不变）。
      */
+    private void metric(String scene, LlmClient client, long startNanos,
+                        String status, String reason, Integer inputTokens, Integer outputTokens) {
+        metric(scene, client == null ? null : client::modelName,
+                client == null ? null : client::providerName,
+                startNanos, status, reason, inputTokens, outputTokens);
+    }
+
+    private void metric(String scene, LlmClient client, long startNanos,
+                        String status, String reason) {
+        metric(scene, client, startNanos, status, reason, null, null);
+    }
+
+    /** 旧 5 参签名（语音等非 provider 场景沿用）：provider 留 null。 */
     private void metric(String scene, java.util.function.Supplier<String> model, long startNanos,
+                        String status, String reason) {
+        metric(scene, model, null, startNanos, status, reason, null, null);
+    }
+
+    /** 模型名与 provider 分供的场景（strong 档等模型名可能与 client 默认模型不同）。 */
+    private void metric(String scene, java.util.function.Supplier<String> model,
+                        java.util.function.Supplier<String> provider, long startNanos,
+                        String status, String reason) {
+        metric(scene, model, provider, startNanos, status, reason, null, null);
+    }
+
+    private void metric(String scene, java.util.function.Supplier<String> model,
+                        java.util.function.Supplier<String> provider, long startNanos,
                         String status, String reason, Integer inputTokens, Integer outputTokens) {
         if (!metrics.active()) {
             return;
         }
         long latencyMs = (System.nanoTime() - startNanos) / 1_000_000L;
         metrics.record(UserContext.getUserId(), scene, model == null ? null : model.get(),
+                provider == null ? null : provider.get(),
                 latencyMs, status, reason, inputTokens, outputTokens);
     }
 
-    private void metric(String scene, java.util.function.Supplier<String> model, long startNanos,
-                        String status, String reason) {
-        metric(scene, model, startNanos, status, reason, null, null);
+    // ── provider 选取与本地兜底（2026-11-08 装配层批，D1/D2/D4） ──
+
+    /**
+     * 该任务的可服务客户端：云在则云（生产口径）；云缺且策略允许兜底则本地；再缺则 Mock
+     * （可能为 null——prod 无云 key 已被守卫拦在启动期）。cloud-only 任务在云缺时只会拿到
+     * Mock/null（等价既有「未配置真实模型」降级），<b>不会</b>拿到本地。
+     */
+    private LlmClient serving(String task) {
+        LlmClient cloud = registry.cloudOrNull();
+        if (cloud != null) {
+            return cloud;
+        }
+        if (modelRouter.fallbackAllowed(task)) {
+            LlmClient local = registry.localOrNull();
+            if (local != null) {
+                return local;
+            }
+        }
+        return registry.mockOrNull();
+    }
+
+    /**
+     * 云调用失败后的本地兜底判定（D2）：仅当本次由云服务、异常属「云不可用」
+     * （超时/连接/5xx/429；401/403 额外记 ERROR 告警防长期悄悄吃兜底）、策略允许、
+     * 且本地已装配时返回本地客户端；否则返回 null（调用方走既有降级）。
+     * 400/422 等请求自身错误与未知异常不兜底。
+     */
+    private LlmClient localFallbackFor(String task, LlmClient servedBy, RuntimeException error) {
+        if (servedBy == null || servedBy != registry.cloudOrNull()) {
+            return null;
+        }
+        if (!modelRouter.fallbackAllowed(task)) {
+            return null;
+        }
+        LlmClient local = registry.localOrNull();
+        if (local == null) {
+            return null;
+        }
+        var kind = com.zhiyu.ai.resilience.CloudErrorClassifier.classify(error);
+        if (kind == com.zhiyu.ai.resilience.CloudErrorClassifier.Kind.FATAL) {
+            return null;
+        }
+        if (kind == com.zhiyu.ai.resilience.CloudErrorClassifier.Kind.AUTH) {
+            log.error("云端鉴权失败（401/403），本能力暂时走本地兜底——请尽快核查云 key 有效性: task={}", task);
+        } else {
+            log.warn("云端不可用（{}），按 D2 策略走本地兜底: task={}, err={}", kind, task, error.getMessage());
+        }
+        return local;
     }
 
     // ── 流式对话：不走降级 fallback，但走熔断 + 输入前置过滤 + 输出终检 ──
@@ -257,26 +342,62 @@ public class AiClient {
                 : contentSafetyFilter.checkInput(userId, sessionId, "chat", userInput);
         if (input.getAction() == SafetyAction.BLOCK) {
             log.warn("流式对话输入侧拦截: userId={}, sessionId={}, 不调 LLM", userId, sessionId);
-            metric("llm-chat", null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
+            metric("llm-chat", (LlmClient) null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
                     com.zhiyu.ai.metrics.AiCallMetrics.INPUT_BLOCK);
             return new StreamChatResult(input, null, input.getCareMessage());
         }
 
-        if (!breaker.allowRequest("llm-chat")) {
-            metric("llm-chat", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
-                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+        LlmClient client = serving("chat");
+        boolean cloudAttempt = client != null && client == registry.cloudOrNull();
+        // 熔断口径：云与 Mock 都过熔断（沿用既有语义）；仅本地兜底实现不参与云熔断计数
+        boolean useBreaker = client != registry.localOrNull();
+        if (useBreaker && !breaker.allowRequest("llm-chat")) {
+            LlmClient local = registry.localOrNull();
+            if (local != null && modelRouter.fallbackAllowed("chat")) {
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                client = local;
+                cloudAttempt = false;
+                useBreaker = false;
+            } else {
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                throw new com.zhiyu.common.exception.BusinessException(4001, "对话服务暂时不可用");
+            }
+        }
+        if (client == null) {
             throw new com.zhiyu.common.exception.BusinessException(4001, "对话服务暂时不可用");
         }
         StringBuilder fullReply = new StringBuilder();
         try {
             // 原始 token 只进缓冲区；输出终检前绝不外发。
-            llmClient.streamChat(history, fullReply::append);
-            breaker.recordSuccess("llm-chat");
+            client.streamChat(history, fullReply::append);
+            if (useBreaker) {
+                breaker.recordSuccess("llm-chat");
+            }
         } catch (RuntimeException e) {
-            breaker.recordFailure("llm-chat");
-            metric("llm-chat", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+            LlmClient local = localFallbackFor("chat", client, e);
+            if (local == null) {
+                if (cloudAttempt) {
+                    breaker.recordFailure("llm-chat");
+                }
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                throw e;
+            }
+            if (useBreaker) {
+                breaker.recordFailure("llm-chat");
+            }
+            metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
-            throw e;
+            client = local;
+            try {
+                client.streamChat(history, fullReply::append);
+            } catch (RuntimeException e2) {
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                throw e2;
+            }
         }
 
         SafetyResult output = contentSafetyFilter.checkOutput(userId, "chat", fullReply.toString());
@@ -285,7 +406,7 @@ public class AiClient {
             String rewritten = output.getRewrittenText();
             reply = (rewritten == null || rewritten.isBlank()) ? SAFE_CHAT_REPLY : rewritten;
         }
-        metric("llm-chat", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
+        metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
                 output.getAction() == SafetyAction.PASS ? null
                         : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE);
         onToken.accept(reply);
@@ -346,14 +467,30 @@ public class AiClient {
                 : contentSafetyFilter.checkInput(userId, sessionId, "chat", userInput);
         if (input.getAction() == SafetyAction.BLOCK) {
             log.warn("流式对话输入侧拦截(live): userId={}, sessionId={}, 不调 LLM", userId, sessionId);
-            metric("llm-chat", null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
+            metric("llm-chat", (LlmClient) null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
                     com.zhiyu.ai.metrics.AiCallMetrics.INPUT_BLOCK);
             return new LiveChatResult(input, null, input.getCareMessage(), true, true, true);
         }
 
-        if (!breaker.allowRequest("llm-chat")) {
-            metric("llm-chat", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
-                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+        LlmClient client = serving("chat");
+        boolean cloudAttempt = client != null && client == registry.cloudOrNull();
+        // 熔断口径：云与 Mock 都过熔断（沿用既有语义）；仅本地兜底实现不参与云熔断计数
+        boolean useBreaker = client != registry.localOrNull();
+        if (useBreaker && !breaker.allowRequest("llm-chat")) {
+            LlmClient local = registry.localOrNull();
+            if (local != null && modelRouter.fallbackAllowed("chat")) {
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                client = local;
+                cloudAttempt = false;
+                useBreaker = false;
+            } else {
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                throw new com.zhiyu.common.exception.BusinessException(4001, "对话服务暂时不可用");
+            }
+        }
+        if (client == null) {
             throw new com.zhiyu.common.exception.BusinessException(4001, "对话服务暂时不可用");
         }
 
@@ -361,7 +498,7 @@ public class AiClient {
         SentenceSplitter splitter = new SentenceSplitter();
         final SafetyResult[] interruptScan = new SafetyResult[1];
         try {
-            llmClient.streamChat(history, token -> {
+            client.streamChat(history, token -> {
                 full.append(token);
                 for (String sentence : splitter.feed(token)) {
                     SafetyResult scan = contentSafetyFilter.scanStreamSentence(userId, sessionId, sentence);
@@ -372,15 +509,51 @@ public class AiClient {
                     onSentence.accept(sentence);
                 }
             });
-            breaker.recordSuccess("llm-chat");
+            if (useBreaker) {
+                breaker.recordSuccess("llm-chat");
+            }
         } catch (SentenceSafetyInterrupt e) {
             // 模型本身未失败，不计熔断；中断原因在 interruptScan
-            breaker.recordSuccess("llm-chat");
+            if (useBreaker) {
+                breaker.recordSuccess("llm-chat");
+            }
         } catch (RuntimeException e) {
-            breaker.recordFailure("llm-chat");
-            metric("llm-chat", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+            // 本地重试只在「零外发」时安全：已流出句子无法撤回，保持既有错误语义
+            LlmClient local = full.isEmpty() && interruptScan[0] == null
+                    ? localFallbackFor("chat", client, e) : null;
+            if (local == null) {
+                if (cloudAttempt) {
+                    breaker.recordFailure("llm-chat");
+                }
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                throw e;
+            }
+            if (useBreaker) {
+                breaker.recordFailure("llm-chat");
+            }
+            metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
-            throw e;
+            client = local;
+            try {
+                client.streamChat(history, token -> {
+                    full.append(token);
+                    for (String sentence : splitter.feed(token)) {
+                        SafetyResult scan = contentSafetyFilter.scanStreamSentence(userId, sessionId, sentence);
+                        if (scan.getAction() != SafetyAction.PASS) {
+                            interruptScan[0] = scan;
+                            throw new SentenceSafetyInterrupt();
+                        }
+                        onSentence.accept(sentence);
+                    }
+                });
+            } catch (SentenceSafetyInterrupt interrupted) {
+                // 本地流同样走句级安全中断，不计熔断
+            } catch (RuntimeException e2) {
+                metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.ERROR,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                throw e2;
+            }
         }
 
         // 流正常结束：尾句同样过句级检
@@ -402,7 +575,7 @@ public class AiClient {
         if (blocked) {
             // 句级高危：终检写一条 revoked 审计，返回关怀话术，不再发任何正文
             SafetyResult blockedOutput = contentSafetyFilter.checkOutput(userId, "chat-revoked", full.toString());
-            metric("llm-chat", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
+            metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
                     com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED);
             return new LiveChatResult(input, blockedOutput, interruptScan[0].getCareMessage(), false, true, true);
         }
@@ -421,7 +594,7 @@ public class AiClient {
             // 句级中断（越界词）但终检 PASS：已流出内容不完整，仍需整体替换
             revoked = interrupted;
         }
-        metric("llm-chat", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
+        metric("llm-chat", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
                 output.getAction() == SafetyAction.PASS ? null
                         : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE);
         return new LiveChatResult(input, output, reply, false, crisis, revoked);
@@ -445,28 +618,72 @@ public class AiClient {
      */
     public String recommendReason(String mood, List<String> craftNames) {
         long t0 = System.nanoTime();
-        if (!breaker.allowRequest(KEY_RECOMMEND)) {
-            log.warn("熔断中，走降级: key={}", KEY_RECOMMEND);
-            metric(KEY_RECOMMEND, llmClient::modelName, t0,
-                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+        LlmClient client = serving("recommend");
+        boolean cloudAttempt = client != null && client == registry.cloudOrNull();
+        // 熔断口径：云与 Mock 都过熔断（沿用既有语义）；仅本地兜底实现不参与云熔断计数
+        boolean useBreaker = client != registry.localOrNull();
+        if (useBreaker && !breaker.allowRequest(KEY_RECOMMEND)) {
+            LlmClient local = registry.localOrNull();
+            if (local != null && modelRouter.fallbackAllowed("recommend")) {
+                log.warn("熔断中，云侧跳过，按策略走本地兜底: key={}", KEY_RECOMMEND);
+                metric(KEY_RECOMMEND, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                client = local;
+                cloudAttempt = false;
+                useBreaker = false;
+            } else {
+                log.warn("熔断中，走降级: key={}", KEY_RECOMMEND);
+                metric(KEY_RECOMMEND, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                return FALLBACK_RECOMMEND;
+            }
+        }
+        if (client == null) {
             return FALLBACK_RECOMMEND;
         }
         String result;
         com.zhiyu.ai.client.LlmChatResult recommendGeneration = null;
         try {
-            recommendGeneration = llmClient.recommendReasonWithUsage(mood, craftNames);
+            recommendGeneration = client.recommendReasonWithUsage(mood, craftNames);
             result = recommendGeneration == null ? null : recommendGeneration.text();
-            breaker.recordSuccess(KEY_RECOMMEND);
+            if (useBreaker) {
+                breaker.recordSuccess(KEY_RECOMMEND);
+            }
         } catch (Exception e) {
-            breaker.recordFailure(KEY_RECOMMEND);
-            log.warn("LLM 调用失败，已记录熔断计数: key={}, err={}", KEY_RECOMMEND, e.getMessage());
-            metric(KEY_RECOMMEND, llmClient::modelName, t0,
+            LlmClient local = localFallbackFor("recommend", client,
+                    e instanceof RuntimeException re ? re : new RuntimeException(e));
+            if (local == null) {
+                if (cloudAttempt) {
+                    breaker.recordFailure(KEY_RECOMMEND);
+                }
+                log.warn("LLM 调用失败，已记录熔断计数: key={}, err={}", KEY_RECOMMEND, e.getMessage());
+                metric(KEY_RECOMMEND, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return FALLBACK_RECOMMEND;
+            }
+            if (useBreaker) {
+                breaker.recordFailure(KEY_RECOMMEND);
+            }
+            log.warn("云端调用失败，已记录熔断计数，按策略走本地兜底: key={}, err={}", KEY_RECOMMEND, e.getMessage());
+            metric(KEY_RECOMMEND, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
-            return FALLBACK_RECOMMEND;
+            client = local;
+            try {
+                recommendGeneration = client.recommendReasonWithUsage(mood, craftNames);
+                result = recommendGeneration == null ? null : recommendGeneration.text();
+            } catch (Exception e2) {
+                log.warn("本地兜底调用也失败: key={}, err={}", KEY_RECOMMEND, e2.getMessage());
+                metric(KEY_RECOMMEND, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return FALLBACK_RECOMMEND;
+            }
         }
-        metric(KEY_RECOMMEND, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
+        metric(KEY_RECOMMEND, client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
                 recommendGeneration.inputTokens(), recommendGeneration.outputTokens());
         return applyOutputSafety("recommend", result);
     }
@@ -489,28 +706,72 @@ public class AiClient {
      */
     public String workMessage(String workTitle, String mood) {
         long t0 = System.nanoTime();
-        if (!breaker.allowRequest(KEY_MESSAGE)) {
-            log.warn("熔断中，走降级: key={}", KEY_MESSAGE);
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
-                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+        LlmClient client = serving("message");
+        boolean cloudAttempt = client != null && client == registry.cloudOrNull();
+        // 熔断口径：云与 Mock 都过熔断（沿用既有语义）；仅本地兜底实现不参与云熔断计数
+        boolean useBreaker = client != registry.localOrNull();
+        if (useBreaker && !breaker.allowRequest(KEY_MESSAGE)) {
+            LlmClient local = registry.localOrNull();
+            if (local != null && modelRouter.fallbackAllowed("message")) {
+                log.warn("熔断中，云侧跳过，按策略走本地兜底: key={}", KEY_MESSAGE);
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                client = local;
+                cloudAttempt = false;
+                useBreaker = false;
+            } else {
+                log.warn("熔断中，走降级: key={}", KEY_MESSAGE);
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                return FALLBACK_MESSAGE;
+            }
+        }
+        if (client == null) {
             return FALLBACK_MESSAGE;
         }
         String result;
         com.zhiyu.ai.client.LlmChatResult messageGeneration = null;
         try {
-            messageGeneration = llmClient.workMessageWithUsage(workTitle, mood);
+            messageGeneration = client.workMessageWithUsage(workTitle, mood);
             result = messageGeneration == null ? null : messageGeneration.text();
-            breaker.recordSuccess(KEY_MESSAGE);
+            if (useBreaker) {
+                breaker.recordSuccess(KEY_MESSAGE);
+            }
         } catch (Exception e) {
-            breaker.recordFailure(KEY_MESSAGE);
-            log.warn("LLM 调用失败，已记录熔断计数: key={}, err={}", KEY_MESSAGE, e.getMessage());
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+            LlmClient local = localFallbackFor("message", client,
+                    e instanceof RuntimeException re ? re : new RuntimeException(e));
+            if (local == null) {
+                if (cloudAttempt) {
+                    breaker.recordFailure(KEY_MESSAGE);
+                }
+                log.warn("LLM 调用失败，已记录熔断计数: key={}, err={}", KEY_MESSAGE, e.getMessage());
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return FALLBACK_MESSAGE;
+            }
+            if (useBreaker) {
+                breaker.recordFailure(KEY_MESSAGE);
+            }
+            log.warn("云端调用失败，已记录熔断计数，按策略走本地兜底: key={}, err={}", KEY_MESSAGE, e.getMessage());
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
-            return FALLBACK_MESSAGE;
+            client = local;
+            try {
+                messageGeneration = client.workMessageWithUsage(workTitle, mood);
+                result = messageGeneration == null ? null : messageGeneration.text();
+            } catch (Exception e2) {
+                log.warn("本地兜底调用也失败: key={}, err={}", KEY_MESSAGE, e2.getMessage());
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return FALLBACK_MESSAGE;
+            }
         }
-        metric(KEY_MESSAGE, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
+        metric(KEY_MESSAGE, client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
                 messageGeneration.inputTokens(), messageGeneration.outputTokens());
         return applyOutputSafety("message", result);
     }
@@ -528,44 +789,90 @@ public class AiClient {
                 UserContext.getUserId(), null, "reflection", userText);
         if (input.getAction() == SafetyAction.BLOCK) {
             log.warn("创作回顾输入侧拦截，使用固定模板");
-            metric(KEY_MESSAGE, null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
+            metric(KEY_MESSAGE, (LlmClient) null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
                     com.zhiyu.ai.metrics.AiCallMetrics.INPUT_BLOCK);
             return null;
         }
-        if (!breaker.allowRequest(KEY_MESSAGE)) {
-            log.warn("熔断中，创作回顾使用固定模板: key={}", KEY_MESSAGE);
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
-                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+        LlmClient client = serving("message");
+        boolean cloudAttempt = client != null && client == registry.cloudOrNull();
+        // 熔断口径：云与 Mock 都过熔断（沿用既有语义）；仅本地兜底实现不参与云熔断计数
+        boolean useBreaker = client != registry.localOrNull();
+        if (useBreaker && !breaker.allowRequest(KEY_MESSAGE)) {
+            LlmClient local = registry.localOrNull();
+            if (local != null && modelRouter.fallbackAllowed("message")) {
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                client = local;
+                cloudAttempt = false;
+                useBreaker = false;
+            } else {
+                log.warn("熔断中，创作回顾使用固定模板: key={}", KEY_MESSAGE);
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                return null;
+            }
+        }
+        if (client == null) {
             return null;
         }
         String result;
         com.zhiyu.ai.client.LlmChatResult reflectionGeneration = null;
         try {
-            reflectionGeneration = llmClient.reflectionSummaryWithUsage(prompt);
+            reflectionGeneration = client.reflectionSummaryWithUsage(prompt);
             result = reflectionGeneration == null ? null : reflectionGeneration.text();
             if (result == null || result.isBlank()) {
                 throw new IllegalStateException("empty reflection summary");
             }
-            breaker.recordSuccess(KEY_MESSAGE);
+            if (useBreaker) {
+                breaker.recordSuccess(KEY_MESSAGE);
+            }
         } catch (Exception e) {
-            breaker.recordFailure(KEY_MESSAGE);
-            log.warn("创作回顾生成失败，使用固定模板: {}", e.getMessage());
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+            LlmClient local = localFallbackFor("message", client,
+                    e instanceof RuntimeException re ? re : new RuntimeException(e));
+            if (local == null) {
+                if (cloudAttempt) {
+                    breaker.recordFailure(KEY_MESSAGE);
+                }
+                log.warn("创作回顾生成失败，使用固定模板: {}", e.getMessage());
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return null;
+            }
+            if (useBreaker) {
+                breaker.recordFailure(KEY_MESSAGE);
+            }
+            log.warn("创作回顾云端失败，按策略走本地兜底: {}", e.getMessage());
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
-            return null;
+            client = local;
+            try {
+                reflectionGeneration = client.reflectionSummaryWithUsage(prompt);
+                result = reflectionGeneration == null ? null : reflectionGeneration.text();
+                if (result == null || result.isBlank()) {
+                    throw new IllegalStateException("empty reflection summary(local)");
+                }
+            } catch (Exception e2) {
+                log.warn("创作回顾本地兜底也失败，使用固定模板: {}", e2.getMessage());
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return null;
+            }
         }
         SafetyResult output = contentSafetyFilter.checkOutput(
                 UserContext.getUserId(), "reflection", result);
         if (output.getAction() == SafetyAction.BLOCK) {
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
                     reflectionGeneration.inputTokens(), reflectionGeneration.outputTokens());
             return null;
         }
-        metric(KEY_MESSAGE, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
+        metric(KEY_MESSAGE, client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
                 output.getAction() == SafetyAction.PASS ? null
                         : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE,
                 reflectionGeneration.inputTokens(), reflectionGeneration.outputTokens());
@@ -594,22 +901,35 @@ public class AiClient {
      */
     public String stuckGuide(Long userId, String prompt) {
         long t0 = System.nanoTime();
+        LlmClient client = serving("stuck_guide");
         // Mock 是本地降级实现，不冒充真实生成（同 listeningSummary 的诚实口径）
-        if (llmClient instanceof MockLlmClient) {
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+        if (client == null || client instanceof MockLlmClient) {
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
             return null;
         }
-        if (!breaker.allowRequest(KEY_MESSAGE)) {
-            log.warn("卡点引导熔断中，降级静态模板: key={}", KEY_MESSAGE);
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
-                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
-            return null;
+        boolean cloudAttempt = client == registry.cloudOrNull();
+        boolean useBreaker = client != registry.localOrNull();
+        if (useBreaker && !breaker.allowRequest(KEY_MESSAGE)) {
+            LlmClient local = registry.localOrNull();
+            if (local != null && modelRouter.fallbackAllowed("stuck_guide")) {
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                client = local;
+                cloudAttempt = false;
+                useBreaker = false;
+            } else {
+                log.warn("卡点引导熔断中，降级静态模板: key={}", KEY_MESSAGE);
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                return null;
+            }
         }
         try {
-            var generation = llmClient.chatWithUsage(prompt);
+            var generation = client.chatWithUsage(prompt);
             String result = generation == null ? null : generation.text();
             if (result == null || result.isBlank()) {
                 throw new IllegalStateException("empty stuck guide");
@@ -617,15 +937,19 @@ public class AiClient {
             SafetyResult output = contentSafetyFilter.checkOutput(userId, "stuck-guide", result);
             if (output.getAction() == SafetyAction.BLOCK) {
                 log.warn("卡点引导输出被拦截，降级静态模板: userId={}", userId);
-                breaker.recordSuccess(KEY_MESSAGE);
-                metric(KEY_MESSAGE, llmClient::modelName, t0,
+                if (cloudAttempt) {
+                    breaker.recordSuccess(KEY_MESSAGE);
+                }
+                metric(KEY_MESSAGE, client, t0,
                         com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                         com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
                         generation.inputTokens(), generation.outputTokens());
                 return null;
             }
-            breaker.recordSuccess(KEY_MESSAGE);
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+            if (useBreaker) {
+                breaker.recordSuccess(KEY_MESSAGE);
+            }
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.OK,
                     output.getAction() == SafetyAction.PASS ? null
                             : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE,
@@ -637,12 +961,57 @@ public class AiClient {
             }
             return result.trim();
         } catch (Exception e) {
-            breaker.recordFailure(KEY_MESSAGE);
-            log.warn("卡点引导生成失败（已记熔断，降级静态模板）: err={}", e.getMessage());
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+            LlmClient local = localFallbackFor("stuck_guide", client,
+                    e instanceof RuntimeException re ? re : new RuntimeException(e));
+            if (local == null) {
+                if (cloudAttempt) {
+                    breaker.recordFailure(KEY_MESSAGE);
+                }
+                log.warn("卡点引导生成失败（已记熔断，降级静态模板）: err={}", e.getMessage());
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return null;
+            }
+            if (useBreaker) {
+                breaker.recordFailure(KEY_MESSAGE);
+            }
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
-            return null;
+            client = local;
+            try {
+                var generation = client.chatWithUsage(prompt);
+                String result = generation == null ? null : generation.text();
+                if (result == null || result.isBlank()) {
+                    throw new IllegalStateException("empty stuck guide(local)");
+                }
+                SafetyResult output = contentSafetyFilter.checkOutput(userId, "stuck-guide", result);
+                if (output.getAction() == SafetyAction.BLOCK) {
+                    metric(KEY_MESSAGE, client, t0,
+                            com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                            com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                            generation.inputTokens(), generation.outputTokens());
+                    return null;
+                }
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.OK,
+                        output.getAction() == SafetyAction.PASS ? null
+                                : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE,
+                        generation.inputTokens(), generation.outputTokens());
+                if (output.getAction() == SafetyAction.REWRITE
+                        && output.getRewrittenText() != null
+                        && !output.getRewrittenText().isBlank()) {
+                    return output.getRewrittenText().trim();
+                }
+                return result.trim();
+            } catch (Exception e2) {
+                log.warn("卡点引导本地兜底也失败: err={}", e2.getMessage());
+                metric(KEY_MESSAGE, client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return null;
+            }
         }
     }
 
@@ -665,13 +1034,14 @@ public class AiClient {
         SafetyResult input = contentSafetyFilter.checkInput(
                 UserContext.getUserId(), sessionId, "listening", userText);
         if (input.getAction() == SafetyAction.BLOCK) {
-            metric(KEY_STRONG, null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
+            metric(KEY_STRONG, (LlmClient) null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
                     com.zhiyu.ai.metrics.AiCallMetrics.INPUT_BLOCK);
             return new ListeningResult(null, false, true);
         }
-        // Mock 是本地降级实现，不能把它标成“已生成”，否则会掩盖未配置真实模型。
-        if (llmClient instanceof MockLlmClient) {
-            metric(KEY_STRONG, llmClient::modelName, t0,
+        // cloud-only（D1）：Mock 或本地兜底都不冒充真实云端小结
+        LlmClient client = registry.cloudOrNull();
+        if (client == null) {
+            metric(KEY_STRONG, (LlmClient) null, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
             return new ListeningResult(null, false, false);
@@ -682,7 +1052,7 @@ public class AiClient {
         if (route.llmAllowed() && route.available()) {
             if (breaker.allowRequest(KEY_STRONG)) {
                 try {
-                    var generation = llmClient.chatWithUsage(prompt, route.model());
+                    var generation = client.chatWithUsage(prompt, route.model());
                     String result = generation == null ? null : generation.text();
                     if (result == null || result.isBlank()) {
                         throw new IllegalStateException("empty listening summary");
@@ -690,7 +1060,7 @@ public class AiClient {
                     breaker.recordSuccess(KEY_STRONG);
                     log.info("倾听小结由 strong 档生成: model={}", route.model());
                     ListeningResult done = finishListening(result);
-                    metric(KEY_STRONG, route::model, t0,
+                    metric(KEY_STRONG, route::model, client::providerName, t0,
                             done.generated() ? com.zhiyu.ai.metrics.AiCallMetrics.OK
                                     : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                             done.generated() ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
@@ -700,13 +1070,13 @@ public class AiClient {
                     breaker.recordFailure(KEY_STRONG);
                     log.warn("倾听小结 strong 档失败（已记熔断），显式回落 standard 档: model={}, err={}",
                             route.model(), e.getMessage());
-                    metric(KEY_STRONG, route::model, t0,
+                    metric(KEY_STRONG, route::model, client::providerName, t0,
                             com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                             com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
                 }
             } else {
                 log.warn("倾听小结 strong 档熔断中，显式回落 standard 档");
-                metric(KEY_STRONG, route::model, t0,
+                metric(KEY_STRONG, route::model, client::providerName, t0,
                         com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                         com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
             }
@@ -717,19 +1087,19 @@ public class AiClient {
         // ── 第二档：standard（分档前的原路径） ──
         long t1 = System.nanoTime();
         if (!breaker.allowRequest(KEY_MESSAGE)) {
-            metric(KEY_MESSAGE, llmClient::modelName, t1,
+            metric(KEY_MESSAGE, client, t1,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
             return new ListeningResult(null, false, false);
         }
         try {
-            String result = llmClient.listeningSummary(prompt);
+            String result = client.listeningSummary(prompt);
             if (result == null || result.isBlank()) {
                 throw new IllegalStateException("empty listening summary");
             }
             breaker.recordSuccess(KEY_MESSAGE);
             ListeningResult done = finishListening(result);
-            metric(KEY_MESSAGE, llmClient::modelName, t1,
+            metric(KEY_MESSAGE, client, t1,
                     done.generated() ? com.zhiyu.ai.metrics.AiCallMetrics.OK
                             : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     done.generated() ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED);
@@ -737,7 +1107,7 @@ public class AiClient {
         } catch (Exception e) {
             breaker.recordFailure(KEY_MESSAGE);
             log.warn("倾听小结 standard 档也失败，由业务层使用固定模板（不静默）: {}", e.getMessage());
-            metric(KEY_MESSAGE, llmClient::modelName, t1,
+            metric(KEY_MESSAGE, client, t1,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return new ListeningResult(null, false, false);
@@ -764,6 +1134,16 @@ public class AiClient {
     private static final String KEY_MODERATION = "llm-moderation";
 
     /**
+     * 带归属的审核建议（2026-11-07 影子模式配套）：在 {@link #moderationSuggest} 同一
+     * 调用流上，额外返回<b>实际产出分支</b>的 provider/model（strong 档 = route.model()，
+     * standard 档 = llmClient.modelName()；provider 均为当前 client 的 providerName()）。
+     * 整体不可用（Mock 降级、熔断、两档均失败、输出未过安全过滤）返回 {@code null}——
+     * 不可用不代表任何模型「判过」，调用方不得据 null 落归属。
+     */
+    public record ModerationVerdict(String text, String provider, String model) {
+    }
+
+    /**
      * 审核辅助建议（BL，2026-11-05）。
      *
      * <p>边界：AI 只产出「需要关注的点」，<b>不写审核状态、不触发任何处置动作</b>。
@@ -780,11 +1160,23 @@ public class AiClient {
      * @return 模型原文（JSON 字符串，解析在业务层）；不可用返回 null
      */
     public String moderationSuggest(String prompt) {
+        var verdict = moderationSuggestWithAttribution(prompt);
+        return verdict == null ? null : verdict.text();
+    }
+
+    /** {@link #moderationSuggest(String)} 的带归属变体；调用流与口径完全一致，仅返回值多出 provider/model。 */
+    public ModerationVerdict moderationSuggestWithAttribution(String prompt) {
         long t0 = System.nanoTime();
-        // Mock 是本地降级实现，不能冒充真实审核建议（同 listeningSummary 的诚实口径）
-        if (llmClient instanceof MockLlmClient) {
-            log.info("审核建议：未配置真实模型（Mock 实现），返回不可用");
-            metric(KEY_MODERATION, llmClient::modelName, t0,
+        // D4 运行期硬校验（第三层）：审核建议永远 cloud-only，本地兜底被任何途径打开都直接抛错
+        if (modelRouter.fallbackAllowed("moderation")) {
+            throw new IllegalStateException(
+                    "审核建议被误配为允许本地兜底——D4 决策禁止本地顶替，请检查路由配置来源");
+        }
+        // cloud-only（D4）：Mock 或本地兜底都不冒充真实审核建议（同 listeningSummary 的诚实口径）
+        LlmClient client = registry.cloudOrNull();
+        if (client == null) {
+            log.info("审核建议：未配置云端模型（Mock/本地兜底均不顶替），返回不可用");
+            metric(KEY_MODERATION, (LlmClient) null, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
             return null;
@@ -793,7 +1185,7 @@ public class AiClient {
         if (route.llmAllowed() && route.available() && breaker.allowRequest(KEY_MODERATION)) {
             try {
                 // JSON mode（2026-11-05 健壮性批）：provider 侧保证合法 JSON，修输出转义类 PARSE_FAIL
-                var generation = llmClient.chatWithUsageJson(prompt, route.model());
+                var generation = client.chatWithUsageJson(prompt, route.model());
                 String out = generation == null ? null : generation.text();
                 if (out == null || out.isBlank()) {
                     throw new IllegalStateException("empty moderation suggestion");
@@ -801,16 +1193,17 @@ public class AiClient {
                 breaker.recordSuccess(KEY_MODERATION);
                 log.info("审核建议由 strong 档生成: model={}", route.model());
                 String done = finishModeration(out);
-                metric(KEY_MODERATION, route::model, t0,
+                metric(KEY_MODERATION, route::model, client::providerName, t0,
                         done != null ? com.zhiyu.ai.metrics.AiCallMetrics.OK
                                 : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                         done != null ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
                         generation.inputTokens(), generation.outputTokens());
-                return done;
+                return done == null ? null
+                        : new ModerationVerdict(done, client.providerName(), route.model());
             } catch (Exception e) {
                 breaker.recordFailure(KEY_MODERATION);
                 log.warn("审核建议 strong 档失败（已记熔断），显式回落 standard 档: {}", e.getMessage());
-                metric(KEY_MODERATION, route::model, t0,
+                metric(KEY_MODERATION, route::model, client::providerName, t0,
                         com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                         com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             }
@@ -820,30 +1213,157 @@ public class AiClient {
         long t1 = System.nanoTime();
         if (!breaker.allowRequest(KEY_MODERATION)) {
             log.warn("审核建议熔断中: key={}", KEY_MODERATION);
-            metric(KEY_MODERATION, llmClient::modelName, t1,
+            metric(KEY_MODERATION, client, t1,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
             return null;
         }
         try {
             // standard 档回落同样走 JSON mode，并顺带采集 usage（此前 chat() 无 usage 通道）
-            var standardGeneration = llmClient.chatWithUsageJson(prompt, null);
+            var standardGeneration = client.chatWithUsageJson(prompt, null);
             String out = standardGeneration == null ? null : standardGeneration.text();
             if (out == null || out.isBlank()) {
                 throw new IllegalStateException("empty moderation suggestion");
             }
             breaker.recordSuccess(KEY_MODERATION);
             String done = finishModeration(out);
-            metric(KEY_MODERATION, llmClient::modelName, t1,
+            metric(KEY_MODERATION, client, t1,
                     done != null ? com.zhiyu.ai.metrics.AiCallMetrics.OK
                             : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     done != null ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
                     standardGeneration.inputTokens(), standardGeneration.outputTokens());
-            return done;
+            return done == null ? null
+                    : new ModerationVerdict(done, client.providerName(), client.modelName());
         } catch (Exception e) {
             breaker.recordFailure(KEY_MODERATION);
             log.warn("审核建议 standard 档也失败: {}", e.getMessage());
-            metric(KEY_MODERATION, llmClient::modelName, t1,
+            metric(KEY_MODERATION, client, t1,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+            return null;
+        }
+    }
+
+    /**
+     * 影子判定专用入口（2026-11-08 装配层批，D8）：与审核建议同一 JSON 调用流，
+     * 但任务键为 {@code moderation_shadow}——仅当「local-demo-mode 且
+     * shadow.demo-providers 含 ollama」双开关同时成立时才允许本地兜底；
+     * 否则与审核建议同为 cloud-only。审核建议（人工台）永远不走本方法。
+     *
+     * <p>归属语义与 {@link #moderationSuggestWithAttribution} 一致：返回实际产出分支的
+     * provider/model；不可用返回 null（不冒充任何模型判过）。
+     */
+    public ModerationVerdict moderationShadowSuggestWithAttribution(String prompt) {
+        long t0 = System.nanoTime();
+        LlmClient client = serving("moderation_shadow");
+        if (client == null || client instanceof MockLlmClient) {
+            metric(KEY_MODERATION, client, t0,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
+            return null;
+        }
+        if (client == registry.cloudOrNull()) {
+            // 云侧与审核建议同一 strong→standard 链（task=moderation_shadow 仅影响路由键，
+            // 模型口径不变）；链尽后再看演示双开关是否允许本地兜底
+            ModerationVerdict verdict = moderationCloudChain(client, prompt, "moderation_shadow", t0);
+            if (verdict != null) {
+                return verdict;
+            }
+            LlmClient local = modelRouter.shadowLocalEffective() ? registry.localOrNull() : null;
+            if (local == null) {
+                return null;
+            }
+            log.warn("影子判定云端链失败，演示模式走本地兜底（归属 ollama，统计口径自动排除）");
+            return shadowLocalAttempt(local, prompt, t0);
+        }
+        // 云缺席 + 双开关生效：直连本地（演示形态）
+        return shadowLocalAttempt(client, prompt, t0);
+    }
+
+    /** 云端 strong→standard 链（审核建议与影子判定共用；任务键只影响路由与日志）。 */
+    private ModerationVerdict moderationCloudChain(LlmClient client, String prompt, String task, long t0) {
+        var route = modelRouter.resolve(task);
+        if (route.llmAllowed() && route.available() && breaker.allowRequest(KEY_MODERATION)) {
+            try {
+                var generation = client.chatWithUsageJson(prompt, route.model());
+                String out = generation == null ? null : generation.text();
+                if (out == null || out.isBlank()) {
+                    throw new IllegalStateException("empty moderation suggestion");
+                }
+                breaker.recordSuccess(KEY_MODERATION);
+                log.info("审核/影子建议由 strong 档生成: task={}, model={}", task, route.model());
+                String done = finishModeration(out);
+                metric(KEY_MODERATION, route::model, client::providerName, t0,
+                        done != null ? com.zhiyu.ai.metrics.AiCallMetrics.OK
+                                : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        done != null ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                        generation.inputTokens(), generation.outputTokens());
+                if (done != null) {
+                    return new ModerationVerdict(done, client.providerName(), route.model());
+                }
+                return null;
+            } catch (Exception e) {
+                breaker.recordFailure(KEY_MODERATION);
+                log.warn("审核/影子建议 strong 档失败（已记熔断），显式回落 standard 档: task={}, err={}",
+                        task, e.getMessage());
+                metric(KEY_MODERATION, route::model, client::providerName, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+            }
+        } else if (!route.available()) {
+            log.info("strong 档未启用/未配置，直接使用 standard 档: task={}", task);
+        }
+        long t1 = System.nanoTime();
+        if (!breaker.allowRequest(KEY_MODERATION)) {
+            log.warn("审核/影子建议熔断中: key={}", KEY_MODERATION);
+            metric(KEY_MODERATION, client, t1,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+            return null;
+        }
+        try {
+            var standardGeneration = client.chatWithUsageJson(prompt, null);
+            String out = standardGeneration == null ? null : standardGeneration.text();
+            if (out == null || out.isBlank()) {
+                throw new IllegalStateException("empty moderation suggestion");
+            }
+            breaker.recordSuccess(KEY_MODERATION);
+            String done = finishModeration(out);
+            metric(KEY_MODERATION, client, t1,
+                    done != null ? com.zhiyu.ai.metrics.AiCallMetrics.OK
+                            : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    done != null ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                    standardGeneration.inputTokens(), standardGeneration.outputTokens());
+            return done == null ? null
+                    : new ModerationVerdict(done, client.providerName(), client.modelName());
+        } catch (Exception e) {
+            breaker.recordFailure(KEY_MODERATION);
+            log.warn("审核/影子建议 standard 档也失败: task={}, err={}", task, e.getMessage());
+            metric(KEY_MODERATION, client, t1,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+            return null;
+        }
+    }
+
+    /** 影子判定的本地兜底尝试（仅演示；归属如实标 ollama，失败返回 null）。 */
+    private ModerationVerdict shadowLocalAttempt(LlmClient local, String prompt, long t0) {
+        try {
+            var generation = local.chatWithUsageJson(prompt, modelRouter.localModel());
+            String out = generation == null ? null : generation.text();
+            if (out == null || out.isBlank()) {
+                throw new IllegalStateException("empty shadow suggestion(local)");
+            }
+            String done = finishModeration(out);
+            metric(KEY_MODERATION, local, t0,
+                    done != null ? com.zhiyu.ai.metrics.AiCallMetrics.OK
+                            : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    done != null ? null : com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
+                    generation.inputTokens(), generation.outputTokens());
+            return done == null ? null
+                    : new ModerationVerdict(done, local.providerName(), local.modelName());
+        } catch (Exception e) {
+            metric(KEY_MODERATION, local, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return null;
@@ -881,23 +1401,24 @@ public class AiClient {
      */
     public String contextSummary(String prompt) {
         long t0 = System.nanoTime();
-        // Mock 是本地降级实现，不能把它产出的模板句当成"已生成摘要"落库（同 listeningSummary 判定）
-        if (llmClient instanceof MockLlmClient) {
-            metric(KEY_SUMMARY, llmClient::modelName, t0,
+        // cloud-only（D1）：Mock 或本地兜底产出的模板句都不能当成"已生成摘要"落库
+        LlmClient client = registry.cloudOrNull();
+        if (client == null) {
+            metric(KEY_SUMMARY, (LlmClient) null, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
             return null;
         }
         if (!breaker.allowRequest(KEY_SUMMARY)) {
             log.warn("上下文摘要熔断中，本轮跳过（降级保留原文窗口）: key={}", KEY_SUMMARY);
-            metric(KEY_SUMMARY, llmClient::modelName, t0,
+            metric(KEY_SUMMARY, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
             return null;
         }
         try {
             // usage 覆盖（2026-11-05 健壮性批）：chat → chatWithUsage，tokens 进 ai_trace
-            var summaryGeneration = llmClient.chatWithUsage(prompt);
+            var summaryGeneration = client.chatWithUsage(prompt);
             String result = summaryGeneration == null ? null : summaryGeneration.text();
             if (result == null || result.isBlank()) {
                 throw new IllegalStateException("empty context summary");
@@ -908,21 +1429,21 @@ public class AiClient {
                 log.warn("上下文摘要输出未过终检（降级保留原文窗口）: action={}, reason={}",
                         output.getAction(), output.getReason());
                 breaker.recordSuccess(KEY_SUMMARY);
-                metric(KEY_SUMMARY, llmClient::modelName, t0,
+                metric(KEY_SUMMARY, client, t0,
                         com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                         com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
                         summaryGeneration.inputTokens(), summaryGeneration.outputTokens());
                 return null;
             }
             breaker.recordSuccess(KEY_SUMMARY);
-            metric(KEY_SUMMARY, llmClient::modelName, t0,
+            metric(KEY_SUMMARY, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.OK, null,
                     summaryGeneration.inputTokens(), summaryGeneration.outputTokens());
             return result.trim();
         } catch (Exception e) {
             breaker.recordFailure(KEY_SUMMARY);
             log.warn("上下文摘要生成失败（已记熔断，降级保留原文窗口）: err={}", e.getMessage());
-            metric(KEY_SUMMARY, llmClient::modelName, t0,
+            metric(KEY_SUMMARY, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return null;
@@ -953,24 +1474,26 @@ public class AiClient {
         SafetyResult input = contentSafetyFilter.checkInput(
                 UserContext.getUserId(), practiceSessionId, "companion", userText);
         if (input.getAction() == SafetyAction.BLOCK) {
-            metric(KEY_MESSAGE, null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
+            metric(KEY_MESSAGE, (LlmClient) null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
                     com.zhiyu.ai.metrics.AiCallMetrics.INPUT_BLOCK);
             return new CompanionResult(input.getCareMessage(), false, true, null);
         }
-        if (llmClient instanceof MockLlmClient) {
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+        // cloud-only（D1）：陪伴编排涉及工具执行语义，本地兜底不顶替
+        LlmClient client = registry.cloudOrNull();
+        if (client == null) {
+            metric(KEY_MESSAGE, (LlmClient) null, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
             return new CompanionResult(null, false, false, null);
         }
         if (!breaker.allowRequest(KEY_MESSAGE)) {
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
             return new CompanionResult(null, false, false, null);
         }
         try {
-            com.zhiyu.ai.client.LlmChatResult generation = llmClient.chatWithUsage(prompt);
+            com.zhiyu.ai.client.LlmChatResult generation = client.chatWithUsage(prompt);
             String result = generation == null ? null : generation.text();
             if (result == null || result.isBlank()) {
                 throw new IllegalStateException("empty companion plan");
@@ -979,7 +1502,7 @@ public class AiClient {
             SafetyResult output = contentSafetyFilter.checkOutput(
                     UserContext.getUserId(), "companion", result);
             if (output.getAction() == SafetyAction.BLOCK) {
-                metric(KEY_MESSAGE, llmClient::modelName, t0,
+                metric(KEY_MESSAGE, client, t0,
                         com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                         com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REJECTED,
                         generation.inputTokens(), generation.outputTokens());
@@ -990,21 +1513,21 @@ public class AiClient {
                     && output.getRewrittenText() != null
                     && !output.getRewrittenText().isBlank()) {
                 // 保留原始 JSON 供编排层解析阶段；改写文本交给编排层替换 reply 并丢弃工具。
-                metric(KEY_MESSAGE, llmClient::modelName, t0,
+                metric(KEY_MESSAGE, client, t0,
                         com.zhiyu.ai.metrics.AiCallMetrics.OK,
                         com.zhiyu.ai.metrics.AiCallMetrics.OUTPUT_REWRITE,
                         generation.inputTokens(), generation.outputTokens());
                 return new CompanionResult(result, true, false, output.getRewrittenText().trim(),
                         generation.inputTokens(), generation.outputTokens());
             }
-            metric(KEY_MESSAGE, llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
+            metric(KEY_MESSAGE, client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK,
                     null, generation.inputTokens(), generation.outputTokens());
             return new CompanionResult(result, true, false, null,
                     generation.inputTokens(), generation.outputTokens());
         } catch (Exception e) {
             breaker.recordFailure(KEY_MESSAGE);
             log.warn("陪伴计划生成失败，由编排层使用确定性建议");
-            metric(KEY_MESSAGE, llmClient::modelName, t0,
+            metric(KEY_MESSAGE, client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return new CompanionResult(null, false, false, null);
@@ -1048,10 +1571,27 @@ public class AiClient {
     private KnowledgeResult generateKnowledgeAnswer(java.util.function.Supplier<String> promptSupplier) {
         long t0 = System.nanoTime();
         String fallback = "非遗问答暂时不可用，请稍后再试。";
-        if (!breaker.allowRequest("llm-rag")) {
-            metric("llm-rag", llmClient::modelName, t0,
-                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
-                    com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+        LlmClient client = serving("rag");
+        boolean cloudAttempt = client != null && client == registry.cloudOrNull();
+        // 熔断口径：云与 Mock 都过熔断（沿用既有语义）；仅本地兜底实现不参与云熔断计数
+        boolean useBreaker = client != registry.localOrNull();
+        if (useBreaker && !breaker.allowRequest("llm-rag")) {
+            LlmClient local = registry.localOrNull();
+            if (local != null && modelRouter.fallbackAllowed("rag")) {
+                metric("llm-rag", client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                client = local;
+                cloudAttempt = false;
+                useBreaker = false;
+            } else {
+                metric("llm-rag", client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
+                return new KnowledgeResult(fallback, false, false);
+            }
+        }
+        if (client == null) {
             return new KnowledgeResult(fallback, false, false);
         }
         String answer;
@@ -1061,18 +1601,44 @@ public class AiClient {
                 // 检索无资料、未发起模型调用：非 AI 用量，不记指标
                 return new KnowledgeResult("知识库暂未找到相关资料，可以换个关键词试试。", false, false);
             }
-            answer = llmClient.chat(prompt);
+            answer = client.chat(prompt);
             if (answer == null || answer.isBlank()) throw new IllegalStateException("empty answer");
-            breaker.recordSuccess("llm-rag");
+            if (useBreaker) {
+                breaker.recordSuccess("llm-rag");
+            }
         } catch (Exception e) {
-            breaker.recordFailure("llm-rag");
-            log.warn("知识问答调用失败，已使用固定降级文本");
-            metric("llm-rag", llmClient::modelName, t0,
+            LlmClient local = localFallbackFor("rag", client,
+                    e instanceof RuntimeException re ? re : new RuntimeException(e));
+            if (local == null) {
+                if (cloudAttempt) {
+                    breaker.recordFailure("llm-rag");
+                }
+                log.warn("知识问答调用失败，已使用固定降级文本");
+                metric("llm-rag", client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return new KnowledgeResult(fallback, false, false);
+            }
+            if (useBreaker) {
+                breaker.recordFailure("llm-rag");
+            }
+            log.warn("知识问答云端失败，按策略走本地兜底");
+            metric("llm-rag", client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
-            return new KnowledgeResult(fallback, false, false);
+            client = local;
+            try {
+                answer = client.chat(promptSupplier.get());
+                if (answer == null || answer.isBlank()) throw new IllegalStateException("empty answer(local)");
+            } catch (Exception e2) {
+                log.warn("知识问答本地兜底也失败");
+                metric("llm-rag", client, t0,
+                        com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                        com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
+                return new KnowledgeResult(fallback, false, false);
+            }
         }
-        metric("llm-rag", llmClient::modelName, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null);
+        metric("llm-rag", client, t0, com.zhiyu.ai.metrics.AiCallMetrics.OK, null);
         return new KnowledgeResult(applyOutputSafety("rag", answer), true, false);
     }
 
@@ -1088,23 +1654,31 @@ public class AiClient {
         SafetyResult input = contentSafetyFilter.checkInput(
                 UserContext.getUserId(), null, "heritage", userText);
         if (input.getAction() == SafetyAction.BLOCK) {
-            metric("llm-lineart", null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
+            metric("llm-lineart", (LlmClient) null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
                     com.zhiyu.ai.metrics.AiCallMetrics.INPUT_BLOCK);
             return null;
         }
+        // cloud-only（D1）：纹样共创有白名单契约，本地兜底不顶替
+        LlmClient client = registry.cloudOrNull();
+        if (client == null) {
+            metric("llm-lineart", (LlmClient) null, t0,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
+            return null;
+        }
         if (!breaker.allowRequest("llm-lineart")) {
-            metric("llm-lineart", llmClient::modelName, t0,
+            metric("llm-lineart", client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
             return null;
         }
         try {
-            String answer = llmClient.chat(prompt);
+            String answer = client.chat(prompt);
             if (answer == null || answer.isBlank()) throw new IllegalStateException("empty heritage variants");
             breaker.recordSuccess("llm-lineart");
             SafetyResult output = contentSafetyFilter.checkOutput(
                     UserContext.getUserId(), "heritage", answer);
-            metric("llm-lineart", llmClient::modelName, t0,
+            metric("llm-lineart", client, t0,
                     output.getAction() == SafetyAction.PASS ? com.zhiyu.ai.metrics.AiCallMetrics.OK
                             : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     output.getAction() == SafetyAction.PASS ? null
@@ -1113,7 +1687,7 @@ public class AiClient {
         } catch (Exception e) {
             breaker.recordFailure("llm-lineart");
             log.warn("非遗纹样共创不可用，使用内置变体");
-            metric("llm-lineart", llmClient::modelName, t0,
+            metric("llm-lineart", client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return null;
@@ -1124,22 +1698,30 @@ public class AiClient {
         long t0 = System.nanoTime();
         SafetyResult input=contentSafetyFilter.checkInput(UserContext.getUserId(),null,"lineart",theme);
         if(input.getAction()==SafetyAction.BLOCK) {
-            metric("llm-lineart", null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
+            metric("llm-lineart", (LlmClient) null, t0, com.zhiyu.ai.metrics.AiCallMetrics.BLOCKED,
                     com.zhiyu.ai.metrics.AiCallMetrics.INPUT_BLOCK);
             throw new com.zhiyu.common.exception.BusinessException(1001,"这个主题暂不适合生成线稿。如需支持，可前往心理援助页面。");
         }
+        // cloud-only（D1）：本地兜底不顶替
+        LlmClient client = registry.cloudOrNull();
+        if (client == null) {
+            metric("llm-lineart", (LlmClient) null, t0,
+                    com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
+                    com.zhiyu.ai.metrics.AiCallMetrics.MOCK_DISABLED);
+            return new CreativeResponse("", false);
+        }
         if(!breaker.allowRequest("llm-lineart")) {
-            metric("llm-lineart", llmClient::modelName, t0,
+            metric("llm-lineart", client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.BREAKER_OPEN);
             return new CreativeResponse("",false);
         }
         try {
-            String answer=llmClient.chat(prompt);
+            String answer=client.chat(prompt);
             if(answer==null||answer.isBlank())throw new IllegalStateException("empty output");
             SafetyResult output=contentSafetyFilter.checkOutput(UserContext.getUserId(),"lineart",answer);
             breaker.recordSuccess("llm-lineart");
-            metric("llm-lineart", llmClient::modelName, t0,
+            metric("llm-lineart", client, t0,
                     output.getAction()==SafetyAction.PASS ? com.zhiyu.ai.metrics.AiCallMetrics.OK
                             : com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     output.getAction()==SafetyAction.PASS ? null
@@ -1148,7 +1730,7 @@ public class AiClient {
         }catch(Exception e){
             breaker.recordFailure("llm-lineart");
             log.warn("线稿方案生成暂不可用，返回内置模板");
-            metric("llm-lineart", llmClient::modelName, t0,
+            metric("llm-lineart", client, t0,
                     com.zhiyu.ai.metrics.AiCallMetrics.FALLBACK,
                     com.zhiyu.ai.metrics.AiCallMetrics.PROVIDER_ERROR);
             return new CreativeResponse("",false);
@@ -1181,11 +1763,18 @@ public class AiClient {
 
     /** 当前实际接入模式；Mock 不得被标记为真实模型。 */
     public String modelMode() {
-        return llmClient instanceof MockLlmClient ? "MOCK" : "EXTERNAL";
+        return registry.primary() instanceof MockLlmClient ? "MOCK" : "EXTERNAL";
     }
 
     /** 当前模型名；用于 AI 运营页版本展示与 trace。 */
     public String modelName() {
-        return llmClient.modelName();
+        LlmClient primary = registry.primary();
+        return primary == null ? "unknown" : primary.modelName();
+    }
+
+    /** 当前展示用 provider（运营页面板口径；primary 同源）。 */
+    public String providerName() {
+        LlmClient primary = registry.primary();
+        return primary == null ? "unknown" : primary.providerName();
     }
 }

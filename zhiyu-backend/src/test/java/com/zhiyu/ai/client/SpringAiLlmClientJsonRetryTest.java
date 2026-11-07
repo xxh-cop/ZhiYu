@@ -73,7 +73,7 @@ class SpringAiLlmClientJsonRetryTest {
         RuntimeSettings settings = mock(RuntimeSettings.class);
         when(settings.number("model", "temperature")).thenReturn(0.7);
         when(settings.number("model", "maxTokens")).thenReturn(800.0);
-        client = new SpringAiLlmClient(builder, settings, "deepseek-chat",
+        client = new SpringAiLlmClient(builder, settings, "deepseek-chat", "deepseek",
                 "companion", "safety", "recommend", "rag");
     }
 
@@ -160,7 +160,7 @@ class SpringAiLlmClientJsonRetryTest {
         verify(filter, times(1)).checkOutput(any(), eq("moderation"), eq(VALID));
         // 记账：llm-moderation 一条指标，tokens 为两次调用求和（10+20 / 5+7）
         verify(metrics, times(1)).record(any(), eq("llm-moderation"), eq("deepseek-reasoner"),
-                anyLong(), eq(AiCallMetrics.OK), isNull(), eq(30), eq(12));
+                eq("deepseek"), anyLong(), eq(AiCallMetrics.OK), isNull(), eq(30), eq(12));
     }
 
     @Test

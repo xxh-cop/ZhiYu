@@ -129,4 +129,13 @@ public interface LlmClient {
     default String modelName() {
         return "unknown";
     }
+
+    /**
+     * 当前 provider 名（2026-11-07 影子模式归属列配套）：如 deepseek=云端生产、
+     * mock=本地降级；未覆盖时返回 unknown。用于判定结果归属，不得把 Mock/本地演示
+     * 冒充成云端生产 provider。
+     */
+    default String providerName() {
+        return "unknown";
+    }
 }

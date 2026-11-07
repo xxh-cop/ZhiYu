@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@org.springframework.context.annotation.Primary
 @ConditionalOnExpression("'${spring.ai.openai.api-key:}' != '' and '${spring.ai.openai.api-key:}' != 'sk-placeholder'")
 public class SpringAiLlmClient implements LlmClient {
 
@@ -39,6 +40,7 @@ public class SpringAiLlmClient implements LlmClient {
     private final ChatClient chatClient;
     private final com.zhiyu.modules.admin.service.RuntimeSettings settings;
     private final String modelName;
+    private final String providerName;
     private final String workPrompt;
     /** moderation JSON 重试告知片段（外置 moderation-json-retry.st，AGENTS.md §4 不硬编码 prompt）。 */
     private final String jsonRetryPrompt;
@@ -50,6 +52,9 @@ public class SpringAiLlmClient implements LlmClient {
 
     public SpringAiLlmClient(ChatClient.Builder builder, com.zhiyu.modules.admin.service.RuntimeSettings settings,
                              @Value("${spring.ai.openai.chat.options.model:deepseek-chat}") String modelName,
+                             // provider 归属（2026-11-07 影子模式）：默认 deepseek=云端生产；
+                             // 演示走本地模型时由另一条线用环境变量覆盖（application.yml 不在本任务改动范围）
+                             @Value("${zhiyu.ai.provider:deepseek}") String providerName,
                              @Qualifier("companionPrompt") String companionPrompt,
                              @Qualifier("safetyPrompt") String safetyPrompt,
                              @Qualifier("recommendPrompt") String recommendPrompt,
@@ -57,13 +62,14 @@ public class SpringAiLlmClient implements LlmClient {
         this.chatClient = builder.build();
         this.settings=settings;
         this.modelName = modelName;
+        this.providerName = providerName;
         try(var in=new org.springframework.core.io.ClassPathResource("prompts/work_message.st").getInputStream()){this.workPrompt=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}catch(java.io.IOException e){throw new IllegalStateException("寄语模板读取失败",e);}
         try(var in=new org.springframework.core.io.ClassPathResource("prompts/moderation-json-retry.st").getInputStream()){this.jsonRetryPrompt=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}catch(java.io.IOException e){throw new IllegalStateException("moderation JSON 重试模板读取失败",e);}
         this.companionPrompt = companionPrompt;
         this.safetyPrompt = safetyPrompt;
         this.recommendPrompt = recommendPrompt;
         this.ragPrompt = ragPrompt;
-        log.info("SpringAiLlmClient 初始化完成（真 DeepSeek API，companion.st + safety.st + recommend.st + rag.st 已注入）");
+        log.info("SpringAiLlmClient 初始化完成（provider={}，model={}，companion.st + safety.st + recommend.st + rag.st 已注入）", providerName, modelName);
     }
 
     @Override
@@ -226,6 +232,11 @@ public class SpringAiLlmClient implements LlmClient {
     @Override
     public String modelName() {
         return modelName;
+    }
+
+    @Override
+    public String providerName() {
+        return providerName;
     }
 
     /**

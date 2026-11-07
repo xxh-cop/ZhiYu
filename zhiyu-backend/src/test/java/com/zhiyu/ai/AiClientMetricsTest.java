@@ -64,7 +64,8 @@ class AiClientMetricsTest {
         ai.recommendReason("焦虑", List.of("扎染", "赣绣"));
 
         // usage 覆盖（2026-11-05 健壮性批）：拿到 tokens 必须如实透传进 ai_trace
-        verify(metrics).record(any(), eq("llm-recommend"), eq("deepseek-chat"), anyLong(),
+        // provider（2026-11-08 装配层批）：mock LlmClient 的 providerName 未桩化→接口默认实现被 mock 框架拦为 null
+        verify(metrics).record(any(), eq("llm-recommend"), eq("deepseek-chat"), isNull(), anyLong(),
                 eq(AiCallMetrics.OK), isNull(), eq(11), eq(7));
     }
 
@@ -74,7 +75,7 @@ class AiClientMetricsTest {
 
         ai.recommendReason("焦虑", List.of("扎染"));
 
-        verify(metrics).record(any(), eq("llm-recommend"), eq("deepseek-chat"), anyLong(),
+        verify(metrics).record(any(), eq("llm-recommend"), eq("deepseek-chat"), isNull(), anyLong(),
                 eq(AiCallMetrics.FALLBACK), eq(AiCallMetrics.BREAKER_OPEN), isNull(), isNull());
     }
 
@@ -84,7 +85,7 @@ class AiClientMetricsTest {
 
         ai.recommendReason("焦虑", List.of("扎染"));
 
-        verify(metrics).record(any(), eq("llm-recommend"), eq("deepseek-chat"), anyLong(),
+        verify(metrics).record(any(), eq("llm-recommend"), eq("deepseek-chat"), isNull(), anyLong(),
                 eq(AiCallMetrics.FALLBACK), eq(AiCallMetrics.PROVIDER_ERROR), isNull(), isNull());
     }
 
@@ -96,7 +97,7 @@ class AiClientMetricsTest {
         ai.streamChat(1L, "高危输入", List.of(), token -> {
         });
 
-        verify(metrics).record(any(), eq("llm-chat"), isNull(), anyLong(),
+        verify(metrics).record(any(), eq("llm-chat"), isNull(), isNull(), anyLong(),
                 eq(AiCallMetrics.BLOCKED), eq(AiCallMetrics.INPUT_BLOCK), isNull(), isNull());
     }
 
@@ -109,7 +110,7 @@ class AiClientMetricsTest {
                 () -> ai.streamChat(1L, "你好", List.of(), token -> {
                 }));
 
-        verify(metrics).record(any(), eq("llm-chat"), eq("deepseek-chat"), anyLong(),
+        verify(metrics).record(any(), eq("llm-chat"), eq("deepseek-chat"), isNull(), anyLong(),
                 eq(AiCallMetrics.ERROR), eq(AiCallMetrics.PROVIDER_ERROR), isNull(), isNull());
     }
 
@@ -121,7 +122,7 @@ class AiClientMetricsTest {
                 () -> ai.streamChat(1L, "你好", List.of(), token -> {
                 }));
 
-        verify(metrics).record(any(), eq("llm-chat"), eq("deepseek-chat"), anyLong(),
+        verify(metrics).record(any(), eq("llm-chat"), eq("deepseek-chat"), isNull(), anyLong(),
                 eq(AiCallMetrics.ERROR), eq(AiCallMetrics.BREAKER_OPEN), isNull(), isNull());
     }
 
@@ -132,7 +133,7 @@ class AiClientMetricsTest {
         ai.companionPlan(9L, "prompt", "用户文本");
 
         // tokens 可获取时如实透传；获取不到的路径（如 streamChat）留 null
-        verify(metrics).record(any(), eq("llm-message"), eq("deepseek-chat"), anyLong(),
+        verify(metrics).record(any(), eq("llm-message"), eq("deepseek-chat"), isNull(), anyLong(),
                 eq(AiCallMetrics.OK), isNull(), eq(12), eq(8));
     }
 
@@ -143,7 +144,7 @@ class AiClientMetricsTest {
         when(llm.recommendReasonWithUsage(anyString(), anyList()))
                 .thenReturn(new LlmChatResult("ok", null, null));
         legacy.recommendReason("焦虑", List.of("扎染"));
-        verify(metrics, never()).record(any(), anyString(), any(), anyLong(),
+        verify(metrics, never()).record(any(), anyString(), any(), any(), anyLong(),
                 anyString(), any(), any(), any());
     }
 }

@@ -26,7 +26,7 @@ class AiCallMetricsTest {
         JdbcTemplate db = mock(JdbcTemplate.class);
         var metrics = new AiCallMetrics(db);
 
-        metrics.write(7L, "llm-chat", "deepseek-chat", 820L,
+        metrics.write(7L, "llm-chat", "deepseek-chat", "deepseek", 820L,
                 AiCallMetrics.OK, null, 12, 8);
 
         ArgumentCaptor<Object[]> args = ArgumentCaptor.forClass(Object[].class);
@@ -34,6 +34,7 @@ class AiCallMetricsTest {
         String values = Arrays.toString(args.getValue());
         assertTrue(values.contains("llm-chat"), "应记录资源 key");
         assertTrue(values.contains("deepseek-chat"), "应记录模型标识");
+        assertTrue(values.contains("deepseek"), "应记录 provider 归属（2026-11-08 装配层批）");
         assertTrue(values.contains("OK"), "应记录结果状态");
         assertTrue(values.contains("820"), "应记录延迟");
         assertTrue(values.contains("12"), "应记录入参 tokens");
@@ -47,7 +48,7 @@ class AiCallMetricsTest {
         when(db.update(anyString(), any(Object[].class))).thenThrow(new RuntimeException("db down"));
         var metrics = new AiCallMetrics(db);
 
-        assertDoesNotThrow(() -> metrics.write(7L, "llm-recommend", "deepseek-chat", 50L,
+        assertDoesNotThrow(() -> metrics.write(7L, "llm-recommend", "deepseek-chat", null, 50L,
                 AiCallMetrics.FALLBACK, AiCallMetrics.BREAKER_OPEN, null, null));
         metrics.shutdown();
     }
@@ -83,7 +84,7 @@ class AiCallMetricsTest {
         JdbcTemplate db = mock(JdbcTemplate.class);
         var metrics = new AiCallMetrics(db);
 
-        metrics.write(1L, "x".repeat(40), "y".repeat(100), 0L,
+        metrics.write(1L, "x".repeat(40), "y".repeat(100), "p".repeat(30), 0L,
                 AiCallMetrics.ERROR, "z".repeat(200), null, null);
 
         ArgumentCaptor<Object[]> args = ArgumentCaptor.forClass(Object[].class);
@@ -91,7 +92,8 @@ class AiCallMetricsTest {
         Object[] values = args.getValue();
         assertTrue(((String) values[3]).length() <= 30, "scene 截断到 VARCHAR(30)");
         assertTrue(((String) values[4]).length() <= 80, "model 截断到 VARCHAR(80)");
-        assertTrue(((String) values[9]).length() <= 120, "fallback_reason 截断到 VARCHAR(120)");
+        assertTrue(((String) values[5]).length() <= 20, "provider 截断到 VARCHAR(20)");
+        assertTrue(((String) values[10]).length() <= 120, "fallback_reason 截断到 VARCHAR(120)");
         metrics.shutdown();
     }
 }

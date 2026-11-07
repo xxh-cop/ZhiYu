@@ -122,11 +122,18 @@ export interface AiSuggestion {
 }
 
 export async function getWorkAiSuggestion(id: string) {
-  return requestClient.post<AiSuggestion>(`/admin/works/${id}/ai-suggest`);
+  // 本地模型演示兜底延迟 7-39s（docs/ollama-demo-fallback-20261107.md §5），
+  // 仅本请求显式放宽超时，不影响全局 10s 默认
+  return requestClient.post<AiSuggestion>(`/admin/works/${id}/ai-suggest`, undefined, {
+    timeout: 60_000,
+  });
 }
 
 export async function getCommentAiSuggestion(id: string) {
-  return requestClient.post<AiSuggestion>(`/admin/comments/${id}/ai-suggest`);
+  // 同上：仅本请求显式 60s
+  return requestClient.post<AiSuggestion>(`/admin/comments/${id}/ai-suggest`, undefined, {
+    timeout: 60_000,
+  });
 }
 
 /**

@@ -124,6 +124,22 @@ ai:
         available: false           # QWEN_BASE_URL/QWEN_API_KEY 未配置（.env 无此变量），显式不可用
       embedding:
         provider: doubao           # 独立于对话档位
+    # provider 维（2026-11-08 装配层批，D1/D2/D4/D7/D8）：与 tier 正交。
+    # 云侧 strong=reasoner 不动；本地 Ollama 单档（zhiyu.ai.providers.local.*）。
+    # 归属表集中定义于 ModelRouter（FALLBACK_CAPABLE_TASKS / CLOUD_ONLY_TASKS），
+    # 运行承载为 application.yml zhiyu.ai.routing.fallback.* 与 providers.local.*。
+    provider_fallback:
+      chat: local                  # 情绪对话：云不可用→本地（超时/连接/5xx/429；401/403 记 ERROR）
+      recommend: local             # 推荐理由：同上
+      message: local               # 寄语/创作回顾：同上
+      rag: local                   # 非遗问答：同上
+      stuck_guide: local           # 卡点引导：同上
+      listening_summary: none      # cloud-only（D1）：本地不顶替
+      companion: none              # cloud-only（D1）：工具执行语义敏感
+      summary: none                # cloud-only（D1）
+      lineart: none                # cloud-only（D1）
+      moderation: none             # cloud-only 硬约束（D4）：配置不给键 + 启动 fail-fast + 契约测试
+      moderation_shadow: gated     # 影子判定：仅 local-demo-mode 且 demo-providers 含 ollama 双开关生效（D8）
     tasks:
       crisis: none                 # 红线：危机干预不走 LLM，直接返回预置干预话术
       chat: standard               # 日常情绪对话（含 SSE live）

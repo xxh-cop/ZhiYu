@@ -60,6 +60,11 @@ spring:
 
 # 织愈自定义配置（test profile）
 zhiyu:
+  ai:
+    providers:
+      local:
+        # 单测禁用本地兜底装配（不连 Ollama）；装配层行为由专测显式构造验证
+        enabled: false
   crypto:
     # 单测专用密钥（32 字节 base64）
     secret: dGhpcy1pcy1hLXRlc3Qtb25seS1rZXktMzJieXRlcyE=

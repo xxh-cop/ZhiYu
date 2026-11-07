@@ -24,6 +24,7 @@ import java.util.function.Consumer;
  */
 @Slf4j
 @Component
+@org.springframework.context.annotation.Primary
 @Profile("!prod")
 // 当 api-key 为空串、缺失或仍为占位值时生效；与 SpringAiLlmClient 的真实 Key 条件严格互斥
 @ConditionalOnExpression("'${spring.ai.openai.api-key:}' == '' or '${spring.ai.openai.api-key:}' == 'sk-placeholder'")
@@ -88,6 +89,11 @@ public class MockLlmClient implements LlmClient {
 
     @Override
     public String modelName() {
+        return "mock";
+    }
+
+    @Override
+    public String providerName() {
         return "mock";
     }
 }

@@ -14,7 +14,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,8 +42,14 @@ class AiClientTest {
     @Mock
     ContentSafetyFilter contentSafetyFilter;
 
-    @InjectMocks
     AiClient aiClient;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        // 2026-11-08 装配层批：AiClient 生产构造器已改为 LlmClientRegistry 注入，
+        // @InjectMocks 会误选 registry 构造器并传入 null；单测显式走旧 3 参装配（语义不变）
+        aiClient = new AiClient(llmClient, breaker, contentSafetyFilter);
+    }
 
     @Test
     @DisplayName("推荐理由：LlmClient 正常返回 → 走 recordSuccess")

@@ -89,6 +89,29 @@ zhiyu:
     routing:
       strong-model: ${DEEPSEEK_STRONG_MODEL:deepseek-reasoner}
       strong-enabled: ${ZHIYU_STRONG_TIER_ENABLED:true}
+      # 演示模式总闸（D8，2026-11-08 装配层批）：与 shadow.demo-providers 清单组成
+      # 双开关——只开一个影子判定不走本地；默认 false（生产口径）。
+      local-demo-mode: ${ZHIYU_LOCAL_DEMO_MODE:false}
+      # 能力级本地兜底策略（D1）：仅下列五个能力允许「云不可用 → 本地」，
+      # 值域 local|none；cloud-only 能力（审核建议/倾听小结/陪伴编排/滚动摘要/线稿共创）
+      # 没有任何配置键，改它们必须改代码走评审（D4，ProviderRoutingValidator 启动复核）。
+      fallback:
+        chat: ${ZHIYU_FALLBACK_CHAT:local}
+        recommend: ${ZHIYU_FALLBACK_RECOMMEND:local}
+        message: ${ZHIYU_FALLBACK_MESSAGE:local}
+        rag: ${ZHIYU_FALLBACK_RAG:local}
+        stuck-guide: ${ZHIYU_FALLBACK_STUCK_GUIDE:local}
+
+    # ── provider 装配（2026-11-08 装配层批） ──
+    # 云端走既有 spring.ai.openai.*（zhiyu.ai.provider 为其归属名，默认 deepseek）；
+    # 本地兜底为独立装配的第二个 OpenAI 兼容端点（Ollama）。全部环境变量占位，
+    # 不写死任何真实密钥或端点地址；本地 api-key 仅占位（Ollama 不校验）。
+    providers:
+      local:
+        enabled: ${OLLAMA_FALLBACK_ENABLED:true}
+        base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+        api-key: ${OLLAMA_API_KEY:ollama-local}
+        model: ${OLLAMA_CHAT_MODEL:deepseek-r1:8b}
 
   # ── 字段加密密钥（T1.3a） ──
   # Base64 编码的 32 字节密钥。为空时启动失败（fail-fast）。
@@ -150,6 +173,11 @@ zhiyu:
         sample-rate: ${ZHIYU_MODERATION_SOFT_TIER_SAMPLE_RATE:0.33}
         # 日入池软上限（只约束 random 与 mandatory_author_first 层；溢出转未抽中并保留降权窗口）
         daily-cap: ${ZHIYU_MODERATION_SOFT_TIER_DAILY_CAP:50}
+      shadow:
+        # 演示归属清单（原 @Value 默认值登记入册，2026-11-08）：清单内 provider 的判定
+        # 一律视为演示口径，/shadow-stats 默认反向排除；与 zhiyu.ai.routing.local-demo-mode
+        # 组成影子判定走本地的双开关（只开一个不生效）。
+        demo-providers: ${ZHIYU_MODERATION_SOFT_TIER_SHADOW_DEMO_PROVIDERS:ollama,mock}
 
   # ── 账号安全（2026-11-03：登录失败锁定 + 忘记密码） ──
   # 登录失败锁定：按账号维度计数（不存在的账号同样计数，避免探测注册状态），

@@ -605,6 +605,7 @@ CREATE TABLE IF NOT EXISTS ai_trace (
  practice_session_id BIGINT DEFAULT NULL,
  scene VARCHAR(30) NOT NULL,
  model VARCHAR(80) DEFAULT NULL,
+ provider VARCHAR(20) DEFAULT NULL,
  prompt_version VARCHAR(40) DEFAULT NULL,
  tool_name VARCHAR(60) DEFAULT NULL,
  latency_ms INT DEFAULT NULL,

@@ -112,11 +112,23 @@ public class AiCallMetrics {
     public void record(Long userId, String scene, String model, long latencyMs,
                        String status, String fallbackReason,
                        Integer inputTokens, Integer outputTokens) {
+        record(userId, scene, model, null, latencyMs, status, fallbackReason, inputTokens, outputTokens);
+    }
+
+    /**
+     * 带 provider 归属的变体（2026-11-08 装配层批）：云端/本地双端点后，仅 model 名
+     * 无法可靠区分实际 provider（两端可同名），provider 单列如实记录
+     * （deepseek=云端、ollama=本地、mock=本地降级实现）；未发起调用的行留 null，
+     * 不冒充任何 provider。9 参为全量形，8 参旧签名等价于 provider=null。
+     */
+    public void record(Long userId, String scene, String model, String provider, long latencyMs,
+                       String status, String fallbackReason,
+                       Integer inputTokens, Integer outputTokens) {
         if (!enabled) {
             return;
         }
         try {
-            worker.execute(() -> write(userId, scene, model, latencyMs, status,
+            worker.execute(() -> write(userId, scene, model, provider, latencyMs, status,
                     fallbackReason, inputTokens, outputTokens));
         } catch (RuntimeException e) {
             log.warn("AI 指标提交失败（不影响业务响应）: {}", e.getMessage());
@@ -124,15 +136,15 @@ public class AiCallMetrics {
     }
 
     /** 同步写入（异步 worker 内执行；测试可直接调用）。 */
-    void write(Long userId, String scene, String model, long latencyMs,
+    void write(Long userId, String scene, String model, String provider, long latencyMs,
                String status, String fallbackReason, Integer inputTokens, Integer outputTokens) {
         try {
             db.update("""
-                    INSERT INTO ai_trace(id, trace_id, user_id, scene, model,
+                    INSERT INTO ai_trace(id, trace_id, user_id, scene, model, provider,
                         latency_ms, input_tokens, output_tokens, result_status, fallback_reason, create_time)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
                     """, IdWorker.getId(), UUID.randomUUID().toString(), userId,
-                    cut(scene, 30), cut(model, 80), Math.max(0, latencyMs),
+                    cut(scene, 30), cut(model, 80), cut(provider, 20), Math.max(0, latencyMs),
                     inputTokens, outputTokens, cut(status, 20), cut(fallbackReason, 120),
                     LocalDateTime.now(ZONE));
         } catch (Exception e) {
