@@ -125,7 +125,8 @@
 						     无真实封面（coverUrl 为空）时不放品类照片冒充，改用品类纹样占位（明确是占位，不误导）。 -->
 						<image v-if="item.coverUrl" :src="resolveCover(item)" mode="aspectFill" class="craft-thumb-img" />
 						<view v-else class="craft-thumb-ph" :class="'ph-' + coverKind(item)" aria-hidden="true">
-							<text class="ph-label">{{ item.category || '手作' }}</text>
+							<text class="ph-mono zy-t-serif">{{ (item.title || '手').charAt(0) }}</text>
+							<text class="ph-label">{{ coverKindLabel(item) }}</text>
 						</view>
 					</view>
 					<view class="craft-copy">
@@ -468,6 +469,9 @@ function coverKind(item) {
 	const cat = (item && (item.category || item.title)) || ''
 	return /线|编|绣|染/.test(cat) ? 'yarn' : /陶|泥/.test(cat) ? 'clay' : 'paper'
 }
+function coverKindLabel(item) {
+	return { yarn: '线绳', clay: '陶土', paper: '纸艺' }[coverKind(item)]
+}
 function goWorks() { uni.switchTab({ url: '/pages/work/list' }) }
 function goProfile() { uni.switchTab({ url: '/pages/profile/index' }) }
 function goMindfulness() { uni.navigateTo({ url: '/pages/mindfulness/index' }) }
@@ -546,11 +550,12 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .craft-thumb { position: relative; background: var(--zy-bg-tint-mint); border-radius: 16rpx; width: 125rpx; height: 123rpx; flex-shrink: 0; overflow: hidden; }
 .craft-thumb-img { width: 100%; height: 100%; display: block; }
 /* 无封面占位：品类纹样（经纬线）+ 品类名，明确是占位而非作品照片 */
-.craft-thumb-ph { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: flex-start; padding: 10rpx 12rpx; box-sizing: border-box; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg stroke='%23ffffff' stroke-width='1.6' fill='none' opacity='.55'%3E%3Cpath d='M0 15 Q15 8 30 15 T60 15'/%3E%3Cpath d='M0 30 Q15 23 30 30 T60 30'/%3E%3Cpath d='M0 45 Q15 38 30 45 T60 45'/%3E%3Cpath d='M15 0 Q22 30 15 60'/%3E%3Cpath d='M38 0 Q45 30 38 60'/%3E%3C/g%3E%3C/svg%3E"); background-size: 60rpx 60rpx; }
+.craft-thumb-ph { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 12rpx; box-sizing: border-box; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg stroke='%23ffffff' stroke-width='1.6' fill='none' opacity='.55'%3E%3Cpath d='M0 15 Q15 8 30 15 T60 15'/%3E%3Cpath d='M0 30 Q15 23 30 30 T60 30'/%3E%3Cpath d='M0 45 Q15 38 30 45 T60 45'/%3E%3Cpath d='M15 0 Q22 30 15 60'/%3E%3Cpath d='M38 0 Q45 30 38 60'/%3E%3C/g%3E%3C/svg%3E"); background-size: 60rpx 60rpx; }
 .ph-yarn { background-color: var(--zy-brand-100); }
 .ph-clay { background-color: var(--zy-bg-tint-warm); }
 .ph-paper { background-color: var(--zy-brand-50); }
-.ph-label { font-size: var(--zy-text-micro); color: var(--zy-brand-700); letter-spacing: 1rpx; }
+.ph-mono { font-size: 44rpx; font-weight: 600; color: var(--zy-brand-700); line-height: 1.2; }
+.ph-label { font-size: var(--zy-text-micro); color: var(--zy-brand-700); letter-spacing: 1rpx; margin-top: 4rpx; }
 .craft-copy { flex: 1; min-width: 0; }
 .craft-category { display: block; font-size: var(--zy-text-micro); color: var(--zy-accent); margin-bottom: 6rpx; letter-spacing: 2rpx; }
 .craft-title { display: block; font-size: var(--zy-text-body-lg); color: var(--zy-title); }
