@@ -1,7 +1,7 @@
 <template>
 	<view class="home-page" :class="{'motion-reduced':reducedMotion}">
 		<view class="home-inner">
-			<!-- 页头 -->
+			<!-- 页头：品牌 + 通知铃铛（未读红点）+ 头像 -->
 			<view class="home-header">
 				<view class="wordmark">
 					<image src="/static/logo.png" aria-hidden="true"/>
@@ -10,167 +10,150 @@
 						<text class="brand-caption">给自己，一点慢时光</text>
 					</view>
 				</view>
-				<AccessibleButton class="avatar" aria-label="打开我的页面" @click="goProfile">{{avatarLetter}}</AccessibleButton>
+				<view class="header-right">
+					<AccessibleButton class="bell" aria-label="查看通知" @click="goNotifications">
+						<wd-icon name="notification" size="36rpx" color="#5C5648" />
+						<view v-if="noticeState.unread > 0" class="bell-dot" aria-hidden="true"></view>
+					</AccessibleButton>
+					<AccessibleButton class="avatar" aria-label="打开我的页面" @click="goProfile">{{avatarLetter}}</AccessibleButton>
+				</view>
 			</view>
-			<view class="hello-row">
-				<text>{{welcome}}</text>
-				<text>你好，{{nickname}} ↗</text>
-			</view>
+			<text class="hello-row">{{welcome}}</text>
 
-			<!-- 主视觉（保留）：开始一件小手作 -->
+			<!-- 主视觉（去框化，落在暖纸底上） -->
 			<view class="home-hero">
 				<view class="hero-copy">
 					<text class="eyebrow">A MOMENT FOR YOURSELF</text>
-					<text class="hero-title">慢一点，<br/>给心情一个家。</text>
-					<text class="hero-note">从手边的一张纸、一根线开始，<br/>留一小段时间，给此刻的自己。</text>
-					<AccessibleButton class="hero-button" @click="goRecommend">开始一件小手作 <text>↗</text></AccessibleButton>
+					<text class="hero-title zy-t-serif">慢一点，<br/>给心情一个家。</text>
+					<text class="hero-note">从手边的一张纸、一根线开始，留一小段时间，给此刻的自己。</text>
+					<AccessibleButton variant="primary" size="lg" class="hero-button" @click="goRecommend">开始一件小手作</AccessibleButton>
 				</view>
-				<image class="hero-art" src="/static/brand/weave-scene.png" mode="aspectFit" aria-hidden="true"/>
+				<view class="hero-pet" aria-hidden="true"><XiaotuanPet :size="112" /></view>
 				<text class="hero-bottom">用一针一线，连接生活里的小确幸</text>
 			</view>
 
-			<!-- 一、现在可以做什么：倾诉 / 推荐 / 创作 -->
-			<view class="section-head">
-				<view><text class="eyebrow">WHAT NOW</text><text class="section-title">现在，想怎么度过这几分钟？</text></view>
-			</view>
-			<view class="action-grid">
-				<AccessibleButton class="action-card" @click="goEmotion">
-					<view class="action-pet"><XiaotuanPet :size="72" @open="goEmotion"/></view>
-					<text class="action-kicker">01 / 倾诉</text>
-					<text class="action-title">和小织聊聊</text>
-					<text class="action-sub">把想说的慢慢说</text>
+			<StitchDivider />
+
+			<!-- 一、现在可以做什么：一主（倾诉）两次（推荐/创作） -->
+			<SectionHead eyebrow="WHAT NOW" title="现在，想怎么度过这几分钟？" />
+			<AccessibleButton class="main-card zy-card zy-card--mint" aria-label="和小织聊聊" @click="goEmotion">
+				<view class="main-card-pet"><XiaotuanPet :size="64" /></view>
+				<view class="main-card-copy">
+					<text class="main-card-kicker">01 / 倾诉</text>
+					<text class="main-card-title">和小织聊聊</text>
+					<text class="main-card-sub">把想说的慢慢说，我在这里</text>
+				</view>
+				<view class="main-card-arrow" aria-hidden="true">→</view>
+			</AccessibleButton>
+			<view class="duo-grid">
+				<AccessibleButton class="duo-card zy-card" @click="goCraftRecommend">
+					<text class="duo-kicker">02 / 推荐</text>
+					<text class="duo-title">今天的手作</text>
+					<text class="duo-sub">按此刻心情，为你挑了一件</text>
 				</AccessibleButton>
-				<AccessibleButton class="action-card" @click="goCraftRecommend">
-					<view class="action-icon icon-recommend"><view class="icon-yarn"></view></view>
-					<text class="action-kicker">02 / 推荐</text>
-					<text class="action-title">看看今天的手作</text>
-					<text class="action-sub">按此刻心情为你挑选</text>
-				</AccessibleButton>
-				<AccessibleButton class="action-card" @click="goCreate">
-					<view class="action-icon icon-create"><view class="icon-needle"></view></view>
-					<text class="action-kicker">03 / 创作</text>
-					<text class="action-title">{{activeSession ? '继续上次的创作' : '开始一次创作'}}</text>
-					<text class="action-sub">{{activeSession ? activeSessionLabel : '跟着步骤，慢慢来'}}</text>
+				<AccessibleButton class="duo-card zy-card" @click="goCreate">
+					<text class="duo-kicker">03 / 创作</text>
+					<text class="duo-title">{{activeSession ? '继续上次' : '开始创作'}}</text>
+					<text class="duo-sub">{{activeSession ? activeSessionLabel : '跟着步骤，慢慢来'}}</text>
 				</AccessibleButton>
 			</view>
 
-			<!-- 二、今天状态如何：心情打卡 + 连续记录 -->
-			<view class="section-head">
-				<view><text class="eyebrow">CHECK IN</text><text class="section-title">此刻，你感觉怎么样？</text></view>
-				<text class="small-label">只留在当前页面</text>
-			</view>
-			<view class="mood-card">
-				<AccessibleButton v-for="(m,i) in moods" :key="m.label" class="mood" :class="{chosen:moodIndex===i}" :aria-pressed="moodIndex===i" @click="selectMood(i)">
-					<view class="face" :class="'face-'+i"><view class="eyes"></view><view class="mouth"></view></view>
-					<text>{{m.label}}</text>
-				</AccessibleButton>
+			<!-- 二、此刻状态：心情打卡 + 旅程数据行 -->
+			<SectionHead eyebrow="CHECK IN" title="此刻，你感觉怎么样？">
+				<text class="small-label">仅当前页可见</text>
+			</SectionHead>
+			<view class="mood-row">
+				<MoodFace v-for="(m,i) in moods" :key="m.label" :kind="i" :label="m.label" :selected="moodIndex===i" @select="selectMood(i)" />
 			</view>
 			<view v-if="moodIndex!==null" class="mood-response">
 				<text>{{moodIndex>=3?'今天也辛苦了。想说说的话，小织在这里。':'谢谢你留意此刻的感受。跟着自己的节奏就好。'}}</text>
-				<AccessibleButton @click="goEmotion">和小织聊聊 →</AccessibleButton>
-			</view>
-			<view class="stats-card" aria-live="polite">
-				<view class="stat">
-					<text class="stat-num">{{statsLoaded ? (stats.streakDays ?? 0) : '—'}}</text>
-					<text class="stat-label">连续创作（天）</text>
-				</view>
-				<view class="stat">
-					<text class="stat-num">{{statsLoaded ? (stats.totalWorks ?? 0) : '—'}}</text>
-					<text class="stat-label">我的作品</text>
-				</view>
-				<view class="stat">
-					<text class="stat-num">{{statsLoaded ? (stats.totalMinutes ?? 0) : '—'}}</text>
-					<text class="stat-label">累计专注（分钟）</text>
-				</view>
+				<AccessibleButton variant="ghost" size="sm" @click="goEmotion">和小织聊聊 →</AccessibleButton>
 			</view>
 
+			<StitchDivider />
+			<StatStrip aria-live="polite" aria-label="我的创作旅程" :items="journeyItems" />
+			<StitchDivider />
+
 			<!-- AM1 情绪基线提醒：温和提示卡（非弹窗），仅首页一处，不重复打扰 -->
-			<view v-if="baselineNudge" class="nudge-card" role="status">
+			<view v-if="baselineNudge" class="nudge-card zy-card zy-card--warm" role="status">
 				<text class="nudge-text">这几天低落的时刻似乎多了一些。不用着急——也许一件小手作、几分钟慢时光，会让今天好过一点点。</text>
-				<AccessibleButton v-if="baselineNudge.actionType === 'craft'" class="nudge-action" @click="goCraftRecommend">去看看今天的手作 →</AccessibleButton>
+				<AccessibleButton v-if="baselineNudge.actionType === 'craft'" variant="secondary" size="sm" class="nudge-action" @click="goCraftRecommend">去看看今天的手作 →</AccessibleButton>
 				<text class="nudge-disclaimer">这只是温柔的提醒，不是任何判断。本系统不能替代专业心理咨询。</text>
 			</view>
 
-			<!-- 小织陪伴卡（保留入口，形象升级为线团小兽） -->
-			<AccessibleButton class="pet-card" aria-label="和小织聊聊" @click="goEmotion">
-				<XiaotuanPet :size="96"/>
-				<view class="pet-copy">
-					<text class="pet-label">小织 · 你的创作伙伴</text>
-					<text class="pet-title">我在这里，陪你慢慢来。</text>
-					<text class="pet-hint">聊聊此刻，或从一件小手作开始</text>
-				</view>
-				<text class="pet-arrow">↗</text>
-			</AccessibleButton>
-
 			<!-- 呼吸与音乐（保留） -->
 			<view class="calm-grid">
-				<AccessibleButton class="practice breath" @click="goMindfulness">
-					<view class="breath-orbit"><view></view></view>
+				<AccessibleButton class="practice zy-card zy-card--mint breath" @click="goMindfulness">
+					<view class="breath-orbit" aria-hidden="true"><view></view></view>
 					<text class="practice-kicker">呼吸空间</text>
 					<text class="practice-title">先安静三分钟</text>
 					<text class="practice-sub">跟随呼吸，不用急着做什么</text>
 				</AccessibleButton>
-				<AccessibleButton class="practice music" @click="goMusic">
-					<text class="music-symbol">♫</text>
+				<AccessibleButton class="practice zy-card zy-card--warm music" @click="goMusic">
+					<view class="music-icon" aria-hidden="true"><wd-icon name="service" size="52rpx" color="#7A5C12" /></view>
 					<text class="practice-kicker">SOUND ROOM</text>
 					<text class="practice-title">给耳朵一段慢时光</text>
 					<text class="practice-sub">音乐放松 · 定时停止</text>
 				</AccessibleButton>
 			</view>
 
-			<!-- 三、有什么新东西：通知 / 推荐 / 寄语 -->
-			<view class="section-head">
-				<view><text class="eyebrow">WHAT'S NEW</text><text class="section-title">有什么新东西</text></view>
-				<AccessibleButton class="plain" :disabled="recommendLoading" @click="refreshRecommend">换一批 ↻</AccessibleButton>
-			</view>
+			<!-- 三、有什么新东西 -->
+			<SectionHead eyebrow="WHAT'S NEW" title="今天为你挑的">
+				<AccessibleButton variant="ghost" size="sm" :disabled="recommendLoading" @click="refreshRecommend">换一批 ↻</AccessibleButton>
+			</SectionHead>
 
-			<view class="notice-card" v-if="noticeState.unread > 0">
-				<text class="notice-text notice-text-unread">你有 {{ noticeState.unread }} 条新消息</text>
-				<AccessibleButton class="notice-link" @click="goNotifications">去看看 →</AccessibleButton>
-			</view>
-			<view class="notice-card" v-else>
-				<text class="notice-text">现在还没有新消息。</text>
-				<AccessibleButton class="notice-link" @click="goWorks">去社区看看大家的创作 →</AccessibleButton>
-			</view>
-
-			<view v-if="recommendLoading&&!recommends.length" class="empty-card">正在准备手作灵感…</view>
-			<view v-else-if="!recommends.length" class="empty-card">
+			<view v-if="recommendLoading&&!recommends.length" class="empty-card zy-card">正在准备手作灵感…</view>
+			<view v-else-if="!recommends.length" class="empty-card zy-card">
 				<text>{{recommendError?'手作灵感暂时没有送达':'还没有推荐，先去看看入门练习吧'}}</text>
-				<AccessibleButton @click="goRecommend">浏览入门手作 →</AccessibleButton>
-				<AccessibleButton v-if="recommendError" @click="refreshRecommend">重试</AccessibleButton>
+				<AccessibleButton variant="ghost" size="sm" @click="goRecommend">浏览入门手作 →</AccessibleButton>
+				<AccessibleButton v-if="recommendError" variant="ghost" size="sm" @click="refreshRecommend">重试</AccessibleButton>
 			</view>
-			<AccessibleButton v-for="(item,i) in recommends.slice(0,3)" :key="item.projectId" class="craft-row" @click="goCraftDetail(item)">
-				<view class="craft-thumb" :class="'thumb-'+i">
-					<CraftCover :src="item.coverUrl" :category="item.category||item.title" compact/>
-				</view>
-				<view class="craft-copy">
-					<text class="craft-category">{{item.category||'手作练习'}}</text>
-					<text class="craft-title">{{item.title}}</text>
-					<text class="craft-meta">约 {{item.estMinutes||'—'}} 分钟 · 跟随自己的节奏</text>
-				</view>
-				<text class="craft-arrow">↗</text>
-			</AccessibleButton>
+			<template v-else>
+				<AccessibleButton v-if="recommends[0]" class="feat-card zy-card zy-card--feature" @click="goCraftDetail(recommends[0])">
+					<view class="feat-cover">
+						<CraftCover :src="recommends[0].coverUrl" :category="recommends[0].category||recommends[0].title" />
+					</view>
+					<view class="feat-body">
+						<text class="feat-category">{{recommends[0].category||'手作练习'}}</text>
+						<text class="feat-title">{{recommends[0].title}}</text>
+						<text class="feat-meta">约 {{recommends[0].estMinutes||'—'}} 分钟 · 跟随自己的节奏</text>
+					</view>
+				</AccessibleButton>
+				<AccessibleButton v-for="item in recommends.slice(1,3)" :key="item.projectId" class="craft-row" @click="goCraftDetail(item)">
+					<view class="craft-thumb">
+						<!-- 裸 image 而非 CraftCover：自定义组件在小程序 wx:for 内内容塌陷（2026-11-08 排查，历史问题），
+						     兜底图策略与 CraftCover 一致（coverUrl 缺失/加载失败 → 品类库图） -->
+						<image :src="resolveCover(item)" mode="aspectFill" class="craft-thumb-img" />
+					</view>
+					<view class="craft-copy">
+						<text class="craft-category">{{item.category||'手作练习'}}</text>
+						<text class="craft-title">{{item.title}}</text>
+						<text class="craft-meta">约 {{item.estMinutes||'—'}} 分钟 · 跟随自己的节奏</text>
+					</view>
+				</AccessibleButton>
+			</template>
 
+			<!-- 每日寄语：居中衬线引言，无容器 -->
 			<view class="daily-note" @click="nextQuote">
-				<text class="eyebrow">A LITTLE REMINDER</text>
-				<text class="quote">“{{currentQuote}}”</text>
+				<text class="quote zy-t-serif">“{{currentQuote}}”</text>
 				<text class="note-hint">轻点换一句 · 不必事事都做到完美</text>
 			</view>
 
-			<AccessibleButton class="heritage-entry" @click="goHeritage">
-				<image class="heritage-entry-art" src="/static/heritage/971201.png" mode="aspectFill" lazy-load aria-hidden="true"/>
-				<view class="heritage-entry-copy">
-					<text class="eyebrow">HERITAGE STUDIES</text>
-					<text class="heritage-entry-title">非遗纹样馆</text>
-					<text class="heritage-entry-sub">看纹样 · 读工艺 · 试着配色</text>
+			<!-- 非遗入口：暖金 tint + 回纹角饰 -->
+			<AccessibleButton class="heritage-entry zy-card zy-card--warm" @click="goHeritage">
+				<view class="heritage-copy">
+					<text class="eyebrow eyebrow-heritage">HERITAGE STUDIES</text>
+					<text class="heritage-title zy-t-serif">非遗纹样馆</text>
+					<text class="heritage-sub">看纹样 · 读工艺 · 试着配色</text>
 				</view>
-				<text class="heritage-entry-arrow">↗</text>
+				<text class="heritage-arrow" aria-hidden="true">→</text>
+				<view class="heritage-corner" aria-hidden="true"></view>
 			</AccessibleButton>
 
 			<view class="explore-links">
-				<AccessibleButton @click="goWorks">作品社区 <text>看看大家的创作 ↗</text></AccessibleButton>
-				<AccessibleButton @click="goInheritors">认识手作老师 <text>了解工艺与故事 ↗</text></AccessibleButton>
-				<AccessibleButton @click="goSupport">校内支持 <text>江西师大官方联系指南 ↗</text></AccessibleButton>
+				<AccessibleButton variant="ghost" size="sm" @click="goWorks">作品社区 · 看看大家的创作</AccessibleButton>
+				<AccessibleButton variant="ghost" size="sm" @click="goInheritors">认识手作老师 · 了解工艺与故事</AccessibleButton>
+				<AccessibleButton variant="ghost" size="sm" @click="goSupport">校内支持 · 官方联系指南</AccessibleButton>
 			</view>
 			<text class="home-foot">本系统不能替代专业心理咨询</text>
 
@@ -197,6 +180,10 @@ import ChatPanel from '../../components/ChatPanel.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import PrivacyConsent from '../../components/PrivacyConsent.vue'
 import CompanionNudge from '../../components/CompanionNudge.vue'
+import StitchDivider from '../../components/StitchDivider.vue'
+import SectionHead from '../../components/SectionHead.vue'
+import MoodFace from '../../components/MoodFace.vue'
+import StatStrip from '../../components/StatStrip.vue'
 import { useCompanionNudge } from '../../composables/useCompanionNudge'
 import { useNotifications } from '../../composables/useNotifications'
 import { computed, ref } from 'vue'
@@ -207,6 +194,7 @@ import { useUserStore } from '../../stores/user'
 import { useAiCompanionStore } from '../../stores/aiCompanion'
 import { useInteraction } from '../../composables/useInteraction'
 import { trackRecommendationClick } from '../../utils/recommend-click'
+import { API_BASE_URL } from '../../utils/config'
 
 const { reducedMotion } = useInteraction()
 const userStore = useUserStore()
@@ -255,6 +243,13 @@ const activeSessionLabel = computed(() => {
 	const progress = step > 0 && total > 0 ? `做到第 ${step}/${total} 步，` : ''
 	return `《${name}》${progress}还在等你`
 })
+
+/* 旅程数据行（StatStrip；未加载完成时占位 —） */
+const journeyItems = computed(() => [
+	{ value: statsLoaded.value ? (stats.value.streakDays ?? 0) : '—', label: '连续创作 · 天' },
+	{ value: statsLoaded.value ? (stats.value.totalWorks ?? 0) : '—', label: '我的作品' },
+	{ value: statsLoaded.value ? (stats.value.totalMinutes ?? 0) : '—', label: '专注 · 分钟' },
+])
 
 const nickname = computed(() => (userStore.userInfo && userStore.userInfo.nickname) || '同学')
 const avatarLetter = computed(() => (nickname.value && nickname.value.charAt(0)) || '同')
@@ -458,6 +453,17 @@ function goCraftDetail(item) {
 		goRecommend()
 	}
 }
+/* 推荐行缩略图地址：与 CraftCover 同一兜底策略（coverUrl → API 拼接 / 品类库图） */
+function resolveCover(item) {
+	const src = item && item.coverUrl
+	if (!src) {
+		const cat = (item && (item.category || item.title)) || ''
+		const kind = /线|编|绣|染/.test(cat) ? 'yarn' : /陶|泥/.test(cat) ? 'clay' : 'paper'
+		return `/static/library/${kind}.jpg`
+	}
+	if (/^https?:|^\/static\//.test(src)) return src
+	return API_BASE_URL + src
+}
 function goWorks() { uni.switchTab({ url: '/pages/work/list' }) }
 function goProfile() { uni.switchTab({ url: '/pages/profile/index' }) }
 function goMindfulness() { uni.navigateTo({ url: '/pages/mindfulness/index' }) }
@@ -468,166 +474,106 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 </script>
 
 <style scoped>
-.home-page { background: var(--zy-bg); min-height: 100vh; color: var(--zy-title); padding: 32rpx 34rpx 60rpx; box-sizing: border-box; }
+.home-page { min-height: 100vh; color: var(--zy-title); padding: 32rpx 32rpx 64rpx; box-sizing: border-box; }
 .home-inner { max-width: 1080px; margin: auto; }
-.home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 38rpx; }
+
+/* ── 页头 ── */
+.home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
 .wordmark { display: flex; gap: 15rpx; align-items: center; }
 .wordmark image { width: 70rpx; height: 70rpx; }
 .brand-name { display: block; font-size: 35rpx; font-weight: 600; letter-spacing: 5rpx; }
-.brand-caption { display: block; font-size: 18rpx; color: var(--zy-text); letter-spacing: 2rpx; margin-top: 3rpx; }
-.avatar { width: 68rpx; height: 68rpx; line-height: 68rpx; padding: 0; border-radius: 50%; background: var(--zy-bg-tint-mint); color: var(--zy-brand-700, #1a645e); font-size: 25rpx; margin: 0; min-width: 88rpx; }
-.hello-row { display: flex; justify-content: space-between; gap: 20rpx; color: var(--zy-text); font-size: 21rpx; margin: 0 0 20rpx; }
-.hello-row > text:last-child { color: var(--zy-title); }
+.brand-caption { display: block; font-size: var(--zy-text-micro); color: var(--zy-text); letter-spacing: 2rpx; margin-top: 3rpx; }
+.header-right { display: flex; align-items: center; gap: 20rpx; }
+.bell { position: relative; width: 68rpx; height: 68rpx; min-width: 68rpx; border-radius: 50%; background: var(--zy-card-bg); box-shadow: var(--zy-shadow-card); padding: 0; margin: 0; }
+.bell-dot { position: absolute; top: 14rpx; right: 16rpx; width: 14rpx; height: 14rpx; border-radius: 50%; background: var(--zy-care); border: 3rpx solid var(--zy-card-bg); }
+.avatar { width: 68rpx; height: 68rpx; line-height: 68rpx; padding: 0; border-radius: 50%; background: var(--zy-bg-tint-mint); color: var(--zy-brand-700); font-size: 25rpx; margin: 0; min-width: 88rpx; }
+.hello-row { display: block; color: var(--zy-text); font-size: var(--zy-text-caption); margin: 0 4rpx 36rpx; }
 
-/* ── 主视觉 ── */
-.home-hero { position: relative; overflow: hidden; min-height: 480rpx; border-radius: var(--zy-radius-card); background: var(--zy-bg-tint-mint); border: 1rpx solid var(--zy-border); padding: 40rpx 34rpx; box-sizing: border-box; }
-.hero-copy { position: relative; z-index: 1; max-width: 72%; }
-.eyebrow { display: block; font-size: 17rpx; letter-spacing: 3rpx; color: var(--zy-text); margin-bottom: 14rpx; }
-.hero-title { display: block; font-family: var(--zy-sans); font-size: 53rpx; font-weight: 600; line-height: 1.45; letter-spacing: 3rpx; }
-.hero-note { display: block; font-size: 22rpx; line-height: 1.9; color: var(--zy-text); margin-top: 20rpx; }
-.hero-button { display: flex; justify-content: space-between; gap: 24rpx; width: fit-content; margin: 30rpx 0 0; padding: 0 25rpx; background: var(--zy-primary); border-radius: var(--zy-radius-control); font-size: 23rpx; color: #fff; line-height: 3; }
-.hero-art { position: absolute; right: -190rpx; bottom: 20rpx; width: 610rpx; height: 380rpx; opacity: .8; pointer-events: none; }
-.hero-bottom { position: absolute; bottom: 22rpx; right: 25rpx; font-size: 16rpx; color: var(--zy-text); letter-spacing: 2rpx; }
+/* ── 主视觉（去框化，直接落在纸底） ── */
+.home-hero { position: relative; padding: 20rpx 4rpx 52rpx; }
+.hero-copy { position: relative; z-index: 1; max-width: 68%; }
+.eyebrow { display: block; font-size: var(--zy-text-micro); letter-spacing: 4rpx; color: var(--zy-text); margin-bottom: 20rpx; }
+.hero-title { display: block; font-size: var(--zy-text-display); font-weight: 600; line-height: 1.35; letter-spacing: 2rpx; }
+.hero-note { display: block; font-size: var(--zy-text-caption); line-height: 1.9; color: var(--zy-text); margin-top: 24rpx; }
+.hero-button { margin: 36rpx 0 0; }
+.hero-pet { position: absolute; right: 0; top: 16rpx; }
+.hero-bottom { display: block; margin-top: 24rpx; font-size: var(--zy-text-micro); color: var(--zy-text); letter-spacing: 2rpx; }
 
-/* ── 区块标题 ── */
-.section-head { display: flex; align-items: center; justify-content: space-between; margin: 40rpx 0 20rpx; gap: 16rpx; }
-.section-head .eyebrow { font-size: 16rpx; margin-bottom: 8rpx; }
-.section-title { display: block; font-size: 31rpx; font-weight: 600; letter-spacing: 1rpx; }
-.small-label { font-size: 17rpx; color: var(--zy-text); white-space: nowrap; }
-.plain { background: transparent; padding: 6rpx 12rpx; margin: 0; font-size: 19rpx; color: var(--zy-primary); min-height: 88rpx; }
+/* ── 主行动卡（一主） ── */
+.main-card { display: flex; flex-direction: row; align-items: center; gap: 28rpx; width: 100%; text-align: left; line-height: 1.6; border-radius: var(--zy-radius-feature); }
+.main-card-pet { flex-shrink: 0; }
+.main-card-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.main-card-kicker { font-size: var(--zy-text-micro); letter-spacing: 2rpx; color: var(--zy-brand-700); }
+.main-card-title { font-size: var(--zy-text-title-lg); font-weight: 600; color: var(--zy-title); margin-top: 4rpx; }
+.main-card-sub { font-size: var(--zy-text-caption); color: var(--zy-text); margin-top: 6rpx; }
+.main-card-arrow { width: 68rpx; height: 68rpx; border-radius: 50%; background: var(--zy-brand-600); color: #FFFDF7; font-size: 30rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-/* ── 三行动卡 ── */
-.action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18rpx; }
-.action-card { position: relative; text-align: left; background: var(--zy-card-bg); border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-card); padding: 24rpx 20rpx; margin: 0; line-height: 1.6; min-height: 250rpx; }
-.action-pet { height: 96rpx; margin-bottom: 8rpx; }
-.action-icon { width: 72rpx; height: 72rpx; border-radius: 50%; background: var(--zy-bg-tint-mint); border: 1rpx solid var(--zy-border); display: grid; place-items: center; margin-bottom: 20rpx; }
-.icon-yarn { width: 36rpx; height: 36rpx; border-radius: 50%; background: var(--zy-brand-300); border: 4rpx solid var(--zy-primary); }
-.icon-needle { width: 8rpx; height: 44rpx; border-radius: 4rpx; background: var(--zy-accent); transform: rotate(28deg); }
-.action-kicker { display: block; font-size: 16rpx; color: var(--zy-text); letter-spacing: 2rpx; margin-top: 12rpx; }
-.action-title { display: block; font-size: 27rpx; color: var(--zy-title); font-weight: 600; margin-top: 6rpx; }
-.action-sub { display: block; font-size: 18rpx; color: var(--zy-text); margin-top: 6rpx; }
+/* ── 两次卡 ── */
+.duo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24rpx; margin-top: 24rpx; }
+.duo-card { display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.6; }
+.duo-kicker { font-size: var(--zy-text-micro); letter-spacing: 2rpx; color: var(--zy-accent); }
+.duo-title { font-size: var(--zy-text-title); font-weight: 600; color: var(--zy-title); margin-top: 8rpx; }
+.duo-sub { font-size: var(--zy-text-micro); color: var(--zy-text); margin-top: 8rpx; line-height: 1.6; }
 
 /* ── 心情打卡 ── */
-.mood-card { display: flex; background: var(--zy-card-bg); padding: 25rpx 10rpx; border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-card); justify-content: space-around; }
-.mood { flex: 1; padding: 0 2rpx; background: transparent; font-size: 20rpx; color: var(--zy-text); line-height: 1.8; border-radius: 14rpx; }
-.mood.chosen { background: var(--zy-bg-tint-mint); color: var(--zy-primary); }
-.face { position: relative; width: 59rpx; height: 59rpx; border-radius: 50%; background: #f7e9bf; margin: 0 auto 14rpx; }
-.face-1 { background: var(--zy-bg-tint-mint); }
-.face-2 { background: var(--zy-bg-tint-warm); }
-.face-3 { background: #e7e4ef; }
-.face-4 { background: #e3e9ee; }
-.eyes:before, .eyes:after { content: ''; position: absolute; width: 4rpx; height: 5rpx; border-radius: 50%; background: var(--zy-text); top: 23rpx; }
-.eyes:before { left: 18rpx; }
-.eyes:after { right: 18rpx; }
-.mouth { position: absolute; left: 22rpx; top: 31rpx; width: 16rpx; height: 9rpx; border: 2rpx solid var(--zy-text); border-top: 0; border-radius: 0 0 20rpx 20rpx; }
-.face-2 .mouth { height: 1rpx; border: 0; background: var(--zy-text); top: 36rpx; }
-.face-3 .mouth { height: 8rpx; width: 7rpx; left: 27rpx; border: 2rpx solid var(--zy-text); border-radius: 50%; }
-.face-4 .mouth { transform: rotate(180deg); top: 34rpx; }
-.mood-response { display: flex; gap: 16rpx; align-items: center; font-size: 21rpx; color: var(--zy-text); margin-top: 20rpx; line-height: 1.7; }
-.mood-response button { font-size: 21rpx; white-space: nowrap; background: transparent; padding: 0; color: var(--zy-primary); margin: 0; }
-
-/* ── 连续记录 ── */
-.stats-card { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12rpx; margin-top: 20rpx; background: var(--zy-card-bg); border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-card); padding: 24rpx 10rpx; }
-.stat { text-align: center; }
-.stat-num { display: block; font-size: 36rpx; font-weight: 700; color: var(--zy-primary); font-variant-numeric: tabular-nums; }
-.stat-label { display: block; font-size: 18rpx; color: var(--zy-text); margin-top: 6rpx; }
-
-/* ── 小织陪伴卡 ── */
-.pet-card { display: flex; align-items: center; gap: 20rpx; width: 100%; margin-top: 24rpx; padding: 22rpx 26rpx; background: var(--zy-card-bg); border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-card); text-align: left; line-height: 1.6; }
-.pet-copy { flex: 1; min-width: 0; }
-.pet-label { display: block; font-size: 18rpx; color: var(--zy-text); }
-.pet-title { display: block; font-size: 29rpx; font-weight: 600; color: var(--zy-title); margin-top: 4rpx; }
-.pet-hint { display: block; font-size: 20rpx; color: var(--zy-text); margin-top: 4rpx; }
-.pet-arrow { font-size: 30rpx; color: var(--zy-primary); }
+.mood-row { display: flex; justify-content: space-between; padding: 8rpx 16rpx 0; }
+.mood-response { display: flex; gap: 16rpx; align-items: center; font-size: var(--zy-text-caption); color: var(--zy-text); margin: 24rpx 8rpx 0; line-height: 1.7; }
+.small-label { font-size: var(--zy-text-micro); color: var(--zy-text); white-space: nowrap; }
 
 /* ── 呼吸与音乐 ── */
-.calm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20rpx; margin-top: 24rpx; }
-.practice { position: relative; min-height: 240rpx; border-radius: var(--zy-radius-card); padding: 26rpx 24rpx; text-align: left; line-height: 1.6; margin: 0; overflow: hidden; border: 1rpx solid var(--zy-border); }
-.breath { background: var(--zy-bg-tint-mint); }
-.music { background: var(--zy-bg-tint-warm); }
-.practice-kicker { display: block; font-size: 16rpx; color: var(--zy-text); letter-spacing: 2rpx; margin-top: 76rpx; }
-.practice-title { display: block; font-size: 27rpx; color: var(--zy-title); font-weight: 600; margin-top: 7rpx; }
-.practice-sub { display: block; font-size: 18rpx; color: var(--zy-text); margin-top: 8rpx; }
-.breath-orbit { position: absolute; left: 26rpx; top: 26rpx; border: 1rpx solid var(--zy-primary); width: 68rpx; height: 68rpx; border-radius: 50%; display: grid; place-items: center; }
+.calm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24rpx; margin-top: 48rpx; }
+.practice { position: relative; display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.6; min-height: 240rpx; overflow: hidden; }
+.practice-kicker { display: block; font-size: var(--zy-text-micro); color: var(--zy-text); letter-spacing: 2rpx; margin-top: 88rpx; }
+.practice-title { display: block; font-size: var(--zy-text-title); color: var(--zy-title); font-weight: 600; margin-top: 8rpx; }
+.practice-sub { display: block; font-size: var(--zy-text-micro); color: var(--zy-text); margin-top: 8rpx; }
+.breath-orbit { position: absolute; left: 32rpx; top: 32rpx; border: 2rpx solid var(--zy-brand-600); width: 68rpx; height: 68rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .breath-orbit view { width: 42rpx; height: 42rpx; border-radius: 50%; background: var(--zy-brand-100); }
-.music-symbol { position: absolute; left: 26rpx; top: 22rpx; font-size: 52rpx; color: var(--zy-accent); }
+.music-icon { position: absolute; left: 32rpx; top: 28rpx; }
 
-/* ── 通知卡 ── */
-.notice-card { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; background: var(--zy-card-bg); border: 1rpx dashed var(--zy-border); border-radius: var(--zy-radius-card); padding: 22rpx 26rpx; }
-.notice-text { font-size: 22rpx; color: var(--zy-text); }
-.notice-text-unread { color: var(--zy-title); font-weight: 600; }
-.notice-link { font-size: 22rpx; color: var(--zy-primary); background: transparent; padding: 0; margin: 0; white-space: nowrap; }
+/* ── 推荐 ── */
+.empty-card { display: flex; gap: 16rpx; align-items: center; font-size: var(--zy-text-body); color: var(--zy-text); line-height: 1.8; }
+.feat-card { display: flex; flex-direction: column; width: 100%; padding: 0; overflow: hidden; text-align: left; line-height: 1.6; background: var(--zy-card-bg); box-shadow: var(--zy-shadow-card); }
+.feat-cover { width: 100%; height: 340rpx; overflow: hidden; }
+.feat-body { padding: 28rpx 32rpx 32rpx; display: flex; flex-direction: column; }
+.feat-category { font-size: var(--zy-text-micro); letter-spacing: 2rpx; color: var(--zy-accent); }
+.feat-title { font-size: var(--zy-text-title); font-weight: 600; color: var(--zy-title); margin-top: 8rpx; }
+.feat-meta { font-size: var(--zy-text-micro); color: var(--zy-text); margin-top: 10rpx; }
+.craft-row { display: flex; align-items: center; width: 100%; gap: 24rpx; padding: 24rpx 0; background: transparent; text-align: left; border-bottom: 2rpx dashed var(--zy-stitch); line-height: 1.5; border-radius: 0; margin: 0; }
+.craft-thumb { position: relative; background: var(--zy-bg-tint-mint); border-radius: 16rpx; width: 125rpx; height: 123rpx; flex-shrink: 0; overflow: hidden; }
+.craft-thumb-img { width: 100%; height: 100%; display: block; }
+.craft-copy { flex: 1; min-width: 0; }
+.craft-category { display: block; font-size: var(--zy-text-micro); color: var(--zy-accent); margin-bottom: 6rpx; letter-spacing: 2rpx; }
+.craft-title { display: block; font-size: var(--zy-text-body-lg); color: var(--zy-title); }
+.craft-meta { display: block; font-size: var(--zy-text-micro); color: var(--zy-text); margin-top: 10rpx; }
 
-/* ── 推荐列表 ── */
-.empty-card { padding: 30rpx; background: var(--zy-card-bg); border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-card); font-size: 23rpx; color: var(--zy-text); line-height: 1.8; }
-.empty-card button { font-size: 22rpx; color: var(--zy-primary); background: transparent; }
-.craft-row { display: flex; align-items: center; width: 100%; gap: 22rpx; padding: 20rpx 0; background: transparent; text-align: left; border-bottom: 1rpx solid var(--zy-border); line-height: 1.5; border-radius: 0; margin: 0; }
-.craft-thumb { position: relative; background: var(--zy-bg-tint-mint); border-radius: 16rpx; width: 125rpx; height: 123rpx; flex-shrink: 0; overflow: hidden; display: grid; place-items: center; }
-.craft-thumb image { width: 100%; height: 100%; }
-.thumb-1 { background: var(--zy-bg-tint-warm); }
-.thumb-2 { background: var(--zy-brand-50); }
-.craft-copy { flex: 1; }
-.craft-category { display: block; font-size: 16rpx; color: var(--zy-text); margin-bottom: 7rpx; letter-spacing: 2rpx; }
-.craft-title { display: block; font-size: 27rpx; color: var(--zy-title); }
-.craft-meta { display: block; font-size: 19rpx; color: var(--zy-text); margin-top: 12rpx; }
-.craft-arrow { font-size: 25rpx; color: var(--zy-primary); }
+/* ── 每日寄语（居中衬线，无容器） ── */
+.daily-note { text-align: center; padding: 72rpx 48rpx 8rpx; }
+.quote { display: block; font-size: var(--zy-text-title); color: var(--zy-title); line-height: 2; }
+.note-hint { display: block; font-size: var(--zy-text-micro); color: var(--zy-text); margin-top: 20rpx; }
 
-/* ── 寄语 ── */
-.daily-note { border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-card); padding: 26rpx; margin-top: 26rpx; background: var(--zy-bg-tint-mint); }
-.quote { display: block; font-family: var(--zy-sans); font-size: 28rpx; color: var(--zy-title); line-height: 1.8; }
-.note-hint { display: block; font-size: 17rpx; color: var(--zy-text); margin-top: 14rpx; }
+/* ── 非遗入口（暖金 tint + 回纹角饰） ── */
+.heritage-entry { position: relative; display: flex; flex-direction: row; align-items: center; gap: 18rpx; width: 100%; margin: 48rpx 0 0; text-align: left; line-height: 1.6; color: var(--zy-title); overflow: hidden; border-radius: var(--zy-radius-feature); }
+.heritage-copy { flex: 1; min-width: 0; }
+.eyebrow-heritage { color: var(--zy-accent); margin-bottom: 10rpx; }
+.heritage-title { display: block; font-size: var(--zy-text-title-lg); font-weight: 600; letter-spacing: 2rpx; }
+.heritage-sub { display: block; margin-top: 8rpx; font-size: var(--zy-text-caption); color: var(--zy-text); }
+.heritage-arrow { font-size: 32rpx; color: var(--zy-accent); flex-shrink: 0; }
+.heritage-corner { position: absolute; right: -12rpx; bottom: -12rpx; width: 168rpx; height: 168rpx; opacity: .14; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%237A5C12' stroke-width='2.5'%3E%3Cpath d='M8 76 V44 H40 V76 H24 V60'/%3E%3Cpath d='M44 76 V28 H76 V60 H60 V44'/%3E%3C/g%3E%3C/svg%3E"); background-size: contain; }
 
-/* ── 非遗入口 ── */
-.heritage-entry { display: flex; align-items: center; gap: 18rpx; width: 100%; margin: 22rpx 0 0; padding: 20rpx; background: var(--zy-card-bg); border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-card); text-align: left; line-height: 1.6; color: var(--zy-title); }
-.heritage-entry-art { width: 110rpx; height: 110rpx; flex-shrink: 0; border-radius: 14rpx; background: var(--zy-bg-tint-mint); }
-.heritage-entry-copy { flex: 1; min-width: 0; }
-.heritage-entry-title { display: block; font-size: 28rpx; font-weight: 600; color: var(--zy-title); }
-.heritage-entry-sub { display: block; margin-top: 6rpx; font-size: 21rpx; color: var(--zy-text); }
-.heritage-entry-arrow { font-size: 28rpx; color: var(--zy-primary); }
-.heritage-entry:active { opacity: .84; }
-
-/* ── 探索链接 ── */
-.explore-links { margin-top: 36rpx; border-top: 1rpx solid var(--zy-border); padding-top: 18rpx; }
-.explore-links button { display: flex; justify-content: space-between; background: transparent; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; font-size: 24rpx; color: var(--zy-title); padding: 20rpx 0; line-height: 1.8; }
-.explore-links text { font-size: 18rpx; color: var(--zy-text); }
-.home-foot { display: block; text-align: center; font-size: 18rpx; color: var(--zy-text); margin: 36rpx 0; }
+/* ── 页脚链接与免责 ── */
+.explore-links { margin-top: 48rpx; border-top: 2rpx dashed var(--zy-stitch); padding-top: 24rpx; display: flex; flex-direction: column; gap: 8rpx; align-items: flex-start; }
+.home-foot { display: block; text-align: center; font-size: var(--zy-text-micro); color: var(--zy-text); margin: 48rpx 0 16rpx; }
 
 button::after { border: 0; }
-button:active { opacity: .82; }
-button:focus-visible { outline: 3px solid var(--zy-primary); outline-offset: 3px; }
+button:active { opacity: .9; }
+button:focus-visible { outline: 3px solid var(--zy-brand-700); outline-offset: 3px; }
 .motion-reduced view, .motion-reduced text, .motion-reduced image, .motion-reduced button, .motion-reduced input, .motion-reduced textarea, .motion-reduced label, .motion-reduced scroll-view, .motion-reduced video, .motion-reduced camera, .motion-reduced canvas, .motion-reduced slider, .motion-reduced checkbox, .motion-reduced checkbox-group, .motion-reduced svg, .motion-reduced g, .motion-reduced path, .motion-reduced ellipse, .motion-reduced circle, .motion-reduced defs, .motion-reduced clippath, .motion-reduced lineargradient, .motion-reduced radialgradient, .motion-reduced stop { animation: none !important; transition: none !important; }
 
 @media (min-width: 850px) {
 	.home-page { padding: 28px 48px; }
-	.home-hero { min-height: 310px; padding: 36px 42px; }
 	.hero-title { font-size: 40px; }
 	.hero-copy { max-width: 60%; }
-	.hero-art { width: 620px; height: 380px; right: -30px; bottom: -45px; }
-	.explore-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 25px; }
-	.explore-links button { display: block; text-align: left; }
-	.explore-links text { display: block; margin-top: 10px; }
+	.explore-links { flex-direction: row; gap: 25px; }
 	.practice { min-height: 210px; }
 }
-/* AM1 基线提醒卡：暖底弱提示，与 notice-card 同一视觉量级，不抢主视觉 */
-.nudge-card {
-	display: flex;
-	flex-direction: column;
-	gap: 18rpx;
-	margin-bottom: 28rpx;
-	padding: 28rpx;
-	background: var(--zy-bg-tint-warm, #f7efd9);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: 26rpx;
-}
-.nudge-text { font-size: 26rpx; line-height: 1.8; color: var(--zy-text, #4a5f54); }
-.nudge-action {
-	align-self: flex-start;
-	padding: 10rpx 24rpx;
-	font-size: 24rpx;
-	color: var(--zy-brand-700, #1a645e);
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	border-radius: 999rpx;
-}
-.nudge-action:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 2px; }
-.nudge-disclaimer { font-size: 22rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); opacity: 0.85; }
 </style>

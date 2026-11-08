@@ -33,7 +33,7 @@ defineEmits(['select'])
 </script>
 
 <style scoped>
-.zy-mood { background: transparent; padding: 0 4rpx; margin: 0; line-height: 1.8; border-radius: 16rpx; min-height: 88rpx; }
+.zy-mood { background: transparent; padding: 0 4rpx; margin: 0; line-height: 1.8; border-radius: 16rpx; min-height: 88rpx; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0; }
 .zy-mood-ring { width: 92rpx; height: 92rpx; border-radius: 50%; border: 2rpx dashed transparent; display: flex; align-items: center; justify-content: center; margin: 0 auto 12rpx; transition: border-color 200ms ease-out, background-color 200ms ease-out; }
 .zy-mood.is-selected .zy-mood-ring { border: 2rpx solid var(--zy-brand-600, #217e76); background: var(--zy-bg-tint-mint, #e4efe7); }
 .zy-mood.is-selected .zy-mood-label { color: var(--zy-brand-700, #1a645e); font-weight: 500; }

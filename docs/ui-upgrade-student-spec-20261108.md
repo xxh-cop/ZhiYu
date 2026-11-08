@@ -369,6 +369,18 @@
 - 证据页：`pages/dev/ui-kit.vue`（注册进 pages.json，标题「组件样张（开发）」），全变体全状态渲染；H5 整页截图 `h5-dev-ui-kit-p2.png`，小程序端首屏 `mp-dev-ui-kit-p2.png` + 分段 `mp-dev-ui-kit-{750,1550,2350}-p2.png`。
 - 闸口：wildcard ✓（97 文件）/ isclass ✓（94 文件；`.zy-btn.is-disabled` 曾因模板无字面量被拦，已改为模板内联字面量）/ elements ✓ / contrast 14/14。
 - 既有页面回归：H5 五页 P2 截图与 P1 视觉一致；mp 五页一致。
+- P2 修订（验收后）：禁用态改「浅暖底 #EDE7DA + 中灰字 #8A8378」可辨识容器（不再是低透明度白字）；is-loading 保持变体色；ghost 实测 rgb(26,100,94)=brand-700 与规格一致。
+
+### P3 执行实录（2026-11-08）
+
+- 落码：`pages/home/index.vue` 按 §3.1 重构（13 区块 → 9 可视块）：页头加通知铃铛（未读红点，复用 noticeState）；主视觉去框落纸底 + 衬线 display + 小织 112px + primary lg CTA；行动区一主（薄荷 tint 主卡）两次卡；心情打卡换 MoodFace；统计换 StatStrip + 缝线；推荐首条改 16:10 展品大卡（zy-card--feature）；寄语居中衬线无容器；非遗暖金卡 + 回纹角饰；通知卡/小织陪伴卡/探索链接三块并入页头与页脚；免责声明 micro 档保留。
+- **小程序竖排文字修复**：根因是 AccessibleButton 基座 `display:flex`（默认 row）——小程序端 `<text>` 在 button 内成为 flex item 逐字折行，H5 端 uni-button 自定义元素不触发该路径。修法：卡片类按钮显式 `flex-direction: column/row`；MoodFace 根节点补 `flex-direction: column`。双端影响：修法只是显式声明方向，H5 视觉不变，小程序恢复正常横排。
+- brand-600 文字收敛：首页 9 处清零（文字 6 处改 brand-700/ghost，↗ 箭头字符 3 处随结构移除）；复扫 home 为 ZERO。
+- 验证：mp-weixin build ✓；wildcard ✓ / isclass ✓ / contrast 14/14；H5 五页 + mp 五页截图（home 另有 700/1400/2100 分段）复核无溢出、无控制台异常；首屏 375 宽可见问候+主视觉+CTA+主行动卡。
+- P3 修订（验收后三处）：
+  1. **推荐行缩略图空白（mp）**：排查链——旧代码同症（`mp-home-2100-oldhome.png`，历史问题非本轮回归）；资源在 dist 且 `wx.getImageInfo` 可达；移除产物内 lazy-load 无效；同位置裸 `<image>` 正常（`mp-home-2100-plainimg.png`）；红框探针显示 compact 容器在列表内塌陷为近零尺寸。结论：**自定义组件（CraftCover）在 wx:for 列表项内高度塌陷/不产出可见内容**，仅 compact 场景（非 compact 固定高 310rpx 不受影响）。本轮修法：首页推荐行改用裸 `<image>` + 与 CraftCover 相同的兜底解析（resolveCover），feat 大卡仍用 CraftCover。CraftCover 在列表内的根因留待单独排查（影响面超出首页）。
+  2. **呼吸/音乐卡不等高**：实测双端均等高——H5 CDP 量得两卡各 161px（w 164/160），mp 端两卡标题同 top=1052、同高 26px、行数相同、容器 min-height 240rpx 一致；观感差异来自薄荷/暖金两色亮度差。未改代码。
+  3. 回报措辞更正：P3 脚本层有「新增 journeyItems 纯展示计算属性 + 页头铃铛接线（复用既有 goNotifications/noticeState）」，接口调用与数据加载时机未变。
 
 ---
 
@@ -407,7 +419,7 @@
 
 | 归属 | 文件（行号） | 处数 |
 |---|---|---|
-| **P3 首页** | pages/home/index.vue: 497,513,527,532,559,563 | 6（另 541,573,586 为 ↗ 图形，拟随卡片改造去掉箭头字符） |
+| ~~P3 首页~~（已清零 2026-11-08） | ~~pages/home/index.vue~~ | 0 |
 | **P4 对话页** | pages/emotion/chat.vue: 375,435,515,617,634,662,772 | 7 |
 | **P5 手作详情** | pages/craft/detail.vue: 357,430 | 2 |
 | **P5 收敛·社区/我的相关** | work/list.vue: 403,416,557；work/mine.vue: 36；work/favorites.vue: 40；work/work-detail.css: 7,33,44,68,74,84；work/soft-appeal.vue: 293；profile 页无（已用 accent） | 13 |
