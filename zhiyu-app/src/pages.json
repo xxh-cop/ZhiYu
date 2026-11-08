@@ -13,6 +13,12 @@
       }
     },
     {
+      "path": "pages/dev/ui-kit",
+      "style": {
+        "navigationBarTitleText": "组件样张（开发）"
+      }
+    },
+    {
       "path": "pages/login/forgot",
       "style": {
         "navigationBarTitleText": "找回密码",

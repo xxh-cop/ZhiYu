@@ -336,10 +336,10 @@
 | **P2 组件层** | C1 按钮变体、C3 气泡、C4–C8；`.zy-focused` 焦点方案 | 1.5 人日 | 双端构建通过；首页/对话页走查：键盘 Tab 全元素可达、焦点环可见；按钮变体在至少 2 页实装 | revert |
 | **P3 首页** | §3.1 全部区块 | 1 人日 | 双端真机/模拟器走查：推荐、统计、nudge、未读数渲染与基线一致；reduced-motion 下纹样视差关闭；无横向溢出 | revert |
 | **P4 对话页** | §3.2 | 0.5 人日 | SSE 流式回归（发一条消息看到三点呼吸→气泡流式→完成）；危机卡可触发可关闭；chip 回填可用 | revert |
-| **P5 手作详情** | §3.3 | 0.5 人日 | 封面/步骤/材料渲染；「开始创作」跳转会话页正常；fixed 底栏不遮内容（iPhone SE 尺寸核对） | revert |
+| **P5 手作详情 + brand-600 收敛** | §3.3 + 附录 A 全表（含长尾 105 处） | 1.5 人日 | 封面/步骤/材料渲染；「开始创作」跳转会话页正常；fixed 底栏不遮内容；**附录 A 非豁免项复扫为零** | revert |
 | **P6 社区+我的** | §3.4、§3.5 | 1 人日 | 列表加载/空/错三态走查；徽章 locked 态、菜单跳转正常 | revert |
 | **P7 一致性债** | growth.css 色值走变量、px/rpx 统一、emoji 图标替换、旧阴影令牌删除 | 1 人日 | 全局检索：源码无 `:focus-visible`、无 `#217e76` 等裸 hex（令牌文件除外）、无 `🎤🔊` 等功能 emoji；双端构建通过 | revert |
-| 合计 | | **7 人日**（含每阶段双端构建与走查） | | |
+| 合计 | | **8 人日**（含每阶段双端构建与走查） | | |
 
 **答辩前 / 后划分**：
 
@@ -362,6 +362,13 @@
 - 落码：`design/tokens.json`（neutral 暖化 + stitch/faint + radiusFeature/space3xl/shadow 三档/字阶七档；accent.goldText 与 semantic.warningText 加深为 #7A5C12）、`theme.scss`（同步 + 新增令牌）、新增 `src/styles/zy-toolkit.scss`（字阶/卡片族/缝线/焦点环/纸纹）、`App.vue` 引入、新增 `scripts/check-contrast.js`（14 组，挂 `pnpm check:contrast`）。
 - 规格修正（对比度闸口当场拦住）：brand-600 文字级用途改划给 brand-700；accent #8A6D1F→#7A5C12（14 组实测全绿）。
 - 验证：H5 build ✓ / mp-weixin build ✓；三道闸口全绿（elements 仅 50 条既有死规则警告）；check-contrast 14/14 通过；H5 五页 + mp 五页 P1 截图（`h5-{page}-p1.png` / `mp-{page}-p1.png`）逐页复核：无横向溢出（scrollWidth=375）、无控制台异常、无文字截断重叠。
+
+### P2 执行实录（2026-11-08）
+
+- 落码：`AccessibleButton` 加 `variant`（primary/secondary/ghost/danger/care）× `size`（lg/md/sm/icon）+ `.zy-focused` 焦点环（@focus/@blur 切换，双端生效）；默认 `variant=''` 无样式，既有页面零视觉变化（H5 P2 五页截图与 P1 逐页一致）。新增 6 组件：`ChatBubble`（折角气泡/三点呼吸）、`StitchDivider`、`SectionHead`、`MoodFace`、`StatStrip`、`ChatInputBar`（wd-icon service 替换 🎤）。
+- 证据页：`pages/dev/ui-kit.vue`（注册进 pages.json，标题「组件样张（开发）」），全变体全状态渲染；H5 整页截图 `h5-dev-ui-kit-p2.png`，小程序端首屏 `mp-dev-ui-kit-p2.png` + 分段 `mp-dev-ui-kit-{750,1550,2350}-p2.png`。
+- 闸口：wildcard ✓（97 文件）/ isclass ✓（94 文件；`.zy-btn.is-disabled` 曾因模板无字面量被拦，已改为模板内联字面量）/ elements ✓ / contrast 14/14。
+- 既有页面回归：H5 五页 P2 截图与 P1 视觉一致；mp 五页一致。
 
 ---
 
@@ -390,3 +397,21 @@
 8. 不动任何接口、文案策略、nudge 频次闸门、危机干预流程；免责声明位置与可读性不退步。
 9. 不做小程序自定义 tabbar 皮肤（保留现有 tabbar 配置）。
 10. 本规格评审通过前，不改 `zhiyu-app/src` 任何源码。
+
+---
+
+## 附录 A · brand-600 文字用途收敛清单（2026-11-08 全量扫描，`.ai-tmp/brand600-scan.cjs`）
+
+口径：仅 `color:` 文本用途（border/background 图形用途合规不计）。**总计 133 处 / 53 文件**。P5 结束时清零（豁免项除外）。
+豁免判定：大字级（≥40rpx 且 600）对比度要求仅 3:1，brand-600 实测 4.33 已满足；`↗` 等箭头字符视为图形。
+
+| 归属 | 文件（行号） | 处数 |
+|---|---|---|
+| **P3 首页** | pages/home/index.vue: 497,513,527,532,559,563 | 6（另 541,573,586 为 ↗ 图形，拟随卡片改造去掉箭头字符） |
+| **P4 对话页** | pages/emotion/chat.vue: 375,435,515,617,634,662,772 | 7 |
+| **P5 手作详情** | pages/craft/detail.vue: 357,430 | 2 |
+| **P5 收敛·社区/我的相关** | work/list.vue: 403,416,557；work/mine.vue: 36；work/favorites.vue: 40；work/work-detail.css: 7,33,44,68,74,84；work/soft-appeal.vue: 293；profile 页无（已用 accent） | 13 |
+| **P5 收敛·全局长尾**（growth.css 代与其余页面/组件） | growth.css: 2,3,18；craft/recommend.vue 6；craft/session.vue 4；sub-heritage/studio.vue 13；sub-heritage/detail 2、gallery 1；inheritor/list 5、detail 3、story 2；practice/short 5；settings/memory 4、settings/index 1；start 4；materials/index 2、kits 4；ai/rag-ask 6；emotion/notes 1、note-edit 1、history 1；components 长尾（AiCompanion/BreathingAnimation 2/ChatPanel 3/CompanionNudge/CompanionPanel 3/ListeningSummaryCard 2/MediaVideo/PracticeSessionBar 2/PrivacyConsent/SensoryPractice/XiaozhiCard）；assessment/drawing/journey/music/notification/privacy/tracing/group/crisis 各 1–2；sub-programs 2；App.vue 1 | 105 |
+| **豁免（大字级/图形）** | components/StatStrip.vue: 31（40rpx 600 大字）；pages/support/index.vue: 18（42rpx 600 电话号）；各 ↗ 箭头字符 | 不计入清零 |
+
+> P3–P4 验收时把对应行从本表划去；**P5 结束时本表非豁免项必须为零**（复扫脚本 `.ai-tmp/brand600-scan.cjs` 输出 total=0，或仅余豁免项）。
