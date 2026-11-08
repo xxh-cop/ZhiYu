@@ -199,7 +199,7 @@ const coverKind = computed(() => {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; padding: 0 0 120rpx; box-sizing: border-box; background-color: var(--zy-bg, #f6f1e7); }
+.page { min-height: 100vh; padding: 0 0 240rpx; box-sizing: border-box; background-color: var(--zy-bg, #f6f1e7); }
 
 /* ── 状态区 ── */
 .status-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 0; gap: 24rpx; }
