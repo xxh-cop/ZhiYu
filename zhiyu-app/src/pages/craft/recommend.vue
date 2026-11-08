@@ -235,7 +235,7 @@ function dismiss(item) {
 
 .mood-text {
 	font-size: 24rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 /* ── 推荐理由卡片 ── */
@@ -256,7 +256,7 @@ function dismiss(item) {
 	left: 16rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	opacity: 0.15;
 	line-height: 1;
 }
@@ -281,7 +281,7 @@ function dismiss(item) {
 .reason-label {
 	font-size: 26rpx;
 	font-weight: 500;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .reason-text {
@@ -301,7 +301,7 @@ function dismiss(item) {
 
 .refresh-icon {
 	font-size: 28rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	transition: transform 0.5s ease;
 }
 
@@ -311,7 +311,7 @@ function dismiss(item) {
 
 .refresh-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 /* ── 骨架屏 ── */
@@ -448,7 +448,7 @@ function dismiss(item) {
 
 .tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 /* ── 单项推荐理由 ── */

@@ -247,7 +247,7 @@ function goChat() {
 	display: block;
 	font-size: 48rpx;
 	font-weight: 700;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-family: var(--zy-serif);
 	letter-spacing: 4rpx;
 	margin-bottom: 28rpx;

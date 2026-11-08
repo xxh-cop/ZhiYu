@@ -156,18 +156,18 @@ function leave() {
 .quote-text { display: block; margin-top: 10rpx; font-family: var(--zy-serif); font-size: 27rpx; line-height: 1.85; color: var(--zy-title, #233d34); }
 .quote-note { display: block; margin-top: 10rpx; font-size: 19rpx; color: var(--zy-sub, #4a5f54); }
 .prompt-card { margin-top: 24rpx; padding: 22rpx 24rpx; border: 1rpx dashed var(--zy-border, #dfe7dc); border-radius: 16rpx; }
-.prompt-label { display: block; font-size: 20rpx; letter-spacing: 1rpx; color: var(--zy-primary, #217e76); }
+.prompt-label { display: block; font-size: 20rpx; letter-spacing: 1rpx; color: var(--zy-brand-700, #217e76); }
 .prompt-text { display: block; margin-top: 8rpx; font-size: 24rpx; line-height: 1.8; color: var(--zy-title, #233d34); }
 .sources-card { margin-top: 30rpx; padding-top: 24rpx; border-top: 1rpx solid var(--zy-border, #dfe7dc); }
 .sources-title { display: block; font-size: 22rpx; font-weight: 600; color: var(--zy-title, #233d34); }
 .source-row { margin-top: 14rpx; padding: 16rpx 18rpx; border-radius: 12rpx; background: var(--zy-bg, #f3f6f4); }
 .source-row:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: 2px; }
-.source-title { display: block; font-size: 22rpx; line-height: 1.6; color: var(--zy-primary, #217e76); }
+.source-title { display: block; font-size: 22rpx; line-height: 1.6; color: var(--zy-brand-700, #217e76); }
 .source-org { display: block; margin-top: 4rpx; font-size: 19rpx; line-height: 1.6; color: var(--zy-sub, #4a5f54); }
 .source-url { display: block; margin-top: 4rpx; overflow: hidden; font-size: 18rpx; line-height: 1.5; color: var(--zy-sub, #4a5f54); text-overflow: ellipsis; white-space: nowrap; }
 .boundary-note { display: block; margin-top: 26rpx; font-size: 20rpx; line-height: 1.8; color: var(--zy-sub, #4a5f54); }
 .disclaimer { display: block; margin-top: 26rpx; text-align: center; font-size: 20rpx; color: var(--zy-sub, #4a5f54); }
-.primary-action { min-height: 88rpx; margin-top: 18rpx; border-radius: 999rpx; background: var(--zy-primary, #217e76); color: #fff; font-size: 27rpx; line-height: 2.9; }
+.primary-action { min-height: 88rpx; margin-top: 18rpx; border-radius: 999rpx; background: var(--zy-brand-700, #217e76); color: #fff; font-size: 27rpx; line-height: 2.9; }
 .primary-action::after { border: 0; }
 .text-action { margin-top: 12rpx; background: transparent; color: var(--zy-sub, #4a5f54); font-size: 23rpx; line-height: 2.4; }
 .text-action::after { border: 0; }

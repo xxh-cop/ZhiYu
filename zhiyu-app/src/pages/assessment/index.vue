@@ -35,7 +35,7 @@ function copySource(){uni.setClipboardData({data:active.value.source})}function 
 .scale-badge-text{font-size:24rpx;font-weight:600;color:var(--zy-brand-700,#1a645e)}
 .scale-copy{flex:1;min-width:0}
 .scale-action{flex-shrink:0;margin:0}
-.question{display:block;font-size:34rpx;line-height:1.8;margin:36rpx 0}.source{display:block;color:#217e76;margin-top:20rpx}.growth-row button{flex:1}
+.question{display:block;font-size:34rpx;line-height:1.8;margin:36rpx 0}.source{display:block;color:#1A645E;margin-top:20rpx}.growth-row button{flex:1}
 .source:focus-visible{outline:3px solid var(--zy-primary,#217e76);outline-offset:3px}
 .support-card{display:flex;align-items:center;justify-content:space-between;gap:16rpx;margin-top:32rpx;padding:24rpx 28rpx;background:var(--zy-card-bg,#ffffff);border:1rpx solid var(--zy-border,#dfe7dc);border-radius:22rpx}
 .support-text{font-size:24rpx;line-height:1.7;color:var(--zy-text,#4a5f54)}

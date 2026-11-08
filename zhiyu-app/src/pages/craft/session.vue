@@ -1207,7 +1207,7 @@ function handleBackHome() {
 	display: block;
 	font-size: 22rpx;
 	letter-spacing: 2rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	margin-bottom: 12rpx;
 }
 
@@ -1304,7 +1304,7 @@ function handleBackHome() {
 	margin: 0;
 	padding: 12rpx 24rpx;
 	background: transparent;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 26rpx;
 	line-height: 1.5;
 }
@@ -1330,7 +1330,7 @@ function handleBackHome() {
 	padding: 0 12rpx;
 	margin: 0;
 	background: transparent;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 26rpx;
 	line-height: 1.5;
 }
@@ -1419,7 +1419,7 @@ function handleBackHome() {
 	font-family: var(--zy-serif);
 	font-size: 36rpx;
 	font-weight: 500;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .success-hint {

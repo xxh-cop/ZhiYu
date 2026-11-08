@@ -369,7 +369,7 @@ onMounted(loadGraph)
 
 .tag-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 /* ── 消息项 ── */
@@ -448,7 +448,7 @@ onMounted(loadGraph)
 .source-title {
 	font-size: 24rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .source-excerpt {
@@ -555,17 +555,17 @@ onMounted(loadGraph)
 }
 .map-title { display: block; font-size: 25rpx; font-weight: 600; color: var(--zy-title, #233d34); }
 .map-desc { display: block; margin-top: 4rpx; font-size: 21rpx; color: var(--zy-text, #4a5f54); }
-.map-action { flex-shrink: 0; font-size: 22rpx; color: var(--zy-primary, #217e76); }
+.map-action { flex-shrink: 0; font-size: 22rpx; color: var(--zy-brand-700, #217e76); }
 .map-panel { box-sizing: border-box; width: 100%; height: 52vh; padding: 0 16rpx 16rpx; }
 .map-error { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; padding: 20rpx; font-size: 23rpx; color: #9b4b4b; }
-.map-retry { padding: 8rpx 18rpx; font-size: 22rpx; color: var(--zy-primary, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); border: 0; border-radius: 999rpx; }
+.map-retry { padding: 8rpx 18rpx; font-size: 22rpx; color: var(--zy-brand-700, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); border: 0; border-radius: 999rpx; }
 .answer-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10rpx; margin-top: 12rpx; }
-.mode-chip { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-primary, #217e76); font-size: 20rpx; }
+.mode-chip { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, #217e76); font-size: 20rpx; }
 .mode-note { font-size: 20rpx; color: var(--zy-text, #4a5f54); }
 .source-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12rpx; }
 .source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 6rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 19rpx; }
 .source-org, .source-relation, .source-version, .source-media { display: block; margin-top: 4rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); word-break: break-word; }
-.source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size: 21rpx; color: var(--zy-primary, #217e76); background: transparent; border: 0; text-align: left; }
+.source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size: 21rpx; color: var(--zy-brand-700, #217e76); background: transparent; border: 0; text-align: left; }
 
 @media (min-width: 900px) {
 	.map-card,

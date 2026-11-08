@@ -342,7 +342,7 @@ function leave() {
 .step-preview { margin: 22rpx 0; }
 .preview-row { display: flex; gap: 18rpx; padding: 16rpx 0; border-bottom: 1rpx dashed var(--zy-border, #dfe7dc); }
 .preview-row:last-child { border-bottom: 0; }
-.preview-index { flex-shrink: 0; width: 44rpx; height: 44rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-primary, #217e76); font-size: 21rpx; line-height: 44rpx; text-align: center; }
+.preview-index { flex-shrink: 0; width: 44rpx; height: 44rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-brand-700, #217e76); font-size: 21rpx; line-height: 44rpx; text-align: center; }
 .preview-copy { flex: 1; min-width: 0; }
 .preview-title { display: block; font-size: 25rpx; font-weight: 600; color: var(--zy-title, #233d34); }
 .preview-cue { display: block; margin-top: 6rpx; font-size: 22rpx; line-height: 1.7; color: var(--zy-sub, #73857b); }
@@ -352,9 +352,9 @@ function leave() {
 .safety-note { display: block; margin-bottom: 22rpx; font-size: 21rpx; line-height: 1.7; color: var(--zy-sub, #73857b); }
 .primary-action,
 .secondary-action { min-height: 88rpx; margin-top: 14rpx; border-radius: 999rpx; font-size: 27rpx; line-height: 2.9; }
-.primary-action { background: var(--zy-primary, #217e76); color: #fff; }
+.primary-action { background: var(--zy-brand-700, #217e76); color: #fff; }
 .primary-action.is-disabled { opacity: 0.55; }
-.secondary-action { border: 1rpx solid var(--zy-primary, #217e76); background: transparent; color: var(--zy-primary, #217e76); }
+.secondary-action { border: 1rpx solid var(--zy-brand-700, #217e76); background: transparent; color: var(--zy-brand-700, #217e76); }
 .primary-action::after,
 .secondary-action::after { border: 0; }
 .text-action { margin-top: 14rpx; background: transparent; color: var(--zy-sub, #73857b); font-size: 23rpx; line-height: 2.4; }
@@ -365,17 +365,17 @@ function leave() {
 .breath-area { display: flex; justify-content: center; padding: 28rpx 0 18rpx; }
 .breath-orb { width: 280rpx; height: 280rpx; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #f2faf4, #dbece1 58%, #c7dfd0); display: flex; align-items: center; justify-content: center; box-shadow: 0 16rpx 50rpx rgba(33,126,118,.16); transition: transform 0.8s ease; }
 .breath-orb.breathing { animation: short-breathe 10s ease-in-out infinite; }
-.orb-text { font-size: 23rpx; color: var(--zy-primary, #217e76); }
+.orb-text { font-size: 23rpx; color: var(--zy-brand-700, #217e76); }
 .step-index { display: block; text-align: center; font-size: 20rpx; letter-spacing: 2rpx; color: var(--zy-sub, #73857b); }
 .step-title { display: block; margin-top: 10rpx; text-align: center; font-family: var(--zy-serif); font-size: 36rpx; font-weight: 600; color: var(--zy-title, #233d34); }
 .step-cue { display: block; margin: 16rpx auto 0; max-width: 600rpx; text-align: center; font-size: 24rpx; line-height: 1.9; color: var(--zy-content, #4a5f54); }
-.timer { display: block; margin-top: 18rpx; text-align: center; font-family: var(--zy-sans); font-size: 38rpx; font-variant-numeric: tabular-nums; color: var(--zy-primary, #217e76); }
+.timer { display: block; margin-top: 18rpx; text-align: center; font-family: var(--zy-sans); font-size: 38rpx; font-variant-numeric: tabular-nums; color: var(--zy-brand-700, #217e76); }
 .timer-hint { display: block; margin-top: 6rpx; text-align: center; font-size: 20rpx; color: var(--zy-sub, #73857b); }
 .player-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14rpx; margin-top: 14rpx; }
 .player-actions .primary-action,
 .player-actions .secondary-action { margin-top: 0; }
 .done-card { text-align: center; padding-top: 44rpx; }
-.done-mark { width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-primary, #217e76); font-size: 44rpx; line-height: 96rpx; }
+.done-mark { width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-brand-700, #217e76); font-size: 44rpx; line-height: 96rpx; }
 .done-title { display: block; font-family: var(--zy-serif); font-size: 36rpx; color: var(--zy-title, #233d34); }
 .done-copy { display: block; margin: 14rpx auto 0; max-width: 560rpx; font-size: 24rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .done-meta { display: block; margin: 16rpx 0 10rpx; font-size: 21rpx; color: var(--zy-sub, #73857b); }

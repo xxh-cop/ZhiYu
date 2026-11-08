@@ -32,7 +32,7 @@ onShow(load)
 .campus-input { padding: 0 24rpx; background: var(--zy-card-bg, #ffffff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; box-sizing: border-box; width: 100%; height: 84rpx; display: flex; align-items: center; }
 .campus-input :deep(input) { font-size: 28rpx; color: var(--zy-title, #233d34); }
 .campus-input.is-focused { border-color: var(--zy-brand-600, #217e76); }
-.submit { margin-top: 12rpx; width: 100%; background: var(--zy-brand-600, #217e76); color: #ffffff; border-radius: var(--zy-radius-full, 9999rpx); font-weight: 600; box-shadow: var(--zy-shadow-md, 0 8rpx 24rpx rgba(33, 126, 118, 0.18)); }
+.submit { margin-top: 12rpx; width: 100%; background: var(--zy-brand-600, #1A645E); color: #ffffff; border-radius: var(--zy-radius-full, 9999rpx); font-weight: 600; box-shadow: var(--zy-shadow-md, 0 8rpx 24rpx rgba(33, 126, 118, 0.18)); }
 /* 状态分级：审核中=暖底 / 已通过=薄荷底 / 未通过=绛红边 */
 .status-card { gap: 12rpx; }
 .status-label { font-size: 30rpx; font-weight: 600; }

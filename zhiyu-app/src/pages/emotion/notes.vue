@@ -449,7 +449,7 @@ async function confirmDelete() {
 
 .mood-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-weight: 500;
 }
 

@@ -144,7 +144,7 @@ onLoad(load)
 .heritage-card-copy { display: block; padding: 20rpx 22rpx 24rpx; }
 .heritage-card-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10rpx; }
 .heritage-card-title { font-size: 29rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.heritage-card-tag { flex-shrink: 0; font-size: 20rpx; color: var(--zy-primary, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); border-radius: 8rpx; padding: 2rpx 8rpx; }
+.heritage-card-tag { flex-shrink: 0; font-size: 20rpx; color: var(--zy-brand-700, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); border-radius: 8rpx; padding: 2rpx 8rpx; }
 .heritage-card-meta, .heritage-card-note { display: block; font-size: 22rpx; color: var(--zy-text, #4a5f54); margin-top: 8rpx; }
 .heritage-card-note { font-size: 20rpx; }
 .heritage-card:active { opacity: .86; }

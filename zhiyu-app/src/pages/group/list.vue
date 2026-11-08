@@ -470,7 +470,7 @@ function goCreate() {
 	border: 1rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 24rpx;
 	line-height: 2.6;
 }

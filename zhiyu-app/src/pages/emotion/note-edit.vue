@@ -301,7 +301,7 @@ async function confirmDelete() {
 }
 
 .mood-item--active .mood-label {
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-weight: 500;
 }
 

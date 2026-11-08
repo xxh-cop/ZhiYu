@@ -389,7 +389,7 @@ function goCommunity() {
 .filters { display: inline-flex; gap: 12rpx; }
 .filter-chip { margin: 0; padding: 10rpx 24rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-card-bg, #fff); border: 1rpx solid var(--zy-border, #dfe7dc); color: var(--zy-text, #4a5f54); font-size: 24rpx; line-height: 1.5; }
 .filter-chip::after { border: 0; }
-.filter-chip.active { background: var(--zy-brand-600, #217e76); border-color: var(--zy-brand-600, #217e76); color: #fff; }
+.filter-chip.active { background: var(--zy-brand-600, #1A645E); border-color: var(--zy-brand-600, #1A645E); color: #fff; }
 
 .notice-list { display: flex; flex-direction: column; gap: 16rpx; }
 .notice-item { position: relative; display: flex; align-items: flex-start; gap: 20rpx; width: 100%; margin: 0; padding: 24rpx; box-sizing: border-box; background: var(--zy-card-bg, #fff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: var(--zy-radius-card, 32rpx); line-height: 1.6; text-align: left; }
@@ -401,7 +401,7 @@ function goCommunity() {
  * 顺带兜住 campus_verification（AH 批加了图标字但漏配样式）。 */
 .notice-icon { flex-shrink: 0; width: 64rpx; height: 64rpx; border-radius: var(--zy-radius-full, 9999rpx); display: flex; align-items: center; justify-content: center; font-size: 26rpx; font-weight: 600; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, #1a645e); }
 .icon-work, .icon-comment { background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, #1a645e); }
-.icon-booking, .icon-group { background: var(--zy-brand-50, #eaf4f1); color: var(--zy-brand-600, #217e76); }
+.icon-booking, .icon-group { background: var(--zy-brand-50, #eaf4f1); color: var(--zy-brand-600, #1A645E); }
 .icon-care_reminder { background: var(--zy-bg-tint-warm, #f7efd9); color: var(--zy-accent, #8a6d1f); }
 .notice-main { flex: 1; min-width: 0; }
 .notice-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }

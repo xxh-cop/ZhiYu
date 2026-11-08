@@ -421,7 +421,7 @@ function goProjectDetail(item) {
 
 .skill-text {
 	font-size: 24rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .honor-badge {
@@ -500,7 +500,7 @@ function goProjectDetail(item) {
 	left: 20rpx;
 	font-size: 56rpx;
 	font-family: var(--zy-serif);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	opacity: 0.2;
 	line-height: 1;
 }
@@ -727,7 +727,7 @@ function goProjectDetail(item) {
 	border: 1rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 25rpx;
 	line-height: 2.8;
 }

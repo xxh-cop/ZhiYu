@@ -326,7 +326,7 @@ async function confirmDeleteAll() {
 .memory-switch.on {
 	border-color: var(--zy-primary, #217e76);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 .memory-facts {
 	display: grid;
@@ -359,7 +359,7 @@ async function confirmDeleteAll() {
 .memory-consent.is-checked {
 	border-color: var(--zy-primary, #217e76);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 .memory-check {
 	display: inline-flex;
@@ -394,7 +394,7 @@ async function confirmDeleteAll() {
 .memory-options button.selected {
 	border-color: var(--zy-primary, #217e76);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 .memory-actions {
 	display: flex;
@@ -406,7 +406,7 @@ async function confirmDeleteAll() {
 	margin: 16rpx 0 0;
 	font-size: 22rpx;
 	line-height: 1.7;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 @media (max-width: 420px) {
 	.memory-facts {

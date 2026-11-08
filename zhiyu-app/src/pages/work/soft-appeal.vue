@@ -290,7 +290,7 @@ function goBack() {
 <style scoped>
 .appeal-page { min-height: 100vh; padding: 0 28rpx 120rpx; box-sizing: border-box; background: var(--zy-bg, #f5f7f2); }
 .appeal-nav { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; height: 96rpx; font-size: 28rpx; color: var(--zy-title, #233d34); }
-.appeal-nav .text-btn { padding: 8rpx 0; margin: 0; background: transparent; color: var(--zy-brand-600, #217e76); font-size: 26rpx; }
+.appeal-nav .text-btn { padding: 8rpx 0; margin: 0; background: transparent; color: var(--zy-brand-600, #1A645E); font-size: 26rpx; }
 .appeal-nav .text-btn::after { border: 0; }
 .nav-placeholder { width: 96rpx; flex-shrink: 0; }
 
@@ -314,7 +314,7 @@ function goBack() {
 .appeal-desc { font-size: 24rpx; color: var(--zy-text, #4a5f54); line-height: 1.8; overflow-wrap: anywhere; }
 .reason-field { display: block; }
 .reason-input { width: 100%; height: 180rpx; padding: 20rpx; box-sizing: border-box; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 20rpx; background: var(--zy-bg, #f5f7f2); font-size: 26rpx; line-height: 1.7; color: var(--zy-title, #233d34); }
-.appeal-btn { align-self: flex-start; margin: 4rpx 0 0; padding: 16rpx 44rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-brand-600, #217e76); color: #fff; font-size: 26rpx; line-height: 1.5; }
+.appeal-btn { align-self: flex-start; margin: 4rpx 0 0; padding: 16rpx 44rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-brand-600, #1A645E); color: #fff; font-size: 26rpx; line-height: 1.5; }
 .appeal-btn::after { border: 0; }
 
 .appealed-block { display: flex; flex-direction: column; align-items: flex-start; gap: 14rpx; }

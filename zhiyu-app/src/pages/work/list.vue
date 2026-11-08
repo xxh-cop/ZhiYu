@@ -400,7 +400,7 @@ loadData(1)
 
 .play-icon-text {
 	font-size: 28rpx;
-	color: #217e76;
+	color: #1A645E;
 	margin-left: 4rpx;
 }
 
@@ -413,7 +413,7 @@ loadData(1)
 
 .card-cover-text-label {
 	font-size: 26rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .cover-placeholder {
@@ -554,7 +554,7 @@ loadData(1)
 	border: 1rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 24rpx;
 	line-height: 2.6;
 }

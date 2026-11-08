@@ -777,7 +777,7 @@ function goMine() {
 
 .re-upload-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 /* ── 纯文字提示 ── */
@@ -1045,7 +1045,7 @@ function goMine() {
 
 .preview-tag-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 /* ── 按钮行 ── */
@@ -1134,7 +1134,7 @@ function goMine() {
 	font-family: var(--zy-serif);
 	font-size: 36rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .success-hint {
@@ -1170,7 +1170,7 @@ function goMine() {
 }
 </style>
 
-<style scoped>.upload-actions,.upload-error{padding:20rpx;font-size:25rpx;line-height:1.8}.upload-error{color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button{font-size:24rpx;color:var(--zy-primary);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice{display:block;font-size:23rpx;color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>
+<style scoped>.upload-actions,.upload-error{padding:20rpx;font-size:25rpx;line-height:1.8}.upload-error{color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button{font-size:24rpx;color:var(--zy-brand-700);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice{display:block;font-size:23rpx;color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>
 
 <style scoped>
 .media-tab:focus-visible,

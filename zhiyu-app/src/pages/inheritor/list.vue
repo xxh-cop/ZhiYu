@@ -328,7 +328,7 @@ loadStories()
 
 .search-btn {
 	font-size: 28rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	white-space: nowrap;
 }
 
@@ -498,7 +498,7 @@ loadStories()
 
 .skill-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .card-honor {
@@ -535,7 +535,7 @@ loadStories()
 
 .verified-text {
 	font-size: 22rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .project-count-text {
@@ -597,9 +597,9 @@ loadStories()
 .story-card:last-child { margin-right: 0; }
 .story-index { font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #8a6d1f); }
 .story-title { display: block; margin-top: 8rpx; font-family: var(--zy-serif); font-size: 28rpx; font-weight: 600; line-height: 1.45; color: var(--zy-title, #233d34); }
-.story-meta { display: block; margin-top: 6rpx; font-size: 19rpx; color: var(--zy-primary, #217e76); }
+.story-meta { display: block; margin-top: 6rpx; font-size: 19rpx; color: var(--zy-brand-700, #217e76); }
 .story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size: 21rpx; line-height: 1.7; color: var(--zy-content, #4a5f54); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.story-link { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-primary, #217e76); }
+.story-link { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-brand-700, #217e76); }
 .story-boundary { display: block; margin-top: 12rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
 .story-card:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {

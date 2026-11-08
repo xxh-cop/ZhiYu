@@ -268,7 +268,7 @@ async function handleAgree() {
 .section-heading {
 	font-size: 32rpx;
 	font-weight: 600;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	display: block;
 	margin-bottom: 16rpx;
 }

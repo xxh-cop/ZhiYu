@@ -55,4 +55,4 @@ page {
 @import '@/styles/zy-toolkit.scss';
 </style>
 
-<style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-primary);outline-offset:3px}@media(prefers-reduced-motion:reduce){.zy-page-enter,.zy-skeleton,.zy-slide-up,.zy-elastic{animation:none!important;transition:none!important}}</style>
+<style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-brand-700);outline-offset:3px}@media(prefers-reduced-motion:reduce){.zy-page-enter,.zy-skeleton,.zy-slide-up,.zy-elastic{animation:none!important;transition:none!important}}</style>
