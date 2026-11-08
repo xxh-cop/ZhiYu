@@ -383,6 +383,15 @@
   2. **呼吸/音乐卡不等高**：实测双端均等高——H5 CDP 量得两卡各 161px（w 164/160），mp 端两卡标题同 top=1052、同高 26px、行数相同、容器 min-height 240rpx 一致；观感差异来自薄荷/暖金两色亮度差。未改代码。
   3. 回报措辞更正：P3 脚本层有「新增 journeyItems 纯展示计算属性 + 页头铃铛接线（复用既有 goNotifications/noticeState）」，接口调用与数据加载时机未变。
 
+### P4 执行实录（2026-11-08）
+
+- 落码：`pages/emotion/chat.vue` 按 §3.2 重构。气泡换 `ChatBubble`（折角、暖白/青玉、时间 micro）；流式指示由渐变竖条改三点呼吸；空态加 3 个静态开场白 chip（点击仅回填输入框）；输入区换 `ChatInputBar`（胶囊栏 + service 图标 + 圆形发送钮）；页头去分隔线、标题衬线；危机卡改 `#F7ECEA` 底 + care 变体按钮；免责声明缝线上缘 + micro。
+- **逻辑零改动**（diff 佐证）：脚本区仅 +2 import 与 +3 纯展示声明（OPENERS / fillInput / voiceStateView）；`stores/emotion.js` 无 diff；SSE/重试/语音/危机监听/滚动信号全部原样。
+- brand-600 文字：chat 7 处清零（复扫 ZERO）。
+- 真实对话验证（H5，mock LLM 秒回）：发送「今天有点累，想聊聊」→ 收到 AI 回复、推荐入口出现、provider 标注未出现（mock≠ollama）；`h5-chat-live-{0,1,2}.png`。**流式逐字与输入禁用窗口未能截图取证**：mock 响应 <100ms，100ms 轮询未捕到中间态（绑定 `:disabled="streaming||…"` 静态在码，禁用样式已在 ui-kit 双端验证）。
+- 小程序端：`mp-emotion-chat-hist-0-p4.png`（加载真实会话 2119322095790899201，双气泡/折角/推荐/页头正常）。**mp 端自动化输入未打通**（组件边界挡住 selectorQuery，CDP Input 通道被 IDE 拒绝），发送路径以 H5 为准；键盘遮挡**未验证**（模拟器/真机限制，如实标注）。
+- 闸口：mp-weixin build ✓ / wildcard ✓ / isclass ✓ / elements ✓ / contrast 14/14。
+
 ---
 
 ## 7. 风险与不做清单
@@ -421,7 +430,7 @@
 | 归属 | 文件（行号） | 处数 |
 |---|---|---|
 | ~~P3 首页~~（已清零 2026-11-08） | ~~pages/home/index.vue~~ | 0 |
-| **P4 对话页** | pages/emotion/chat.vue: 375,435,515,617,634,662,772 | 7 |
+| ~~P4 对话页~~（已清零 2026-11-08） | ~~pages/emotion/chat.vue~~ | 0 |
 | **P5 手作详情** | pages/craft/detail.vue: 357,430 | 2 |
 | **P5 收敛·社区/我的相关** | work/list.vue: 403,416,557；work/mine.vue: 36；work/favorites.vue: 40；work/work-detail.css: 7,33,44,68,74,84；work/soft-appeal.vue: 293；profile 页无（已用 accent） | 13 |
 | **P5 收敛·全局长尾**（growth.css 代与其余页面/组件） | growth.css: 2,3,18；craft/recommend.vue 6；craft/session.vue 4；sub-heritage/studio.vue 13；sub-heritage/detail 2、gallery 1；inheritor/list 5、detail 3、story 2；practice/short 5；settings/memory 4、settings/index 1；start 4；materials/index 2、kits 4；ai/rag-ask 6；emotion/notes 1、note-edit 1、history 1；components 长尾（AiCompanion/BreathingAnimation 2/ChatPanel 3/CompanionNudge/CompanionPanel 3/ListeningSummaryCard 2/MediaVideo/PracticeSessionBar 2/PrivacyConsent/SensoryPractice/XiaozhiCard）；assessment/drawing/journey/music/notification/privacy/tracing/group/crisis 各 1–2；sub-programs 2；App.vue 1 | 105 |

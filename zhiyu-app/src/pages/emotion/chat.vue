@@ -1,6 +1,6 @@
 <template>
 	<view class="page" @touchstart="idleArm" @click="idleArm">
-		<view class="chat-header"><XiaotuanPet :size="42" aria-label="小织"/><view><text class="header-name">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><AccessibleButton v-if="emotionStore.sessionId" class="header-help" :disabled="streaming" @click="endConversation">结束倾听</AccessibleButton><AccessibleButton class="header-help" @click="goCrisisPage">寻求支持</AccessibleButton></view>
+		<view class="chat-header"><XiaotuanPet :size="42" aria-label="小织"/><view class="chat-header-copy"><text class="header-name zy-t-serif">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><AccessibleButton v-if="emotionStore.sessionId" variant="ghost" size="sm" class="header-action" :disabled="streaming" @click="endConversation">结束倾听</AccessibleButton><AccessibleButton variant="danger" size="sm" class="header-action" @click="goCrisisPage">寻求支持</AccessibleButton></view>
 		<!-- 对话区 -->
 		<scroll-view
 			class="chat-area"
@@ -14,89 +14,71 @@
 					<view class="welcome-avatar">
 						<XiaotuanPet :size="110" aria-label="小织陪伴你"/>
 					</view>
-					<text class="welcome-title">我在这里陪你</text>
+					<text class="welcome-title zy-t-serif">我在这里陪你</text>
 					<text class="welcome-sub">我是小织，一个耐心的倾听者</text>
 					<text class="welcome-hint">说说今天发生了什么？</text>
+					<view class="welcome-chips">
+						<AccessibleButton v-for="c in OPENERS" :key="c" class="opener-chip" @click="fillInput(c)">{{ c }}</AccessibleButton>
+					</view>
 				</view>
 
 				<view
 					v-for="(msg, idx) in messages"
 					:key="idx"
 					class="msg-row"
-					:class="msg.role === 'user' ? 'msg-right' : 'msg-left'"
 				>
-					<!-- AI 消息：头像 + 气泡 -->
-					<view v-if="msg.role === 'assistant'" class="msg-content">
-						<view class="ai-avatar">
-							<XiaotuanPet :size="30"/>
-							<view class="ai-avatar-dot"></view>
-						</view>
-						<view class="msg-main">
-							<view class="bubble bubble-ai">
-								<text class="bubble-text text-ai">{{ msg.text }}</text>
-								<text v-if="!msg.done" class="typing"></text>
-							</view>
-							<!-- 2026-11-08 装配层批：一次性归属标注——仅本条确为本地模型产出时出现，后续不重复 -->
-							<text v-if="msg.done && msg.provider === 'ollama'" class="msg-provider">本条由校内本地模型生成</text>
-							<text v-if="msg.done" class="msg-time">{{ formatTime(msg) }}</text>
-							<view v-if="msg.done && speechAvailable && msg.text" class="msg-actions">
-								<button
-									class="speak-btn"
-									:class="{ speaking: speakingIndex === idx, 'is-pressed': speakingIndex === idx, 'is-disabled': speechBusy === idx }"
-									:aria-pressed="speakingIndex === idx ? 'true' : 'false'"
-									:disabled="speechBusy === idx"
-									:aria-label="speakingIndex === idx ? '停止朗读这条回复' : '朗读这条回复'"
-									@click="toggleSpeak(msg, idx)"
-								>{{ speechBusy === idx ? '准备语音…' : speakingIndex === idx ? '停止' : '听' }}</button>
-							</view>
-						</view>
-					</view>
+					<ChatBubble
+						v-if="msg.role === 'assistant'"
+						role="ai"
+						:time="msg.done ? formatTime(msg) : ''"
+						:typing="!msg.done && !msg.text"
+					>{{ msg.text }}</ChatBubble>
+					<ChatBubble
+						v-else
+						role="user"
+						:time="formatTime(msg)"
+						:user-initial="userInitial"
+					>{{ msg.text }}</ChatBubble>
 
-						<!-- 用户消息：气泡 + 头像 -->
-						<view v-else class="msg-content msg-content--user">
-							<view class="msg-main msg-main--user">
-								<view class="bubble bubble-user">
-									<text class="bubble-text text-user">{{ msg.text }}</text>
-								</view>
-								<text class="msg-time msg-time--user">{{ formatTime(msg) }}</text>
-							</view>
-							<view class="user-avatar">
-								<text class="user-avatar-text">{{ userInitial }}</text>
-							</view>
+					<!-- AI 消息附加：provider 标注 / 朗读 / 推荐入口（逻辑判定原样保留） -->
+					<template v-if="msg.role === 'assistant'">
+						<!-- 2026-11-08 装配层批：一次性归属标注——仅本条确为本地模型产出时出现，后续不重复 -->
+						<text v-if="msg.done && msg.provider === 'ollama'" class="msg-provider">本条由校内本地模型生成</text>
+						<view v-if="msg.done && speechAvailable && msg.text" class="msg-actions">
+							<button
+								class="speak-btn"
+								:class="{ speaking: speakingIndex === idx, 'is-pressed': speakingIndex === idx, 'is-disabled': speechBusy === idx }"
+								:aria-pressed="speakingIndex === idx ? 'true' : 'false'"
+								:disabled="speechBusy === idx"
+								:aria-label="speakingIndex === idx ? '停止朗读这条回复' : '朗读这条回复'"
+								@click="toggleSpeak(msg, idx)"
+							>{{ speechBusy === idx ? '准备语音…' : speakingIndex === idx ? '停止' : '听' }}</button>
 						</view>
-
-					<!-- 最后一条 assistant 消息完成后，显示推荐入口 -->
-					<view
-						v-if="msg.role === 'assistant' && msg.done && idx === messages.length - 1 && showRecommendBtn"
-						class="recommend-entry"
-						role="button"
-						tabindex="0"
-						aria-label="查看为你推荐的手作"
-						@click="handleRecommend"
-						@keydown.enter.prevent="handleRecommend"
-						@keydown.space.prevent="handleRecommend"
-					>
-						<text class="recommend-text">试试一件手作，让手帮心忙起来 →</text>
-					</view>
+						<!-- 最后一条 assistant 消息完成后，显示推荐入口 -->
+						<AccessibleButton
+							v-if="msg.done && idx === messages.length - 1 && showRecommendBtn"
+							class="recommend-entry"
+							aria-label="查看为你推荐的手作"
+							@click="handleRecommend"
+						>
+							<text class="recommend-text">试试一件手作，让手帮心忙起来 →</text>
+						</AccessibleButton>
+					</template>
 				</view>
 
 			<!-- 危机关怀卡片 -->
 			<view v-if="showCrisisCard" class="crisis-card">
 				<view class="crisis-card-header">
-					<view class="crisis-avatar">
-						<text class="crisis-avatar-text">织</text>
-					</view>
-					<text class="crisis-card-title">小织想对你说</text>
+					<view class="crisis-avatar"><XiaotuanPet :size="30" face="care" /></view>
+					<text class="crisis-card-title zy-t-serif">小织想对你说</text>
 				</view>
 				<text class="crisis-card-text">我在这里陪着你。如果需要，可以联系专业资源。</text>
 				<view class="crisis-card-btns">
-					<view class="crisis-btn crisis-btn-primary" role="button" tabindex="0" aria-label="查看心理援助资源" @click="goCrisisPage" @keydown.enter.prevent="goCrisisPage" @keydown.space.prevent="goCrisisPage">
-						<wd-icon name="phone" size="28rpx" color="#FFFFFF" />
-						<text class="crisis-btn-text">查看心理援助资源</text>
-					</view>
-					<view class="crisis-btn crisis-btn-secondary" role="button" tabindex="0" aria-label="继续聊聊" @click="dismissCrisis" @keydown.enter.prevent="dismissCrisis" @keydown.space.prevent="dismissCrisis">
-						<text class="crisis-btn-text-secondary">继续聊聊</text>
-					</view>
+					<AccessibleButton variant="care" size="md" aria-label="查看心理援助资源" @click="goCrisisPage">
+						<wd-icon name="phone" size="28rpx" color="#FFFDF7" />
+						<text>查看心理援助资源</text>
+					</AccessibleButton>
+					<AccessibleButton variant="secondary" size="md" aria-label="继续聊聊" @click="dismissCrisis">继续聊聊</AccessibleButton>
 				</view>
 			</view>
 
@@ -125,30 +107,13 @@
 		</view>
 
 		<!-- 输入区（固定底部） -->
-		<view class="input-area">
-			<wd-input
-				custom-class="chat-input"
-				v-model="inputText"
-				placeholder="说说你现在的感受..."
-				:disabled="streaming || historyLoading || historyError || isConsentError"
-				confirm-type="send"
-				@confirm="handleSend"
-				no-border
-				custom-style="flex: 1;"
-			/>
-			<view class="voice-btn" @click="handleVoice">
-				<text class="voice-icon">{{voiceState==='recording'?'停止':voiceState==='idle'?'🎤':'处理中'}}</text>
-			</view>
-			<wd-button
-				type="primary"
-				size="small"
-				:disabled="streaming || historyLoading || historyError || isConsentError || !inputText.trim()"
-				@click="handleSend"
-				custom-style="border-radius: 999rpx; min-width: 120rpx;"
-			>
-				发送
-			</wd-button>
-		</view>
+		<ChatInputBar
+			v-model="inputText"
+			:disabled="streaming || historyLoading || historyError || isConsentError"
+			:voice-state="voiceStateView"
+			@send="handleSend"
+			@voice="handleVoice"
+		/>
 
 		<!-- 底部免责声明（固定在输入区下方） -->
 		<view class="footer-disclaimer">
@@ -180,6 +145,8 @@ import XiaotuanPet from '../../components/XiaotuanPet.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import StateBlock from '../../components/StateBlock.vue'
 import CompanionNudge from '../../components/CompanionNudge.vue'
+import ChatBubble from '../../components/ChatBubble.vue'
+import ChatInputBar from '../../components/ChatInputBar.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
 import { useIdleNudge } from '../../composables/useIdleNudge'
@@ -369,463 +336,98 @@ watch(crisisTriggered, (val) => {
 	}
 })
 async function endConversation(){if(streaming.value||!emotionStore.sessionId)return;try{await request({url:'/api/emotion/sessions/'+emotionStore.sessionId+'/state',method:'PUT',data:{action:'END'}});uni.redirectTo({url:'/pages/emotion/history'})}catch(e){emotionStore.errorMsg=e.message}}
+
+/* ── 暖纸青玉 P4：纯展示新增（无逻辑改动） ── */
+// 空状态开场白（静态文案，点击仅回填输入框，不接接口）
+const OPENERS = ['最近静不下心来', '今天有一件开心的小事', '我也不知道从哪说起']
+function fillInput(text) { inputText.value = text }
+// 语音状态映射：useVoiceInput 的 idle/starting/recording/uploading → ChatInputBar 的 ''/recording/processing
+const voiceStateView = computed(() => {
+	const s = voiceState.value
+	if (s === 'recording') return 'recording'
+	if (s === 'starting' || s === 'uploading') return 'processing'
+	return ''
+})
 </script>
 
-<style lang="scss" scoped>
-.chat-companion{width:64rpx;height:80rpx;flex-shrink:0}.chat-header .header-help{font-size:22rpx;padding:8rpx 12rpx;line-height:1.8;background:#e8efe4;border-radius:12rpx}.chat-header{display:flex;align-items:center;gap:20rpx;padding:24rpx 28rpx;border-bottom:1rpx solid var(--zy-border,#e2e9e9);background:var(--zy-card-bg,#fff);flex-shrink:0}.header-avatar{padding:12rpx 20rpx;background:#217e76;color:#fff;border-radius:18rpx}.header-name{display:block;font-size:28rpx;font-weight:600;color:var(--zy-title,#253c36)}.header-state{display:block;font-size:22rpx;color:var(--zy-sub,#708078);margin-top:6rpx}.header-help{font-size:23rpx;color:#217e76;margin-left:auto}.input-area,.footer-disclaimer{flex-shrink:0}
-
+<style scoped>
 .page {
 	display: flex;
 	flex-direction: column;
 	height: calc(100vh - var(--window-top, 0px));
 	overflow: hidden;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #f6f1e7);
 }
+
+/* ── 页头（去底部分隔线） ── */
+.chat-header { display: flex; align-items: center; gap: 20rpx; padding: 24rpx 28rpx; flex-shrink: 0; }
+.chat-header-copy { flex: 1; min-width: 0; }
+.header-name { display: block; font-size: var(--zy-text-body-lg); font-weight: 600; letter-spacing: 1rpx; color: var(--zy-title); white-space: nowrap; }
+.header-state { display: block; font-size: var(--zy-text-micro); color: var(--zy-text); margin-top: 4rpx; }
+.header-action { flex-shrink: 0; margin: 0; }
 
 /* ── 对话区（flex: 1 占满剩余空间） ── */
 .chat-area {
- min-height:0;
- height:0;
+	min-height: 0;
+	height: 0;
 	flex: 1;
 	overflow: hidden;
 }
-
-.chat-list {
-	padding: 24rpx 32rpx;
-}
+.chat-list { padding: 16rpx 32rpx 32rpx; }
 
 /* ── 空状态欢迎区 ── */
-.welcome {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 160rpx 0 120rpx;
-}
+.welcome { display: flex; flex-direction: column; align-items: center; padding: 96rpx 0 64rpx; }
+.welcome-avatar { margin-bottom: 32rpx; }
+.welcome-title { font-size: var(--zy-text-title-lg); font-weight: 600; color: var(--zy-title); letter-spacing: 1rpx; }
+.welcome-sub { margin-top: 12rpx; font-size: var(--zy-text-body); color: var(--zy-brand-700); }
+.welcome-hint { margin-top: 28rpx; font-size: var(--zy-text-caption); color: var(--zy-text); }
+.welcome-chips { display: flex; flex-direction: column; gap: 16rpx; margin-top: 32rpx; align-items: center; }
+.opener-chip { background: transparent; border: 2rpx dashed var(--zy-stitch); color: var(--zy-text); border-radius: 999rpx; padding: 16rpx 32rpx; font-size: var(--zy-text-caption); margin: 0; line-height: 1.6; }
 
-.welcome-avatar {
-	width: 96rpx;
-	height: 96rpx;
-	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5BCFBF));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 32rpx;
-	box-shadow: var(--zy-shadow-sm);
-}
-
-.welcome-avatar-text {
-	font-size: 40rpx;
-	font-weight: 600;
-	color: #FFFFFF;
-	font-family: var(--zy-serif);
-}
-
-.welcome-title {
-	font-size: 44rpx;
-	font-weight: 600;
-	color: var(--zy-title, #233d34);
-	font-family: var(--zy-serif);
-}
-
-.welcome-sub {
-	margin-top: 16rpx;
-	font-size: 28rpx;
-	color: var(--zy-primary, #217e76);
-}
-
-.welcome-hint {
-	margin-top: 32rpx;
-	font-size: 26rpx;
-	color: var(--zy-aid, #4a5f54);
-}
-
-/* ── 消息行 ── */
-.msg-row {
-	margin-bottom: 32rpx;
-	display: flex;
-	flex-direction: column;
-}
-
-.msg-right {
-	align-items: flex-end;
-}
-
-.msg-left {
-	align-items: flex-start;
-}
-
-/* ── 消息内容容器（头像+气泡） ── */
-.msg-content {
-	display: flex;
-	align-items: flex-start;
-	gap: 16rpx;
-	max-width: 100%;
-}
-
-.msg-content--user {
-	flex-direction: row-reverse;
-}
-
-.msg-main {
-	display: flex;
-	flex-direction: column;
-	max-width: 72%;
-}
-
-.msg-main--user {
-	align-items: flex-end;
-}
-
-/* ── 用户头像 ── */
-.user-avatar {
-	width: 64rpx;
-	height: 64rpx;
-	border-radius: 50%;
-	background-color: var(--zy-border, #dfe7dc);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
-.user-avatar-text {
-	font-size: 28rpx;
-	font-weight: 500;
-	color: var(--zy-text, #4a5f54);
-}
-
-/* ── AI 头像 ── */
-.ai-avatar {
-	position: relative;
-	width: 64rpx;
-	height: 64rpx;
-	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
-.ai-avatar-text {
-	font-size: 28rpx;
-	font-weight: 600;
-	color: var(--zy-primary, #217e76);
-	font-family: var(--zy-serif);
-}
-
-.ai-avatar-dot {
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	width: 16rpx;
-	height: 16rpx;
-	border-radius: 50%;
-	background-color: var(--zy-primary, #217e76);
-	border: 3rpx solid #FFFFFF;
-	box-sizing: border-box;
-}
-
-/* ── 气泡 ── */
-.bubble {
-	padding: 24rpx 32rpx;
-	border-radius: 16px;
-	max-width: 100%;
-	width: fit-content;
-	word-break: break-word;
-}
-
-.bubble-user {
-	background-color: var(--zy-primary, #217e76);
-}
-
-.bubble-ai {
-	background-color: #FFFFFF;
-	border: 1px solid var(--zy-border, #dfe7dc);
-	box-shadow: 0 2rpx 8rpx rgba(33, 126, 118, 0.06);
-}
-
-.bubble-text {
-	font-size: 15px;
-	line-height: 1.6;
-}
-
-.text-user {
-	color: #FFFFFF;
-}
-
-.text-ai {
-	color: var(--zy-content, #4a5f54);
-}
-
-/* ── 打字机光标 ── */
-.typing {
-	display: inline-block;
-	width: 6px;
-	height: 18px;
-	margin-left: 3px;
-	vertical-align: text-bottom;
-	border-radius: 2px;
-	background: linear-gradient(180deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
-	animation: blink 0.8s steps(2) infinite;
-}
-
-@keyframes blink {
-	0%, 100% { opacity: 1; }
-	50% { opacity: 0; }
-}
-
-/* ── 时间戳 ── */
-.msg-time {
-	margin-top: 8rpx;
-	font-size: 24rpx;
-	color: var(--zy-aid, #4a5f54);
-}
-
-.msg-time--user {
-	text-align: right;
-}
-
-/* 2026-11-08 装配层批：本地兜底归属与持续轻注（WXSS 方言内，仅类选择器） */
-.msg-provider {
-	display: block;
-	margin-top: 6rpx;
-	font-size: 22rpx;
-	color: var(--zy-aid, #4a5f54);
-	opacity: 0.75;
-}
-
-.local-note {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: center;
-	padding: 10rpx 24rpx;
-	background: var(--zy-primary-bg, #eef6f3);
-	border-top: 1rpx solid var(--zy-border, #d8e5de);
-}
-
-.local-note__text {
-	font-size: 24rpx;
-	color: var(--zy-content, #4a5f54);
-}
-
-.local-note__link {
-	font-size: 24rpx;
-	color: var(--zy-primary, #217e76);
-	font-weight: 600;
-}
-
-.msg-actions {
-	display: flex;
-	gap: 8px;
-	margin-top: 6px;
-}
-
-.speak-btn {
-	min-height: 32px;
-	margin: 0;
-	padding: 0 14px;
-	border: 1px solid var(--zy-border, #dfe7dc);
-	border-radius: 999rpx;
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
-	font-size: 12px;
-	line-height: 32px;
-}
-
-.speak-btn::after {
-	border: 0;
-}
-
-.speak-btn.is-pressed {
-	background: var(--zy-primary, #217e76);
-	color: #fff;
-}
-
-.speak-btn.is-disabled {
-	opacity: 0.6;
-}
+/* ── 消息行（气泡视觉在 ChatBubble 组件） ── */
+.msg-row { display: flex; flex-direction: column; }
+.msg-provider { display: block; margin: -24rpx 0 24rpx 78rpx; font-size: var(--zy-text-micro); color: var(--zy-text); opacity: .75; }
+.msg-actions { display: flex; gap: 16rpx; margin: -20rpx 0 24rpx 78rpx; }
+.speak-btn { min-height: 56rpx; margin: 0; padding: 0 24rpx; border-radius: 999rpx; background: var(--zy-bg-tint-mint); color: var(--zy-brand-700); font-size: var(--zy-text-micro); line-height: 1.6; }
+.speak-btn::after { border: 0; }
+.speak-btn.is-pressed { background: var(--zy-brand-600); color: #FFFDF7; }
+.speak-btn.is-disabled { opacity: .6; }
 
 /* ── 推荐入口 ── */
-.recommend-entry {
-	margin-top: 8px;
-	padding: 10px 16px;
-	border-radius: 12px;
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-}
-
-.recommend-text {
-	font-size: 13px;
-	color: var(--wot-color-theme, #217e76);
-}
+.recommend-entry { align-self: flex-start; margin: -12rpx 0 24rpx 78rpx; padding: 16rpx 28rpx; border-radius: 999rpx; background: var(--zy-bg-tint-mint); box-shadow: var(--zy-shadow-card); line-height: 1.6; }
+.recommend-text { font-size: var(--zy-text-caption); color: var(--zy-brand-700); }
 
 /* ── 错误重试 ── */
-.error-row {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 12px;
-	margin-top: 12px;
-}
+.error-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
+.error-text { font-size: var(--zy-text-caption); color: var(--zy-danger, #a64842); }
 
-.error-text {
-	font-size: 13px;
-	color: var(--zy-danger, #a64842);
-}
+/* ── 本地兜底持续轻注 ── */
+.local-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 12rpx 24rpx; background: var(--zy-bg-tint-mint); border-top: 2rpx dashed var(--zy-stitch); }
+.local-note__text { font-size: var(--zy-text-micro); color: var(--zy-text); }
+.local-note__link { font-size: var(--zy-text-micro); color: var(--zy-brand-700); font-weight: 600; }
 
-/* ── 输入区（固定底部，不被压缩） ── */
-.input-area {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	padding: 16rpx 24rpx;
-	gap: 8px;
-	background-color: #FFFFFF;
-	border-top: 1rpx solid var(--zy-border, #dfe7dc);
-}
-
-.voice-btn {
-	width: 36px;
-	height: 36px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
-.voice-icon {
-	font-size: 20px;
-}
-
-:deep(.chat-input) {
-	flex: 1;
-	background-color: var(--zy-bg, #f5f7f2);
-	border-radius: 12px;
-	padding: 0 12px;
-	height: 40px;
-	font-size: 15px;
-	color: var(--zy-title, #233d34);
-}
-
-/* ── 底部免责声明（固定在输入区下方） ── */
-.footer-disclaimer {
-	flex-shrink: 0;
-	padding: 8rpx 0;
-	text-align: center;
-	background-color: var(--zy-bg, #f5f7f2);
-	padding-bottom: calc(8rpx + constant(safe-area-inset-bottom));
-	padding-bottom: calc(8rpx + env(safe-area-inset-bottom));
-}
-
-.footer-disclaimer-text {
-	font-size: 20rpx;
-	color: var(--zy-aid, #4a5f54);
-}
+/* ── 底部免责声明（缝线上缘 + micro 档） ── */
+.footer-disclaimer { flex-shrink: 0; margin: 0 32rpx; padding: 12rpx 0; padding-bottom: calc(12rpx + constant(safe-area-inset-bottom)); padding-bottom: calc(12rpx + env(safe-area-inset-bottom)); border-top: 2rpx dashed var(--zy-stitch); text-align: center; }
+.footer-disclaimer-text { font-size: var(--zy-text-micro); color: var(--zy-text); }
 
 /* ── 危机关怀卡片 ── */
 .crisis-card {
 	margin: 16rpx 0 24rpx;
 	padding: 32rpx 28rpx;
-	border-radius: 32rpx;
-	background: linear-gradient(135deg, #e8efe4 0%, #FFFFFF 100%);
-	border: 2rpx solid rgba(33, 126, 118, 0.2);
-	box-shadow: 0 4rpx 20rpx rgba(33, 126, 118, 0.08);
+	border-radius: var(--zy-radius-card);
+	background: #F7ECEA;
+	box-shadow: var(--zy-shadow-card);
 	animation: crisisIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-
 @keyframes crisisIn {
 	from { opacity: 0; transform: translateY(16rpx) scale(0.97); }
 	to { opacity: 1; transform: translateY(0) scale(1); }
 }
+.crisis-card-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
+.crisis-avatar { flex-shrink: 0; }
+.crisis-card-title { font-size: var(--zy-text-body-lg); font-weight: 600; color: var(--zy-care); }
+.crisis-card-text { display: block; font-size: var(--zy-text-body); line-height: 1.7; color: var(--zy-title); margin-bottom: 28rpx; }
+.crisis-card-btns { display: flex; flex-direction: column; gap: 16rpx; }
 
-.crisis-card-header {
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
-	margin-bottom: 20rpx;
-}
-
-.crisis-avatar {
-	width: 56rpx;
-	height: 56rpx;
-	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5BCFBF));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
-.crisis-avatar-text {
-	font-size: 26rpx;
-	font-weight: 600;
-	color: #FFFFFF;
-	font-family: var(--zy-serif);
-}
-
-.crisis-card-title {
-	font-size: 30rpx;
-	font-weight: 600;
-	color: var(--zy-primary, #217e76);
-	font-family: var(--zy-serif);
-}
-
-.crisis-card-text {
-	display: block;
-	font-size: 28rpx;
-	line-height: 1.7;
-	color: var(--zy-content, #4a5f54);
-	margin-bottom: 28rpx;
-}
-
-.crisis-card-btns {
-	display: flex;
-	flex-direction: column;
-	gap: 16rpx;
-}
-
-.crisis-btn {
-	height: 76rpx;
-	border-radius: 999rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10rpx;
-	transition: transform 0.2s ease;
-}
-
-.crisis-btn:active {
-	transform: scale(0.97);
-}
-
-.crisis-btn-primary {
-	background: var(--zy-brand-600, #217e76);
-}
-
-.crisis-btn-secondary {
-	background-color: var(--zy-bg, #f5f7f2);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-}
-
-.crisis-btn-text {
-	font-size: 28rpx;
-	font-weight: 500;
-	color: #FFFFFF;
-}
-
-.crisis-btn-text-secondary {
-	font-size: 28rpx;
-	color: var(--zy-aid, #4a5f54);
-}
-</style>
-
-<style scoped>
-.recommend-entry:focus-visible,
-.crisis-btn:focus-visible {
-	outline: 3px solid var(--zy-primary, #217e76);
-	outline-offset: 3px;
-}
+.motion-reduced .crisis-card { animation: none; }
 </style>
