@@ -14,7 +14,7 @@
 			<view class="card-stripe stripe-warm"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-warm">
-					<wd-icon name="phone" size="40rpx" color="var(--zy-accent, #8a6d1f)" />
+					<wd-icon name="call" size="40rpx" color="var(--zy-accent, #8a6d1f)" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ psychCenterName }}</text>
@@ -23,7 +23,7 @@
 			</view>
 			<text class="card-phone">{{ psychCenterPhone }}</text>
 			<view class="card-btn" role="button" tabindex="0" @click="callPhone(psychCenterPhone)" @keydown.enter.prevent="callPhone(psychCenterPhone)" @keydown.space.prevent="callPhone(psychCenterPhone)">
-				<wd-icon name="phone" size="32rpx" color="#FFFFFF" />
+				<wd-icon name="call" size="32rpx" color="#FFFFFF" />
 				<text class="card-btn-text">拨打电话</text>
 			</view>
 		</view>
@@ -34,7 +34,7 @@
 			<view class="card-stripe stripe-mint"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-mint">
-					<wd-icon name="phone" size="40rpx" color="#217e76" />
+					<wd-icon name="call" size="40rpx" color="#217e76" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ nationalHotlineName }}</text>
@@ -43,7 +43,7 @@
 			</view>
 			<text class="card-phone">{{ nationalHotline }}</text>
 			<view class="card-btn card-btn-mint" role="button" tabindex="0" @click="callPhone(nationalHotline)" @keydown.enter.prevent="callPhone(nationalHotline)" @keydown.space.prevent="callPhone(nationalHotline)">
-				<wd-icon name="phone" size="32rpx" color="#FFFFFF" />
+				<wd-icon name="call" size="32rpx" color="#FFFFFF" />
 				<text class="card-btn-text">拨打电话</text>
 			</view>
 		</view>

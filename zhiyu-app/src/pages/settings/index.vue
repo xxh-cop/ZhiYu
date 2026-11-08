@@ -128,7 +128,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 3">
 			<view class="card-head">
 				<view class="card-icon-wrap card-icon-security">
-					<wd-icon name="lock" size="32rpx" color="#FFFFFF" />
+					<wd-icon name="lock-on" size="32rpx" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">修改密码</text>
 			</view>
@@ -250,7 +250,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 6">
 			<view class="card-head">
 				<view class="card-icon-wrap card-icon-memory">
-					<wd-icon name="sparkles" size="32rpx" color="#FFFFFF" />
+					<wd-icon name="tips" size="32rpx" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">陪伴小提示</text>
 			</view>

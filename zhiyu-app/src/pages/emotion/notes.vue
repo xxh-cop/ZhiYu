@@ -58,7 +58,7 @@
 				<!-- 底部心情标签 -->
 				<view v-if="item.mood" class="mood-tag-row">
 					<view class="mood-tag">
-						<text class="mood-tag-text">{{ item.mood }}</text>
+						<text class="mood-tag-text">{{ moodLabel(item.mood) }}</text>
 					</view>
 				</view>
 			</view>
@@ -114,6 +114,15 @@ const MOOD_MAP = {
 	'neutral': '😐',
 	'tired': '😮💨',
 	'down': '😕',
+}
+
+/* 后端 mood 存英文枚举 key，展示一律映射为中文（MOOD_MAP 已兼容中文 key，二者并存时以中文为准） */
+const MOOD_LABELS = {
+	'happy': '开心',
+	'calm': '平静',
+	'neutral': '一般',
+	'tired': '有点累',
+	'down': '不太好',
 }
 
 const MOOD_GRADIENTS = {
@@ -190,6 +199,11 @@ async function loadMore() {
 function moodEmoji(mood) {
 	if (!mood) return '📝'
 	return MOOD_MAP[mood] || '📝'
+}
+
+function moodLabel(mood) {
+	if (!mood) return ''
+	return MOOD_LABELS[mood] || mood
 }
 
 function moodGradient(mood) {
@@ -437,6 +451,7 @@ async function confirmDelete() {
 .mood-tag-row {
 	margin-top: 16rpx;
 	padding-top: 16rpx;
+	margin-bottom: 8rpx;
 	border-top: 1rpx solid var(--zy-border, #dfe7dc);
 }
 

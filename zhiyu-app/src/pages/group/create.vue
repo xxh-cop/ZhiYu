@@ -3,7 +3,7 @@
 		<!-- 顶部品牌区 -->
 		<view class="hero zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<view class="hero-icon-wrap">
-				<wd-icon name="group" size="48rpx" color="#FFFFFF" />
+				<wd-icon name="usergroup" size="48rpx" color="#FFFFFF" />
 			</view>
 			<text class="hero-title">创建互助小组</text>
 			<text class="hero-sub">找到志同道合的伙伴，一起成长</text>

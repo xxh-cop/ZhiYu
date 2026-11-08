@@ -218,7 +218,7 @@
 				<!-- AI 寄语提示 -->
 				<view class="ai-hint">
 					<view class="ai-hint-icon-wrap">
-						<wd-icon name="sparkles" size="36rpx" color="#217e76" />
+						<wd-icon name="tips" size="36rpx" color="#217e76" />
 					</view>
 					<view class="ai-hint-info">
 						<text class="ai-hint-title">AI 寄语</text>

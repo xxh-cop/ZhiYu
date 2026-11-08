@@ -31,7 +31,7 @@
 							<text class="skill-text">{{ inheritor.skill }}</text>
 						</view>
 						<view v-if="inheritor.honor" class="honor-badge">
-							<wd-icon name="medal" size="24rpx" color="var(--zy-accent, #8a6d1f)" />
+							<wd-icon name="star-filled" size="24rpx" color="var(--zy-accent, #8a6d1f)" />
 							<text class="honor-text">{{ inheritor.honor }}</text>
 						</view>
 					</view>

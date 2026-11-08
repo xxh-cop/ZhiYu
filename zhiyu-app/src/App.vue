@@ -55,4 +55,29 @@ page {
 @import '@/styles/zy-toolkit.scss';
 </style>
 
-<style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-brand-700);outline-offset:3px}@media(prefers-reduced-motion:reduce){.zy-page-enter,.zy-skeleton,.zy-slide-up,.zy-elastic{animation:none!important;transition:none!important}}</style>
+<style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-brand-700);outline-offset:3px}/* #ifdef H5 */
+/* wot-design-uni 图标字体 name 规则在 vite scoped 编译下被挂到单一 data-v 作用域，其他页面 content 缺失呈方框（2026-11-08 实测）；此处全局补一份无 scope 的码点表，仅覆盖项目用到的 23 个 name。mp 端组件样式隔离机制正常，不受影响。*/
+.wd-icon-add::before { content: "\e65c"; }
+.wd-icon-arrow-right::before { content: "\e655"; }
+.wd-icon-arrow-up::before { content: "\e61d"; }
+.wd-icon-chat::before { content: "\e647"; }
+.wd-icon-check::before { content: "\e64e"; }
+.wd-icon-check-circle-filled::before { content: "\e6fa"; }
+.wd-icon-edit::before { content: "\e72f"; }
+.wd-icon-fullsreen::before { content: "\e72c"; }
+.wd-icon-usergroup::before { content: "\e73f"; }
+.wd-icon-heart::before { content: "\e68f"; }
+.wd-icon-image::before { content: "\e69a"; }
+.wd-icon-lock-on::before { content: "\e690"; }
+.wd-icon-star-filled::before { content: "\e67e"; }
+.wd-icon-notification::before { content: "\e694"; }
+.wd-icon-call::before { content: "\e69d"; }
+.wd-icon-picture::before { content: "\e637"; }
+.wd-icon-search::before { content: "\e63e"; }
+.wd-icon-service::before { content: "\e682"; }
+.wd-icon-setting::before { content: "\e621"; }
+.wd-icon-tips::before { content: "\e683"; }
+.wd-icon-star::before { content: "\e686"; }
+.wd-icon-user::before { content: "\e73d"; }
+.wd-icon-video::before { content: "\e62e"; }
+/* #endif */@media(prefers-reduced-motion:reduce){.zy-page-enter,.zy-skeleton,.zy-slide-up,.zy-elastic{animation:none!important;transition:none!important}}</style>

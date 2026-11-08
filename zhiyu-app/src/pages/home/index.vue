@@ -6,8 +6,7 @@
 				<view class="wordmark">
 					<image src="/static/logo.png" aria-hidden="true"/>
 					<view>
-						<text class="brand-name">织愈</text>
-						<text class="brand-caption">给自己，一点慢时光</text>
+						<text class="brand-name">给自己，一点慢时光</text>
 					</view>
 				</view>
 				<view class="header-right">
