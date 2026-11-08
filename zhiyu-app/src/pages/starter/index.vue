@@ -1,5 +1,5 @@
 <template>
- <view class="growth-page" :class="{'motion-reduced':reducedMotion}">
+	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
   <view class="growth-hero"><text class="growth-eyebrow">FIRST MAKING · 手作起点</text><text class="growth-title">用手边的材料，做一件小作品</text><text class="growth-subtitle">选好时间和场所，小织陪你从准备走到完成。</text></view>
   <view v-if="active.length" class="growth-card resume-card"><text class="growth-card-title">接着上次的进度</text><AccessibleButton v-for="s in active" :key="s.sessionId" class="resume-row" @click="resume(s)"><text>{{s.projectTitle}}</text><text class="growth-muted">第 {{s.currentStep}} / {{s.totalSteps}} 步 · 继续 →</text></AccessibleButton></view>
   <view v-if="resumeError" class="growth-error">{{resumeError}}<AccessibleButton class="growth-button secondary" @click="loadActive">重新读取进度</AccessibleButton></view>

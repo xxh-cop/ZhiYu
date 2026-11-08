@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部标题 -->
 		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="page-title">非遗传承人</text>

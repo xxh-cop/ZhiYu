@@ -61,7 +61,7 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 	display: flex;
 	align-items: center;
 	gap: 16rpx;
-	background: var(--zy-card-bg, #fffdf7);
+	background: var(--zy-card-bg, #ffffff);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 12rpx 16rpx 12rpx 32rpx;
 	box-shadow: var(--zy-shadow-card);
@@ -69,5 +69,5 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 .zy-inputbar-input { flex: 1; min-height: 64rpx; font-size: var(--zy-text-body, 28rpx); color: var(--zy-title, #33302a); background: transparent; }
 .zy-inputbar-voice { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; border-radius: 50%; background: transparent; padding: 0; margin: 0; }
 .zy-inputbar-voice-text { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
-.zy-inputbar-send { font-size: 30rpx; color: #FFFDF7; }
+.zy-inputbar-send { font-size: 30rpx; color: #FFFFFF; }
 </style>

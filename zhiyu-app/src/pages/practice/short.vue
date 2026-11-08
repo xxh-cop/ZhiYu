@@ -1,5 +1,5 @@
 <template>
-	<view class="short-page zy-page-enter">
+	<view :class="zyThemeClass" class="short-page zy-page-enter">
 		<view class="short-nav">
 			<AccessibleButton class="back-btn" aria-label="返回上一页" @click="leave">‹ 返回</AccessibleButton>
 			<text class="nav-kind">{{ practice ? practiceKindLabel(practice.kind) : '短练习' }}</text>

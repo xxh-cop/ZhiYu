@@ -1,5 +1,5 @@
 <template>
-	<view class="page" @touchstart="idleArm" @click="idleArm">
+	<view :class="zyThemeClass" class="page" @touchstart="idleArm" @click="idleArm">
 		<view class="chat-header"><XiaotuanPet :size="42" aria-label="小织"/><view class="chat-header-copy"><text class="header-name zy-t-serif">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><AccessibleButton v-if="emotionStore.sessionId" variant="ghost" size="sm" class="header-action" :disabled="streaming" @click="endConversation">结束倾听</AccessibleButton><AccessibleButton variant="danger" size="sm" class="header-action" @click="goCrisisPage">寻求支持</AccessibleButton></view>
 		<!-- 对话区 -->
 		<scroll-view
@@ -75,7 +75,7 @@
 				<text class="crisis-card-text">我在这里陪着你。如果需要，可以联系专业资源。</text>
 				<view class="crisis-card-btns">
 					<AccessibleButton variant="care" size="md" aria-label="查看心理援助资源" @click="goCrisisPage">
-						<wd-icon name="phone" size="28rpx" color="#FFFDF7" />
+						<wd-icon name="phone" size="28rpx" color="#FFFFFF" />
 						<text>查看心理援助资源</text>
 					</AccessibleButton>
 					<AccessibleButton variant="secondary" size="md" aria-label="继续聊聊" @click="dismissCrisis">继续聊聊</AccessibleButton>
@@ -356,7 +356,7 @@ const voiceStateView = computed(() => {
 	flex-direction: column;
 	height: calc(100vh - var(--window-top, 0px));
 	overflow: hidden;
-	background-color: var(--zy-bg, #f6f1e7);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 页头（去底部分隔线） ── */
@@ -390,7 +390,7 @@ const voiceStateView = computed(() => {
 .msg-actions { display: flex; gap: 16rpx; margin: -20rpx 0 24rpx 78rpx; }
 .speak-btn { min-height: 56rpx; margin: 0; padding: 0 24rpx; border-radius: 999rpx; background: var(--zy-bg-tint-mint); color: var(--zy-brand-700); font-size: var(--zy-text-micro); line-height: 1.6; }
 .speak-btn::after { border: 0; }
-.speak-btn.is-pressed { background: var(--zy-brand-600); color: #FFFDF7; }
+.speak-btn.is-pressed { background: var(--zy-brand-600); color: #FFFFFF; }
 .speak-btn.is-disabled { opacity: .6; }
 
 /* ── 推荐入口 ── */

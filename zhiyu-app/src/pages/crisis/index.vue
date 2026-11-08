@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 温暖头部 -->
 		<view class="hero zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<view class="hero-circle">

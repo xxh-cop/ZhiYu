@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view :class="zyThemeClass" class="page">
 		<!-- 顶部品牌区 -->
 		<view class="hero zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<view class="hero-icon-wrap">

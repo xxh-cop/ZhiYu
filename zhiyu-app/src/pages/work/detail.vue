@@ -1,5 +1,5 @@
 <template>
-	<view class="detail-page">
+	<view :class="zyThemeClass" class="detail-page">
 		<view class="detail-nav">
 			<AccessibleButton class="text-btn" @click="goBack">‹ {{ fromMine ? '返回我的作品' : '返回社区' }}</AccessibleButton>
 			<text>织愈 · 创作故事</text>

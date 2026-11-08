@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 日期区 -->
 		<view class="date-section zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="date-big">{{ todayStr }}</text>

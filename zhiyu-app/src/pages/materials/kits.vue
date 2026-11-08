@@ -1,5 +1,5 @@
 <template>
-	<view class="kits-page zy-page-enter">
+	<view :class="zyThemeClass" class="kits-page zy-page-enter">
 		<view class="kits-nav">
 			<AccessibleButton class="back-btn" aria-label="返回材料探索" @click="leave">‹ 返回</AccessibleButton>
 			<text class="nav-label">工作坊材料包</text>

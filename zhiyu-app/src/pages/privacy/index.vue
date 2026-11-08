@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view :class="zyThemeClass" class="page">
 		<scroll-view scroll-y class="scroll-area">
 			<view class="policy-container">
 				<!-- 顶部封面 -->

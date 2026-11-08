@@ -1,5 +1,5 @@
 <template>
-<view class="growth-page programs-page" :class="{'motion-reduced':reducedMotion}">
+	<view class="growth-page programs-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
  <view class="program-hero"><view class="hero-copy"><text class="growth-eyebrow">一起创作 · 让陪伴发生</text><text class="growth-title">为自己留一段时间</text><text class="growth-subtitle">从一次手作开始，找到适合你的节奏。</text><view class="hero-pills"><text>真实相聚</text><text>自主选择</text><text>温和陪伴</text></view></view><XiaotuanPet :size="88" face="calm" class="companion" aria-hidden="true"/></view>
  <view v-if="upcoming.length&&!loading" class="next-plan"><view><text class="section-kicker">下一段安排 · {{upcoming.length}} 项待参加</text><text class="plan-title">{{upcoming[0].title}}</text><text class="growth-muted">{{format(upcoming[0].start_time)}} · {{status[upcoming[0].myStatus]}}</text></view><AccessibleButton class="text-button" @click="filter='MINE';query=''">查看预约</AccessibleButton></view>
  <AccessibleButton class="growth-button secondary" @click="goConversations">我的预约交流</AccessibleButton><view class="catalog-head"><view><text class="section-kicker">EXPLORE TOGETHER</text><text class="section-title">发现适合你的体验</text></view><AccessibleButton class="text-button" :disabled="loading||!!busy" @click="load">{{loading?'更新中…':'刷新'}}</AccessibleButton></view>

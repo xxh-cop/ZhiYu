@@ -1,5 +1,5 @@
 <template>
-	<view class="story-page zy-page-enter">
+	<view :class="zyThemeClass" class="story-page zy-page-enter">
 		<view class="story-nav">
 			<AccessibleButton class="back-btn" aria-label="返回传承人列表" @click="leave">‹ 返回</AccessibleButton>
 			<text class="nav-label">手艺人的故事</text>

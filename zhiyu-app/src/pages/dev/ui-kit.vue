@@ -5,7 +5,7 @@
 		MoodFace；StatStrip；ChatBubble；ChatInputBar。
 		双端可看：H5 /pages/dev/ui-kit，小程序同名路径。
 	-->
-	<view class="kit-page">
+	<view class="kit-page" :class="zyThemeClass">
 		<text class="kit-h1">暖纸青玉 · 组件样张</text>
 
 		<!-- C1 AccessibleButton -->
@@ -110,14 +110,14 @@ function onVoice() { voiceState.value = voiceState.value === 'recording' ? '' : 
 </script>
 
 <style scoped>
-.kit-page { min-height: 100vh; padding: 40rpx 32rpx 96rpx; background: var(--zy-bg, #f6f1e7); }
+.kit-page { min-height: 100vh; padding: 40rpx 32rpx 96rpx; background: var(--zy-bg, #ffffff); }
 .kit-h1 { display: block; font-size: var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-title, #33302a); margin-bottom: 16rpx; }
 .kit-h2 { display: block; font-size: var(--zy-text-caption, 24rpx); letter-spacing: 2rpx; color: var(--zy-text, #5c5648); margin: 48rpx 0 20rpx; }
 .kit-col { display: flex; flex-direction: column; gap: 20rpx; align-items: flex-start; }
 .kit-row { display: flex; align-items: center; gap: 20rpx; flex-wrap: wrap; }
 .kit-card-t { font-size: var(--zy-text-body, 28rpx); color: var(--zy-title, #33302a); }
 .zy-card { margin-bottom: 20rpx; }
-.kit-feature { padding: 32rpx; background: var(--zy-card-bg, #fffdf7); box-shadow: var(--zy-shadow-card); }
+.kit-feature { padding: 32rpx; background: var(--zy-card-bg, #ffffff); box-shadow: var(--zy-shadow-card); }
 .kit-stitch-row { height: 60rpx; }
 .kit-note { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
 .kit-moods { justify-content: space-between; }

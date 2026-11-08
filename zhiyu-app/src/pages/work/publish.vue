@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view :class="zyThemeClass" class="page">
 		<!-- 步骤指示器 -->
 		<view class="step-indicator">
 			<view

@@ -1,5 +1,5 @@
 <template>
- <view class="growth-page" :class="{'motion-reduced':reducedMotion}">
+	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
   <view class="growth-hero"><text class="growth-eyebrow">SLOW COLOR · 自由绘色</text><text class="growth-title">把想象，慢慢画出来</text><text class="growth-subtitle">选择纹样，轻点上色。AI 可以搭配几何结构，不会解读你的心理。</text></view>
   <view class="growth-card"><text class="growth-card-title">原创纹样资源</text><view class="growth-row"><AccessibleButton v-for="c in ['全部','花叶','几何']" :key="c" :aria-pressed="patternCategory===c" @click="patternCategory=c">{{c}}</AccessibleButton></view><view class="pattern-library"><AccessibleButton v-for="p in filteredPatterns" :key="p.id" :disabled="busy" @click="usePattern(p)"><text>{{p.name}}</text><text class="growth-muted">{{p.category}} · {{p.level}} · {{p.petals*p.rings+1}} 块</text></AccessibleButton></view><text class="growth-muted">项目原创几何构图，可自由使用；不标注为真实非遗文物复刻。</text></view>
   <view class="growth-card">

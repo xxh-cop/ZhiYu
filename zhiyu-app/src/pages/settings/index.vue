@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 页面标题 -->
 		<view class="page-header zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="page-title">个人设置</text>
@@ -265,6 +265,33 @@
 			>{{ stuckGuideBusy ? '正在保存…' : stuckGuideEnabled ? '已开启 · 点按关闭' : '已关闭 · 点按开启' }}</AccessibleButton>
 		</view>
 
+		<!-- 页面配色（2026-11-08 主题切换）：云白默认 / 暖纸可选，选择持久化，全站即时生效 -->
+		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 7">
+			<view class="card-head">
+				<view class="card-icon-wrap card-icon-memory">
+					<wd-icon name="picture" size="32rpx" color="#FFFFFF" />
+				</view>
+				<text class="section-heading">页面配色</text>
+			</view>
+			<text class="memory-entry-text">选择你看着舒服的底色，立即生效，下次打开会记住。</text>
+			<view class="theme-options" role="radiogroup" aria-label="页面配色">
+				<AccessibleButton
+					v-for="opt in THEME_OPTIONS"
+					:key="opt.value"
+					class="theme-option"
+					:class="{ 'is-selected': themeStore.theme === opt.value }"
+					role="radio"
+					:aria-checked="themeStore.theme === opt.value"
+					:aria-label="'切换到' + opt.name"
+					@click="themeStore.setTheme(opt.value)"
+				>
+					<view class="theme-swatch" :class="'theme-swatch-' + opt.value" aria-hidden="true"></view>
+					<text class="theme-option-name">{{ opt.name }}</text>
+					<text class="theme-option-desc">{{ opt.desc }}</text>
+				</AccessibleButton>
+			</view>
+		</view>
+
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 		<Toast />
@@ -277,6 +304,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import { invalidate, TTL_KEYS } from '../../utils/ttlCache'
 import { useUserStore } from '../../stores/user'
+import { useThemeStore } from '../../stores/theme'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
 import Toast from '../../components/Toast.vue'
 import FormField from '../../components/FormField.vue'
@@ -293,6 +321,12 @@ const ROLE_LABEL = {
 }
 
 const userStore = useUserStore()
+const themeStore = useThemeStore()
+
+const THEME_OPTIONS = [
+	{ value: 'white', name: '云白', desc: '干净的白底（默认）' },
+	{ value: 'warm', name: '暖纸', desc: '像棉纸一样的米色底' },
+]
 
 const form = ref({
 	nickname: '',
@@ -831,4 +865,16 @@ async function handleChangePassword() {
 	color: var(--zy-text, #4a5f54);
 	background: var(--zy-bg, #f5f7f2);
 }
+
+/* ── 页面配色选项 ── */
+.theme-options { display: flex; gap: 20rpx; margin-top: 20rpx; }
+.theme-option { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 8rpx; padding: 20rpx; border-radius: var(--zy-radius-card); background: var(--zy-card-bg); border: 2rpx solid var(--zy-border); margin: 0; line-height: 1.6; text-align: left; }
+.theme-option.is-selected { border-color: var(--zy-brand-600); }
+.theme-swatch { width: 100%; height: 72rpx; border-radius: 16rpx; border: 2rpx solid var(--zy-border); }
+/* 色板为两主题的展示样本，刻意硬编码展示色，不随当前主题变化 */
+.theme-swatch-white { background: #FFFFFF; }
+.theme-swatch-warm { background: #F6F1E7; }
+.theme-option-name { font-size: var(--zy-text-body); font-weight: 600; color: var(--zy-title); }
+.theme-option.is-selected .theme-option-name { color: var(--zy-brand-700); }
+.theme-option-desc { font-size: var(--zy-text-micro); color: var(--zy-text); }
 </style>

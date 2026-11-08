@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 骨架屏 -->
 		<view v-if="loading && !inheritor" class="skeleton-wrap">
 			<view class="skeleton-avatar zy-skeleton"></view>

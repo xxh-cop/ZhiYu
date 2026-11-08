@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部品牌区 -->
 		<view class="brand-header zy-slide-up zy-stagger" style="--stagger-i: 0">
 			<text class="brand-title">作品社区</text>

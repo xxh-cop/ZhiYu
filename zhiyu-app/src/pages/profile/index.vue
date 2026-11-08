@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view :class="zyThemeClass" class="page">
 		<!-- ① 我是谁：身份区 -->
 		<view class="profile-card zy-slide-up">
 			<view class="card-accent" aria-hidden="true" />

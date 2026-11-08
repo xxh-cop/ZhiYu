@@ -1,5 +1,5 @@
 <template>
-	<view class="appeal-page">
+	<view :class="zyThemeClass" class="appeal-page">
 		<view class="appeal-nav">
 			<AccessibleButton class="text-btn" @click="goBack">‹ 返回</AccessibleButton>
 			<text>织愈 · 展示说明</text>

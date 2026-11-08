@@ -1,5 +1,5 @@
 <template>
-  <view class="privacy-page">
+	<view :class="zyThemeClass" class="privacy-page">
     <view :aria-hidden="!!dialogMode">
       <view class="privacy-hero">
         <view><text class="hero-label">账号与隐私</text><text class="hero-title">你的记录，由你做主</text><text class="hero-description">查看授权、保存副本，再决定如何管理自己的账号。</text></view>

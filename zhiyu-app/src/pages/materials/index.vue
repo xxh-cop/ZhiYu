@@ -1,4 +1,5 @@
-<template><view class="growth-page" :class="{'motion-reduced':reducedMotion}">
+<template>
+	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
  <view class="growth-hero"><text class="growth-eyebrow">MATERIAL ATLAS · 材料探索</text><text class="growth-title">从一种材料，认识一门手艺</text><text class="growth-subtitle">沿着材料、项目与安全说明探索。关联来自已发布项目的人工标注。</text></view>
  <AccessibleButton class="growth-card kit-entry" @click="openKits"><view class="kit-entry-copy"><text class="growth-card-title">工作坊材料包</text><text class="growth-muted">竹编 · 夏布绣 · 剪纸 / 3 份准备清单</text></view><text class="kit-entry-arrow">→</text></AccessibleButton>
  <view class="growth-card"><input v-model="query" class="growth-input" maxlength="60" placeholder="搜索项目、品类或材料"/><view class="growth-row categories"><AccessibleButton v-for="m in ['全部','染','塑','织绣','纸','香','雕','未标注']" :key="m" :class="['growth-tag',{selected:medium===m}]" :aria-pressed="medium===m" @click="medium=m">{{m}}</AccessibleButton></view></view>

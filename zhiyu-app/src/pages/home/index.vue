@@ -1,5 +1,5 @@
 <template>
-	<view class="home-page" :class="{'motion-reduced':reducedMotion}">
+	<view class="home-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
 		<view class="home-inner">
 			<!-- 页头：品牌 + 通知铃铛（未读红点）+ 头像 -->
 			<view class="home-header">
@@ -514,7 +514,7 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .main-card-kicker { font-size: var(--zy-text-micro); letter-spacing: 2rpx; color: var(--zy-brand-700); }
 .main-card-title { font-size: var(--zy-text-title-lg); font-weight: 600; color: var(--zy-title); margin-top: 4rpx; }
 .main-card-sub { font-size: var(--zy-text-caption); color: var(--zy-text); margin-top: 6rpx; }
-.main-card-arrow { width: 68rpx; height: 68rpx; border-radius: 50%; background: var(--zy-brand-600); color: #FFFDF7; font-size: 30rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.main-card-arrow { width: 68rpx; height: 68rpx; border-radius: 50%; background: var(--zy-brand-600); color: #FFFFFF; font-size: 30rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 /* ── 两次卡 ── */
 .duo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24rpx; margin-top: 24rpx; }

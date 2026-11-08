@@ -1,5 +1,5 @@
 <template>
-	<view class="growth-page heritage-detail-page" :class="{ 'motion-reduced': reducedMotion }">
+	<view class="growth-page heritage-detail-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
 		<view v-if="loading" class="growth-card heritage-status" role="status" aria-live="polite">
 			<text class="growth-muted">正在读取纹样…</text>
 		</view>

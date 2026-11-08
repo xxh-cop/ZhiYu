@@ -9,6 +9,6 @@ defineProps({ vertical: Boolean })
 </script>
 
 <style scoped>
-.zy-stitch { border-top: 2rpx dashed var(--zy-stitch, #c9bfa9); }
-.zy-stitch--v { border-top: 0; border-left: 2rpx dashed var(--zy-stitch, #c9bfa9); align-self: stretch; }
+.zy-stitch { border-top: 2rpx dashed var(--zy-stitch, #d8d8d4); }
+.zy-stitch--v { border-top: 0; border-left: 2rpx dashed var(--zy-stitch, #d8d8d4); align-self: stretch; }
 </style>

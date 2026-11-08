@@ -34,8 +34,8 @@ page {
 	--wot-color-danger: #a64842;       /* 危机绛（非纯红） */
 	--wot-color-info: #5c5648;         /* 中性次要 */
 
-	--wot-color-bg: #f6f1e7;            /* 页面底（暖纸） */
-	--wot-color-border: #e4dccb;        /* 发丝线 */
+	--wot-color-bg: #ffffff;            /* 页面底（云白，默认主题） */
+	--wot-color-border: #e8e8e6;        /* 发丝线 */
 	--wot-color-border-light: #F3F4F6;  /* 浅冷灰 */
 
 	--wot-color-title: #33302a;         /* 标题（暖墨） */
@@ -47,21 +47,22 @@ page {
 	/* ── 织愈色板（向后兼容别名，指向暖纸青玉令牌） ── */
 	--zy-primary: #217e76;
 	--zy-primary-light: #5bc4a8;
-	--zy-bg: #f6f1e7;
-	--zy-card-bg: #FFFDF7;
+	--zy-bg: #ffffff;                   /* 页面底（云白，默认主题） */
+	--zy-card-bg: #ffffff;              /* 卡片底（云白主题下靠 --zy-card-line 发丝描边分层） */
+	--zy-card-line: #e9e9e7;            /* 卡片发丝描边（暖纸主题置透明） */
 	--zy-title: #33302a;
 	--zy-text: #5c5648;
 	--zy-muted: #5c5648;
-	--zy-border: #e4dccb;
-	--zy-accent: #7a5c12;               /* 深金文字（非遗标注/正文级警示；2026-11-08 加深，暖金 tint 上 5.16:1） */
+	--zy-border: #e8e8e6;
+	--zy-accent: #7a5c12;               /* 深金文字（非遗标注/正文级警示；2026-11-08 加深） */
 	--zy-danger: #a64842;               /* 危机绛 */
 
-	--zy-bg-warm: #FFFDF7;              /* 卡片宣纸白 */
+	--zy-bg-warm: #ffffff;              /* 卡片底别名（随主题） */
 	--zy-bg-tint-mint: #e4efe7;         /* 薄荷 tint — 平静/呼吸语义底 */
 	--zy-bg-tint-warm: #f3e9cf;         /* 暖金 tint — 非遗/关怀语义底 */
 	--zy-content: #5c5648;
 	--zy-aid: #5c5648;
-	--zy-stitch: #c9bfa9;               /* 缝线：虚线分隔/纹样，纯装饰不承载文本 */
+	--zy-stitch: #d8d8d4;               /* 缝线：虚线分隔/纹样，纯装饰不承载文本（云白默认） */
 	--zy-faint: #8a8378;                /* 装饰灰：仅英文 eyebrow，禁承载信息文本 */
 
 	/* ── 语义色 ── */
@@ -99,10 +100,10 @@ page {
 	--zy-radius-chip: var(--zy-radius-sm);      /* 标签/小片 12rpx */
 	--zy-radius-feature: 40rpx;                 /* 大卡/展品封面（暖纸青玉 v6） */
 
-	/* ── 阴影（暖纸青玉 v6：暖墨三档；旧青玉五档保留至 P7 零引用后删除） ── */
-	--zy-shadow-card: 0 4rpx 20rpx rgba(72, 58, 34, 0.07);
+	/* ── 阴影（云白默认：中性；暖纸主题在 .zy-theme-warm 覆盖为暖墨） ── */
+	--zy-shadow-card: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 	--zy-shadow-cta: 0 8rpx 20rpx rgba(33, 126, 118, 0.28);
-	--zy-shadow-pop: 0 16rpx 48rpx rgba(72, 58, 34, 0.14);
+	--zy-shadow-pop: 0 16rpx 48rpx rgba(0, 0, 0, 0.10);
 
 	/* ── 阴影（青玉案主色派生） ── */
 	--zy-shadow-xs: 0 2rpx 4rpx rgba(33, 126, 118, 0.04);
@@ -157,3 +158,43 @@ page {
 	--zy-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
 	--zy-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/**
+ * ── 暖纸主题（可选，2026-11-08）────────────────────────────
+ * 挂载：页面根 view 挂 .zy-theme-warm（stores/theme.js + 全局 mixin 的 zyThemeClass）。
+ * 只覆盖「面级」变量：底色/卡片/发丝线/缝线/阴影/纸纹；
+ * 品牌色、语义色、字阶、圆角、间距、tint 双轨与云白主题完全共用。
+ * 小程序端 page 元素不能运行时挂 class，故挂页面根 view，变量沿树继承。
+ */
+.zy-theme-warm {
+	--zy-bg: #f6f1e7;
+	--zy-card-bg: #fffdf7;
+	--zy-card-line: transparent;
+	--zy-border: #e4dccb;
+	--zy-stitch: #c9bfa9;
+	--zy-shadow-card: 0 4rpx 20rpx rgba(72, 58, 34, 0.07);
+	--zy-shadow-pop: 0 16rpx 48rpx rgba(72, 58, 34, 0.14);
+	--zy-bg-warm: #fffdf7;
+	--wot-color-bg: #f6f1e7;
+	--wot-color-border: #e4dccb;
+
+	/* 暖底 + 纸纹（2.5% 暖墨噪点，240rpx 瓦片；加载失败仅表现为纯色暖底）。
+	   纸纹本身是透明噪点，底色必须由本规则提供，否则会透出 page 层的云白底；
+	   min-height 保证内容不满屏时 page 云白不外露。page 元素自身（mp 橡皮筋溢出区）
+	   无法运行时挂 class，恒为云白——平台限制，已在规格中登记。 */
+	background-color: var(--zy-bg);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+	background-size: 240rpx 240rpx;
+	min-height: 100vh;
+}
+@media (prefers-reduced-transparency: reduce) {
+	.zy-theme-warm { background-image: none; }
+}
+
+/* H5 专享：模拟 tabBar 是 body 级 DOM，不在页面根 view 子树内；
+   main.js 会把主题 class 同步挂到 html。uni-app 把 pages.json 的 backgroundColor
+   渲染为 tabBar 内联样式，故须 !important 覆盖（mp 原生 tabBar 走 setTabBarStyle）。 */
+/* #ifdef H5 */
+html.zy-theme-warm .uni-tabbar { background-color: #fffdf7 !important; }
+html.zy-theme-warm .uni-tabbar-border { background-color: rgba(0, 0, 0, 0.33) !important; }
+/* #endif */

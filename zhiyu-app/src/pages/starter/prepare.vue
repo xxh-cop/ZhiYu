@@ -1,4 +1,5 @@
-<template><view class="growth-page" :class="{'motion-reduced':reducedMotion}">
+<template>
+	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
  <view v-if="loading" class="growth-card growth-skeleton">正在读取准备清单…</view>
  <view v-else-if="error" class="growth-error">{{error}}<AccessibleButton class="growth-button" @click="load">重试</AccessibleButton></view>
  <template v-else-if="item">

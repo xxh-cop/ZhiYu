@@ -1,5 +1,5 @@
 <template>
-  <AccountShell title="找回密码" eyebrow="别着急，慢慢来" description="两步完成：先申请一次性重置令牌，再设置新密码。">
+	<AccountShell :class="zyThemeClass" title="找回密码" eyebrow="别着急，慢慢来" description="两步完成：先申请一次性重置令牌，再设置新密码。">
     <!-- 发送通道未配置：明确展示真实状态，不进入第二步、不假装发送成功 -->
     <template v-if="unavailable">
       <view class="account-notice" role="alert">忘记密码功能暂未开放。请稍后再试，或联系学校管理员协助重置。</view>

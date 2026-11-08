@@ -1,4 +1,5 @@
-<template><view class="growth-page" :class="{'motion-reduced':reducedMotion}">
+<template>
+	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
  <view class="growth-hero"><text class="growth-eyebrow">TRACE · 平面临摹辅助</text><text class="growth-title">让纹样，落在纸上</text><text class="growth-subtitle">固定手机，调整线稿位置，再观察纸面临摹。图案不会自动锚定真实空间。</text></view>
  <view class="tracing-frame" :style="{height:size+'px'}" @touchstart="touchStart" @touchmove.stop.prevent="touchMove">
   <image v-if="photo" :src="photo" class="camera-surface" mode="aspectFill" alt="你拍摄的照片"/>

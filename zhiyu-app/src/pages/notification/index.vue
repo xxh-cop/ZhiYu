@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view :class="zyThemeClass" class="page">
 		<view class="page-head">
 			<view>
 				<text class="page-title">消息通知</text>

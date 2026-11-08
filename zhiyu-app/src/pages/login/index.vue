@@ -1,5 +1,5 @@
 <template>
-  <AccountShell title="欢迎回来" eyebrow="和小织，继续今天的故事" description="登录你的账号，继续创作、记录与分享。">
+  <AccountShell :class="zyThemeClass" title="欢迎回来" eyebrow="和小织，继续今天的故事" description="登录你的账号，继续创作、记录与分享。">
     <view v-if="returnTo" class="account-notice">登录后将返回你刚才查看的内容。</view>
     <view v-if="restoring" class="account-notice" role="status">正在确认登录状态…</view>
     <template v-else-if="restoreFailed">

@@ -1,5 +1,5 @@
 <template>
-	<view class="growth-page heritage-page" :class="{ 'motion-reduced': reducedMotion }">
+	<view class="growth-page heritage-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
 		<view class="growth-hero heritage-hero">
 			<text class="growth-eyebrow">HERITAGE STUDIES</text>
 			<text class="growth-title">非遗纹样馆</text>

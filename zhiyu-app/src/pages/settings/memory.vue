@@ -1,5 +1,5 @@
 <template>
-	<view class="growth-page memory-page" :class="{ 'motion-reduced': reducedMotion }">
+	<view class="growth-page memory-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
 		<view class="growth-hero">
 			<text class="growth-eyebrow">A LITTLE MEMORY</text>
 			<text class="growth-title">小织记忆</text>

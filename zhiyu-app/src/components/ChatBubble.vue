@@ -44,8 +44,8 @@ defineProps({
 .zy-bubble-col { max-width: 74%; display: flex; flex-direction: column; }
 .zy-bubble-row.is-user .zy-bubble-col { align-items: flex-end; }
 .zy-bubble { padding: 24rpx 32rpx; font-size: var(--zy-text-body-lg, 30rpx); line-height: 1.7; box-shadow: var(--zy-shadow-card); word-break: break-word; }
-.is-ai .zy-bubble { background: var(--zy-card-bg, #fffdf7); color: var(--zy-title, #33302a); border-radius: 8rpx 32rpx 32rpx 32rpx; }
-.is-user .zy-bubble { background: var(--zy-brand-600, #1A645E); color: #FFFDF7; border-radius: 32rpx 8rpx 32rpx 32rpx; }
+.is-ai .zy-bubble { background: var(--zy-card-bg, #ffffff); color: var(--zy-title, #33302a); border-radius: 8rpx 32rpx 32rpx 32rpx; }
+.is-user .zy-bubble { background: var(--zy-brand-600, #1A645E); color: #FFFFFF; border-radius: 32rpx 8rpx 32rpx 32rpx; }
 .zy-bubble-time { margin-top: 10rpx; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
 .zy-typing-dots { display: flex; gap: 8rpx; align-items: center; padding: 8rpx 4rpx; }
 .zy-typing-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--zy-brand-300, #5bc4a8); animation: zyTypingDots 1400ms var(--zy-ease-in-out, ease-in-out) infinite; }

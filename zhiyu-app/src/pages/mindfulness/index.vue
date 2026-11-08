@@ -1,5 +1,5 @@
 <template>
-  <view class="mindful-page" :class="{sleeping:sleepMode}">
+	<view class="mindful-page" :class="[{sleeping:sleepMode}, zyThemeClass]">
     <view class="mindful-header"><text class="eyebrow">留一点时间给自己</text><text class="title">正念片刻</text><text class="subtitle">跟随自己的节奏，轻轻地呼吸。</text></view>
     <view class="practice-card">
       <view class="duration-row"><AccessibleButton v-for="value in [1, 3, 5]" :key="value" :class="{ selected: minutes === value }" :aria-pressed="minutes === value" :disabled="running || elapsed > 0" @click="minutes = value">{{ value }} 分钟</AccessibleButton></view>

@@ -1,5 +1,5 @@
 <template>
-	<view class="page" @touchstart="idleArm" @click="idleArm">
+	<view :class="zyThemeClass" class="page" @touchstart="idleArm" @click="idleArm">
 		<!-- 顶部情境条：项目名 / 进度点 / 更多（心流态自动收起更多，减少打扰） -->
 		<view class="topbar">
 			<view class="topbar-info">

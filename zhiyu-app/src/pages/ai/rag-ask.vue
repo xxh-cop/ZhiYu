@@ -1,5 +1,5 @@
 <template>
-	<view class="page">
+	<view :class="zyThemeClass" class="page">
 		<!-- 顶部说明 -->
 		<view class="header-card zy-slide-up">
 			<view class="header-icon">

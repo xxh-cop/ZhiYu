@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 加载中 -->
 		<view v-if="loading" class="status-box">
 			<wd-loading color="#217e76" />
@@ -199,7 +199,7 @@ const coverKind = computed(() => {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; padding: 0 0 240rpx; box-sizing: border-box; background-color: var(--zy-bg, #f6f1e7); }
+.page { min-height: 100vh; padding: 0 0 240rpx; box-sizing: border-box; background-color: var(--zy-bg, #ffffff); }
 
 /* ── 状态区 ── */
 .status-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 0; gap: 24rpx; }
@@ -221,8 +221,8 @@ const coverKind = computed(() => {
 .cover-share { right: 24rpx; }
 .cover-fab-t { font-size: 36rpx; color: var(--zy-title); }
 .cover-copy { position: absolute; left: 32rpx; right: 32rpx; bottom: 28rpx; z-index: 1; }
-.cover-kicker { display: block; font-size: var(--zy-text-micro); letter-spacing: 4rpx; color: rgba(255,253,247,.92); }
-.cover-title { display: block; font-size: var(--zy-text-title-lg); font-weight: 600; letter-spacing: 2rpx; color: #FFFDF7; margin-top: 8rpx; }
+.cover-kicker { display: block; font-size: var(--zy-text-micro); letter-spacing: 4rpx; color: rgba(255,255,255,.92); }
+.cover-title { display: block; font-size: var(--zy-text-title-lg); font-weight: 600; letter-spacing: 2rpx; color: #FFFFFF; margin-top: 8rpx; }
 
 /* ── 元信息行 ── */
 .metaline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 16rpx; padding: 28rpx 32rpx 0; }
@@ -255,7 +255,7 @@ const coverKind = computed(() => {
 .step-dot { position: relative; z-index: 1; width: 52rpx; height: 52rpx; border-radius: 50%; border: 2rpx solid var(--zy-stitch); background: var(--zy-card-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .step-dot.is-first { background: var(--zy-brand-600); border-color: var(--zy-brand-600); box-shadow: 0 0 0 10rpx rgba(33,126,118,.12); }
 .step-dot-num { font-size: var(--zy-text-caption); font-weight: 600; color: var(--zy-text); }
-.step-dot.is-first .step-dot-num { color: #FFFDF7; }
+.step-dot.is-first .step-dot-num { color: #FFFFFF; }
 .step-row:not(.is-last)::before { content: ''; position: absolute; left: 25rpx; top: 56rpx; bottom: 0; border-left: 2rpx dashed var(--zy-stitch); }
 .step-content { flex: 1; min-width: 0; padding-top: 4rpx; }
 .step-title { display: block; font-size: var(--zy-text-body-lg); font-weight: 600; color: var(--zy-title); line-height: 1.5; }

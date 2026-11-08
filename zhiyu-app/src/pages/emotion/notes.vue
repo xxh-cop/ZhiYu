@@ -1,5 +1,5 @@
 <template>
-	<view class="page zy-page-enter">
+	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 悬浮新建按钮 -->
 		<view class="fab" role="button" tabindex="0" aria-label="新建心情便签" @click="goCreate" @keydown.enter.prevent="goCreate" @keydown.space.prevent="goCreate">
 			<wd-icon name="add" size="44rpx" color="#FFFFFF" />

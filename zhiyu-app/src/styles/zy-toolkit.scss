@@ -18,9 +18,10 @@
 /* 衬线展示字体：仅 display / title-lg / 引言三类场景；小程序无宋体时自然回落 sans */
 .zy-t-serif { font-family: var(--zy-font-display); }
 
-/* ── 卡片族（默认无描边；选中由使用方加 is-selected） ── */
+/* ── 卡片族（云白主题靠 --zy-card-line 发丝描边分层；暖纸主题描边透明） ── */
 .zy-card {
 	background: var(--zy-card-bg);
+	border: 2rpx solid var(--zy-card-line);
 	border-radius: var(--zy-radius-card);
 	padding: var(--zy-space-lg);
 	box-shadow: var(--zy-shadow-card);
@@ -37,12 +38,7 @@
 /* ── 焦点环（双端统一：基座组件 @focus/@blur 切换 .zy-focused；H5 另保留 :focus-visible 渐进增强） ── */
 .zy-focused { box-shadow: 0 0 0 4rpx rgba(33, 126, 118, 0.35); }
 
-/* ── 纸纹（增强项：2.5% 暖墨噪点，240rpx 瓦片；加载失败仅表现为纯色暖底） ── */
+/* ── 页面底色（纸纹属暖纸主题，见 theme.scss .zy-theme-warm） ── */
 page {
 	background-color: var(--zy-bg);
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
-	background-size: 240rpx 240rpx;
-}
-@media (prefers-reduced-transparency: reduce) {
-	page { background-image: none; }
 }

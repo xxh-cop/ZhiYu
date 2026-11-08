@@ -444,3 +444,62 @@
 | **豁免（大字级/图形）** | components/StatStrip.vue: 31（40rpx 600 大字）；pages/support/index.vue: 18（42rpx 600 电话号）；各 ↗ 箭头字符 | 不计入清零 |
 
 > P3–P4 验收时把对应行从本表划去；**P5 结束时本表非豁免项必须为零**（复扫脚本 `.ai-tmp/brand600-scan.cjs` 输出 total=0，或仅余豁免项）。
+
+---
+
+## 8. 页面配色双主题（2026-11-08，批一）
+
+### 8.1 决策
+
+云白设为默认主题，暖纸保留为可选主题（用户反馈米白底不好看）。入口「我的 → 设置 → 页面配色」，选择持久化（`uni storage 'zy-theme'`），重启/重新进入生效。只切换面级变量（底色/卡片底/发丝线/缝线/阴影/纸纹），品牌色、语义色、字阶、圆角、间距、tint 双轨两主题完全共用；不动业务逻辑、交互流程与文案。
+
+### 8.2 令牌分层
+
+| 层 | 内容 | 云白（默认） | 暖纸（`.zy-theme-warm` 覆盖） |
+|---|---|---|---|
+| 面级（随主题） | `--zy-bg` / `--zy-card-bg` / `--zy-card-line` / `--zy-border` / `--zy-stitch` / `--zy-shadow-card` / `--zy-shadow-pop` / 纸纹 | #FFFFFF / #FFFFFF / #E9E9E7 / #E8E8E6 / #D8D8D4 / 中性灰影两档 / 无纸纹 | #F6F1E7 / #FFFDF7 / transparent / #E4DCCB / #C9BFA9 / 暖墨影两档 / 240rpx 纸纹 |
+| 共用（不随主题） | 品牌色阶、语义色、文字色、字阶、圆角、间距、tint 双轨、focus 环 | 同左 | 同左 |
+
+单一事实源：`design/tokens.json`（`neutral` 段为云白值，`themes.warm` 为暖纸覆盖）；运行时实现：`zhiyu-app/src/styles/theme.scss`（`:root, page` 默认 + `.zy-theme-warm` 覆盖块）。
+
+### 8.3 装载机制
+
+- `src/stores/theme.js`：state + `init()`（同步读 storage）+ `setTheme()`（写 storage）+ `applyTabBar()`（原生 tabBar 联动：white=#FFFFFF/borderStyle white，warm=#FFFDF7/black）。
+- `src/main.js`：`useThemeStore(pinia).init()` 在 `createApp` 内挂载**前**同步执行 → 首帧即正确主题，不闪色；全局 mixin 提供 computed `zyThemeClass`。
+- 56 个页面（含 sub 包）根元素绑定 `:class="zyThemeClass"`（原有 `:class` 合并为数组形式）；暖纸时根节点获得 `.zy-theme-warm`。
+- `.zy-theme-warm` 自带 `background-color: var(--zy-bg)` + 纸纹 + `min-height:100vh`：纸纹为透明噪点，底色必须由本规则提供，否则透出 page 云白；min-height 防内容不满屏露底。
+
+### 8.4 小程序端生效路径与限制（实测结论）
+
+- **运行中切换立即生效**：`setTheme` 改 Pinia state → mixin computed `zyThemeClass` 响应式更新 → 页面根 view class 切换 → 子树内 `var(--zy-*)` 沿继承链取覆盖值。**变量作用域结论**：WXSS 自定义属性遵循 DOM 继承，`page{}` 定义默认值，页面根 view 的 class 覆盖对整棵子树生效。实测（微信开发者工具 automation，`.ai-tmp/mp-theme-live.cjs`）：设置页调 `setTheme('warm')`（即「暖纸」选项 `@click` 的同一 action）后 store/themeClass/storage 即时更新，截图证实页面底色同步切换；返回首页同样生效，全程无需重启。
+- **重启持久化与首屏不闪**：`wx.restartMiniProgram` 真重启后 `main.js` 挂载前同步 `init()` 从 storage 恢复 `warm`，首屏 themeClass 即 `zy-theme-warm`，无闪色窗口（实测断言通过）。
+- **限制（平台）**：小程序 `page` 元素本身不能运行时挂 class，故 `page{}` 背景恒为云白；橡皮筋（iOS 回弹）溢出区在云白主题下不可见，暖纸主题下溢出区呈云白——已接受并登记，不通过 hack 规避。H5 无此限制（main.js 把主题 class 同步挂到 `html`，`uni-page-body` 在继承链内）。
+- **原生 tabBar**：mp 经 `uni.setTabBarStyle` 联动（white=#FFFFFF/borderStyle white，warm=#FFFDF7/black），实测截图确认暖纸下 tabBar 变浅米；H5 模拟 tabBar 是 body 级 DOM 且 uni 把 pages.json 背景渲成内联样式，走 `html.zy-theme-warm .uni-tabbar { !important }` 覆盖（`#ifdef H5` 条件编译，不进 mp 产物）。
+- **组件边界**：Wot Design Uni 组件读取 `--wot-color-*` 变量，默认值定义于 `:root, page`；`.zy-theme-warm` 内覆盖 `--wot-color-bg/--wot-color-border`，对页面内组件生效。
+- **自动化取证边界**：该 automation 端口未实现 `Page.$/Element.tap`（无法原生点击），`selectorQuery.in(page)` 参数受 structuredClone 限制取不到 computedStyle；故点击等效为直调 store action（与按钮同一入口），底色以 `App.captureScreenshot` 截图目视取证。
+
+### 8.5 硬编码归牌实录（批一范围：面级）
+
+扫描脚本 `.ai-tmp/scan-surface-colors.cjs`（口径：`.vue` 的 `<style>` 段 + `.scss/.css`，模板内联 style 另计）。初扫 30 处，其中 theme.scss 12 处为定义本身、settings 色板 2 处为刻意展示样本（已注释标注），实际归牌 **16 处**：
+
+- var() 暖色兜底 → 云白兜底（7 处）：ChatBubble/ChatInputBar/StitchDivider×2/chat/craft-detail/ui-kit×2。
+- 白字 `#FFFDF7` → `#FFFFFF`（8 处，含 1 处 `rgba(255,253,247,.92)`）：ChatBubble、AccessibleButton×2、home、chat×2（模板图标 + is-pressed）、craft-detail×3。
+- 复扫剩 13 处 = theme.scss 定义 + 色板样本，符合预期。
+
+文字/标题/品牌/tint 等不随主题变化的硬编码（P1–P5 已归牌为 var() 带兜底）不在本批；附录 A 清零状态不受本批影响。
+
+### 8.6 批一验证（最终实录）
+
+- 双端构建：`build:h5` / `build:mp-weixin` 通过（`VITE_API_BASE_URL=http://localhost:8080` 本地注入）；条件编译边界抽查：mp 产物 0 处 `.uni-tabbar` 覆盖（`#ifdef H5` 生效），H5 产物含 `html.zy-theme-warm` 规则。
+- 三道 WXSS 闸口：wildcard 97 文件通过；isclass 94 文件通过；elements 警告 50 处（既有 SVG 死规则，非本次引入，不阻断）。
+- 对比度闸口：`scripts/check-contrast.js` 扩为双主题，28 组全绿（云白 14 组重算：title/底 13.15、text/底 7.29、brand-700/底 6.93、accent/tintWarm 5.16、care/底 5.79、faint 3.75≥3.0 装饰级；暖纸 14 组复核不退步）。
+- 结构校验：`.ai-tmp/verify-theme-inject.cjs` 56 文件 template 配平（修复注入脚本吃 `<template>` 开标签事故：54 文件定向补回 + 2 文件手工，`.ai-tmp/fix-template-tag.cjs`）。
+- H5 实测（CDP，`.ai-tmp/h5-theme-live.cjs`，13 断言全 PASS）：默认云白 → 运行中切暖纸（根 class/storage/底色 rgb(246,241,231) 即时变更）→ 切回云白 → 再切暖纸 → reload 模拟重启（首帧即暖，无闪色窗口）→ 首页跨页生效；tabBar 经 html class + `!important` 覆盖实测 rgb(255,253,247)。
+- mp 实测（微信开发者工具 automation，`.ai-tmp/mp-theme-live.cjs`，10 断言全 PASS + 5 项截图取证）：默认云白 → `setTheme('warm')`（设置页选项同一 action）即时生效 → 切回 → 再切暖 → `wx.restartMiniProgram` 真重启后 init 恢复 warm、首屏即暖 → 首页跨页生效（原生 tabBar 同步变浅米）→ 终态切回云白。截图存档 `output/playwright/theme-b1/`（H5 4 张 + mp 5 张 + 报告 2 份）。
+- 沙箱环境备注：本机 DSH 沙箱会在每条命令结束时回收其子进程树，微信开发者工具须由挂起的后台会话拉起（`cli auto` + 长 sleep 保活）；IDE 进程名为中文「微信开发者工具」，按 wechat 英文匹配会误判为未运行。
+
+### 8.7 已知边界（登记，不阻断）
+
+1. mp `page` 元素恒云白（橡皮筋溢出区），平台限制。
+2. 暖纸主题下 Wot Design Uni 弹层类组件（action-sheet 等挂 body 的浮层）在 H5 取 `:root` 云白值；mp 端浮层在页面组件树内则随主题。后续若发现具体浮层违和再单点处理。
+3. `.zy-theme-warm` 的 `min-height:100vh` 与个别自定全屏布局页面叠加时以页面自身规则为准（同名属性后定义者胜，页面 scoped 样式优先级更高）。
