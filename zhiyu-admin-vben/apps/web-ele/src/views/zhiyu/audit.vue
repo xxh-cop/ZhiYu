@@ -337,14 +337,14 @@ async function confirmDelete() {
       />
     </template>
 
-    <el-table-column prop="id" label="ID" width="80" />
-    <el-table-column prop="title" label="标题" min-width="220" />
-    <el-table-column label="状态" width="90">
+    <el-table-column prop="id" label="ID" width="180" class-name="audit-id-cell" />
+    <el-table-column prop="title" label="标题" min-width="160" />
+    <el-table-column label="状态" width="78">
       <template #default="{ row }">
         <ZyStatusTag :dict="PROJECT_STATUS" :value="row.status" />
       </template>
     </el-table-column>
-    <el-table-column label="教学视频" width="110">
+    <el-table-column label="教学视频" width="78">
       <template #default="{ row }">
         <el-button
           v-if="row.videoUrl"
@@ -357,13 +357,13 @@ async function confirmDelete() {
         <span v-else>无视频</span>
       </template>
     </el-table-column>
-    <el-table-column prop="category" label="品类" width="100" />
-    <el-table-column label="难度" width="80">
+    <el-table-column prop="category" label="品类" width="72" />
+    <el-table-column label="难度" width="58">
       <template #default="{ row }">
         {{ dictLabel(PROJECT_LEVEL, row.level) }}
       </template>
     </el-table-column>
-    <el-table-column prop="estMinutes" label="时长(分)" width="100" />
+    <el-table-column prop="estMinutes" label="时长(分)" width="76" />
     <el-table-column label="提交时间" width="160">
       <template #default="{ row }">
         {{ formatTime(row.createTime) }}
@@ -633,6 +633,10 @@ async function confirmDelete() {
 </template>
 
 <style scoped>
+/* 雪花 ID 列：19 位数字不允许折行（答辩截图取证口径） */
+:deep(.audit-id-cell .cell) {
+  white-space: nowrap;
+}
 /* BF：问责详情 */
 .detail-grid {
   display: grid;
