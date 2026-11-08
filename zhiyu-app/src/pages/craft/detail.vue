@@ -17,102 +17,61 @@
 
 		<!-- 项目详情 -->
 		<view v-else-if="project" class="detail-content">
-			<!-- ═══ 顶部封面区 ═══ -->
-			<view class="cover-section zy-slide-up zy-stagger" :style="coverStyle(project.coverUrl)" style="--stagger-i: 0">
-				<view class="cover-overlay"></view>
-				<view class="cover-info">
-					<text class="cover-title">{{ project.title }}</text>
+			<!-- ═══ 通栏展品封面（16:10；无真实封面时用品类纹样，不用照片冒充） ═══ -->
+			<view class="cover zy-slide-up zy-stagger" style="--stagger-i: 0">
+				<image v-if="project.coverUrl" :src="coverSrc" mode="aspectFill" class="cover-img" />
+				<view v-else class="cover-pattern" :class="'ph-' + coverKind" aria-hidden="true"></view>
+				<view class="cover-scrim" aria-hidden="true"></view>
+				<button class="cover-fab cover-back" aria-label="返回上一页" @click="goBack"><text class="cover-fab-t">‹</text></button>
+				<button open-type="share" class="cover-fab cover-share" aria-label="分享手作项目" @click="share"><text class="cover-fab-t">↗</text></button>
+				<view class="cover-copy">
+					<text class="cover-kicker">{{ project.category || '手作' }} · {{ levelLabel(project.level) }}</text>
+					<text class="cover-title zy-t-serif">{{ project.title }}</text>
 				</view>
 			</view>
 
-			<CraftCover v-if="!project.coverUrl" :category="project.category"/><MediaVideo v-if="project.videoUrl" :src="project.videoUrl" caption="传承人教学视频"/><!-- ═══ 信息条（pill 标签） ═══ -->
-			<button open-type="share" class="share-craft" @click="share">分享手作项目</button><view class="info-pills zy-slide-up zy-stagger" style="--stagger-i: 1">
-				<view v-if="project.category" class="pill">
-					<wd-icon name="grid" size="24rpx" color="#217e76" />
-					<text class="pill-text">{{ project.category }}</text>
-				</view>
-				<view class="pill">
-					<wd-icon name="chart-bar" size="24rpx" color="#8a6d1f" />
-					<text class="pill-text">{{ levelLabel(project.level) }}</text>
-				</view>
-				<view class="pill">
-					<wd-icon name="time" size="24rpx" color="#5bc4a8" />
-					<text class="pill-text">约 {{ project.estMinutes }} 分钟</text>
+			<!-- ═══ 元信息行（传承人并入，保留跳转） ═══ -->
+			<view class="metaline zy-slide-up zy-stagger" style="--stagger-i: 1">
+				<text class="metaline-text">约 {{ project.estMinutes }} 分钟</text>
+				<text v-if="project.inheritorProfileId" class="metaline-sep">·</text>
+				<text v-if="project.inheritorProfileId" class="metaline-link" role="button" tabindex="0" @click="goInheritorDetail" @keydown.enter.prevent="goInheritorDetail" @keydown.space.prevent="goInheritorDetail">传承人 {{ project.inheritorNickname || '传承人' }} 示范</text>
+			</view>
+
+			<MediaVideo v-if="project.videoUrl" :src="project.videoUrl" caption="传承人教学视频"/>
+
+			<!-- ═══ 疗愈标签（chip 流） ═══ -->
+			<view v-if="therapyTags.length" class="chipset zy-slide-up zy-stagger" style="--stagger-i: 2">
+				<view v-for="tag in therapyTags" :key="tag" class="chip">
+					<text class="chip-text">{{ tag }}</text>
 				</view>
 			</view>
 
-			<!-- ═══ 疗愈标签 ═══ -->
-			<view v-if="therapyTags.length" class="therapy-tags zy-slide-up zy-stagger" style="--stagger-i: 2">
-				<view
-					v-for="tag in therapyTags"
-					:key="tag"
-					class="therapy-tag"
-				>
-					<text class="therapy-tag-text">{{ tag }}</text>
-				</view>
-			</view>
-
-			<!-- ═══ 传承人信息条 ═══ -->
-			<view
-				v-if="project.inheritorProfileId"
-				class="inheritor-bar zy-slide-up zy-stagger"
-				style="--stagger-i: 3"
-				role="button"
-				tabindex="0"
-				@click="goInheritorDetail"
-				@keydown.enter.prevent="goInheritorDetail"
-				@keydown.space.prevent="goInheritorDetail"
-			>
-				<view class="inheritor-avatar" :style="inheritorAvatarStyle">
-					<text v-if="!hasInheritorAvatar" class="inheritor-avatar-letter">{{ firstLetter(project.inheritorNickname) }}</text>
-				</view>
-				<view class="inheritor-info">
-					<text class="inheritor-name">{{ project.inheritorNickname || '传承人' }}</text>
-					<text v-if="project.inheritorSkill" class="inheritor-skill">{{ project.inheritorSkill }}</text>
-				</view>
-				<wd-icon name="arrow-right" size="32rpx" color="#4a5f54" />
-			</view>
-
-			<!-- ═══ 文化背景 ═══ -->
-			<view v-if="project.cultureBg" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 4">
-				<view class="section-quote">"</view>
-				<text class="section-title">文化背景</text>
-				<text class="section-text">{{ project.cultureBg }}</text>
+			<!-- ═══ 文化背景（引言版式：缝线竖条 + 衬线引号） ═══ -->
+			<view v-if="project.cultureBg" class="pull zy-slide-up zy-stagger" style="--stagger-i: 3">
+				<text class="pull-mark zy-t-serif" aria-hidden="true">“</text>
+				<text class="pull-text zy-t-serif">{{ project.cultureBg }}</text>
+				<text class="pull-src">文化背景 · 摘自项目档案</text>
 			</view>
 
 			<CraftSafety :project-id="projectId" />
-			<!-- ═══ 所需材料 ═══ -->
-			<view v-if="materials.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 5">
-				<text class="section-title">所需材料</text>
-				<view class="material-grid">
-					<view
-						v-for="(mat, idx) in materials"
-						:key="mat.id || idx"
-						class="material-item"
-					>
-						<view class="material-icon">
-							<wd-icon name="gift" size="28rpx" color="#217e76" />
-						</view>
-						<text class="material-name">{{ mat.name }}</text>
-						<text v-if="mat.qty" class="material-qty">{{ mat.qty }}</text>
+
+			<!-- ═══ 所需材料（chip 流） ═══ -->
+			<view v-if="materials.length" class="sec zy-slide-up zy-stagger" style="--stagger-i: 4">
+				<view class="sec-head"><text class="sec-kicker">MATERIALS</text><text class="sec-title">所需材料</text></view>
+				<view class="chipset">
+					<view v-for="(mat, idx) in materials" :key="mat.id || idx" class="chip">
+						<text class="chip-text">{{ mat.name }}<text v-if="mat.qty" class="chip-qty"> {{ mat.qty }}</text></text>
 					</view>
 				</view>
 			</view>
 
-			<!-- ═══ 创作步骤（时间线） ═══ -->
-			<view v-if="steps.length" class="section-card zy-slide-up zy-stagger" style="--stagger-i: 6">
-				<text class="section-title">创作步骤</text>
-				<view class="step-timeline">
-					<view
-						v-for="(step, idx) in steps"
-						:key="step.id || idx"
-						class="step-row"
-					>
-						<view class="step-left">
-							<view class="step-dot">
-								<text class="step-dot-num">{{ step.stepNo || idx + 1 }}</text>
-							</view>
-							<view v-if="idx < steps.length - 1" class="step-line"></view>
+			<!-- ═══ 创作步骤（缝线时间线） ═══ -->
+			<view v-if="steps.length" class="sec zy-slide-up zy-stagger" style="--stagger-i: 5">
+				<view class="sec-head"><text class="sec-kicker">STEPS</text><text class="sec-title">创作步骤</text></view>
+				<view class="steps">
+					<view v-for="(step, idx) in steps" :key="step.id || idx" class="step-row" :class="{ 'is-last': idx === steps.length - 1 }">
+						<view class="step-dot" :class="{ 'is-first': idx === 0 }">
+							<text class="step-dot-num">{{ step.stepNo || idx + 1 }}</text>
 						</view>
 						<view class="step-content">
 							<text class="step-title">{{ step.title }}</text>
@@ -128,9 +87,8 @@
 
 		<!-- 底部固定按钮 -->
 		<view v-if="project" class="bottom-bar">
-			<view class="start-btn" role="button" tabindex="0" @click="goSession" @keydown.enter.prevent="goSession" @keydown.space.prevent="goSession">
-				<text class="start-btn-text">开始创作</text>
-			</view>
+			<text class="safe-tip">进度自动保留，随时可以离开</text>
+			<AccessibleButton variant="primary" size="lg" class="start-btn" @click="goSession">开始创作</AccessibleButton>
 		</view>
 
 		<!-- 底部免责声明 -->
@@ -142,13 +100,14 @@
 <script setup>
 import {useContentShare} from '../../composables/useContentShare'
 import MediaVideo from "../../components/MediaVideo.vue"
-import CraftCover from "../../components/CraftCover.vue"
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import AccessibleButton from '../../components/AccessibleButton.vue'
 import CraftSafety from '../../components/CraftSafety.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
 import { http } from '../../utils/request'
+import { API_BASE_URL } from '../../utils/config'
 
 const toast = useToast()
 
@@ -173,14 +132,6 @@ const steps = computed(() => {
 	return project.value.steps
 })
 
-const hasInheritorAvatar = computed(() => {
-	return false
-})
-
-const inheritorAvatarStyle = computed(() => {
-	return 'background: linear-gradient(135deg, #217e76, #5bc4a8);'
-})
-
 onLoad((query) => {
 	projectId.value = query.id
 	loadData()
@@ -202,23 +153,9 @@ async function loadData() {
 	}
 }
 
-function firstLetter(name) {
-	if (!name) return '?'
-	return name.charAt(0)
-}
-
 // 直开无历史栈时回首页（与会话页 goBack 同款兜底）
 function goBack() {
 	uni.navigateBack({ fail: () => uni.switchTab({ url: '/pages/home/index' }) })
-}
-
-function coverStyle(coverUrl) {
-	// #ifdef H5
-	if (coverUrl) {
-		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
-	}
-	// #endif
-	return 'background: linear-gradient(135deg, #217e76 0%, #5bc4a8 100%);'
 }
 
 function levelLabel(level) {
@@ -245,371 +182,93 @@ function goSession() {
 		})
 	}
 }
+
+/* ── 暖纸青玉 P5：纯展示新增（无逻辑改动） ── */
+// 真实封面地址（coverUrl → API 拼接）；无封面时封面区走纹样占位
+const coverSrc = computed(() => {
+	const src = project.value && project.value.coverUrl
+	if (!src) return ''
+	if (/^https?:|^\/static\//.test(src)) return src
+	return API_BASE_URL + src
+})
+// 品类纹样分族（与 CraftCover kind 判定同源）
+const coverKind = computed(() => {
+	const cat = (project.value && (project.value.category || project.value.title)) || ''
+	return /线|编|绣|染/.test(cat) ? 'yarn' : /陶|泥/.test(cat) ? 'clay' : 'paper'
+})
 </script>
 
-<style lang="scss" scoped>
-.share-craft{margin:24rpx;background:#e8efe4;color:var(--zy-brand-700, #1a645e);font-size:26rpx;border-radius:16rpx;}
-.page {
-	min-height: 100vh;
-	padding: 0 0 120rpx;
-	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
-}
+<style scoped>
+.page { min-height: 100vh; padding: 0 0 120rpx; box-sizing: border-box; background-color: var(--zy-bg, #f6f1e7); }
 
 /* ── 状态区 ── */
-.status-box {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 120rpx 0;
-	gap: 24rpx;
-}
+.status-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 0; gap: 24rpx; }
+.status-text { font-size: var(--zy-text-body); color: var(--zy-text); }
+.error-text { font-size: var(--zy-text-body); color: var(--zy-care, #a64842); }
+.status-actions { display: flex; gap: 20rpx; }
 
-.status-text {
-	font-size: 28rpx;
-	color: var(--zy-text, #4a5f54);
-}
+/* ── 通栏封面（16:10，展品感） ── */
+.cover { position: relative; height: 62.5vw; max-height: 500rpx; overflow: hidden; }
+.cover-img { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; }
+.cover-pattern { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg stroke='%23ffffff' stroke-width='2' fill='none' opacity='.35'%3E%3Cpath d='M-10 30 Q30 12 60 30 T130 30'/%3E%3Cpath d='M-10 60 Q30 42 60 60 T130 60'/%3E%3Cpath d='M-10 90 Q30 72 60 90 T130 90'/%3E%3Cpath d='M30 -10 Q12 60 30 130'/%3E%3Cpath d='M60 -10 Q42 60 60 130'/%3E%3Cpath d='M90 -10 Q72 60 90 130'/%3E%3C/g%3E%3C/svg%3E"); background-size: 240rpx 240rpx; }
+.cover-pattern.ph-yarn { background-color: var(--zy-brand-300); }
+.cover-pattern.ph-clay { background-color: var(--zy-gold); }
+.cover-pattern.ph-paper { background-color: var(--zy-brand-500); }
+.cover-scrim { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(51,48,42,0) 34%, rgba(51,48,42,.52)); }
+.cover-fab { position: absolute; top: 24rpx; width: 68rpx; height: 68rpx; border-radius: 50%; background: rgba(255,253,247,.92); display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; line-height: 1; box-shadow: var(--zy-shadow-card); }
+.cover-fab::after { border: 0; }
+.cover-back { left: 24rpx; }
+.cover-share { right: 24rpx; }
+.cover-fab-t { font-size: 36rpx; color: var(--zy-title); }
+.cover-copy { position: absolute; left: 32rpx; right: 32rpx; bottom: 28rpx; z-index: 1; }
+.cover-kicker { display: block; font-size: var(--zy-text-micro); letter-spacing: 4rpx; color: rgba(255,253,247,.92); }
+.cover-title { display: block; font-size: var(--zy-text-title-lg); font-weight: 600; letter-spacing: 2rpx; color: #FFFDF7; margin-top: 8rpx; }
 
-.error-text {
-	font-size: 28rpx;
-	color: var(--zy-care, #a64842);
-}
+/* ── 元信息行 ── */
+.metaline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 16rpx; padding: 28rpx 32rpx 0; }
+.metaline-text { font-size: var(--zy-text-caption); color: var(--zy-text); letter-spacing: 1rpx; }
+.metaline-sep { color: var(--zy-stitch); }
+.metaline-link { font-size: var(--zy-text-caption); color: var(--zy-brand-700); letter-spacing: 1rpx; }
 
-.status-actions {
-	display: flex;
-	gap: 20rpx;
-}
+/* ── chip 流（疗愈标签 / 材料共用） ── */
+.chipset { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 20rpx 32rpx 0; }
+.chip { background: var(--zy-card-bg); border-radius: var(--zy-radius-full); padding: 12rpx 24rpx; box-shadow: var(--zy-shadow-card); }
+.chip-text { font-size: var(--zy-text-caption); color: var(--zy-text); }
+.chip-qty { color: var(--zy-accent); }
 
-/* ── 封面区 ── */
-.cover-section {
-	position: relative;
-	height: 420rpx;
-	display: flex;
-	align-items: flex-end;
-	padding: 32rpx 24rpx;
-	box-sizing: border-box;
-}
+/* ── 引言版式（文化背景） ── */
+.pull { margin: 40rpx 32rpx 0; padding: 8rpx 0 8rpx 28rpx; border-left: 3rpx dashed var(--zy-stitch); }
+.pull-mark { display: block; font-size: 52rpx; line-height: 1; color: var(--zy-gold); }
+.pull-text { display: block; margin-top: 8rpx; font-size: var(--zy-text-body-lg); line-height: 2; color: var(--zy-title); }
+.pull-src { display: block; margin-top: 12rpx; font-size: var(--zy-text-micro); color: var(--zy-text); letter-spacing: 1rpx; }
 
-.cover-overlay {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	height: 70%;
-	background: linear-gradient(to top, rgba(31, 41, 55, 0.75) 0%, transparent 100%);
-}
+/* ── 区块 ── */
+.sec { margin: 48rpx 32rpx 0; }
+.sec-head { display: flex; align-items: baseline; gap: 16rpx; margin-bottom: 8rpx; }
+.sec-kicker { font-size: var(--zy-text-micro); letter-spacing: 4rpx; color: var(--zy-accent); }
+.sec-title { font-size: var(--zy-text-title); font-weight: 600; color: var(--zy-title); }
+.sec .chipset { padding: 0; }
 
-.cover-info {
-	position: relative;
-	z-index: 1;
-}
-
-.cover-title {
-	font-size: 44rpx;
-	font-weight: 600;
-	color: #FFFFFF;
-	line-height: 1.3;
-	text-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.35);
-	font-family: var(--zy-serif);
-}
-
-/* ── 信息条 pill 标签 ── */
-.info-pills {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12rpx;
-	padding: 24rpx 24rpx 0;
-}
-
-.pill {
-	display: flex;
-	align-items: center;
-	gap: 8rpx;
-	padding: 10rpx 20rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	box-shadow: var(--zy-shadow-sm);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-}
-
-.pill-text {
-	font-size: 24rpx;
-	color: var(--zy-content, #4a5f54);
-}
-
-/* ── 疗愈标签 ── */
-.therapy-tags {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12rpx;
-	padding: 16rpx 24rpx 0;
-}
-
-.therapy-tag {
-	padding: 6rpx 20rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-}
-
-.therapy-tag-text {
-	font-size: 22rpx;
-	color: var(--zy-primary, #217e76);
-}
-
-/* ── 传承人信息条 ── */
-.inheritor-bar {
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
-	margin: 24rpx;
-	padding: 24rpx;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
-	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
-}
-
-.inheritor-bar:active {
-	transform: scale(0.98);
-}
-
-.inheritor-avatar {
-	width: 72rpx;
-	height: 72rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.inheritor-avatar-letter {
-	font-size: 32rpx;
-	font-weight: 600;
-	color: #FFFFFF;
-}
-
-.inheritor-info {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-}
-
-.inheritor-name {
-	font-size: 30rpx;
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-}
-
-.inheritor-skill {
-	margin-top: 4rpx;
-	font-size: 24rpx;
-	color: var(--zy-text, #4a5f54);
-}
-
-/* ── 区块卡片 ── */
-.section-card {
-	position: relative;
-	margin: 0 24rpx 24rpx;
-	padding: 28rpx;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
-	overflow: hidden;
-}
-
-.section-quote {
-	position: absolute;
-	top: 4rpx;
-	left: 16rpx;
-	font-size: 56rpx;
-	font-family: var(--zy-serif);
-	color: var(--zy-primary, #217e76);
-	opacity: 0.15;
-	line-height: 1;
-}
-
-.section-title {
-	font-size: 32rpx;
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-	font-family: var(--zy-serif);
-	display: block;
-	margin-bottom: 16rpx;
-	position: relative;
-}
-
-.section-text {
-	font-size: 28rpx;
-	line-height: 1.9;
-	color: var(--zy-content, #4a5f54);
-	position: relative;
-}
-
-/* ── 材料网格（2 列） ── */
-.material-grid {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 16rpx;
-}
-
-.material-item {
-	width: calc((100% - 16rpx) / 2);
-	display: flex;
-	align-items: center;
-	gap: 12rpx;
-	padding: 16rpx 20rpx;
-	border-radius: var(--zy-radius-md, 20rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-}
-
-.material-icon {
-	width: 48rpx;
-	height: 48rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
-.material-name {
-	flex: 1;
-	font-size: 26rpx;
-	color: var(--zy-title, #233d34);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.material-qty {
-	font-size: 24rpx;
-	color: var(--zy-text, #4a5f54);
-	flex-shrink: 0;
-}
-
-/* ── 步骤时间线 ── */
-.step-timeline {
-	display: flex;
-	flex-direction: column;
-}
-
-.step-row {
-	display: flex;
-	gap: 20rpx;
-}
-
-.step-left {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	flex-shrink: 0;
-}
-
-.step-dot {
-	width: 52rpx;
-	height: 52rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	box-shadow: 0 2rpx 8rpx rgba(33, 126, 118, 0.25);
-}
-
-.step-dot-num {
-	font-size: 26rpx;
-	font-weight: 600;
-	color: #FFFFFF;
-}
-
-.step-line {
-	width: 2rpx;
-	flex: 1;
-	min-height: 40rpx;
-	background-color: var(--zy-border, #dfe7dc);
-	margin: 4rpx 0;
-}
-
-.step-content {
-	flex: 1;
-	padding-bottom: 28rpx;
-}
-
-.step-title {
-	font-size: 28rpx;
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-	line-height: 1.5;
-	display: block;
-}
-
-.step-guide {
-	display: -webkit-box;
-	margin-top: 6rpx;
-	font-size: 24rpx;
-	line-height: 1.6;
-	color: var(--zy-text, #4a5f54);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-}
-
-/* ── 底部占位 ── */
-.bottom-spacer {
-	height: 40rpx;
-}
+/* ── 缝线时间线 ── */
+.step-row { position: relative; display: flex; gap: 24rpx; padding-bottom: 40rpx; }
+.step-row.is-last { padding-bottom: 0; }
+.step-dot { position: relative; z-index: 1; width: 52rpx; height: 52rpx; border-radius: 50%; border: 2rpx solid var(--zy-stitch); background: var(--zy-card-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-dot.is-first { background: var(--zy-brand-600); border-color: var(--zy-brand-600); box-shadow: 0 0 0 10rpx rgba(33,126,118,.12); }
+.step-dot-num { font-size: var(--zy-text-caption); font-weight: 600; color: var(--zy-text); }
+.step-dot.is-first .step-dot-num { color: #FFFDF7; }
+.step-row:not(.is-last)::before { content: ''; position: absolute; left: 25rpx; top: 56rpx; bottom: 0; border-left: 2rpx dashed var(--zy-stitch); }
+.step-content { flex: 1; min-width: 0; padding-top: 4rpx; }
+.step-title { display: block; font-size: var(--zy-text-body-lg); font-weight: 600; color: var(--zy-title); line-height: 1.5; }
+.step-guide { display: block; margin-top: 6rpx; font-size: var(--zy-text-caption); line-height: 1.8; color: var(--zy-text); }
 
 /* ── 底部固定按钮 ── */
-.bottom-bar {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	padding: 20rpx 24rpx;
-	padding-bottom: calc(20rpx + env(safe-area-inset-bottom, 0));
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border-top: 1px solid var(--zy-border, #dfe7dc);
-	z-index: 100;
-}
-
-.start-btn {
-	height: 88rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
-	box-shadow: var(--zy-shadow-lg);
-}
-
-.start-btn:active {
-	transform: scale(0.98);
-}
-
-.start-btn-text {
-	font-size: 32rpx;
-	font-weight: 500;
-	color: #FFFFFF;
-}
+.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 32rpx; padding-bottom: calc(20rpx + env(safe-area-inset-bottom, 0)); background: var(--zy-bg); z-index: 100; }
+.safe-tip { display: block; text-align: center; font-size: var(--zy-text-micro); color: var(--zy-text); margin-bottom: 12rpx; }
+.start-btn { width: 100%; letter-spacing: 2rpx; }
 
 /* ── 底部免责 ── */
-.footnote {
-	display: block;
-	margin: 24rpx;
-	font-size: 22rpx;
-	color: var(--zy-text, #4a5f54);
-	text-align: center;
-}
+.footnote { display: block; margin: 24rpx; font-size: var(--zy-text-micro); color: var(--zy-text); text-align: center; }
 
-button:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #1a645e);
-	outline-offset: 3px;
-}
+button:focus-visible { outline: 3px solid var(--zy-brand-700); outline-offset: 3px; }
+.motion-reduced .cover, .motion-reduced .metaline, .motion-reduced .chipset, .motion-reduced .pull, .motion-reduced .sec { animation: none !important; }
 </style>
