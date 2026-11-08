@@ -179,7 +179,7 @@ function viewFullPolicy() {
 	display: block;
 	text-align: center;
 	font-size: 26rpx;
-	color: #217e76;
+	color: #1A645E;
 	padding: 16rpx 0 8rpx;
 }
 

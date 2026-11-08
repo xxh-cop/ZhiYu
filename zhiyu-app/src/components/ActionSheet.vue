@@ -181,7 +181,7 @@ onBeforeUnmount(release)
 }
 .sheet-action::after { border: 0; }
 .sheet-action.tone-default { background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-title, #233d34); }
-.sheet-action.tone-primary { background: var(--zy-brand-600, #217e76); color: #fff; }
+.sheet-action.tone-primary { background: var(--zy-brand-600, #1A645E); color: #fff; }
 .sheet-action.tone-danger { background: transparent; border: 1rpx solid var(--zy-care, #a64842); color: var(--zy-care, #a64842); }
 .sheet-action.disabled { opacity: .5; }
 .sheet-action.is-disabled { opacity: .55; }

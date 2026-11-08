@@ -222,14 +222,14 @@ onBeforeUnmount(() => {
 	display: block;
 	font-size: 19rpx;
 	letter-spacing: 3rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 .companion-stage {
 	flex-shrink: 0;
 	padding: 4rpx 12rpx;
 	border-radius: 999rpx;
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 21rpx;
 }
 .companion-intro {
@@ -259,7 +259,7 @@ onBeforeUnmount(() => {
 }
 .companion-message-meta {
 	font-size: 19rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 .companion-message-text {
 	font-size: 24rpx;

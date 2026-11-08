@@ -121,7 +121,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 }
 .nudge-action {
 	font-size: 22rpx;
-	color: var(--zy-brand-600, #217e76);
+	color: var(--zy-brand-600, #1A645E);
 }
 .nudge-close {
 	flex-shrink: 0;

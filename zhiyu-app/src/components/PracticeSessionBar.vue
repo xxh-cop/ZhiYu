@@ -72,7 +72,7 @@ const hint = computed(() => {
 	display: block;
 	font-size: 20rpx;
 	letter-spacing: 2rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 .practice-bar-title {
 	display: block;
@@ -100,7 +100,7 @@ const hint = computed(() => {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 12rpx;
 	background: var(--zy-bg, #f5f7f2);
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 23rpx;
 	line-height: 44px;
 }

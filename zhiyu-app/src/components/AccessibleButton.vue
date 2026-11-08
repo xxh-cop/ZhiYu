@@ -54,7 +54,7 @@ button.is-disabled{opacity:.55;cursor:not-allowed}
 .zy-btn--sm{min-height:64rpx;padding:0 28rpx;font-size:24rpx}
 .zy-btn--icon{width:72rpx;height:72rpx;min-width:72rpx;min-height:72rpx;padding:0;border-radius:50%}
 
-.zy-btn--primary{background:var(--zy-brand-600,#217e76);color:#FFFDF7;box-shadow:var(--zy-shadow-cta)}
+.zy-btn--primary{background:var(--zy-brand-600,#1A645E);color:#FFFDF7;box-shadow:var(--zy-shadow-cta)}
 .zy-btn--secondary{background:var(--zy-bg-tint-mint,#e4efe7);color:var(--zy-brand-700,#1a645e)}
 .zy-btn--ghost{background:transparent;color:var(--zy-brand-700,#1a645e)}
 .zy-btn--danger{background:#F7ECEA;color:var(--zy-care,#a64842)}

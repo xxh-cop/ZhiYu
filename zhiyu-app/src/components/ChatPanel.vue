@@ -395,7 +395,7 @@ onUnmounted(() => {
 
 .cp-welcome-text {
 	font-size: 30rpx;
-	color: var(--wot-color-theme, #217e76);
+	color: var(--wot-color-theme, #1A645E);
 	margin-bottom: 16rpx;
 }
 
@@ -456,7 +456,7 @@ onUnmounted(() => {
 .cp-ai-avatar-text {
 	font-size: 28rpx;
 	font-weight: 600;
-	color: var(--wot-color-theme, #217e76);
+	color: var(--wot-color-theme, #1A645E);
 }
 
 /* ── 用户头像 ── */
@@ -512,7 +512,7 @@ onUnmounted(() => {
 /* ── 打字机光标 ── */
 .cp-typing {
 	font-size: 15px;
-	color: var(--wot-color-theme, #217e76);
+	color: var(--wot-color-theme, #1A645E);
 	margin-left: 2px;
 	animation: cpBlink 0.8s steps(2) infinite;
 }

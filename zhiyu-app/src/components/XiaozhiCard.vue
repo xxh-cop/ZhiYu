@@ -35,7 +35,7 @@ defineEmits(['open'])
 .xiaozhi-label { display: block; font-size: 18rpx; color: var(--zy-text, #4a5f54); }
 .xiaozhi-title { display: block; font-size: 29rpx; font-weight: 600; color: var(--zy-title, #233d34); margin-top: 4rpx; }
 .xiaozhi-hint { display: block; font-size: 20rpx; color: var(--zy-text, #4a5f54); margin-top: 4rpx; }
-.xiaozhi-arrow { font-size: 30rpx; color: var(--zy-primary, #217e76); }
+.xiaozhi-arrow { font-size: 30rpx; color: var(--zy-brand-700, #217e76); }
 .xiaozhi-card::after { border: 0; }
 .xiaozhi-card:active { opacity: .84; }
 </style>

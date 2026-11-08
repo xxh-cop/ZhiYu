@@ -338,7 +338,7 @@ watch(
 
 .hide-zone-text {
 	font-size: 26rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	white-space: nowrap;
 }
 

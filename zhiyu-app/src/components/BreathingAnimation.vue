@@ -161,7 +161,7 @@ onUnmounted(() => {
 	font-size: 32rpx;
 	font-weight: 500;
 	letter-spacing: 4rpx;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 }
 
 .breathing-count {
@@ -176,7 +176,7 @@ onUnmounted(() => {
 	border: 2rpx solid var(--zy-primary, #217e76);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: transparent;
-	color: var(--zy-primary, #217e76);
+	color: var(--zy-brand-700, #217e76);
 	font-size: 26rpx;
 	line-height: 1.5;
 }
