@@ -392,6 +392,13 @@
 - 小程序端：`mp-emotion-chat-hist-0-p4.png`（加载真实会话 2119322095790899201，双气泡/折角/推荐/页头正常）。**mp 端自动化输入未打通**（组件边界挡住 selectorQuery，CDP Input 通道被 IDE 拒绝），发送路径以 H5 为准；键盘遮挡**未验证**（模拟器/真机限制，如实标注）。
 - 闸口：mp-weixin build ✓ / wildcard ✓ / isclass ✓ / elements ✓ / contrast 14/14。
 
+### P5 执行实录（2026-11-08）
+
+- **批一（craft/detail）**：通栏 16:10 展品封面（无封面用品类纹样占位，不用照片冒充）、元信息行合并传承人链接、文化背景引言版式、chip 流、缝线时间线、底栏安全提示 + primary lg。逻辑零改动（下架/加载/分享 open-type 原样），脚本仅 +2 纯展示 computed（coverSrc/coverKind）。detail 的 2 处 brand-600 文字清零。
+- **批二（组件层 17 文件）/ 批三（页面与样式 41 文件）**：color 声明中 `var(--zy-primary)`/`#217e76` 统一替换为 `var(--zy-brand-700)`/`#1A645E`（var() 兜底 hex 同步）；脚本定点逐行替换，同行非 color 声明不受影响。
+- **扫描口径修正**（重要）：var() 内的兜底 hex 不算文字用途；附录 A 复扫 **total: 0**。豁免：StatStrip 大号数字保留 `--zy-brand-600`（大字级 ≥3:1，规格批准）。
+- 验证：H5 build ✓ / mp-weixin build ✓；wildcard ✓(97) / isclass ✓(94) / elements ✓(50 条既有死规则) / contrast 14/14；五页双端 p5final 截图复核无回归（work-list/profile/inheritor 等待尾页面颜色略加深，属预期）。
+
 ---
 
 ## 7. 风险与不做清单
@@ -431,9 +438,9 @@
 |---|---|---|
 | ~~P3 首页~~（已清零 2026-11-08） | ~~pages/home/index.vue~~ | 0 |
 | ~~P4 对话页~~（已清零 2026-11-08） | ~~pages/emotion/chat.vue~~ | 0 |
-| **P5 手作详情** | pages/craft/detail.vue: 357,430 | 2 |
-| **P5 收敛·社区/我的相关** | work/list.vue: 403,416,557；work/mine.vue: 36；work/favorites.vue: 40；work/work-detail.css: 7,33,44,68,74,84；work/soft-appeal.vue: 293；profile 页无（已用 accent） | 13 |
-| **P5 收敛·全局长尾**（growth.css 代与其余页面/组件） | growth.css: 2,3,18；craft/recommend.vue 6；craft/session.vue 4；sub-heritage/studio.vue 13；sub-heritage/detail 2、gallery 1；inheritor/list 5、detail 3、story 2；practice/short 5；settings/memory 4、settings/index 1；start 4；materials/index 2、kits 4；ai/rag-ask 6；emotion/notes 1、note-edit 1、history 1；components 长尾（AiCompanion/BreathingAnimation 2/ChatPanel 3/CompanionNudge/CompanionPanel 3/ListeningSummaryCard 2/MediaVideo/PracticeSessionBar 2/PrivacyConsent/SensoryPractice/XiaozhiCard）；assessment/drawing/journey/music/notification/privacy/tracing/group/crisis 各 1–2；sub-programs 2；App.vue 1 | 105 |
+| ~~P5 手作详情~~（已清零 2026-11-08） | ~~pages/craft/detail.vue: 357,430~~ | 0 |
+| ~~P5 收敛·社区/我的相关~~（已清零 2026-11-08） | ~~work/list、work/mine、work/favorites、work-detail.css、work/soft-appeal~~ | 0 |
+| ~~P5 收敛·全局长尾~~（已清零 2026-11-08） | ~~growth.css + 组件层 + 页面/sub 包~~ | 0 |
 | **豁免（大字级/图形）** | components/StatStrip.vue: 31（40rpx 600 大字）；pages/support/index.vue: 18（42rpx 600 电话号）；各 ↗ 箭头字符 | 不计入清零 |
 
 > P3–P4 验收时把对应行从本表划去；**P5 结束时本表非豁免项必须为零**（复扫脚本 `.ai-tmp/brand600-scan.cjs` 输出 total=0，或仅余豁免项）。
