@@ -354,14 +354,14 @@ loadData(1)
 	overflow: hidden;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
+	border: 2rpx solid var(--zy-card-line, #e9e9e7);
+	box-shadow: var(--zy-shadow-card);
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .work-card:active {
 	transform: translateY(-2rpx);
-	box-shadow: var(--zy-shadow-md);
+	box-shadow: var(--zy-shadow-pop);
 }
 
 .card-cover {

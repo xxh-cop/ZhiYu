@@ -35,7 +35,7 @@ page {
 	--wot-color-info: #5c5648;         /* 中性次要 */
 
 	--wot-color-bg: #ffffff;            /* 页面底（云白，默认主题） */
-	--wot-color-border: #e8e8e6;        /* 发丝线 */
+	--wot-color-border: #dcdcd6;        /* 发丝线（随 --zy-border） */
 	--wot-color-border-light: #F3F4F6;  /* 浅冷灰 */
 
 	--wot-color-title: #33302a;         /* 标题（暖墨） */
@@ -53,7 +53,7 @@ page {
 	--zy-title: #33302a;
 	--zy-text: #5c5648;
 	--zy-muted: #5c5648;
-	--zy-border: #e8e8e6;
+	--zy-border: #dcdcd6;               /* 发丝线（2026-11-08 批二：云白下自 #E8E8E6 加深一档，1rpx 描边在纯白底上可辨；暖纸覆盖不变） */
 	--zy-accent: #7a5c12;               /* 深金文字（非遗标注/正文级警示；2026-11-08 加深） */
 	--zy-danger: #a64842;               /* 危机绛 */
 
@@ -105,12 +105,13 @@ page {
 	--zy-shadow-cta: 0 8rpx 20rpx rgba(33, 126, 118, 0.28);
 	--zy-shadow-pop: 0 16rpx 48rpx rgba(0, 0, 0, 0.10);
 
-	/* ── 阴影（青玉案主色派生） ── */
-	--zy-shadow-xs: 0 2rpx 4rpx rgba(33, 126, 118, 0.04);
-	--zy-shadow-sm: 0 2rpx 8rpx rgba(33, 126, 118, 0.06);
-	--zy-shadow-md: 0 4rpx 16rpx rgba(33, 126, 118, 0.08);
-	--zy-shadow-lg: 0 8rpx 24rpx rgba(33, 126, 118, 0.10);
-	--zy-shadow-xl: 0 12rpx 32rpx rgba(33, 126, 118, 0.12);
+	/* ── 阴影（旧五档，2026-11-08 批二映射到新三档）：45 处旧引用零改动随主题协调，
+	   避免暖纸主题下投青玉影违和；P7 零引用后删除。 ── */
+	--zy-shadow-xs: var(--zy-shadow-card);
+	--zy-shadow-sm: var(--zy-shadow-card);
+	--zy-shadow-md: var(--zy-shadow-card);
+	--zy-shadow-lg: var(--zy-shadow-pop);
+	--zy-shadow-xl: var(--zy-shadow-pop);
 
 	/* ── 间距 ── */
 	--zy-space-2xs: 4rpx;

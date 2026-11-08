@@ -503,3 +503,29 @@
 1. mp `page` 元素恒云白（橡皮筋溢出区），平台限制。
 2. 暖纸主题下 Wot Design Uni 弹层类组件（action-sheet 等挂 body 的浮层）在 H5 取 `:root` 云白值；mp 端浮层在页面组件树内则随主题。后续若发现具体浮层违和再单点处理。
 3. `.zy-theme-warm` 的 `min-height:100vh` 与个别自定全屏布局页面叠加时以页面自身规则为准（同名属性后定义者胜，页面 scoped 样式优先级更高）。
+
+---
+
+### 8.8 批二实录：白底逐页核对 + 新基准截图（2026-11-08）
+
+**核对结论（H5 + mp 双端五页目视）**：
+
+| 核对项 | 结论 |
+|---|---|
+| 纸纹 | 云白主题无纸纹（纸纹只在 `.zy-theme-warm`），五页无残留 ✓ |
+| 卡片与背景层次 | 修复前 work-list 白卡融白底（1rpx #E8E8E6 描边近乎不可见）；修复后五页层次全部成立 ✓ |
+| 缝线 | 云白 `--zy-stitch #D8D8D4` 纯装饰级，步骤竖线与分隔线可辨不过重 ✓ |
+| 阴影 | 云白中性影成立；发现旧 `--zy-shadow-xs..xl`（青玉影）在暖纸下会违和，已映射修复 ✓ |
+| 按钮与标签对比度 | 数值闸口 28 组全绿 + 目视复核（CTA 4.87、accent 5.16、care 5.79）✓ |
+
+**批二三处修复（令牌层）**：
+
+1. `pages/work/list.vue` 作品卡：`1rpx var(--zy-border)` → `2rpx var(--zy-card-line)`；`--zy-shadow-sm/md` → `--zy-shadow-card/pop`（基准五页中层次最弱点）。
+2. `--zy-border` 云白值 `#E8E8E6` → `#DCDCD6`（含 `--wot-color-border` 同步；tokens.json 同步）：全站 95 处 1rpx 描边在纯白底上可辨；暖纸覆盖值 `#E4DCCB` 不动。非文字组合，对比度闸口复跑 28 组仍全绿。
+3. 旧阴影五档映射新三档：`--zy-shadow-xs/sm/md → var(--zy-shadow-card)`、`lg/xl → var(--zy-shadow-pop)`：45 处旧引用（18 文件）零改动随主题协调，消除暖纸下青玉影违和；旧档删除仍待 P7 零引用后执行。
+
+**新基准截图**（`output/playwright/theme-b2/`，替换 p5final 系列供 PPT/视频素材）：
+
+- H5 云白 5 页：`h5-{home,emotion-chat,craft-detail,work-list,profile}-theme-b2-white.png`（375×812@2x，修复后定版，无横向溢出、无 console 错误）
+- mp 云白 5 页 + 暖纸回归 5 页：`mp-{page}-theme-b2-{white,warm}.png`（自动化端口响应偶发超时，截图经重试取得）
+- 暖纸回归结论：五页全部全绿（米白底、暖墨影协调、card-line 透明后卡片靠阴影分层成立、tabBar 浅米联动），可选主题无半成品。
