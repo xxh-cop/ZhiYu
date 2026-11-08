@@ -1,0 +1,48 @@
+/**
+ * 织愈 · 暖纸青玉工具类（2026-11-08，UI 升级 P1）
+ * 依据：docs/ui-upgrade-student-spec-20261108.md §1–§2；令牌值以 design/tokens.json 为准。
+ *
+ * WXSS 合规：全部类选择器；无 * 通配、无属性选择器、无 :nth-child、无 :focus-visible。
+ * 状态一律 is-* 类（本文件不新增 is-*，状态由组件层挂载）。
+ */
+
+/* ── 字阶七档（token 值见 theme.scss 注释） ── */
+.zy-t-display { font-size: var(--zy-text-display); font-weight: 600; line-height: 1.3; letter-spacing: 2rpx; }
+.zy-t-title-lg { font-size: var(--zy-text-title-lg); font-weight: 600; line-height: 1.4; letter-spacing: 1rpx; }
+.zy-t-title { font-size: var(--zy-text-title); font-weight: 600; line-height: 1.5; letter-spacing: 0.5rpx; }
+.zy-t-body-lg { font-size: var(--zy-text-body-lg); font-weight: 400; line-height: 1.7; }
+.zy-t-body { font-size: var(--zy-text-body); font-weight: 400; line-height: 1.7; }
+.zy-t-caption { font-size: var(--zy-text-caption); font-weight: 400; line-height: 1.6; }
+.zy-t-micro { font-size: var(--zy-text-micro); font-weight: 400; line-height: 1.6; letter-spacing: 1rpx; }
+
+/* 衬线展示字体：仅 display / title-lg / 引言三类场景；小程序无宋体时自然回落 sans */
+.zy-t-serif { font-family: var(--zy-font-display); }
+
+/* ── 卡片族（默认无描边；选中由使用方加 is-selected） ── */
+.zy-card {
+	background: var(--zy-card-bg);
+	border-radius: var(--zy-radius-card);
+	padding: var(--zy-space-lg);
+	box-shadow: var(--zy-shadow-card);
+}
+.zy-card--mint { background: var(--zy-bg-tint-mint); box-shadow: none; }
+.zy-card--warm { background: var(--zy-bg-tint-warm); box-shadow: none; }
+.zy-card--feature { border-radius: var(--zy-radius-feature); padding: 0; }
+.zy-card--bare { background: transparent; box-shadow: none; padding: 0; }
+
+/* ── 缝线分隔（2rpx 虚线；纯装饰，aria-hidden 由使用方保证） ── */
+.zy-stitch-h { border-top: 2rpx dashed var(--zy-stitch); }
+.zy-stitch-v { border-left: 2rpx dashed var(--zy-stitch); }
+
+/* ── 焦点环（双端统一：基座组件 @focus/@blur 切换 .zy-focused；H5 另保留 :focus-visible 渐进增强） ── */
+.zy-focused { box-shadow: 0 0 0 4rpx rgba(33, 126, 118, 0.35); }
+
+/* ── 纸纹（增强项：2.5% 暖墨噪点，240rpx 瓦片；加载失败仅表现为纯色暖底） ── */
+page {
+	background-color: var(--zy-bg);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+	background-size: 240rpx 240rpx;
+}
+@media (prefers-reduced-transparency: reduce) {
+	page { background-image: none; }
+}

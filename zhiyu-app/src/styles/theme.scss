@@ -6,6 +6,12 @@
  * 语义色 success / warning 双轨 / care 绛红，中性文字加深至 #4A5F54。
  * 定义与对比度依据：docs/design-tokens-20261102.md；单一事实源：design/tokens.json。
  *
+ * 2026-11-08「暖纸青玉」v6.0（docs/ui-upgrade-student-spec-20261108.md）：
+ * 中性色暖化（bg #F6F1E7 / surface #FFFDF7 / title #33302A / text #5C5648 /
+ * border #E4DCCB / tint 双轨），新增 stitch / faint / 字阶七档 / 暖墨阴影三档 /
+ * radius-feature / space-3xl / font-display。品牌色阶与语义色不动。
+ * 旧 --zy-shadow-xs..xl 保留至 P7 零引用后删除。
+ *
  * 原先定义在 uni.scss 的 :root, page {} 块已迁移至此，
  * 因 UniApp 编译器不输出 uni.scss 的 CSS 规则。
  */
@@ -26,40 +32,42 @@ page {
 	--wot-color-success: #2e7d5b;      /* 成功绿 */
 	--wot-color-warning: #9a6a12;      /* 警示琥珀（大字/图标级） */
 	--wot-color-danger: #a64842;       /* 危机绛（非纯红） */
-	--wot-color-info: #4a5f54;         /* 中性次要 */
+	--wot-color-info: #5c5648;         /* 中性次要 */
 
-	--wot-color-bg: #f5f7f2;            /* 页面底 */
-	--wot-color-border: #dfe7dc;        /* 边框 */
+	--wot-color-bg: #f6f1e7;            /* 页面底（暖纸） */
+	--wot-color-border: #e4dccb;        /* 发丝线 */
 	--wot-color-border-light: #F3F4F6;  /* 浅冷灰 */
 
-	--wot-color-title: #233d34;         /* 标题 */
-	--wot-color-content: #4a5f54;       /* 正文（对比度修正：6.37:1） */
-	--wot-color-secondary: #4a5f54;     /* 次要 */
-	--wot-color-aid: #4a5f54;           /* 辅助 */
+	--wot-color-title: #33302a;         /* 标题（暖墨） */
+	--wot-color-content: #5c5648;       /* 正文（暖灰棕，对暖纸底 6.4:1） */
+	--wot-color-secondary: #5c5648;     /* 次要 */
+	--wot-color-aid: #5c5648;           /* 辅助 */
 	--wot-color-tip: #D1D5DB;           /* 银灰 — 占位提示（非正文用途） */
 
-	/* ── 织愈色板（向后兼容别名，指向青玉案令牌） ── */
+	/* ── 织愈色板（向后兼容别名，指向暖纸青玉令牌） ── */
 	--zy-primary: #217e76;
 	--zy-primary-light: #5bc4a8;
-	--zy-bg: #f5f7f2;
-	--zy-card-bg: #FFFFFF;
-	--zy-title: #233d34;
-	--zy-text: #4a5f54;
-	--zy-muted: #4a5f54;
-	--zy-border: #dfe7dc;
-	--zy-accent: #8a6d1f;               /* 深金文字（非遗标注/正文级警示） */
+	--zy-bg: #f6f1e7;
+	--zy-card-bg: #FFFDF7;
+	--zy-title: #33302a;
+	--zy-text: #5c5648;
+	--zy-muted: #5c5648;
+	--zy-border: #e4dccb;
+	--zy-accent: #7a5c12;               /* 深金文字（非遗标注/正文级警示；2026-11-08 加深，暖金 tint 上 5.16:1） */
 	--zy-danger: #a64842;               /* 危机绛 */
 
-	--zy-bg-warm: #FFFFFF;              /* 卡片纯白 */
-	--zy-bg-tint-mint: #e8efe4;         /* 薄荷 4% — 模块底色 */
-	--zy-bg-tint-warm: #f7efd9;         /* 暖金 4% */
-	--zy-content: #4a5f54;
-	--zy-aid: #4a5f54;
+	--zy-bg-warm: #FFFDF7;              /* 卡片宣纸白 */
+	--zy-bg-tint-mint: #e4efe7;         /* 薄荷 tint — 平静/呼吸语义底 */
+	--zy-bg-tint-warm: #f3e9cf;         /* 暖金 tint — 非遗/关怀语义底 */
+	--zy-content: #5c5648;
+	--zy-aid: #5c5648;
+	--zy-stitch: #c9bfa9;               /* 缝线：虚线分隔/纹样，纯装饰不承载文本 */
+	--zy-faint: #8a8378;                /* 装饰灰：仅英文 eyebrow，禁承载信息文本 */
 
 	/* ── 语义色 ── */
 	--zy-success: #2e7d5b;
 	--zy-warning: #9a6a12;              /* 仅大字/图标 */
-	--zy-warning-text: #8a6d1f;         /* 正文级警示 */
+	--zy-warning-text: #7a5c12;         /* 正文级警示（与 accent 同源加深） */
 	--zy-care: #a64842;                 /* 危机干预绛 */
 	--zy-gold: #d9a441;                 /* 暖金：仅图形/徽章，不承担文本 */
 
@@ -89,6 +97,12 @@ page {
 	--zy-radius-control: var(--zy-radius-md);   /* 按钮/输入 24rpx ≈ 12px */
 	--zy-radius-dialog: var(--zy-radius-xl);    /* 弹窗 48rpx ≈ 24px */
 	--zy-radius-chip: var(--zy-radius-sm);      /* 标签/小片 12rpx */
+	--zy-radius-feature: 40rpx;                 /* 大卡/展品封面（暖纸青玉 v6） */
+
+	/* ── 阴影（暖纸青玉 v6：暖墨三档；旧青玉五档保留至 P7 零引用后删除） ── */
+	--zy-shadow-card: 0 4rpx 20rpx rgba(72, 58, 34, 0.07);
+	--zy-shadow-cta: 0 8rpx 20rpx rgba(33, 126, 118, 0.28);
+	--zy-shadow-pop: 0 16rpx 48rpx rgba(72, 58, 34, 0.14);
 
 	/* ── 阴影（青玉案主色派生） ── */
 	--zy-shadow-xs: 0 2rpx 4rpx rgba(33, 126, 118, 0.04);
@@ -105,9 +119,10 @@ page {
 	--zy-space-lg: 32rpx;
 	--zy-space-xl: 48rpx;
 	--zy-space-2xl: 64rpx;
+	--zy-space-3xl: 72rpx;   /* 呼吸段：主视觉后 / 页脚前（暖纸青玉 v6） */
 
 	/* ── 字体 ── */
-	--zy-font-xs: 20rpx;
+	--zy-font-xs: 20rpx;     /* 仅图标内数字；排版不再使用（暖纸青玉 v6） */
 	--zy-font-sm: 24rpx;
 	--zy-font-base: 28rpx;
 	--zy-font-md: 32rpx;
@@ -115,6 +130,16 @@ page {
 	--zy-font-xl: 44rpx;
 	--zy-font-2xl: 56rpx;
 	--zy-leading: 1.6;
+
+	/* ── 字阶七档（暖纸青玉 v6，配合 .zy-t-* 工具类；px@375 = rpx÷2） ── */
+	--zy-text-display: 56rpx;    /* 28px · 600 · 1.3 · 字距 2rpx · 每屏 ≤1 次 */
+	--zy-text-title-lg: 40rpx;   /* 20px · 600 · 1.4 · 字距 1rpx */
+	--zy-text-title: 32rpx;      /* 16px · 600 · 1.5 · 字距 0.5rpx */
+	--zy-text-body-lg: 30rpx;    /* 15px · 400 · 1.7 */
+	--zy-text-body: 28rpx;       /* 14px · 400 · 1.7 */
+	--zy-text-caption: 24rpx;    /* 12px · 400 · 1.6 */
+	--zy-text-micro: 22rpx;      /* 11px · 400 · 1.6 · 全站最小字 */
+	--zy-font-display: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
 
 	/* ── 动效时长 ── */
 	--zy-duration-instant: 100ms;
