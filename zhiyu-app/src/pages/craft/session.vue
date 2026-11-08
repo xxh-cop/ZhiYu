@@ -878,7 +878,7 @@ function handleBackHome() {
 	flex-direction: column;
 	height: 100vh;
 	min-height: 0;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 /* #ifdef H5 */
 .page { height: calc(100dvh - var(--window-top, 44px) - var(--window-bottom, 0px)); }
@@ -964,7 +964,7 @@ function handleBackHome() {
 	padding: 0;
 	margin: 0;
 	border-radius: 50%;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	color: var(--zy-title, #233d34);
 	font-size: 36rpx;
 	line-height: 1;
@@ -993,7 +993,7 @@ function handleBackHome() {
 }
 
 .banner-warn {
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	border-left: 6rpx solid var(--zy-gold, #d9a441);
 }
 
@@ -1081,7 +1081,7 @@ function handleBackHome() {
 	min-height: 88rpx;
 	padding: 0;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	border: 2rpx solid var(--zy-border, #dfe7dc);
 	color: var(--zy-title, #233d34);
 	font-size: 28rpx;

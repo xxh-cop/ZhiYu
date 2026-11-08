@@ -22,7 +22,7 @@
       "path": "pages/login/forgot",
       "style": {
         "navigationBarTitleText": "找回密码",
-        "navigationBarBackgroundColor": "#F5F7F2"
+        "navigationBarBackgroundColor": "#FFFFFF"
       }
     },
     {
@@ -41,7 +41,7 @@
       "path": "pages/register/index",
       "style": {
         "navigationBarTitleText": "注册",
-        "navigationBarBackgroundColor": "#F5F7F2"
+        "navigationBarBackgroundColor": "#FFFFFF"
       }
     },
     {
@@ -148,21 +148,21 @@
       "path": "pages/settings/index",
       "style": {
         "navigationBarTitleText": "个人设置",
-        "navigationBarBackgroundColor": "#F5F7F2"
+        "navigationBarBackgroundColor": "#FFFFFF"
       }
     },
     {
       "path": "pages/settings/memory",
       "style": {
         "navigationBarTitleText": "小织记忆",
-        "navigationBarBackgroundColor": "#F5F7F2"
+        "navigationBarBackgroundColor": "#FFFFFF"
       }
     },
     {
       "path": "pages/crisis/index",
       "style": {
         "navigationBarTitleText": "心理援助",
-        "navigationBarBackgroundColor": "#F5F7F2"
+        "navigationBarBackgroundColor": "#FFFFFF"
       }
     },
     {
@@ -345,10 +345,10 @@
     }
   ],
   "globalStyle": {
-    "navigationBarBackgroundColor": "#f5f7f2",
+    "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "织愈",
-    "backgroundColor": "#f5f7f2"
+    "backgroundColor": "#FFFFFF"
   },
   "tabBar": {
     "color": "#4a5f54",

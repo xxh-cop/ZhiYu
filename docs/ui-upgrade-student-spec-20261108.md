@@ -529,3 +529,25 @@
 - H5 云白 5 页：`h5-{home,emotion-chat,craft-detail,work-list,profile}-theme-b2-white.png`（375×812@2x，修复后定版，无横向溢出、无 console 错误）
 - mp 云白 5 页 + 暖纸回归 5 页：`mp-{page}-theme-b2-{white,warm}.png`（自动化端口响应偶发超时，截图经重试取得）
 - 暖纸回归结论：五页全部全绿（米白底、暖墨影协调、card-line 透明后卡片靠阴影分层成立、tabBar 浅米联动），可选主题无半成品。
+
+---
+
+### 8.9 导航条批：顶部导航随主题（2026-11-08）
+
+**缺陷**：顶部导航条不随主题（用户像素取证：五页 H5 云白图 y=0 与 mp 图 y=26~59 均为旧冷底 #F5F7F2，与内容区底色不一致，云白下呈「脏边」）。根因：`pages.json` 6 处 `navigationBarBackgroundColor`/`backgroundColor` 写死 #F5F7F2，运行时没有 setNavigationBarColor，主题切换只换内容区。
+
+**修复**：
+
+1. **pages.json 默认值改云白**（5 处页面级 + globalStyle 的 navigationBarBackgroundColor/backgroundColor → #FFFFFF）：冷启动首帧不闪旧色。tabBar 静态值（#FFFFFF/white）本已符合云白默认，暖纸经既有 setTabBarStyle 联动，无需改。
+2. **运行时联动**：`stores/theme.js` 新增 `applyNavBar()`（`uni.setNavigationBarColor`，frontColor 恒 #000000，backgroundColor 跟 --zy-bg：云白 #FFFFFF / 暖纸 #F6F1E7），init（首帧前）与 setTheme 均调用。
+3. **跨页面接力（关键）**：实测发现 `setNavigationBarColor` 仅对**当前页面实例**生效，切页后新页面按 pages.json 静态值渲染——暖纸用户进入后续页面导航条回白（20 张截图首轮取样 19/20 异常，仅 setTheme 所在页正确）。修法分端：
+   - **mp**：原生导航只能 JS，全局 mixin 挂 `onLoad`（新页尽早）+ `onShow`（tab 页切换不再触发 onLoad）接力应用；冷启动由 pages.json 云白默认保首帧。
+   - **H5**：导航条是 body 级 DOM（`.uni-page-head`，uni 把配置/调用写成内联样式），走 `html.zy-theme-warm .uni-page-head { background-color:#f6f1e7 !important }`（`#ifdef H5`），对全站页面免疫，无需 JS 接力。
+4. **旧色兜底清扫**：79 处 `var(--zy-bg, #f5f7f2)`（40 文件）统一为 `var(--zy-bg, #ffffff)`；另查出 10 处**裸写** `#f5f7f2`（下沉衬底语境：详情块/次按钮/提示条/图案格/作品格/按下态），新增面级令牌 `--zy-bg-sunken`（云白 #F4F4F2 / 暖纸 #EFE8DA，tokens.json 与 check-contrast 同步，text/sunken 双主题 6.62/5.98 达标）统一归牌；`#f5f7f2` 全仓清零。
+
+**验证（21/21 PASS）**：
+
+- 四道闸口：构建通过；wildcard/isclass 通过；check-contrast 双主题 30 组全绿；56 页结构配平。
+- 导航条像素取样（`.ai-tmp/png-top-sample.cjs`，无依赖 PNG 解码）：H5 五页 × 双主题（x=4，y=2..42，41 行）+ mp 五页 × 双主题（x=4，y=26..59，34 行），white 恒 255,255,255、warm 恒 246,241,231，全行一致；报告 `output/playwright/theme-nav/top-sample-report.txt`。
+- H5 另经 computedStyle 断言（`.ai-tmp/h5-nav-live.cjs`）：切换即时、reload 持久、首帧不闪。
+- 截图存档 `output/playwright/theme-nav/`（H5 10 + mp 10，双端五页双主题，用户验收素材）。

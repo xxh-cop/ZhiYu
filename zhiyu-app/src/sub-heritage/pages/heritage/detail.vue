@@ -185,7 +185,7 @@ onLoad((query) => {
 .heritage-swatch-color { width: 30rpx; height: 30rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 50%; }
 .heritage-swatch-label { font-size: 21rpx; color: var(--zy-text, #4a5f54); }
 .heritage-safety { display: block; margin-top: 8rpx; }
-.heritage-source { display: flex; flex-direction: column; align-items: flex-start; width: 100%; margin: 10rpx 0 0; padding: 16rpx 18rpx; text-align: left; background: var(--zy-bg, #f5f7f2); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; line-height: 1.6; }
+.heritage-source { display: flex; flex-direction: column; align-items: flex-start; width: 100%; margin: 10rpx 0 0; padding: 16rpx 18rpx; text-align: left; background: var(--zy-bg, #ffffff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; line-height: 1.6; }
 .heritage-source-title { font-size: 25rpx; color: var(--zy-brand-700, #217e76); }
 .heritage-source-meta { font-size: 20rpx; color: var(--zy-text, #4a5f54); margin-top: 4rpx; }
 .heritage-source-note { display: block; margin-top: 16rpx; }

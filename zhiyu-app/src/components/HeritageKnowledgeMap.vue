@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
 .legend-dot.tradition { background: #217e76; }
 .legend-dot.source { background: #bb914d; }
 .knowledge-map-list { display: flex; flex-direction: column; gap: 12rpx; }
-.knowledge-group { padding: 14rpx 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); }
+.knowledge-group { padding: 14rpx 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #ffffff); }
 .knowledge-group-title { display: block; font-size: 24rpx; color: var(--zy-title, #233d34); font-weight: 600; }
 .knowledge-group-meta, .knowledge-group-patterns { display: block; margin-top: 4rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); word-break: break-word; }
 </style>

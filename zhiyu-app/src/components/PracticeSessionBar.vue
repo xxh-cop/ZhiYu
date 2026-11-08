@@ -99,7 +99,7 @@ const hint = computed(() => {
 	padding: 0 22rpx;
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 12rpx;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-brand-700, #217e76);
 	font-size: 23rpx;
 	line-height: 44px;

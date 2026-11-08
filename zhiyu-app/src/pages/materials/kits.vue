@@ -126,7 +126,7 @@ function leave() {
 	min-height: 100vh;
 	padding: 28rpx 32rpx 90rpx;
 	box-sizing: border-box;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-content, #4a5f54);
 }
 .kits-nav { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
@@ -159,7 +159,7 @@ function leave() {
 .step-row { display: flex; align-items: flex-start; gap: 14rpx; margin-top: 10rpx; }
 .step-num { flex-shrink: 0; width: 38rpx; height: 38rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-brand-700, #217e76); font-size: 19rpx; line-height: 38rpx; text-align: center; }
 .step-text { flex: 1; font-size: 22rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
-.safety-block { padding: 18rpx 18rpx 14rpx; border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); border-left: 6rpx solid var(--zy-gold, #d9a441); }
+.safety-block { padding: 18rpx 18rpx 14rpx; border-radius: 14rpx; background: var(--zy-bg, #ffffff); border-left: 6rpx solid var(--zy-gold, #d9a441); }
 .safety-label { color: var(--zy-warning-text, #8a6d1f); }
 .safety-bullet { color: var(--zy-warning-text, #8a6d1f); }
 .digital-card { margin-top: 22rpx; padding: 18rpx; border: 1rpx dashed var(--zy-border, #dfe7dc); border-radius: 14rpx; }

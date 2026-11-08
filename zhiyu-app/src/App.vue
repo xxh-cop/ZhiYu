@@ -11,7 +11,7 @@ export default {
 <style lang="scss">
 /* 每个页面公共 css —— 冷调薄荷青主题（v3.0） */
 page {
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-title, #1F2937);
 	font-size: 28rpx;
 	line-height: 1.6;

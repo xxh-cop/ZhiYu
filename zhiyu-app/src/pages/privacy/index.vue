@@ -197,7 +197,7 @@ async function handleAgree() {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 .scroll-area {

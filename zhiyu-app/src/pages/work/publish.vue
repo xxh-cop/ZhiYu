@@ -536,7 +536,7 @@ function goMine() {
 	min-height: 100vh;
 	padding: 0 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 导航栏 ── */
@@ -695,7 +695,7 @@ function goMine() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	border: 2rpx dashed var(--zy-border, #dfe7dc);
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -978,7 +978,7 @@ function goMine() {
 .preview-card {
 	overflow: hidden;
 	border-radius: var(--zy-radius-md, 24rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 }
 
@@ -1092,7 +1092,7 @@ function goMine() {
 }
 
 .btn-secondary:active {
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 .btn-secondary-text {

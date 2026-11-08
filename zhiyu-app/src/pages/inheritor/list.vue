@@ -277,7 +277,7 @@ loadStories()
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 顶部标题 ── */

@@ -43,6 +43,7 @@ const pairDefs = [
   ['text 正文 / 卡片', (N) => N.textSecondary, (N) => N.surface, 4.5],
   ['text 正文 / 薄荷 tint', (N) => N.textSecondary, (N) => N.tint, 4.5],
   ['text 正文 / 暖金 tint', (N) => N.textSecondary, (N) => N.tintWarm, 4.5],
+  ['text 正文 / 下沉衬底 sunken', (N) => N.textSecondary, (N) => N.sunken, 4.5],
   ['白字 / brand-600 实心按钮', () => '#FFFFFF', () => B['600'], 4.5],
   ['brand-700 文字 / 页面底（文字级品牌色）', () => B['700'], (N) => N.bg, 4.5],
   ['brand-700 / 薄荷 tint（secondary 按钮字）', () => B['700'], (N) => N.tint, 4.5],

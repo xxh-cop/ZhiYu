@@ -267,7 +267,7 @@ onUnmounted(() => {
 .cp-panel {
 	width: 100%;
 	height: 75vh;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	border-radius: 24rpx 24rpx 0 0;
 	display: flex;
 	flex-direction: column;
@@ -464,7 +464,7 @@ onUnmounted(() => {
 	width: 64rpx;
 	height: 64rpx;
 	border-radius: 50%;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -560,7 +560,7 @@ onUnmounted(() => {
 
 :deep(.cp-chat-input) {
 	flex: 1;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	border-radius: 12px;
 	padding: 0 12px;
 	height: 40px;
@@ -573,7 +573,7 @@ onUnmounted(() => {
 	flex-shrink: 0;
 	padding: 8rpx 0;
 	text-align: center;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	padding-bottom: calc(8rpx + constant(safe-area-inset-bottom));
 	padding-bottom: calc(8rpx + env(safe-area-inset-bottom));
 }

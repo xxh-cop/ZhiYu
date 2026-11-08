@@ -281,7 +281,7 @@ function handleLogout() {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── ① 身份区 ── */
@@ -388,7 +388,7 @@ function handleLogout() {
 	white-space: normal;
 	text-align: center;
 }
-.badge-card.locked { background: var(--zy-bg, #f5f7f2); }
+.badge-card.locked { background: var(--zy-bg, #ffffff); }
 .badge-icon {
 	width: 72rpx;
 	height: 72rpx;

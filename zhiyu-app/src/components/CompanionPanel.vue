@@ -250,7 +250,7 @@ onBeforeUnmount(() => {
 	margin: 0 0 14rpx;
 	padding: 12rpx 16rpx;
 	border-radius: 16rpx;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 }
 .companion-message.user {
 	align-self: flex-end;
@@ -287,7 +287,7 @@ onBeforeUnmount(() => {
 	padding: 12rpx 16rpx;
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 14rpx;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 }
 .companion-tool-title {
 	display: block;
@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
 	margin-top: 12rpx;
 	padding: 12rpx 16rpx;
 	border-radius: 14rpx;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 }
 .companion-citation {
 	display: block;
@@ -349,7 +349,7 @@ onBeforeUnmount(() => {
 	padding: 16rpx 18rpx;
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 14rpx;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-title, #233d34);
 	font-size: 24rpx;
 	line-height: 1.6;

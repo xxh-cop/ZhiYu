@@ -282,7 +282,7 @@ onMounted(loadGraph)
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 顶部说明 ── */
@@ -496,7 +496,7 @@ onMounted(loadGraph)
 	flex: 1;
 	height: 72rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	display: flex;
 	align-items: center;
@@ -563,7 +563,7 @@ onMounted(loadGraph)
 .mode-chip { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, #217e76); font-size: 20rpx; }
 .mode-note { font-size: 20rpx; color: var(--zy-text, #4a5f54); }
 .source-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12rpx; }
-.source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 6rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 19rpx; }
+.source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 6rpx; background: var(--zy-bg, #ffffff); color: var(--zy-text, #4a5f54); font-size: 19rpx; }
 .source-org, .source-relation, .source-version, .source-media { display: block; margin-top: 4rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); word-break: break-word; }
 .source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size: 21rpx; color: var(--zy-brand-700, #217e76); background: transparent; border: 0; text-align: left; }
 

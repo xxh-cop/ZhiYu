@@ -193,7 +193,7 @@ onBeforeUnmount(release)
 	margin: 20rpx 0 0;
 	padding: 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-text-secondary, #4a5f54);
 	font-size: var(--zy-font-base, 28rpx);
 	line-height: 1.5;

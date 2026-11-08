@@ -366,7 +366,7 @@ function goCommunity() {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; padding: 32rpx 28rpx 120rpx; box-sizing: border-box; background: var(--zy-bg, #f5f7f2); }
+.page { min-height: 100vh; padding: 32rpx 28rpx 120rpx; box-sizing: border-box; background: var(--zy-bg, #ffffff); }
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20rpx; margin-bottom: 24rpx; }
 .page-title { display: block; font-family: var(--zy-serif); font-size: 40rpx; font-weight: 600; color: var(--zy-title, #233d34); }
 .page-subtitle { display: block; margin-top: 8rpx; font-size: 24rpx; color: var(--zy-text, #4a5f54); line-height: 1.6; }

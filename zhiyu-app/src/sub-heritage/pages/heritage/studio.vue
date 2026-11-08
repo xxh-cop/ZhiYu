@@ -783,15 +783,15 @@ onMounted(() => {
 .studio-ai-card { margin-top: 20rpx; border-color: var(--zy-border, #dfe7dc); }
 .studio-ai-form { max-width: 760px; }
 .studio-ai-badge { flex-shrink: 0; padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, #217e76); font-size: 20rpx; }
-.studio-consent { display: flex; align-items: flex-start; gap: 12rpx; width: 100%; margin: 16rpx 0 4rpx; padding: 14rpx 16rpx; text-align: left; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-text, #4a5f54); font-size: 23rpx; line-height: 1.6; }
+.studio-consent { display: flex; align-items: flex-start; gap: 12rpx; width: 100%; margin: 16rpx 0 4rpx; padding: 14rpx 16rpx; text-align: left; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #ffffff); color: var(--zy-text, #4a5f54); font-size: 23rpx; line-height: 1.6; }
 .studio-consent.is-checked { border-color: var(--zy-brand-700, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, #217e76); }
 .studio-consent-box { display: inline-flex; align-items: center; justify-content: center; width: 34rpx; height: 34rpx; flex-shrink: 0; margin-top: 2rpx; border: 1rpx solid currentColor; border-radius: 8rpx; font-size: 20rpx; }
 .studio-ai-label { display: block; margin: 16rpx 0 0; font-size: 23rpx; color: var(--zy-title, #233d34); }
-.studio-ai-input { box-sizing: border-box; width: 100%; height: 78rpx; margin: 8rpx 0 16rpx; padding: 0 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; background: var(--zy-bg, #f5f7f2); color: var(--zy-title, #233d34); font-size: 24rpx; }
+.studio-ai-input { box-sizing: border-box; width: 100%; height: 78rpx; margin: 8rpx 0 16rpx; padding: 0 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; background: var(--zy-bg, #ffffff); color: var(--zy-title, #233d34); font-size: 24rpx; }
 .studio-ai-hint { display: block; margin-top: 10rpx; }
 .studio-ai-message { display: block; margin: 14rpx 0 0; line-height: 1.7; word-break: break-word; }
 .studio-ai-variants { display: flex; flex-direction: column; gap: 14rpx; margin-top: 18rpx; }
-.studio-ai-variant { display: flex; flex-direction: column; padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-bg, #f5f7f2); }
+.studio-ai-variant { display: flex; flex-direction: column; padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-bg, #ffffff); }
 .studio-ai-variant.applied { border-color: var(--zy-primary, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); }
 .studio-ai-variant-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12rpx; }
 .studio-ai-variant-name { font-size: 25rpx; color: var(--zy-title, #233d34); font-weight: 600; }
@@ -814,11 +814,11 @@ onMounted(() => {
 .culture-section { margin-top: 16rpx; }
 .culture-label { display: block; font-size: 23rpx; color: var(--zy-title, #233d34); font-weight: 600; }
 .culture-text { display: block; margin-top: 4rpx; font-size: 23rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); word-break: break-word; }
-.culture-note { display: block; margin-top: 18rpx; padding: 12rpx 16rpx; border-radius: 12rpx; background: var(--zy-bg, #f5f7f2); font-size: 21rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
+.culture-note { display: block; margin-top: 18rpx; padding: 12rpx 16rpx; border-radius: 12rpx; background: var(--zy-bg, #ffffff); font-size: 21rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
 .culture-status { display: block; margin-top: 10rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-brand-700, #217e76); }
 .practice-artifact-card { margin-top: 20rpx; }
 .artifact-body { margin-top: 16rpx; }
-.artifact-summary { padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #f5f7f2); }
+.artifact-summary { padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #ffffff); }
 .artifact-title { display: block; font-size: 27rpx; font-weight: 600; color: var(--zy-title, #233d34); }
 .artifact-meta { display: block; margin-top: 4rpx; font-size: 22rpx; color: var(--zy-text, #4a5f54); }
 .artifact-swatches { display: flex; gap: 10rpx; margin: 12rpx 0; }

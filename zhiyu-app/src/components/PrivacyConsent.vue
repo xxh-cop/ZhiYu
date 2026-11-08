@@ -201,7 +201,7 @@ function viewFullPolicy() {
 }
 
 .btn-decline:active {
-	background-color: #f5f7f2;
+	background-color: var(--zy-bg-sunken, #f4f4f2);
 }
 
 .btn-decline-text {

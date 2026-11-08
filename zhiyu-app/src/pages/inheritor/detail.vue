@@ -296,7 +296,7 @@ function goProjectDetail(item) {
 	min-height: 100vh;
 	padding: 0 0 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 骨架屏 ── */
@@ -360,7 +360,7 @@ function goProjectDetail(item) {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #f5f7f2) 100%);
+	background: linear-gradient(180deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #ffffff) 100%);
 }
 
 .hero-content {
@@ -645,7 +645,7 @@ function goProjectDetail(item) {
 .category-badge {
 	padding: 4rpx 14rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 .category-text {
@@ -656,7 +656,7 @@ function goProjectDetail(item) {
 .time-badge {
 	padding: 4rpx 14rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 .time-text {

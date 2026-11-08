@@ -50,6 +50,7 @@ page {
 	--zy-bg: #ffffff;                   /* 页面底（云白，默认主题） */
 	--zy-card-bg: #ffffff;              /* 卡片底（云白主题下靠 --zy-card-line 发丝描边分层） */
 	--zy-card-line: #e9e9e7;            /* 卡片发丝描边（暖纸主题置透明） */
+	--zy-bg-sunken: #f4f4f2;            /* 下沉衬底（详情块/次按钮/提示条等比页面底深一档；2026-11-08 导航条批新增） */
 	--zy-title: #33302a;
 	--zy-text: #5c5648;
 	--zy-muted: #5c5648;
@@ -171,6 +172,7 @@ page {
 	--zy-bg: #f6f1e7;
 	--zy-card-bg: #fffdf7;
 	--zy-card-line: transparent;
+	--zy-bg-sunken: #efe8da;
 	--zy-border: #e4dccb;
 	--zy-stitch: #c9bfa9;
 	--zy-shadow-card: 0 4rpx 20rpx rgba(72, 58, 34, 0.07);
@@ -198,4 +200,7 @@ page {
 /* #ifdef H5 */
 html.zy-theme-warm .uni-tabbar { background-color: #fffdf7 !important; }
 html.zy-theme-warm .uni-tabbar-border { background-color: rgba(0, 0, 0, 0.33) !important; }
+/* H5 导航条同为 body 级 DOM + 内联背景（pages.json/setNavigationBarColor 写入），
+   且 setNavigationBarColor 仅对当前页生效、切页即失效；html class 覆盖对全站页面免疫。 */
+html.zy-theme-warm .uni-page-head { background-color: #f6f1e7 !important; }
 /* #endif */

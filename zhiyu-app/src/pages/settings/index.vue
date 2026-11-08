@@ -584,7 +584,7 @@ async function handleChangePassword() {
 	min-height: 100vh;
 	padding: 32rpx 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 页面标题 ── */
@@ -718,7 +718,7 @@ async function handleChangePassword() {
 	color: var(--zy-title, #233d34);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 16rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	box-sizing: border-box;
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -738,7 +738,7 @@ async function handleChangePassword() {
 	color: var(--zy-title, #233d34);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 16rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	box-sizing: border-box;
 	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -863,7 +863,7 @@ async function handleChangePassword() {
 }
 .nudge-toggle.is-off {
 	color: var(--zy-text, #4a5f54);
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 }
 
 /* ── 页面配色选项 ── */

@@ -181,7 +181,7 @@ function handleCancel() {
 	min-height: 100vh;
 	padding: 32rpx 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 顶部品牌区 ── */
@@ -307,7 +307,7 @@ function handleCancel() {
 }
 
 .btn-secondary:active {
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 .btn-secondary-text {

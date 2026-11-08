@@ -318,7 +318,7 @@ async function confirmDeleteAll() {
 	padding: 0 24rpx;
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 999rpx;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-content, #4a5f54);
 	font-size: 23rpx;
 	line-height: 44px;
@@ -351,7 +351,7 @@ async function confirmDeleteAll() {
 	text-align: left;
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 14rpx;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-content, #4a5f54);
 	font-size: 23rpx;
 	line-height: 1.6;

@@ -114,7 +114,7 @@ onUnload(pause)
 	min-height: 100vh;
 	box-sizing: border-box;
 	padding: 48rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
-	background: linear-gradient(170deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #f5f7f2) 42%);
+	background: linear-gradient(170deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #ffffff) 42%);
 	color: var(--zy-content, #4a5f54);
 }
 .mindful-header { text-align: center; margin-bottom: 40rpx; }

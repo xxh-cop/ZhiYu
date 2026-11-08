@@ -209,7 +209,7 @@ function dismiss(item) {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 80rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 顶部标题区 ── */
@@ -424,7 +424,7 @@ function dismiss(item) {
 .meta-pill {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 .meta-pill-text {

@@ -157,7 +157,7 @@ function goCreate() {
 	min-height: 100vh;
 	padding: 32rpx 24rpx 140rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 }
 
 /* ── 品牌区 ── */
@@ -389,7 +389,7 @@ function goCreate() {
 .joined-tag {
 	padding: 12rpx 24rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	flex-shrink: 0;
 }
 
@@ -401,7 +401,7 @@ function goCreate() {
 .full-tag {
 	padding: 12rpx 24rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #f5f7f2);
+	background-color: var(--zy-bg, #ffffff);
 	opacity: 0.6;
 	flex-shrink: 0;
 }

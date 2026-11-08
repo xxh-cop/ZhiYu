@@ -133,7 +133,7 @@ function leave() {
 	min-height: 100vh;
 	padding: 28rpx 32rpx 90rpx;
 	box-sizing: border-box;
-	background: var(--zy-bg, #f5f7f2);
+	background: var(--zy-bg, #ffffff);
 	color: var(--zy-content, #4a5f54);
 }
 .story-nav { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }

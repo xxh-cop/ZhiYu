@@ -36,12 +36,21 @@ export function createApp() {
 		);
 	}
 
-	// 全局提供 zyThemeClass：各页面根 view 绑定 :class="zyThemeClass" 即可随主题切换
+	// 全局提供 zyThemeClass：各页面根 view 绑定 :class="zyThemeClass" 即可随主题切换。
+	// mp 原生导航条为页面实例级：setNavigationBarColor 仅对当前页生效，切页即回 pages.json
+	// 静态值，故在每个页面 onLoad（新页尽早）与 onShow（tab 页切换不再 onLoad）接力应用；
+	// 冷启动首帧由 pages.json 云白默认值保证不闪旧色。
 	app.mixin({
 		computed: {
 			zyThemeClass() {
 				return theme.themeClass
 			},
+		},
+		onLoad() {
+			theme.applyNavBar()
+		},
+		onShow() {
+			theme.applyNavBar()
 		},
 	});
 
