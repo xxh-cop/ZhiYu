@@ -121,9 +121,12 @@
 				</AccessibleButton>
 				<AccessibleButton v-for="item in recommends.slice(1,3)" :key="item.projectId" class="craft-row" @click="goCraftDetail(item)">
 					<view class="craft-thumb">
-						<!-- 裸 image 而非 CraftCover：自定义组件在小程序 wx:for 内内容塌陷（2026-11-08 排查，历史问题），
-						     兜底图策略与 CraftCover 一致（coverUrl 缺失/加载失败 → 品类库图） -->
-						<image :src="resolveCover(item)" mode="aspectFill" class="craft-thumb-img" />
+						<!-- 裸 image 而非 CraftCover：自定义组件在小程序 wx:for 内内容塌陷（2026-11-08 排查，历史问题）。
+						     无真实封面（coverUrl 为空）时不放品类照片冒充，改用品类纹样占位（明确是占位，不误导）。 -->
+						<image v-if="item.coverUrl" :src="resolveCover(item)" mode="aspectFill" class="craft-thumb-img" />
+						<view v-else class="craft-thumb-ph" :class="'ph-' + coverKind(item)" aria-hidden="true">
+							<text class="ph-label">{{ item.category || '手作' }}</text>
+						</view>
 					</view>
 					<view class="craft-copy">
 						<text class="craft-category">{{item.category||'手作练习'}}</text>
@@ -453,16 +456,17 @@ function goCraftDetail(item) {
 		goRecommend()
 	}
 }
-/* 推荐行缩略图地址：与 CraftCover 同一兜底策略（coverUrl → API 拼接 / 品类库图） */
+/* 推荐行缩略图地址：与 CraftCover 同一解析（coverUrl → API 拼接）；空封面由模板走纹样占位 */
 function resolveCover(item) {
 	const src = item && item.coverUrl
-	if (!src) {
-		const cat = (item && (item.category || item.title)) || ''
-		const kind = /线|编|绣|染/.test(cat) ? 'yarn' : /陶|泥/.test(cat) ? 'clay' : 'paper'
-		return `/static/library/${kind}.jpg`
-	}
+	if (!src) return ''
 	if (/^https?:|^\/static\//.test(src)) return src
 	return API_BASE_URL + src
+}
+/* 品类占位纹样分族：与 CraftCover kind 判定同源 */
+function coverKind(item) {
+	const cat = (item && (item.category || item.title)) || ''
+	return /线|编|绣|染/.test(cat) ? 'yarn' : /陶|泥/.test(cat) ? 'clay' : 'paper'
 }
 function goWorks() { uni.switchTab({ url: '/pages/work/list' }) }
 function goProfile() { uni.switchTab({ url: '/pages/profile/index' }) }
@@ -541,6 +545,12 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .craft-row { display: flex; align-items: center; width: 100%; gap: 24rpx; padding: 24rpx 0; background: transparent; text-align: left; border-bottom: 2rpx dashed var(--zy-stitch); line-height: 1.5; border-radius: 0; margin: 0; }
 .craft-thumb { position: relative; background: var(--zy-bg-tint-mint); border-radius: 16rpx; width: 125rpx; height: 123rpx; flex-shrink: 0; overflow: hidden; }
 .craft-thumb-img { width: 100%; height: 100%; display: block; }
+/* 无封面占位：品类纹样（经纬线）+ 品类名，明确是占位而非作品照片 */
+.craft-thumb-ph { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: flex-start; padding: 10rpx 12rpx; box-sizing: border-box; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg stroke='%23ffffff' stroke-width='1.6' fill='none' opacity='.55'%3E%3Cpath d='M0 15 Q15 8 30 15 T60 15'/%3E%3Cpath d='M0 30 Q15 23 30 30 T60 30'/%3E%3Cpath d='M0 45 Q15 38 30 45 T60 45'/%3E%3Cpath d='M15 0 Q22 30 15 60'/%3E%3Cpath d='M38 0 Q45 30 38 60'/%3E%3C/g%3E%3C/svg%3E"); background-size: 60rpx 60rpx; }
+.ph-yarn { background-color: var(--zy-brand-100); }
+.ph-clay { background-color: var(--zy-bg-tint-warm); }
+.ph-paper { background-color: var(--zy-brand-50); }
+.ph-label { font-size: var(--zy-text-micro); color: var(--zy-brand-700); letter-spacing: 1rpx; }
 .craft-copy { flex: 1; min-width: 0; }
 .craft-category { display: block; font-size: var(--zy-text-micro); color: var(--zy-accent); margin-bottom: 6rpx; letter-spacing: 2rpx; }
 .craft-title { display: block; font-size: var(--zy-text-body-lg); color: var(--zy-title); }

@@ -379,6 +379,7 @@
 - 验证：mp-weixin build ✓；wildcard ✓ / isclass ✓ / contrast 14/14；H5 五页 + mp 五页截图（home 另有 700/1400/2100 分段）复核无溢出、无控制台异常；首屏 375 宽可见问候+主视觉+CTA+主行动卡。
 - P3 修订（验收后三处）：
   1. **推荐行缩略图空白（mp）**：排查链——旧代码同症（`mp-home-2100-oldhome.png`，历史问题非本轮回归）；资源在 dist 且 `wx.getImageInfo` 可达；移除产物内 lazy-load 无效；同位置裸 `<image>` 正常（`mp-home-2100-plainimg.png`）；红框探针显示 compact 容器在列表内塌陷为近零尺寸。结论：**自定义组件（CraftCover）在 wx:for 列表项内高度塌陷/不产出可见内容**，仅 compact 场景（非 compact 固定高 310rpx 不受影响）。本轮修法：首页推荐行改用裸 `<image>` + 与 CraftCover 相同的兜底解析（resolveCover），feat 大卡仍用 CraftCover。CraftCover 在列表内的根因留待单独排查（影响面超出首页）。
+  1b. **同图冒充问题（验收发现）**：两个线类条目（三股线绳书签/绕线色块卡）的 coverUrl 均为空，兜底同到 yarn.jpg——P0 旧版即如此（`h5-home-p0.png` 两行同图），非本轮回归。修法：**无真实封面时不放品类照片冒充作品图**，改用品类纹样占位（经纬线 SVG + 品类字，ph-yarn/clay/paper 三族）；有 coverUrl 才显示照片。feat 大卡沿用 CraftCover 的「品类参考图」标注。
   2. **呼吸/音乐卡不等高**：实测双端均等高——H5 CDP 量得两卡各 161px（w 164/160），mp 端两卡标题同 top=1052、同高 26px、行数相同、容器 min-height 240rpx 一致；观感差异来自薄荷/暖金两色亮度差。未改代码。
   3. 回报措辞更正：P3 脚本层有「新增 journeyItems 纯展示计算属性 + 页头铃铛接线（复用既有 goNotifications/noticeState）」，接口调用与数据加载时机未变。
 
