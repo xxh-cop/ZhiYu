@@ -166,3 +166,5 @@ private-media/
 # Design scratch stays local; brand assets are versioned
 design/*
 !design/logo/
+
+output/
