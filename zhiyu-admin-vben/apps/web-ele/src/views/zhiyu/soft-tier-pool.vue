@@ -85,6 +85,8 @@ const {
   handlePageChange,
 } = useListPage<PoolRow>({
   pageSize: 20, // 服务端固定 20，无 pageSize 参数
+  // 由 onMounted 先拉列表、再决定是否拉小结，避免 6 条并发 1001 各弹一次全局提示
+  immediate: false,
   fetcher: async ({ page }) => {
     try {
       const res =
@@ -140,6 +142,8 @@ const SUMMARY_STATUSES = [
 ] as const;
 
 async function loadSummary() {
+  // 处置链未开启属配置态：不再发 6 条注定 1001 的请求
+  if (chainOff.value) return;
   summaryLoading.value = true;
   summaryError.value = '';
   try {
@@ -168,9 +172,10 @@ async function loadSummary() {
   }
 }
 
-function refreshPage() {
-  fetchList();
-  loadSummary();
+async function refreshPage() {
+  await fetchList();
+  // 列表已失败（网络/权限）时不再叠加小结请求，提示只保留一条
+  if (!chainOff.value && !errorMsg.value) loadSummary();
 }
 
 /* ── 时间与超时 ── */
@@ -332,11 +337,11 @@ async function confirmVerdict() {
     ElMessage.success(verdictCopy.value.successText);
     verdictVisible.value = false;
     await openDetail(id);
-    fetchList();
-    loadSummary();
+    await fetchList();
+    if (!chainOff.value && !errorMsg.value) loadSummary();
   } catch {
     // 拦截器已提示；3001「已终裁」等并发冲突时刷新列表与详情对齐真实状态
-    fetchList();
+    await fetchList();
     openDetail(id);
   } finally {
     verdictBusy.value = false;
@@ -345,8 +350,9 @@ async function confirmVerdict() {
 
 /** 通知中心跳转落点：?reviewId= 直达复核详情抽屉（id 为字符串雪花，原样传递） */
 const route = useRoute();
-onMounted(() => {
-  loadSummary();
+onMounted(async () => {
+  await fetchList();
+  if (!chainOff.value && !errorMsg.value) loadSummary();
   const reviewId = route.query.reviewId;
   if (typeof reviewId === 'string' && reviewId) {
     openDetail(reviewId);

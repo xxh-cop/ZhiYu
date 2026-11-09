@@ -181,6 +181,24 @@ pnpm --filter @vben/web-ele dev --port 5194
 
 生产管理端使用同域 `/api`，正式部署时由网关反向代理到后端；独立域名可通过 `VITE_GLOB_API_URL` 指定。已屏蔽模板遗留的 Vben 演示接口地址，工作账号不会再发送到该演示服务。前端只可配置公开接口地址，不可保存服务端密钥。
 
+#### dev 启动失败 / 打开的是旧页面（5777 被残留实例占用）
+
+`Exit status 4294967295`（unsigned 的 `-1`）表示 vite 进程被外部终止（终端关闭、工具或进程树结束），不是编译或依赖错误。常见诱因是上一次的 dev 实例仍占着端口：vite 打印 `Port 5777 is in use, trying another one...` 后会自动改用 5778，于是打开 5777 看到的其实是旧实例。按顺序执行（端口取自 `apps/web-ele/.env.development` 的 `VITE_PORT=5777`）：
+
+```powershell
+# 1) 谁占了 5777（先看身份与启动时间，不要直接杀）
+Get-NetTCPConnection -LocalPort 5777 -State Listen | Select-Object LocalPort,OwningProcess
+Get-CimInstance Win32_Process -Filter "ProcessId=<OwningProcess>" | Select-Object ProcessId,Name,CreationDate,CommandLine
+
+# 2) 确认 CommandLine 含 vite --mode development 后再结束它
+Stop-Process -Id <OwningProcess>
+
+# 3) 重新启动（日志里应出现 Local: http://localhost:5777/）
+pnpm --filter @vben/web-ele dev
+```
+
+备选方案（本次未采用）：把全站 `ElMessage.error` 改为 `grouping: true` 可合并相同文案的重复提示，但会连真实的连续错误一起吞掉，风险大于收益，仅作记录。
+
 ### 6. 账号与首次使用
 
 公开注册仅创建学生账号；学校名称为选填资料，校园身份需提交申请并由管理员核验。管理端只允许管理员、传承人、咨询师进入，不能通过注册参数自行选择高权限角色。试用时使用经授权配置的工作账号，不在 README 发布真实密码。
