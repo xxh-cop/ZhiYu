@@ -26,53 +26,60 @@
 		<template v-else>
 			<text v-if="disclaimer" class="catalog-note">{{ disclaimer }}</text>
 
-			<view v-for="(kit, idx) in kits" :key="kit.id" class="kit-card">
-				<AccessibleButton class="kit-head" :aria-expanded="expanded === kit.id" @click="toggle(kit.id)">
-					<view class="kit-head-copy">
-						<text class="kit-index">0{{ idx + 1 }}</text>
-						<text class="kit-name">{{ kit.name }}</text>
-						<text class="kit-meta">{{ kit.audience }} · 建议 {{ kit.capacity }} 人</text>
-					</view>
-					<text class="chevron">{{ expanded === kit.id ? '−' : '+' }}</text>
-				</AccessibleButton>
-
-				<view v-if="expanded === kit.id" class="kit-body">
-					<view class="block">
-						<text class="block-label">材料与数量</text>
-						<view v-for="item in kit.items" :key="item.name + item.quantity" class="item-row">
-							<view class="item-main">
-								<text class="item-name">{{ item.name }}</text>
-								<text class="item-note">{{ item.note }}</text>
+			<view class="kit-list">
+				<HeritageCard
+					v-for="(kit, idx) in kits"
+					:key="kit.id"
+					class="kit-card"
+					:family="kitFamily(kit)"
+					:title="kit.name"
+					:tag="'0' + (idx + 1)"
+					:meta="[kit.audience, '建议 ' + kit.capacity + ' 人'].filter(Boolean).join(' · ')"
+					:aria-label="'材料包 ' + kit.name + '，' + (expanded === kit.id ? '收起清单' : '展开清单')"
+					:aria-expanded="expanded === kit.id"
+					@open="toggle(kit.id)"
+				>
+					<view v-if="expanded === kit.id" class="kit-body">
+						<view class="block">
+							<text class="block-label">材料与数量</text>
+							<view v-for="item in kit.items" :key="item.name + item.quantity" class="item-row">
+								<view class="item-main">
+									<text class="item-name">{{ item.name }}</text>
+									<text class="item-note">{{ item.note }}</text>
+								</view>
+								<text class="item-qty">{{ item.quantity }}</text>
 							</view>
-							<text class="item-qty">{{ item.quantity }}</text>
 						</view>
-					</view>
 
-					<view class="block">
-						<text class="block-label">工具</text>
-						<text v-for="tool in kit.tools" :key="tool" class="bullet">· {{ tool }}</text>
-					</view>
-
-					<view class="block">
-						<text class="block-label">带领者准备</text>
-						<view v-for="(step, stepIdx) in kit.preparation" :key="step" class="step-row">
-							<text class="step-num">{{ stepIdx + 1 }}</text>
-							<text class="step-text">{{ step }}</text>
+						<view class="block">
+							<text class="block-label">工具</text>
+							<text v-for="tool in kit.tools" :key="tool" class="bullet">· {{ tool }}</text>
 						</view>
-					</view>
 
-					<view class="block safety-block">
-						<text class="block-label safety-label">安全提示</text>
-						<text v-for="tip in kit.safety" :key="tip" class="bullet safety-bullet">· {{ tip }}</text>
-					</view>
+						<view class="block">
+							<text class="block-label">带领者准备</text>
+							<view v-for="(step, stepIdx) in kit.preparation" :key="step" class="step-row">
+								<text class="step-num">{{ stepIdx + 1 }}</text>
+								<text class="step-text">{{ step }}</text>
+							</view>
+						</view>
 
-					<view class="digital-card">
-						<text class="digital-label">没有实物材料时</text>
-						<text class="digital-text">{{ kit.digitalAlternative }}</text>
-					</view>
+						<view class="block safety-block">
+							<text class="block-label safety-label">安全提示</text>
+							<text v-for="tip in kit.safety" :key="tip" class="bullet safety-bullet">· {{ tip }}</text>
+						</view>
 
-					<text class="source-note">{{ kit.sourceNote }}</text>
-				</view>
+						<view class="digital-card">
+							<text class="digital-label">没有实物材料时</text>
+							<text class="digital-text">{{ kit.digitalAlternative }}</text>
+						</view>
+
+						<text class="source-note">{{ kit.sourceNote }}</text>
+					</view>
+					<template #footer>
+						<text class="chevron">{{ expanded === kit.id ? '−' : '+' }}</text>
+					</template>
+				</HeritageCard>
 			</view>
 
 			<text class="page-disclaimer">本系统不能替代专业心理咨询</text>
@@ -85,12 +92,23 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import HeritageCard from '../../components/HeritageCard.vue'
 
 const kits = ref([])
 const disclaimer = ref('')
 const loading = ref(true)
 const errorMsg = ref('')
 const expanded = ref('')
+
+/* 材料包未下发 family，按名称/受众里的工艺关键词映射四族；未命中回落编织 */
+function kitFamily(kit) {
+	const text = `${(kit && kit.name) || ''}${(kit && kit.audience) || ''}`
+	if (/纸|剪/.test(text)) return 'cutout'
+	if (/竹|编|藤/.test(text)) return 'weave'
+	if (/布|绣|织|线/.test(text)) return 'stitch'
+	if (/陶|瓷|釉/.test(text)) return 'porcelain'
+	return 'weave'
+}
 
 onLoad(load)
 
@@ -138,15 +156,10 @@ function leave() {
 .title { display: block; margin-top: 10rpx; font-family: var(--zy-serif); font-size: 44rpx; font-weight: 600; line-height: 1.4; color: var(--zy-title, #233d34); }
 .subtitle { display: block; margin-top: 10rpx; font-size: 23rpx; line-height: 1.8; color: var(--zy-text, #4a5f54); }
 .catalog-note { display: block; margin-bottom: 18rpx; padding: 16rpx 18rpx; border-radius: 12rpx; background: var(--zy-bg-tint-mint, #eaf5ef); font-size: 20rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
-.kit-card { margin-bottom: 18rpx; overflow: hidden; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 22rpx; background: var(--zy-card-bg, #fff); box-shadow: var(--zy-shadow-sm); }
-.kit-head { display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 0; padding: 24rpx 24rpx; border: 0; background: transparent; text-align: left; line-height: 1.5; }
-.kit-head::after { border: 0; }
-.kit-head-copy { flex: 1; min-width: 0; }
-.kit-index { display: block; font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #8a6d1f); }
-.kit-name { display: block; margin-top: 6rpx; font-family: var(--zy-serif); font-size: 29rpx; font-weight: 600; line-height: 1.5; color: var(--zy-title, #233d34); }
-.kit-meta { display: block; margin-top: 6rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); }
-.chevron { flex-shrink: 0; width: 54rpx; text-align: center; font-size: 34rpx; color: var(--zy-brand-700, #217e76); }
-.kit-body { padding: 0 24rpx 26rpx; }
+.kit-list { display: flex; flex-direction: column; gap: 18rpx; }
+.kit-card { overflow: hidden; }
+.kit-body { padding: 0 0 4rpx; }
+.chevron { display: block; text-align: right; font-size: 34rpx; color: var(--zy-brand-700, #217e76); }
 .block { margin-top: 24rpx; }
 .block-label { display: block; margin-bottom: 12rpx; font-size: 21rpx; font-weight: 600; letter-spacing: 1rpx; color: var(--zy-brand-700, #217e76); }
 .item-row { display: flex; align-items: flex-start; gap: 16rpx; padding: 14rpx 0; border-bottom: 1rpx dashed var(--zy-border, #dfe7dc); }
@@ -175,7 +188,6 @@ function leave() {
 .text-action { margin-top: 10rpx; background: transparent; color: var(--zy-text, #4a5f54); font-size: 22rpx; line-height: 2.4; }
 .text-action::after { border: 0; }
 .page-disclaimer { display: block; margin-top: 32rpx; text-align: center; font-size: 20rpx; color: var(--zy-text, #4a5f54); }
-.kit-head:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: -3px; }
 @media (max-width: 360px) {
 	.kits-page { padding-left: 24rpx; padding-right: 24rpx; }
 	.title { font-size: 38rpx; }

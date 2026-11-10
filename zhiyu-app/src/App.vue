@@ -55,7 +55,7 @@ page {
 @import '@/styles/zy-toolkit.scss';
 </style>
 
-<style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-brand-700);outline-offset:3px}/* #ifdef H5 */
+<style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background-color:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-brand-700);outline-offset:3px}/* #ifdef H5 */
 /* wot-design-uni 图标字体 name 规则在 vite scoped 编译下被挂到单一 data-v 作用域，其他页面 content 缺失呈方框（2026-11-08 实测）；此处全局补一份无 scope 的码点表，仅覆盖项目用到的 23 个 name。mp 端组件样式隔离机制正常，不受影响。*/
 .wd-icon-add::before { content: "\e65c"; }
 .wd-icon-arrow-right::before { content: "\e655"; }

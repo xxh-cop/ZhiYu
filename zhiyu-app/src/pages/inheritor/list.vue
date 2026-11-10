@@ -16,21 +16,21 @@
 			<view v-if="storyLoading" class="story-skeleton zy-skeleton" aria-hidden="true"></view>
 			<view v-else-if="storyError" class="story-error" role="alert">{{ storyError }}</view>
 			<scroll-view v-else scroll-x class="story-scroll" :show-scrollbar="false">
-				<view
-					v-for="(story, idx) in storyList"
-					:key="story.id"
-					class="story-card"
-					role="button"
-					tabindex="0"
-					@click="goStory(story)"
-					@keydown.enter.prevent="goStory(story)"
-					@keydown.space.prevent="goStory(story)"
-				>
-					<text class="story-index">0{{ idx + 1 }}</text>
-					<text class="story-title">{{ story.title }}</text>
-					<text class="story-meta">{{ story.traditionName }} · {{ story.readingMinutes }} 分钟</text>
-					<text class="story-synopsis">{{ story.synopsis }}</text>
-					<text class="story-link">读这个故事 →</text>
+				<view v-for="(story, idx) in storyList" :key="story.id" class="story-cell">
+					<HeritageCard
+						class="story-card"
+						family="stitch"
+						:title="story.title"
+						:meta="story.traditionName + ' · ' + story.readingMinutes + ' 分钟'"
+						:tag="'0' + (idx + 1)"
+						:aria-label="'读故事 ' + story.title"
+						@open="goStory(story)"
+					>
+						<text class="story-synopsis">{{ story.synopsis }}</text>
+						<template #footer>
+							<text class="story-link">读这个故事 →</text>
+						</template>
+					</HeritageCard>
 				</view>
 			</scroll-view>
 			<text class="story-boundary">故事用于理解材料与工艺，不构成传承人履历、资质或口述史。</text>
@@ -84,53 +84,41 @@
 
 		<!-- 传承人卡片列表 -->
 		<view v-else class="card-list">
-			<view
+			<HeritageCard
 				v-for="(item, idx) in records"
 				:key="item.id"
 				class="inheritor-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx + 2 }"
-				role="button"
-				tabindex="0"
-				@click="goDetail(item)"
-				@keydown.enter.prevent="goDetail(item)"
-				@keydown.space.prevent="goDetail(item)"
+				:family="inheritorFamily(item)"
+				:title="item.nickname || '未知'"
+				:tag="item.skill || ''"
+				:meta="item.honor || ''"
+				:note="item.intro || ''"
+				:aria-label="inheritorLabel(item)"
+				@open="goDetail(item)"
 			>
-				<!-- 左侧渐变竖线 -->
-				<view class="card-accent-line"></view>
-
-				<view class="card-inner">
-					<!-- 头像 -->
-					<view class="avatar-ring">
-						<view class="card-avatar" :style="avatarStyle(item)">
-							<text v-if="!item.avatarUrl" class="avatar-letter">{{ firstLetter(item.nickname) }}</text>
-						</view>
-					</view>
-
-					<view class="card-body">
-						<view class="card-header-row">
-							<text class="card-name">{{ item.nickname || '未知' }}</text>
-							<view v-if="item.skill" class="skill-badge">
-								<text class="skill-text">{{ item.skill }}</text>
+				<template #cover>
+					<view class="inheritor-cover">
+						<view class="avatar-ring">
+							<view class="card-avatar" :style="avatarStyle(item)">
+								<text v-if="!item.avatarUrl" class="avatar-letter">{{ firstLetter(item.nickname) }}</text>
 							</view>
 						</view>
-
-						<text v-if="item.honor" class="card-honor">{{ item.honor }}</text>
-
-						<text v-if="item.intro" class="card-intro">{{ item.intro }}</text>
-
-						<!-- 底部：认证徽章 + 项目数 -->
-						<view class="card-footer">
+					</view>
+				</template>
+				<template #footer>
+					<view class="card-footer">
+						<view class="footer-left">
+							<RegionSeal v-if="item.region" :region="item.region" size="sm" />
 							<view v-if="item.verified" class="verified-badge">
 								<wd-icon name="check-circle-filled" size="24rpx" color="#217e76" />
 								<text class="verified-text">已认证</text>
 							</view>
-							<view class="project-count">
-								<text class="project-count-text">{{ item.projectCount || 0 }} 个手作项目</text>
-							</view>
 						</view>
+						<text class="project-count-text">{{ item.projectCount || 0 }} 个手作项目</text>
 					</view>
-				</view>
-			</view>
+				</template>
+			</HeritageCard>
 
 			<!-- 底部状态 -->
 			<view v-if="records.length > 0" class="bottom-status">
@@ -153,6 +141,8 @@
 import { ref, computed } from 'vue'
 import { onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import HeritageCard from '../../components/HeritageCard.vue'
+import RegionSeal from '../../components/RegionSeal.vue'
 
 const loading = ref(false)
 const errorMsg = ref('')
@@ -230,6 +220,24 @@ async function loadMore() {
 function firstLetter(name) {
 	if (!name) return '?'
 	return name.charAt(0)
+}
+
+/* 传承人接口暂未下发 family / region；工艺族按技艺关键词降级为材质带，region 有值才渲染印章 */
+function inheritorFamily(item) {
+	const text = `${(item && item.skill) || ''}`
+	if (/纸|剪/.test(text)) return 'cutout'
+	if (/竹|编|藤/.test(text)) return 'weave'
+	if (/布|绣|织|线/.test(text)) return 'stitch'
+	if (/陶|瓷|釉/.test(text)) return 'porcelain'
+	return 'weave'
+}
+
+function inheritorLabel(item) {
+	const parts = ['查看传承人', (item && item.nickname) || '未知']
+	if (item && item.skill) parts.push(item.skill)
+	if (item && item.honor) parts.push(item.honor)
+	parts.push(`${(item && item.projectCount) || 0} 个手作项目`)
+	return parts.join('，')
 }
 
 function avatarStyle(item) {
@@ -415,31 +423,19 @@ loadStories()
 
 .inheritor-card {
 	overflow: hidden;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1px solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
-	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
-	display: flex;
 }
 
 .inheritor-card:active {
 	transform: scale(0.98);
-	box-shadow: var(--zy-shadow-md);
 }
 
-/* ── 左侧渐变竖线 ── */
-.card-accent-line {
-	width: 6rpx;
-	flex-shrink: 0;
-	background: linear-gradient(180deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
-}
-
-.card-inner {
-	flex: 1;
+/* cover slot：保留原头像的渐变环与首字兜底 */
+.inheritor-cover {
+	height: 100%;
 	display: flex;
-	gap: 24rpx;
-	padding: 28rpx;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(145deg, var(--zy-card-bg, #fff), var(--zy-bg-tint-mint, #e8efe4));
 }
 
 /* ── 头像 ── */
@@ -469,62 +465,19 @@ loadStories()
 	color: #FFFFFF;
 }
 
-/* ── 卡片内容 ── */
-.card-body {
-	flex: 1;
-	min-width: 0;
-	display: flex;
-	flex-direction: column;
-}
-
-.card-header-row {
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
-	flex-wrap: wrap;
-}
-
-.card-name {
-	font-size: 32rpx;
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-}
-
-.skill-badge {
-	padding: 4rpx 16rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-}
-
-.skill-text {
-	font-size: 22rpx;
-	color: var(--zy-brand-700, #217e76);
-}
-
-.card-honor {
-	margin-top: 8rpx;
-	font-size: 24rpx;
-	color: var(--zy-aid, #4a5f54);
-}
-
-.card-intro {
-	display: -webkit-box;
-	margin-top: 8rpx;
-	font-size: 26rpx;
-	line-height: 1.6;
-	color: var(--zy-content, #4a5f54);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-}
-
 /* ── 卡片底部 ── */
 .card-footer {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-top: 16rpx;
+	gap: 12rpx;
+}
+
+.footer-left {
+	display: flex;
+	align-items: center;
+	gap: 12rpx;
+	min-width: 0;
 }
 
 .verified-badge {
@@ -593,15 +546,12 @@ loadStories()
 .story-skeleton { height: 260rpx; border-radius: 20rpx; }
 .story-error { padding: 22rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-card-bg, #fff); font-size: 22rpx; line-height: 1.7; color: var(--zy-content, #4a5f54); }
 .story-scroll { width: 100%; white-space: nowrap; }
-.story-card { display: inline-flex; flex-direction: column; width: 300rpx; margin-right: 16rpx; padding: 22rpx 22rpx 20rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 20rpx; background: linear-gradient(145deg, var(--zy-card-bg, #fff), var(--zy-bg-tint-mint, #eef5ef)); vertical-align: top; white-space: normal; box-sizing: border-box; }
-.story-card:last-child { margin-right: 0; }
-.story-index { font-family: var(--zy-sans); font-size: 18rpx; letter-spacing: 2rpx; color: var(--zy-accent, #8a6d1f); }
-.story-title { display: block; margin-top: 8rpx; font-family: var(--zy-serif); font-size: 28rpx; font-weight: 600; line-height: 1.45; color: var(--zy-title, #233d34); }
-.story-meta { display: block; margin-top: 6rpx; font-size: 19rpx; color: var(--zy-brand-700, #217e76); }
+.story-cell { display: inline-block; width: 320rpx; margin-right: 16rpx; vertical-align: top; white-space: normal; }
+.story-cell:last-child { margin-right: 0; }
+.story-card { height: 100%; }
 .story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size: 21rpx; line-height: 1.7; color: var(--zy-content, #4a5f54); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.story-link { display: block; margin-top: 14rpx; font-size: 20rpx; color: var(--zy-brand-700, #217e76); }
+.story-link { display: block; font-size: 20rpx; color: var(--zy-brand-700, #217e76); }
 .story-boundary { display: block; margin-top: 12rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
-.story-card:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   .story-card { transition: none; }
 }

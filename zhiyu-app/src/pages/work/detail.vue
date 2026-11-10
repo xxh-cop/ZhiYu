@@ -68,6 +68,8 @@
 							<text class="author-name">{{ work.authorName || '匿名同学' }}</text>
 							<text class="author-note">让创作留下自己的节奏</text>
 						</view>
+						<!-- 装饰性小印章：不表达认证 / 证书含义 -->
+						<image class="author-seal" src="/static/brand/seal-student.svg" mode="aspectFit" aria-hidden="true" alt="" />
 					</view>
 					<view v-if="work.message" class="story">
 						<text class="eyebrow">作品故事</text>

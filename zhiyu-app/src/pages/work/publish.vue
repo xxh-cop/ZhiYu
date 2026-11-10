@@ -289,6 +289,8 @@
 		<view v-if="published" class="success-overlay" @click.stop>
 			<view class="success-card zy-elastic">
 				<XiaotuanPet :size="72" face="happy" aria-hidden="true" />
+				<!-- 装饰性印章：只作品牌点缀，不表达认证 / 证书含义 -->
+				<image class="success-seal" src="/static/brand/seal-student.svg" mode="aspectFit" aria-hidden="true" alt="" />
 				<text class="success-title">已提交，审核通过后公开</text>
 				<text class="success-hint">小织已经收到你的作品。通过前仅你自己可见，进度随时可在「我的作品」查看。</text>
 				<view class="success-btn" role="button" tabindex="0" @click="goMine" @keydown.enter.prevent="goMine" @keydown.space.prevent="goMine">
@@ -1128,6 +1130,12 @@ function goMine() {
 .success-xiaozhi {
 	width: 120rpx;
 	height: 160rpx;
+}
+
+.success-seal {
+	width: 88rpx;
+	height: 88rpx;
+	opacity: 0.92;
 }
 
 .success-title {

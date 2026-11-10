@@ -66,6 +66,10 @@ page {
 	--zy-stitch: #d8d8d4;               /* 缝线：虚线分隔/纹样，纯装饰不承载文本（云白默认） */
 	--zy-faint: #8a8378;                /* 装饰灰：仅英文 eyebrow，禁承载信息文本 */
 
+	/* 云白极淡纸纹（1.6% 暖墨噪点，240rpx 瓦片，与暖纸纸纹同款 feTurbulence 结构；
+	   暖纸主题在 .zy-theme-warm 用 5% 覆盖为自己的纸纹）。 */
+	--zy-paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .016 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+
 	/* ── 语义色 ── */
 	--zy-success: #2e7d5b;
 	--zy-warning: #9a6a12;              /* 仅大字/图标 */
@@ -159,6 +163,21 @@ page {
 	--zy-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
 	--zy-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
 	--zy-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/**
+ * ── 页面纸纹（云白默认极淡，2026-11-19 非遗气息深化·阶段二）──
+ * 纸纹是透明噪点，底色仍由 --zy-bg 提供；暖纸主题的根 view 会用自己的
+ * 更强纸纹覆盖 min-height:100vh 区域，page 层噪点只在不满屏时露边。
+ * App.vue 的 page/body 背景已改为 background-color，不会重置这里的 background-image。
+ */
+page {
+	background-color: var(--zy-bg);
+	background-image: var(--zy-paper-noise);
+	background-size: 240rpx 240rpx;
+}
+@media (prefers-reduced-transparency: reduce) {
+	page { background-image: none; }
 }
 
 /**

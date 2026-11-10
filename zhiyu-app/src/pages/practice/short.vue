@@ -24,6 +24,12 @@
 			</view>
 
 			<view v-if="!started" class="intro-card">
+				<view class="material-band zy-stitch-h" :class="'band-' + practiceFamily" aria-hidden="true">
+					<view class="band-motif">
+						<view class="band-a"></view>
+						<view class="band-b"></view>
+					</view>
+				</view>
 				<text class="intro-lead">练习会在你准备好后开始，共 {{ steps.length }} 步。可以随时暂停，也可以先到这里。</text>
 				<view class="step-preview">
 					<view v-for="(step, i) in steps" :key="step.order" class="preview-row">
@@ -67,6 +73,12 @@
 			</view>
 
 			<view v-else class="done-card">
+				<view class="material-band zy-stitch-h" :class="'band-' + practiceFamily" aria-hidden="true">
+					<view class="band-motif">
+						<view class="band-a"></view>
+						<view class="band-b"></view>
+					</view>
+				</view>
 				<view class="done-mark">✓</view>
 				<text class="done-title">这一小段，已经完成。</text>
 				<text class="done-copy">{{ practice.closing }}</text>
@@ -124,6 +136,18 @@ let remainingEndAt = 0
 
 const steps = computed(() => practice.value?.steps || [])
 const currentStep = computed(() => steps.value[index.value] || { title: '', cue: '', seconds: 0 })
+
+/* 短练习接口只下发 kind/patternId（不含 family）；HERITAGE 时按纹样目录编号段
+   （9711 针线 / 9712 编织 / 9713 剪刻 / 9714 器面，见 catalog/heritage-catalog.json）
+   推导材质带，取不到则回落针线。 */
+const FAMILY_BY_PATTERN_PREFIX = { 9711: 'stitch', 9712: 'weave', 9713: 'cutout', 9714: 'porcelain' }
+const practiceFamily = computed(() => {
+	const data = practice.value
+	if (!data || data.kind !== 'HERITAGE') return 'stitch'
+	if (data.family) return data.family
+	const prefix = String(data.patternId || '').slice(0, 4)
+	return FAMILY_BY_PATTERN_PREFIX[prefix] || 'stitch'
+})
 const isLast = computed(() => steps.value.length > 0 && index.value >= steps.value.length - 1)
 const progress = computed(() => {
 	const total = steps.value.length
@@ -338,6 +362,20 @@ function leave() {
 .intro-card,
 .player,
 .done-card { padding: 30rpx 28rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 26rpx; background: var(--zy-card-bg, #fff); box-shadow: var(--zy-shadow-sm); }
+
+/* 材质带（气息深化·阶段二）：HERITAGE 按纹样族，其余回落针线；纯 CSS 只用令牌 */
+.material-band { display: flex; align-items: center; justify-content: center; min-height: 72rpx; margin-bottom: 22rpx; border-radius: var(--zy-radius-sm); background: var(--zy-bg-tint-warm); }
+.band-motif { position: relative; width: 48rpx; height: 48rpx; }
+.band-a,
+.band-b { position: absolute; }
+.band-weave .band-a { left: 0; right: 0; top: 16rpx; height: 6rpx; background: var(--zy-brand-600); }
+.band-weave .band-b { top: 0; bottom: 0; left: 21rpx; width: 6rpx; background: var(--zy-gold); }
+.band-stitch .band-a { left: 2rpx; right: 2rpx; top: 23rpx; border-top: 3rpx dashed var(--zy-brand-600); }
+.band-stitch .band-b { left: 20rpx; top: 16rpx; width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--zy-gold); }
+.band-cutout .band-a { top: 2rpx; right: 2rpx; bottom: 2rpx; left: 2rpx; background: var(--zy-care); border-radius: var(--zy-radius-xs); }
+.band-cutout .band-b { left: 16rpx; top: 16rpx; width: 16rpx; height: 16rpx; background: var(--zy-card-bg); border-radius: 50%; }
+.band-porcelain .band-a { top: 2rpx; right: 2rpx; bottom: 2rpx; left: 2rpx; border: 4rpx solid var(--zy-brand-600); border-radius: 50%; }
+.band-porcelain .band-b { left: 15rpx; top: 15rpx; width: 18rpx; height: 18rpx; border: 3rpx solid var(--zy-gold); border-radius: 50%; }
 .intro-lead { display: block; font-size: 24rpx; line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .step-preview { margin: 22rpx 0; }
 .preview-row { display: flex; gap: 18rpx; padding: 16rpx 0; border-bottom: 1rpx dashed var(--zy-border, #dfe7dc); }

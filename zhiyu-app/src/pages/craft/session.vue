@@ -80,8 +80,9 @@
 					<view class="pet-bubble"><text class="pet-bubble-text">{{ petLine }}</text></view>
 				</view>
 				<view class="step-card">
+					<view class="step-stitch zy-stitch-h" aria-hidden="true"></view>
 					<text v-if="totalSteps" class="step-kicker">{{ stepKicker }}</text>
-					<text class="step-title">{{ currentStepData.title }}</text>
+					<text class="step-title zy-t-serif">{{ currentStepData.title }}</text>
 					<StarterDiagram v-if="starterStep" :kind="starterStep.diagram" />
 					<text v-if="starterStep" class="diagram-tip">原创纹样示意 · 操作以文字为准</text>
 					<text class="step-guide">{{ currentStepData.guide }}</text>
@@ -1201,6 +1202,11 @@ function handleBackHome() {
 	border-radius: var(--zy-radius-card, 32rpx);
 	padding: 40rpx 32rpx;
 	box-shadow: var(--zy-shadow-sm);
+}
+
+/* 步骤卡顶部缝线（纯装饰，气息深化·阶段二） */
+.step-stitch {
+	margin: -8rpx 0 20rpx;
 }
 
 .step-kicker {

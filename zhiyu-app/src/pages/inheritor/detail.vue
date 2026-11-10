@@ -34,6 +34,8 @@
 							<wd-icon name="star-filled" size="24rpx" color="var(--zy-accent, #8a6d1f)" />
 							<text class="honor-text">{{ inheritor.honor }}</text>
 						</view>
+						<!-- 接口暂未下发 region；有值时作为地域印记展示，无值不占位 -->
+						<RegionSeal v-if="inheritor.region" :region="inheritor.region" size="md" />
 					</view>
 					<text v-if="inheritor.school" class="hero-school">{{ inheritor.school }}</text>
 				</view>
@@ -154,6 +156,7 @@ import { ref, computed } from 'vue'
 import { onLoad, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import RegionSeal from '../../components/RegionSeal.vue'
 
 const inheritorId = ref(null)
 const inheritor = ref(null)

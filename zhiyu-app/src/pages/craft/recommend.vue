@@ -50,52 +50,43 @@
 
 		<!-- 卡片列表 -->
 		<view v-else class="card-list">
-			<view
+			<HeritageCard
 				v-for="(item, idx) in items"
 				:key="item.projectId"
 				class="craft-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx + 3 }"
-				role="button"
-				tabindex="0"
-				@click="goSession(item)"
-				@keydown.enter.prevent="goSession(item)"
-				@keydown.space.prevent="goSession(item)"
+				:family="familyFor(item.category)"
+				:title="item.title"
+				:tag="item.category || ''"
+				:meta="'约 ' + item.estMinutes + ' 分钟'"
+				:note="item.reason || ''"
+				@open="goSession(item)"
 			>
-				<!-- 封面图 -->
-				<view class="card-cover" :style="coverStyle(item.coverUrl)">
-					<view class="level-badge">
-						<text class="level-text">{{ levelLabel(item.level) }}</text>
+				<!-- 封面图（cover slot 保留现有渐变/占位） -->
+				<template #cover>
+					<view class="card-cover" :style="coverStyle(item.coverUrl)">
+						<view class="level-badge">
+							<text class="level-text">{{ levelLabel(item.level) }}</text>
+						</view>
+					</view>
+				</template>
+
+				<view v-if="splitTags(item.therapyTags).length" class="card-tags">
+					<view
+						v-for="tag in splitTags(item.therapyTags)"
+						:key="tag"
+						class="tag-badge"
+					>
+						<text class="tag-text">{{ tag }}</text>
 					</view>
 				</view>
-
-				<view class="card-body">
-					<text class="card-title">{{ item.title }}</text>
-					<view class="card-meta">
-						<view v-if="item.category" class="meta-pill">
-							<text class="meta-pill-text">{{ item.category }}</text>
-						</view>
-						<view class="meta-pill">
-							<text class="meta-pill-text">约 {{ item.estMinutes }} 分钟</text>
-						</view>
-					</view>
-
-					<view v-if="splitTags(item.therapyTags).length" class="card-tags">
-						<view
-							v-for="tag in splitTags(item.therapyTags)"
-							:key="tag"
-							class="tag-badge"
-						>
-							<text class="tag-text">{{ tag }}</text>
-						</view>
-					</view>
-
-					<text v-if="item.reason" class="card-reason">{{ item.reason }}</text>
-					<!-- AM2：低干扰负反馈入口，点击即移出该卡片并静默上报 DISMISS -->
+				<!-- AM2：低干扰负反馈入口，点击即移出该卡片并静默上报 DISMISS -->
+				<template #footer>
 					<view class="card-dismiss">
 						<AccessibleButton class="dismiss-btn" :aria-label="'对「' + item.title + '」不感兴趣，换一条推荐'" @click.stop="dismiss(item)">换一个</AccessibleButton>
 					</view>
-				</view>
-			</view>
+				</template>
+			</HeritageCard>
 		</view>
 
 		<!-- 底部免责声明 -->
@@ -109,6 +100,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { trackRecommendationClick } from '../../utils/recommend-click'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import HeritageCard from '../../components/HeritageCard.vue'
 
 const loading = ref(false)
 const errorMsg = ref('')
@@ -167,6 +159,16 @@ function levelLabel(level) {
 	if (level === 2) return '进阶'
 	if (level === 3) return '高阶'
 	return ''
+}
+
+/* 推荐接口未下发 family，按项目 category 映射四族；未命中回落编织 */
+function familyFor(category) {
+	const text = String(category || '')
+	if (/纸|剪/.test(text)) return 'cutout'
+	if (/竹|编|藤/.test(text)) return 'weave'
+	if (/布|绣|织|线/.test(text)) return 'stitch'
+	if (/陶|瓷|釉/.test(text)) return 'porcelain'
+	return 'weave'
 }
 
 function coverStyle(coverUrl) {
@@ -369,22 +371,18 @@ function dismiss(item) {
 }
 
 .craft-card {
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
 	overflow: hidden;
-	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
+	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
 }
 
 .craft-card:active {
 	transform: translateY(-2rpx);
-	box-shadow: var(--zy-shadow-md);
 }
 
-/* ── 封面图 ── */
+/* ── 封面图（cover slot；高度跟随 HeritageCard 封面） ── */
 .card-cover {
-	height: 280rpx;
+	height: 100%;
+	box-sizing: border-box;
 	display: flex;
 	align-items: flex-start;
 	justify-content: flex-end;
@@ -401,35 +399,6 @@ function dismiss(item) {
 	font-size: 22rpx;
 	color: #FFFFFF;
 	font-weight: 500;
-}
-
-/* ── 卡片内容 ── */
-.card-body {
-	padding: 28rpx;
-}
-
-.card-title {
-	font-size: 32rpx;
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-}
-
-.card-meta {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12rpx;
-	margin-top: 16rpx;
-}
-
-.meta-pill {
-	padding: 6rpx 20rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #ffffff);
-}
-
-.meta-pill-text {
-	font-size: 22rpx;
-	color: var(--zy-text, #4a5f54);
 }
 
 /* ── 疗愈标签 ── */
@@ -449,18 +418,6 @@ function dismiss(item) {
 .tag-text {
 	font-size: 22rpx;
 	color: var(--zy-brand-700, #217e76);
-}
-
-/* ── 单项推荐理由 ── */
-.card-reason {
-	display: block;
-	margin-top: 20rpx;
-	padding-top: 20rpx;
-	border-top: 1rpx solid var(--zy-border, #dfe7dc);
-	font-size: 24rpx;
-	font-style: italic;
-	color: var(--zy-text, #4a5f54);
-	line-height: 1.6;
 }
 
 /* ── 底部免责 ── */

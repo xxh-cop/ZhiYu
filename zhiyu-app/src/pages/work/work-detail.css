@@ -38,6 +38,7 @@
 .author{display:flex;gap:18rpx;align-items:center}
 .avatar{background:var(--zy-bg-tint-mint,#e8efe4);width:70rpx;height:70rpx;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--zy-brand-700,#1a645e);flex-shrink:0}
 .author-info{min-width:0}
+.author-seal{width:48rpx;height:48rpx;margin-left:auto;flex-shrink:0;opacity:.75}
 .author-name,.author-note{display:block;font-size:26rpx;overflow-wrap:anywhere}
 .author-note{font-size:22rpx;color:var(--zy-text,#4a5f54);margin-top:4rpx}
 .story{margin-top:32rpx;padding-top:28rpx;border-top:1rpx solid #e8ede5}
