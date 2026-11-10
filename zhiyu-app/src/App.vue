@@ -80,4 +80,4 @@ page {
 .wd-icon-star::before { content: "\e686"; }
 .wd-icon-user::before { content: "\e73d"; }
 .wd-icon-video::before { content: "\e62e"; }
-/* #endif */@media(prefers-reduced-motion:reduce){.zy-page-enter,.zy-skeleton,.zy-slide-up,.zy-elastic{animation:none!important;transition:none!important}}</style>
+/* #endif */@media(prefers-reduced-motion:reduce){.zy-page-enter,.zy-skeleton,.zy-slide-up,.zy-elastic{animation:none!important;transition:none!important}}/* #ifdef H5 */.uni-tabbar{display:none!important}uni-page-body{padding-bottom:calc(112rpx + env(safe-area-inset-bottom))}/* #endif */</style>

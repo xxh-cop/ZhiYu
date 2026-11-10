@@ -9,6 +9,9 @@ import {
 } from "vue";
 import App from "./App.vue";
 import { useThemeStore } from "./stores/theme";
+// #ifdef H5
+import ZyTabBar from "./components/ZyTabBar.vue";
+// #endif
 
 // wot-design-uni：通过 EasyCom 按需引入组件，无需全局 css import
 // 主题色通过 App.vue 引入 @/styles/theme.scss 覆盖 CSS 变量
@@ -51,8 +54,32 @@ export function createApp() {
 		},
 		onShow() {
 			theme.applyNavBar()
+			try {
+				const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+				const current = pages.length ? pages[pages.length - 1] : null
+				if (current && current.route) uni.$emit('zy:tabshow', '/' + current.route)
+			} catch (e) {
+				/* 页面栈不可用时由自定义导航条自行读取 */
+			}
 		},
 	});
+
+	// #ifdef H5
+	// uni-h5 不会自动挂载 custom-tab-bar：注入全局宿主，并隐藏原生 tabBar
+	setTimeout(() => {
+		try {
+			uni.hideTabBar({ animation: false })
+			if (!document.getElementById('zy-tabbar-host')) {
+				const host = document.createElement('div')
+				host.id = 'zy-tabbar-host'
+				document.body.appendChild(host)
+				createSSRApp(ZyTabBar).mount('#zy-tabbar-host')
+			}
+		} catch (e) {
+			/* 挂载失败时保留原生 tabBar，不阻断页面 */
+		}
+	}, 0)
+	// #endif
 
 	return {
 		app,
