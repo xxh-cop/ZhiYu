@@ -44,6 +44,25 @@
 				>{{ tradition.shortName }}</AccessibleButton>
 			</view>
 
+			<view v-if="regions.length" class="heritage-filters heritage-filters--region" role="group" aria-label="按地域筛选">
+				<AccessibleButton
+					:class="['heritage-choice', { 'is-selected': !region }]"
+					:aria-pressed="!region"
+					variant="ghost"
+					size="sm"
+					@click="region = ''"
+				>全部地域</AccessibleButton>
+				<AccessibleButton
+					v-for="item in regions"
+					:key="item"
+					:class="['heritage-choice', { 'is-selected': region === item }]"
+					:aria-pressed="region === item"
+					variant="ghost"
+					size="sm"
+					@click="region = item"
+				>{{ item }}</AccessibleButton>
+			</view>
+
 			<view class="heritage-count-row">
 				<text class="heritage-count zy-t-body">找到 {{ filtered.length }} 份构图</text>
 				<text class="heritage-muted zy-t-caption">点击卡片查看来源与说明</text>
@@ -79,17 +98,36 @@ const error = ref('')
 const keyword = ref('')
 const searchKey = ref(0)
 const traditionId = ref('')
+const region = ref('')
 const traditions = ref([])
 const patterns = ref([])
-const filtered = computed(() => filterHeritagePatterns(patterns.value, {
-	keyword: keyword.value,
-	traditionId: traditionId.value,
-}))
+/* 地域只做目录事实字段的去重展示，不补写节气、寓意等目录外文案 */
+const regions = computed(() => {
+	const seen = new Set()
+	const list = []
+	traditions.value.forEach(tradition => {
+		const value = tradition && tradition.region
+		if (value && !seen.has(value)) {
+			seen.add(value)
+			list.push(value)
+		}
+	})
+	return list
+})
+const filtered = computed(() => {
+	const base = filterHeritagePatterns(patterns.value, {
+		keyword: keyword.value,
+		traditionId: traditionId.value,
+	})
+	if (!region.value) return base
+	return base.filter(pattern => pattern.region === region.value)
+})
 const catalogCount = computed(() => patterns.value.length ? `${patterns.value.length} 份原创教学构图` : '原创教学构图')
 
 function clearFilters() {
 	keyword.value = ''
 	traditionId.value = ''
+	region.value = ''
 	searchKey.value++
 }
 
@@ -162,6 +200,9 @@ onLoad(load)
 	flex-wrap: wrap;
 	gap: 12rpx;
 	margin: 22rpx 0 8rpx;
+}
+.heritage-filters--region {
+	margin-top: 0;
 }
 .heritage-choice {
 	flex: 0 0 auto;

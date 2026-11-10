@@ -203,6 +203,24 @@
 				<text class="culture-note">原创教学再设计，不是传统原作；来源仅作材料与技艺背景参考。本系统不能替代专业心理咨询。</text>
 				<AccessibleButton class="growth-button" data-copy-culture @click="copyCultureCard">复制文化卡文字</AccessibleButton>
 				<text v-if="copyStatus" class="culture-status" role="status" aria-live="polite">{{ copyStatus }}</text>
+				<view class="culture-share">
+					<AccessibleButton
+						variant="secondary"
+						size="sm"
+						:loading="posterBusy"
+						data-share-poster
+						@click="exportCulturePoster"
+					>生成分享图</AccessibleButton>
+					<text class="culture-share-caption">只包含你自己的练习成果与文化卡信息</text>
+				</view>
+				<text v-if="posterStatus" class="culture-status" role="status" aria-live="polite" data-share-poster-status>{{ posterStatus }}</text>
+				<CultureCardPoster
+					ref="posterRef"
+					:pattern="posterPattern"
+					:palette="studio.palette"
+					:note="artifactNotes"
+					:tradition="cultureTradition"
+				/>
 			</view>
 			<view v-else-if="!canSaveArtifact" class="growth-card culture-teaser" role="status">
 				<text class="growth-card-title">纹样文化卡</text>
@@ -284,7 +302,7 @@ import { computed, getCurrentInstance, nextTick, onMounted, ref, watch } from 'v
 import { onLoad, onReady, onUnload } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'
 import { buildHeritageGeometry } from '@/utils/heritage-pattern'
-import { decoratePatterns, findHeritagePattern, sourcesForPattern, variantLabel } from '@/utils/heritage-ui'
+import { decoratePatterns, findHeritagePattern, findTradition, sourcesForPattern, variantLabel } from '@/utils/heritage-ui'
 import {
 	STUDIO_COLORS,
 	advanceStudio,
@@ -301,6 +319,7 @@ import {
 import { useInteraction } from '@/composables/useInteraction'
 import PracticeSessionBar from '@/components/PracticeSessionBar.vue'
 import CompanionPanel from '@/components/CompanionPanel.vue'
+import CultureCardPoster from '@/components/CultureCardPoster.vue'
 import ActionSheet from '@/components/ActionSheet.vue'
 import Toast from '@/components/Toast.vue'
 import AccessibleButton from '@/components/AccessibleButton.vue'
@@ -338,6 +357,9 @@ const aiNote = ref('')
 const aiVariants = ref([])
 const aiAppliedId = ref('')
 const copyStatus = ref('')
+const posterRef = ref(null)
+const posterBusy = ref(false)
+const posterStatus = ref('')
 const canvasSize = ref(300)
 const pageReady = ref(false)
 const drawn = ref(false)
@@ -400,6 +422,23 @@ const cultureText = computed(() => {
 		'说明：原创教学再设计，不是传统原作；来源仅作材料与技艺背景参考。',
 		'本系统不能替代专业心理咨询。',
 	].join('\n')
+})
+const cultureTradition = computed(() => {
+	if (!pattern.value) return null
+	const traditions = catalogData.value && Array.isArray(catalogData.value.traditions) ? catalogData.value.traditions : []
+	const found = findTradition(traditions, pattern.value.traditionId)
+	if (found) return found
+	return {
+		name: pattern.value.traditionName || '',
+		region: pattern.value.region || '',
+		registryCode: '',
+		listedYear: null,
+	}
+})
+// 分享图跟随当前练习结构（含已应用的小织变体）与当前色板，只导出本人练习成果卡。
+const posterPattern = computed(() => {
+	if (!pattern.value) return null
+	return { ...pattern.value, ...(activePlan.value || {}) }
 })
 const colorOptions = computed(() => {
 	if (!studio.value) return []
@@ -673,6 +712,22 @@ function copyCultureCard() {
 	})
 }
 
+async function exportCulturePoster() {
+	if (posterBusy.value || !posterRef.value) return
+	posterBusy.value = true
+	posterStatus.value = ''
+	try {
+		const result = await posterRef.value.exportImage()
+		const message = (result && result.message) || '分享图暂时没有生成，请重试'
+		posterStatus.value = message
+		if (result && result.ok && result.mode !== 'copy') toast.success(message)
+	} catch (event) {
+		posterStatus.value = '分享图暂时没有生成，请重试'
+	} finally {
+		posterBusy.value = false
+	}
+}
+
 function back() {
 	const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
 	if (pages.length > 1) uni.navigateBack({ delta: 1 })
@@ -816,6 +871,8 @@ onMounted(() => {
 .culture-text { display: block; margin-top: 4rpx; font-size: 23rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); word-break: break-word; }
 .culture-note { display: block; margin-top: 18rpx; padding: 12rpx 16rpx; border-radius: 12rpx; background: var(--zy-bg, #ffffff); font-size: 21rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
 .culture-status { display: block; margin-top: 10rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-brand-700, #217e76); }
+.culture-share { display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx 18rpx; margin-top: 20rpx; }
+.culture-share-caption { flex: 1 1 320rpx; min-width: 0; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); }
 .practice-artifact-card { margin-top: 20rpx; }
 .artifact-body { margin-top: 16rpx; }
 .artifact-summary { padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #ffffff); }

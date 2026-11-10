@@ -147,7 +147,7 @@
 				<view class="heritage-copy">
 					<text class="eyebrow eyebrow-heritage">HERITAGE STUDIES</text>
 					<text class="heritage-title zy-t-serif">非遗纹样馆</text>
-					<text class="heritage-sub">看纹样 · 读工艺 · 试着配色</text>
+					<text class="heritage-sub">四类工艺 · 来源可查</text>
 				</view>
 				<text class="heritage-arrow" aria-hidden="true">→</text>
 				<view class="heritage-corner" aria-hidden="true"></view>

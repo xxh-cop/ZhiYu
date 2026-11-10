@@ -80,7 +80,10 @@
 				<text class="heritage-muted zy-t-caption heritage-source-note">来源仅作材料与技艺背景参考，不表示官方认可本图案，也不代表本图是传统原作。</text>
 			</view>
 
-			<AccessibleButton variant="primary" @click="goStudio">用这个图案配色</AccessibleButton>
+			<view class="heritage-follow">
+				<AccessibleButton variant="primary" :loading="starting" @click="startFollowAlong">用这个纹样跟做</AccessibleButton>
+				<text class="heritage-muted zy-t-caption heritage-follow-note">会建立一次练习会话，完成后可在成长旅程查看文化卡</text>
+			</view>
 			<AccessibleButton variant="secondary" @click="goStarter">去看看手作</AccessibleButton>
 			<AccessibleButton variant="secondary" @click="back">返回纹样馆</AccessibleButton>
 		</template>
@@ -102,6 +105,7 @@ import {
 	sourcesForPattern,
 } from '@/utils/heritage-ui'
 import { useInteraction } from '@/composables/useInteraction'
+import { createPracticeSession } from '@/utils/practice-session'
 import Toast from '@/components/Toast.vue'
 import AccessibleButton from '@/components/AccessibleButton.vue'
 import SectionHead from '@/components/SectionHead.vue'
@@ -214,9 +218,30 @@ function openSource(source) {
 	// #endif
 }
 
-function goStudio() {
-	if (!pattern.value) return
-	uni.navigateTo({ url: '/sub-heritage/pages/heritage/studio?id=' + encodeURIComponent(pattern.value.id) })
+/* 跟做闭环：先建立一次 HERITAGE 练习会话，再带着 sessionId 进入配色台；
+   loading 期间按钮不可再次触发，失败只提示不跳转，用户可原地重试 */
+const starting = ref(false)
+
+async function startFollowAlong() {
+	if (starting.value || !pattern.value) return
+	starting.value = true
+	try {
+		const session = await createPracticeSession({
+			kind: 'HERITAGE',
+			minutesBudget: pattern.value.minutes || 10,
+			heritagePatternId: pattern.value.id,
+		})
+		const sessionId = session && (session.practiceSessionId || session.id)
+		if (!sessionId) throw new Error('练习会话没有返回标识')
+		uni.navigateTo({
+			url: '/sub-heritage/pages/heritage/studio?id=' + encodeURIComponent(pattern.value.id)
+				+ '&sessionId=' + encodeURIComponent(sessionId),
+		})
+	} catch (event) {
+		toast.show('练习暂时没有准备好，请重试')
+	} finally {
+		starting.value = false
+	}
 }
 
 function goStarter() {
@@ -359,6 +384,17 @@ onLoad((query) => {
 .heritage-source-note {
 	display: block;
 	margin-top: 16rpx;
+}
+.heritage-follow {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 10rpx;
+	margin-bottom: var(--zy-space-sm);
+}
+.heritage-follow-note {
+	display: block;
+	line-height: 1.6;
 }
 .heritage-foot {
 	display: block;
