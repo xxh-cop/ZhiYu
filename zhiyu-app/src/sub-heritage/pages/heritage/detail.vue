@@ -53,6 +53,19 @@
 				</view>
 			</view>
 
+			<view v-if="references.length" class="zy-card">
+				<text class="heritage-card-title zy-t-title">实物参考</text>
+				<text class="heritage-muted zy-t-caption">以下为开放许可的实物照片，仅作材料与工艺旁证，不是本页纹样的原作或来源。</text>
+				<scroll-view class="heritage-refs" scroll-x>
+					<view v-for="reference in references" :key="reference.id" class="heritage-ref">
+						<image class="heritage-ref-img" :src="reference.src" mode="aspectFill" :alt="reference.title" />
+						<text class="heritage-ref-title zy-t-caption">{{ reference.title }}</text>
+						<text class="heritage-ref-credit zy-t-micro">{{ reference.attribution }}</text>
+						<text class="heritage-ref-license zy-t-micro" @click="openLicense(reference)">查看许可 ↗</text>
+					</view>
+				</scroll-view>
+			</view>
+
 			<view class="zy-card">
 				<text class="heritage-card-title zy-t-title">学习观察点</text>
 				<text class="heritage-muted zy-t-body">{{ pattern.learningFocus }}</text>
@@ -122,7 +135,7 @@ import PatternLive from '@/components/PatternLive.vue'
 import ProcessStrip from '@/components/ProcessStrip.vue'
 import HeritageRegistryPlate from '@/components/HeritageRegistryPlate.vue'
 import RegionSeal from '@/components/RegionSeal.vue'
-import { textureFor } from '@/utils/heritage-media'
+import { textureFor, referencesFor } from '@/utils/heritage-media'
 import { useToast } from '@/composables/useToast'
 
 const toast = useToast()
@@ -144,6 +157,21 @@ const useTexture = true
 const useTexture = false
 // #endif
 const textureSrc = computed(() => textureFor(pattern.value && pattern.value.family))
+const references = computed(() => referencesFor(pattern.value && pattern.value.family))
+
+function openLicense(reference) {
+	const url = reference && reference.licenseUrl
+	if (!url || !/^https?:\/\//.test(url)) return
+	// #ifdef H5
+	window.open(url, '_blank', 'noopener,noreferrer')
+	// #endif
+	// #ifndef H5
+	uni.setClipboardData({
+		data: url,
+		success: () => toast.show('许可链接已复制，请在浏览器打开'),
+	})
+	// #endif
+}
 const materialText = computed(() => {
 	const materials = tradition.value && Array.isArray(tradition.value.materials) ? tradition.value.materials : []
 	return materials.length ? materials.join('、') : '未提供材料背景'
@@ -371,6 +399,39 @@ onLoad((query) => {
 .heritage-swatch-label {
 	font-size: var(--zy-text-micro);
 	color: var(--zy-text);
+}
+.heritage-refs {
+	width: 100%;
+	margin-top: 16rpx;
+	white-space: nowrap;
+}
+.heritage-ref {
+	display: inline-block;
+	width: 300rpx;
+	margin-right: 16rpx;
+	vertical-align: top;
+	white-space: normal;
+}
+.heritage-ref-img {
+	width: 100%;
+	height: 220rpx;
+	border: 2rpx solid var(--zy-card-line);
+	border-radius: var(--zy-radius-control);
+}
+.heritage-ref-title {
+	display: block;
+	margin-top: 8rpx;
+	color: var(--zy-title);
+}
+.heritage-ref-credit {
+	display: block;
+	margin-top: 4rpx;
+	color: var(--zy-text);
+}
+.heritage-ref-license {
+	display: inline-block;
+	margin-top: 6rpx;
+	color: var(--zy-brand-700);
 }
 .heritage-card-title {
 	display: block;
