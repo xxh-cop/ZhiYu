@@ -95,11 +95,13 @@ export function completeStudio(state) {
   return { ...state, running: false, completed: true }
 }
 
-export function drawHeritagePattern(ctx, layers, size, palette) {
+export function drawHeritagePattern(ctx, layers, size, palette, options = {}) {
   if (!ctx || !Array.isArray(layers) || !Array.isArray(palette) || palette.length !== 4) return
   ctx.clearRect(0, 0, size, size)
-  ctx.setFillStyle(palette[0])
-  ctx.fillRect(0, 0, size, size)
+  if (options.background !== false) {
+    ctx.setFillStyle(palette[0])
+    ctx.fillRect(0, 0, size, size)
+  }
   for (const layer of layers) {
     if (!layer || !Array.isArray(layer.points) || layer.points.length < 2) continue
     ctx.beginPath()

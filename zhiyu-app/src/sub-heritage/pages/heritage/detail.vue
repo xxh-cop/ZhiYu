@@ -21,13 +21,22 @@
 			<text class="heritage-origin">原创教学再设计</text>
 
 			<view class="heritage-detail-art">
+				<image
+					v-if="useTexture"
+					class="heritage-detail-texture"
+					:src="textureSrc"
+					mode="aspectFill"
+					alt=""
+				/>
 				<PatternLive
 					:pattern="pattern"
 					canvas-id="heritage-detail"
 					:animate="true"
 					:reveal-ratio="revealRatio"
+					:transparent="useTexture"
 					:label="pattern.name + ' 原创教学构图'"
 				/>
+				<text v-if="useTexture" class="heritage-detail-texture-note zy-t-micro">材质示意 · 非实物文物</text>
 			</view>
 			<view class="heritage-process-bar">
 				<AccessibleButton variant="ghost" size="sm" :aria-pressed="playing" @click="togglePlay">
@@ -113,6 +122,7 @@ import PatternLive from '@/components/PatternLive.vue'
 import ProcessStrip from '@/components/ProcessStrip.vue'
 import HeritageRegistryPlate from '@/components/HeritageRegistryPlate.vue'
 import RegionSeal from '@/components/RegionSeal.vue'
+import { textureFor } from '@/utils/heritage-media'
 import { useToast } from '@/composables/useToast'
 
 const toast = useToast()
@@ -126,6 +136,14 @@ const catalog = ref(null)
 const pattern = ref(null)
 const tradition = ref(null)
 const sources = ref([])
+/* 材质叠底仅在 H5 启用：小程序原生 canvas 透明底可能露黑，保留 palette 底色 */
+// #ifdef H5
+const useTexture = true
+// #endif
+// #ifndef H5
+const useTexture = false
+// #endif
+const textureSrc = computed(() => textureFor(pattern.value && pattern.value.family))
 const materialText = computed(() => {
 	const materials = tradition.value && Array.isArray(tradition.value.materials) ? tradition.value.materials : []
 	return materials.length ? materials.join('、') : '未提供材料背景'
@@ -296,6 +314,7 @@ onLoad((query) => {
 	font-size: var(--zy-text-caption);
 }
 .heritage-detail-art {
+	position: relative;
 	display: block;
 	width: 100%;
 	height: 620rpx;
@@ -304,6 +323,26 @@ onLoad((query) => {
 	border: 2rpx solid var(--zy-card-line);
 	border-radius: var(--zy-radius-feature);
 	box-shadow: var(--zy-shadow-card);
+}
+.heritage-detail-texture {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0.45;
+}
+.heritage-detail-texture-note {
+	position: absolute;
+	right: 16rpx;
+	bottom: 12rpx;
+	padding: 2rpx 10rpx;
+	color: var(--zy-text);
+	background: var(--zy-card-bg);
+	border-radius: var(--zy-radius-chip);
+	opacity: 0.82;
 }
 .heritage-process-bar {
 	display: flex;

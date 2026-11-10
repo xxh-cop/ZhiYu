@@ -6,8 +6,9 @@
 		>
 			<slot name="cover">
 				<template v-if="pattern">
-					<!-- 缩略用同源 PNG（与活体渲染同一几何，check:heritage 保证不漂移）；
-					     活体 canvas 留给详情/配色台，避免列表端数十个 canvas 回读开销 -->
+					<!-- 材质层（AI 微距，标注「材质示意」）；H5 纹样以透明底叠在材质上，
+					     小程序 image 对透明 SVG 支持不稳，仍用不透明 PNG 作降级 -->
+					<image class="heritage-card-texture" :src="textureSrc" mode="aspectFill" />
 					<image
 						class="heritage-card-art"
 						:src="artSrc"
@@ -45,6 +46,7 @@ import AccessibleButton from '@/components/AccessibleButton.vue'
 import RegionSeal from '@/components/RegionSeal.vue'
 import { patternImage } from '@/utils/heritage-ui'
 import { buildPatternSvg } from '@/utils/heritage-svg'
+import { textureFor } from '@/utils/heritage-media'
 
 const props = defineProps({
 	/** 有 pattern 时保持纹样馆既有行为；泛型用法不传 */
@@ -60,14 +62,16 @@ const props = defineProps({
 const emit = defineEmits(['open'])
 const SLOT_NAMES = ['weave', 'stitch', 'cutout', 'porcelain']
 
-/* H5 用同源几何 SVG（dev 环境分包 PNG 不可达，见 heritage-svg.js 注释）；
-   小程序端 image 对 data-uri SVG 支持不稳，用打包进分包的 PNG。 */
+/* H5 用同源几何 SVG（dev 环境分包 PNG 不可达，见 heritage-svg.js 注释），
+   并去掉内置底色以便 AI 材质微距透出；小程序端 image 对 data-uri SVG 支持不稳，
+   用打包进分包的 PNG（材质层被不透明 PNG 覆盖，属已知降级）。 */
 // #ifdef H5
-const artSrc = computed(() => (props.pattern ? buildPatternSvg(props.pattern) || patternImage(props.pattern.id) : ''))
+const artSrc = computed(() => (props.pattern ? buildPatternSvg(props.pattern, 240, { background: false }) || patternImage(props.pattern.id) : ''))
 // #endif
 // #ifndef H5
 const artSrc = computed(() => (props.pattern ? patternImage(props.pattern.id) : ''))
 // #endif
+const textureSrc = computed(() => (props.pattern ? textureFor(props.pattern.family) : ''))
 
 const motifFamily = computed(() => (SLOT_NAMES.includes(props.family) ? props.family : 'weave'))
 const displayTitle = computed(() => (props.pattern ? props.pattern.name : props.title))
@@ -128,13 +132,25 @@ function onOpen() {
 	justify-content: center;
 	background: var(--zy-bg-tint-warm);
 }
+.heritage-card-texture {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0.5;
+}
 .heritage-card-art {
+	position: relative;
 	display: block;
 	width: 100%;
 	height: 100%;
 }
 .heritage-card-seal {
 	position: absolute;
+	z-index: 2;
 	top: 12rpx;
 	right: 12rpx;
 	background: var(--zy-card-bg);

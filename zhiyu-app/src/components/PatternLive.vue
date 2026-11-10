@@ -31,6 +31,8 @@ const props = defineProps({
 	canvasId: { type: String, required: true },
 	animate: { type: Boolean, default: false },
 	revealRatio: { type: Number, default: 1 },
+	/** 透明底：仅 H5 叠材质时使用；小程序保留不透明底以免原生 canvas 露黑 */
+	transparent: { type: Boolean, default: false },
 	label: { type: String, default: '非遗原创教学纹样' },
 })
 
@@ -59,7 +61,7 @@ function stopTimer() {
 
 function paint(count) {
 	if (!context || !drawSize.value || !palette.value) return
-	drawHeritagePattern(context, layers.value.slice(0, count), drawSize.value, palette.value)
+	drawHeritagePattern(context, layers.value.slice(0, count), drawSize.value, palette.value, { background: !props.transparent })
 	context.draw()
 }
 

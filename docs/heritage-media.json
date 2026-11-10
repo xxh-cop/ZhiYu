@@ -1,0 +1,98 @@
+{
+  "note": "非遗实物参考图登记表。LICENSED_REFERENCE 只能以「实物参考」出现，不得冒充原创教学构图；AI_TEXTURE 为材质示意，非文物照片。未登记或未核实许可的图片不得入库。",
+  "version": 2,
+  "updatedAt": "2026-11-10",
+  "assets": [
+    {
+      "id": "texture-weave-ai",
+      "family": "weave",
+      "title": "竹编经纬材质示意",
+      "file": "zhiyu-app/src/static/heritage/texture/weave.jpg",
+      "status": "downloaded",
+      "origin": "AI_TEXTURE",
+      "author": "织愈（AI 生成）",
+      "license": "项目自有",
+      "licenseUrl": "",
+      "sourceUrl": "",
+      "attribution": "AI 生成材质示意，非实物文物照片"
+    },
+    {
+      "id": "texture-stitch-ai",
+      "family": "stitch",
+      "title": "夏布经纬材质示意",
+      "file": "zhiyu-app/src/static/heritage/texture/stitch.jpg",
+      "status": "downloaded",
+      "origin": "AI_TEXTURE",
+      "author": "织愈（AI 生成）",
+      "license": "项目自有",
+      "licenseUrl": "",
+      "sourceUrl": "",
+      "attribution": "AI 生成材质示意，非实物文物照片"
+    },
+    {
+      "id": "texture-cutout-ai",
+      "family": "cutout",
+      "title": "剪纸负空间材质示意",
+      "file": "zhiyu-app/src/static/heritage/texture/cutout.jpg",
+      "status": "downloaded",
+      "origin": "AI_TEXTURE",
+      "author": "织愈（AI 生成）",
+      "license": "项目自有",
+      "licenseUrl": "",
+      "sourceUrl": "",
+      "attribution": "AI 生成材质示意，非实物文物照片"
+    },
+    {
+      "id": "texture-porcelain-ai",
+      "family": "porcelain",
+      "title": "青花瓷面材质示意",
+      "file": "zhiyu-app/src/static/heritage/texture/porcelain.jpg",
+      "status": "downloaded",
+      "origin": "AI_TEXTURE",
+      "author": "织愈（AI 生成）",
+      "license": "项目自有",
+      "licenseUrl": "",
+      "sourceUrl": "",
+      "attribution": "AI 生成材质示意，非实物文物照片"
+    },
+    {
+      "id": "ref-bamboo-shengzhou",
+      "family": "weave",
+      "title": "嵊州竹编提篮（浙江省博物馆藏）",
+      "file": "",
+      "status": "pending-download",
+      "origin": "LICENSED_REFERENCE",
+      "author": "猫猫的日记本",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Shengzhou_Bamboo_Weaving_Basket_in_Zhejiang_Provincial_Museum_2014-04.JPG",
+      "attribution": "摄影 猫猫的日记本 / Wikimedia Commons / CC BY-SA 4.0"
+    },
+    {
+      "id": "ref-papercut-dog",
+      "family": "cutout",
+      "title": "狗年剪纸",
+      "file": "",
+      "status": "pending-download",
+      "origin": "LICENSED_REFERENCE",
+      "author": "Fanghong",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:DogYearPaperCutting.jpg",
+      "attribution": "作者 Fanghong / Wikimedia Commons / CC BY-SA 3.0"
+    },
+    {
+      "id": "ref-porcelain-yuan",
+      "family": "porcelain",
+      "title": "元代景德镇青花瓷瓶",
+      "file": "",
+      "status": "pending-download",
+      "origin": "LICENSED_REFERENCE",
+      "author": "Gary Lee Todd, Ph.D.",
+      "license": "CC0 1.0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Yuan_Underglaze_Blue_Jingdezhen_Porcelain_Vase.jpg",
+      "attribution": "Gary Lee Todd / Wikimedia Commons / CC0 1.0"
+    }
+  ]
+}

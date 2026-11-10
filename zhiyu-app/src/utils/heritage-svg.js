@@ -14,10 +14,11 @@ function pathData(points, closed, size) {
 		.join(' ') + (closed ? ' Z' : '')
 }
 
-export function buildPatternSvg(pattern, size = DEFAULT_SIZE) {
+export function buildPatternSvg(pattern, size = DEFAULT_SIZE, options = {}) {
 	const layers = buildHeritageGeometry(pattern)
 	const palette = pattern && Array.isArray(pattern.palette) && pattern.palette.length === 4 ? pattern.palette : null
 	if (!layers.length || !palette) return ''
+	const showBackground = options.background !== false
 	const body = layers
 		.map((layer) => {
 			const d = pathData(layer.points, layer.closed, size)
@@ -27,6 +28,7 @@ export function buildPatternSvg(pattern, size = DEFAULT_SIZE) {
 			return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${width}" stroke-linejoin="round"/>`
 		})
 		.join('')
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${palette[0]}"/>${body}</svg>`
+	const background = showBackground ? `<rect width="${size}" height="${size}" fill="${palette[0]}"/>` : ''
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">${background}${body}</svg>`
 	return 'data:image/svg+xml,' + encodeURIComponent(svg)
 }
