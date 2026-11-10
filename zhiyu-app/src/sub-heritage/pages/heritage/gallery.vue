@@ -1,80 +1,65 @@
 <template>
-	<view class="growth-page heritage-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
-		<view class="growth-hero heritage-hero">
-			<text class="growth-eyebrow">HERITAGE STUDIES</text>
-			<text class="growth-title">非遗纹样馆</text>
-			<text class="growth-subtitle">{{ catalogCount }} · 来源与练习边界可查。</text>
-		</view>
+	<view class="heritage-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
+		<SectionHead eyebrow="HERITAGE STUDIES" title="非遗纹样馆" tone="heritage" />
+		<text class="heritage-subtitle zy-t-body">{{ catalogCount }} · 来源与练习边界可查。</text>
 
-		<view v-if="loading" class="growth-card heritage-status" role="status" aria-live="polite">
-			<text class="growth-muted">正在整理纹样…</text>
+		<view v-if="loading" class="zy-card heritage-status" role="status" aria-live="polite">
+			<text class="heritage-muted zy-t-body">正在整理纹样…</text>
 		</view>
-		<view v-else-if="error" class="growth-card heritage-status" role="alert">
-			<text class="growth-error">{{ error }}</text>
-			<AccessibleButton class="growth-button secondary" @click="load">重试</AccessibleButton>
+		<view v-else-if="error" class="zy-card heritage-status" role="alert">
+			<text class="heritage-error zy-t-body">{{ error }}</text>
+			<AccessibleButton variant="secondary" @click="load">重试</AccessibleButton>
 		</view>
 		<template v-else>
-			<view class="growth-card heritage-search-card">
-				<label class="heritage-label" for="heritage-search">搜索纹样</label>
+			<view class="zy-card heritage-search-card">
+				<label class="heritage-label zy-t-caption" for="heritage-search">搜索纹样</label>
 				<input
 					id="heritage-search"
 					:key="searchKey"
 					v-model="keyword"
-					class="growth-input"
+					class="heritage-input zy-t-body"
 					aria-label="搜索纹样"
 					placeholder="输入名称、地域或学习观察点"
 					confirm-type="search"
 				/>
-				<text class="growth-muted">可按名称、地域或学习观察点查找。</text>
+				<text class="heritage-muted zy-t-caption">可按名称、地域或学习观察点查找。</text>
 			</view>
 
-			<view class="growth-row heritage-filters" role="group" aria-label="按技艺筛选">
+			<view class="heritage-filters" role="group" aria-label="按技艺筛选">
 				<AccessibleButton
-					:class="['growth-choice', { selected: !traditionId }]"
+					:class="['heritage-choice', { 'is-selected': !traditionId }]"
 					:aria-pressed="!traditionId"
+					variant="ghost"
+					size="sm"
 					@click="traditionId = ''"
 				>全部</AccessibleButton>
 				<AccessibleButton
 					v-for="tradition in traditions"
 					:key="tradition.id"
-					:class="['growth-choice', { selected: traditionId === tradition.id }]"
+					:class="['heritage-choice', { 'is-selected': traditionId === tradition.id }]"
 					:aria-pressed="traditionId === tradition.id"
+					variant="ghost"
+					size="sm"
 					@click="traditionId = tradition.id"
 				>{{ tradition.shortName }}</AccessibleButton>
 			</view>
 
 			<view class="heritage-count-row">
-				<text class="heritage-count">找到 {{ filtered.length }} 份构图</text>
-				<text class="growth-muted">点击卡片查看来源与说明</text>
+				<text class="heritage-count zy-t-body">找到 {{ filtered.length }} 份构图</text>
+				<text class="heritage-muted zy-t-caption">点击卡片查看来源与说明</text>
 			</view>
 
-			<view v-if="!filtered.length" class="growth-card heritage-status">
-				<text class="growth-muted">{{ patterns.length ? '没有找到匹配的纹样。' : '当前没有可展示的纹样。' }}</text>
-				<AccessibleButton v-if="patterns.length" class="growth-button secondary" @click="clearFilters">清空筛选</AccessibleButton>
-				<AccessibleButton v-else class="growth-button secondary" @click="load">重试</AccessibleButton>
+			<view v-if="!filtered.length" class="zy-card heritage-status">
+				<text class="heritage-muted zy-t-body">{{ patterns.length ? '没有找到匹配的纹样。' : '当前没有可展示的纹样。' }}</text>
+				<AccessibleButton v-if="patterns.length" variant="secondary" @click="clearFilters">清空筛选</AccessibleButton>
+				<AccessibleButton v-else variant="secondary" @click="load">重试</AccessibleButton>
 			</view>
 			<view v-else class="heritage-grid">
-				<AccessibleButton
-					v-for="pattern in filtered"
-					:key="pattern.id"
-					class="heritage-card"
-					:aria-label="'查看纹样 ' + pattern.name + '，' + pattern.traditionShortName + '，' + pattern.level"
-					@click="openPattern(pattern.id)"
-				>
-					<image class="heritage-card-art" :src="patternImage(pattern.id)" mode="aspectFill" lazy-load :alt="(pattern.name||'非遗')+'纹样图样'" />
-					<view class="heritage-card-copy">
-						<view class="heritage-card-title-row">
-							<text class="heritage-card-title">{{ pattern.name }}</text>
-							<text class="heritage-card-tag">原创教学</text>
-						</view>
-						<text class="heritage-card-meta">{{ pattern.traditionShortName }} · {{ pattern.region }}</text>
-						<text class="heritage-card-note">{{ pattern.familyLabel }} · {{ pattern.level }} · 约 {{ pattern.minutes }} 分钟数字练习</text>
-					</view>
-				</AccessibleButton>
+				<HeritageCard v-for="pattern in filtered" :key="pattern.id" :pattern="pattern" @open="openPattern" />
 			</view>
 		</template>
 
-		<text class="growth-foot">本系统不能替代专业心理咨询</text>
+		<text class="heritage-foot zy-t-caption">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
 
@@ -82,9 +67,11 @@
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'
-import { decoratePatterns, filterHeritagePatterns, patternImage } from '@/utils/heritage-ui'
+import { decoratePatterns, filterHeritagePatterns } from '@/utils/heritage-ui'
 import { useInteraction } from '@/composables/useInteraction'
 import AccessibleButton from '@/components/AccessibleButton.vue'
+import SectionHead from '@/components/SectionHead.vue'
+import HeritageCard from '@/components/HeritageCard.vue'
 
 const { reducedMotion } = useInteraction()
 const loading = ref(false)
@@ -127,27 +114,102 @@ async function load() {
 onLoad(load)
 </script>
 
-<style src="@/styles/growth.css"></style>
 <style scoped>
-.heritage-page { max-width: 1180px; margin: 0 auto; }
-.heritage-hero { padding-bottom: 12rpx; }
-.heritage-status { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; }
-.heritage-search-card { padding: 24rpx 28rpx; }
-.heritage-label { display: block; margin-bottom: 10rpx; font-size: 26rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.heritage-filters { gap: 12rpx; margin: 22rpx 0 8rpx; }
-.heritage-page .heritage-filters button.growth-choice { flex: 0 0 auto; width: auto; min-height: 88rpx; padding: 12rpx 24rpx; margin: 0; font-size: 25rpx; }
-.heritage-count-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16rpx; margin: 24rpx 0 16rpx; flex-wrap: wrap; }
-.heritage-count { font-size: 26rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.heritage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18rpx; }
-.heritage-card { display: block; width: 100%; margin: 0; padding: 0; overflow: hidden; text-align: left; line-height: 1.5; background: var(--zy-card-bg, #fff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: var(--zy-radius-md, 24rpx); }
-.heritage-card-art { display: block; width: 100%; height: 260rpx; background: var(--zy-bg-tint-mint, #e8efe4); }
-.heritage-card-copy { display: block; padding: 20rpx 22rpx 24rpx; }
-.heritage-card-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10rpx; }
-.heritage-card-title { font-size: 29rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.heritage-card-tag { flex-shrink: 0; font-size: 20rpx; color: var(--zy-brand-700, #217e76); background: var(--zy-bg-tint-mint, #e8efe4); border-radius: 8rpx; padding: 2rpx 8rpx; }
-.heritage-card-meta, .heritage-card-note { display: block; font-size: 22rpx; color: var(--zy-text, #4a5f54); margin-top: 8rpx; }
-.heritage-card-note { font-size: 20rpx; }
-.heritage-card:active { opacity: .86; }
-@media (min-width: 700px) { .heritage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .heritage-card-art { height: 220px; } }
-@media (min-width: 1050px) { .heritage-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.heritage-page {
+	max-width: 1180px;
+	margin: 0 auto;
+	padding: var(--zy-space-lg) var(--zy-space-md) var(--zy-space-3xl);
+}
+.heritage-subtitle {
+	display: block;
+	margin: 8rpx 0 var(--zy-space-md);
+	color: var(--zy-text);
+}
+.heritage-status {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 12rpx;
+}
+.heritage-muted {
+	color: var(--zy-text);
+}
+.heritage-error {
+	color: var(--zy-care);
+}
+.heritage-search-card {
+	padding: 24rpx 28rpx;
+}
+.heritage-label {
+	display: block;
+	margin-bottom: 10rpx;
+	font-weight: 600;
+	color: var(--zy-title);
+}
+.heritage-input {
+	display: block;
+	width: 100%;
+	height: 88rpx;
+	padding: 0 20rpx;
+	margin-bottom: 10rpx;
+	color: var(--zy-title);
+	background: var(--zy-bg-sunken);
+	border: 2rpx solid var(--zy-border);
+	border-radius: var(--zy-radius-control);
+}
+.heritage-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12rpx;
+	margin: 22rpx 0 8rpx;
+}
+.heritage-choice {
+	flex: 0 0 auto;
+	width: auto;
+	min-height: 72rpx;
+	padding: 10rpx 24rpx;
+	margin: 0;
+	border: 2rpx solid var(--zy-border);
+	border-radius: var(--zy-radius-full);
+	background: var(--zy-card-bg);
+	color: var(--zy-text);
+}
+.heritage-choice.is-selected {
+	background: var(--zy-brand-600);
+	border-color: var(--zy-brand-600);
+	color: #ffffff;
+}
+.heritage-count-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 16rpx;
+	margin: 24rpx 0 16rpx;
+	flex-wrap: wrap;
+}
+.heritage-count {
+	font-weight: 600;
+	color: var(--zy-title);
+}
+.heritage-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 18rpx;
+}
+.heritage-foot {
+	display: block;
+	margin-top: var(--zy-space-3xl);
+	text-align: center;
+	color: var(--zy-text);
+}
+@media (min-width: 700px) {
+	.heritage-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+@media (min-width: 1050px) {
+	.heritage-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
 </style>

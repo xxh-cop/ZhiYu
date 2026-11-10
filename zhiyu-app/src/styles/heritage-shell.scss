@@ -1,0 +1,93 @@
+/**
+ * 织愈 · 非遗分包承载样式（2026-11-10，气息深化阶段一）
+ * 取代第二代 growth.css 在 sub-heritage 三页的硬编码冷绿兜底；
+ * 仅保留 studio 仍在用的 growth-* 类名作为过渡 shim，全部值来自 --zy-* 令牌。
+ * P7 一致性债清零时随 studio 模板改名一并删除本文件。
+ * WXSS 合规：类选择器；无 * / 属性选择器 / :nth-child / :focus-visible。
+ */
+
+.growth-page {
+	padding: var(--zy-space-lg) var(--zy-space-md) var(--zy-space-3xl);
+	color: var(--zy-title);
+}
+.growth-hero {
+	margin-bottom: var(--zy-space-md);
+}
+.growth-eyebrow {
+	display: block;
+	font-size: var(--zy-text-micro);
+	letter-spacing: 3rpx;
+	color: var(--zy-faint);
+	margin-bottom: 10rpx;
+}
+.growth-title {
+	display: block;
+	font-family: var(--zy-font-display);
+	font-size: var(--zy-text-display);
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: 2rpx;
+	color: var(--zy-title);
+}
+.growth-subtitle {
+	display: block;
+	margin-top: 10rpx;
+	font-size: var(--zy-text-body);
+	line-height: 1.7;
+	color: var(--zy-text);
+}
+.growth-card {
+	background: var(--zy-card-bg);
+	border: 2rpx solid var(--zy-card-line);
+	border-radius: var(--zy-radius-card);
+	padding: var(--zy-space-lg);
+	box-shadow: var(--zy-shadow-card);
+	margin-bottom: var(--zy-space-md);
+}
+.growth-card-title {
+	display: block;
+	margin-bottom: 10rpx;
+	font-size: var(--zy-text-title);
+	font-weight: 600;
+	color: var(--zy-title);
+}
+.growth-muted {
+	display: block;
+	font-size: var(--zy-text-body);
+	line-height: 1.7;
+	color: var(--zy-text);
+}
+.growth-error {
+	display: block;
+	font-size: var(--zy-text-body);
+	line-height: 1.7;
+	color: var(--zy-care);
+}
+.growth-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 88rpx;
+	margin: 0 0 var(--zy-space-sm);
+	padding: 0 var(--zy-space-lg);
+	border: 0;
+	border-radius: var(--zy-radius-control);
+	background: var(--zy-brand-600);
+	color: #ffffff;
+	font-size: var(--zy-text-body);
+	font-weight: 600;
+	line-height: 1.4;
+}
+.growth-button.secondary {
+	background: var(--zy-bg-sunken);
+	color: var(--zy-brand-700);
+	border: 2rpx solid var(--zy-border);
+}
+.growth-foot {
+	display: block;
+	margin-top: var(--zy-space-3xl);
+	text-align: center;
+	font-size: var(--zy-text-caption);
+	color: var(--zy-text);
+}

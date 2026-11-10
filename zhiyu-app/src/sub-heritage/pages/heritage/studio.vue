@@ -751,7 +751,7 @@ onMounted(() => {
 })
 </script>
 
-<style src="@/styles/growth.css"></style>
+<style src="@/styles/heritage-shell.scss"></style>
 <style scoped>
 .heritage-studio-page { max-width: 1180px; margin: 0 auto; }
 .heritage-status { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; }

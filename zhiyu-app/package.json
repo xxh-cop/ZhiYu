@@ -37,7 +37,8 @@
     "check:wxss": "node scripts/check-wxss-wildcard.js",
     "check:isclass": "node scripts/check-wxss-isclass.js",
     "check:elements": "node scripts/check-wxss-elements.js",
-    "check:contrast": "node scripts/check-contrast.js"
+    "check:contrast": "node scripts/check-contrast.js",
+    "check:heritage": "node scripts/check-heritage-svg.js"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-5020620260917001",
