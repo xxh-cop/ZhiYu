@@ -56,7 +56,7 @@
 			<view v-if="references.length" class="zy-card">
 				<text class="heritage-card-title zy-t-title">实物参考</text>
 				<text class="heritage-muted zy-t-caption">以下为开放许可的实物照片，仅作材料与工艺旁证，不是本页纹样的原作或来源。</text>
-				<scroll-view class="heritage-refs" scroll-x>
+				<scroll-view class="heritage-refs" :class="{ 'is-single': references.length === 1 }" scroll-x>
 					<view v-for="reference in references" :key="reference.id" class="heritage-ref">
 						<image class="heritage-ref-img" :src="reference.src" mode="aspectFill" :alt="reference.title" />
 						<text class="heritage-ref-title zy-t-caption">{{ reference.title }}</text>
@@ -417,6 +417,19 @@ onLoad((query) => {
 	height: 220rpx;
 	border: 2rpx solid var(--zy-card-line);
 	border-radius: var(--zy-radius-control);
+}
+/* 只有一张实物参考时不做横向图廊：铺满卡片宽度。
+   否则单卡片 300rpx 只占约四成宽，右侧大片空白会被误读为“滑不动/卡住”。 */
+.heritage-refs.is-single {
+	white-space: normal;
+}
+.heritage-refs.is-single .heritage-ref {
+	display: block;
+	width: 100%;
+	margin-right: 0;
+}
+.heritage-refs.is-single .heritage-ref-img {
+	height: 320rpx;
 }
 .heritage-ref-title {
 	display: block;
