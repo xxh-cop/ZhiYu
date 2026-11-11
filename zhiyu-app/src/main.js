@@ -54,13 +54,23 @@ export function createApp() {
 		},
 		onShow() {
 			theme.applyNavBar()
+			let current = null
 			try {
 				const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
-				const current = pages.length ? pages[pages.length - 1] : null
+				current = pages.length ? pages[pages.length - 1] : null
 				if (current && current.route) uni.$emit('zy:tabshow', '/' + current.route)
 			} catch (e) {
 				/* 页面栈不可用时由自定义导航条自行读取 */
 			}
+			// #ifdef MP
+			// 微信 custom tabBar 的 pageLifetimes 不保证触发，官方做法是在页面 onShow 主动同步选中态
+			try {
+				const bar = current && typeof current.getTabBar === 'function' ? current.getTabBar() : null
+				if (bar && typeof bar.syncState === 'function') bar.syncState()
+			} catch (e) {
+				/* 非 tabBar 页面或组件未就绪时忽略 */
+			}
+			// #endif
 		},
 	});
 

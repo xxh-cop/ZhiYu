@@ -159,6 +159,10 @@ function goCreate() {
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #ffffff);
 }
+/* #ifdef MP */
+/* 小程序 custom tabBar 不占页面视口，页面自留底部空间（含安全区） */
+.page { padding-bottom: calc(112rpx + env(safe-area-inset-bottom)); }
+/* #endif */
 
 /* ── 品牌区 ── */
 .brand-header {

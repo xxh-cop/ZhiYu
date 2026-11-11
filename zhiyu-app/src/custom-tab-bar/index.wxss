@@ -1,0 +1,138 @@
+/*
+ * 自定义 tabBar 样式（原生 wxss，不走 rpx 变量继承：组件在页面根 view 之外，拿不到 --zy-* 变量）。
+ * 关键尺寸约定：
+ *   条体可视高度 112rpx；`.zy-tabbar` 总高 = 112rpx + 底部安全区，且必须 border-box，
+ *   否则 padding-bottom 会再叠加一份安全区，条体被顶高、下方留出多余空白。
+ *   缺口 SVG 只铺 112rpx 高的 `.zy-tabbar-bar`，安全区由 `.zy-tabbar` 底色填充，
+ *   避免 background-size: 100% 100% 把缺口在竖直方向拉伸。
+ */
+.zy-tabbar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 990;
+	box-sizing: border-box;
+	height: calc(112rpx + constant(safe-area-inset-bottom));
+	height: calc(112rpx + env(safe-area-inset-bottom));
+	padding-bottom: constant(safe-area-inset-bottom);
+	padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 安全区用独立色块填充；根节点保持透明，否则会把缺口 SVG 的镂空也涂白 */
+.zy-tabbar::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: constant(safe-area-inset-bottom);
+	height: env(safe-area-inset-bottom);
+	background-color: #ffffff;
+}
+
+.zy-tabbar--warm::after {
+	background-color: #fffdf7;
+}
+
+.zy-tabbar-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 112rpx;
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3NTAgMTEyIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cGF0aCBkPSJNMCAwaDMwOWMxNCAwIDE4IDYgMjIgMTYgOCAyMiAyNCAzMiA0NCAzMnMzNi0xMCA0NC0zMmM0LTEwIDgtMTYgMjItMTZoMzA5djExMkgweiIgZmlsbD0iI0ZGRkZGRiIvPjwvc3ZnPg==");
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	box-shadow: 0 -6rpx 24rpx rgba(51, 48, 42, 0.06);
+}
+
+.zy-tabbar--warm .zy-tabbar-bar {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3NTAgMTEyIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cGF0aCBkPSJNMCAwaDMwOWMxNCAwIDE4IDYgMjIgMTYgOCAyMiAyNCAzMiA0NCAzMnMzNi0xMCA0NC0zMmM0LTEwIDgtMTYgMjItMTZoMzA5djExMkgweiIgZmlsbD0iI0ZGRkRGNyIvPjwvc3ZnPg==");
+}
+
+.zy-tabbar-row {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	height: 112rpx;
+}
+
+.zy-tab-item {
+	position: relative;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4rpx;
+	height: 100%;
+	padding-bottom: 12rpx;
+}
+
+.zy-tab-icon {
+	width: 44rpx;
+	height: 44rpx;
+}
+
+.zy-tab-text {
+	font-size: 22rpx;
+	line-height: 1.4;
+	color: #5c5648;
+}
+
+.zy-tab-dot {
+	width: 40rpx;
+	height: 4rpx;
+	border-radius: 999rpx;
+	background-color: transparent;
+	transition: background-color 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.zy-tab-item.is-active .zy-tab-text {
+	font-weight: 600;
+	color: #1a645e;
+}
+
+.zy-tab-item.is-active .zy-tab-dot {
+	background-color: #217e76;
+}
+
+.zy-tab-center {
+	position: relative;
+	flex: 0 0 160rpx;
+	display: flex;
+	justify-content: center;
+	height: 100%;
+}
+
+.zy-center-btn {
+	position: absolute;
+	top: -30rpx;
+	left: 50%;
+	width: 112rpx;
+	height: 112rpx;
+	margin-left: -56rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: linear-gradient(135deg, #217e76, #2d9b8f);
+	box-shadow: 0 10rpx 28rpx rgba(33, 126, 118, 0.35), inset 0 2rpx 0 rgba(255, 255, 255, 0.28);
+	transition: transform 180ms ease-out;
+}
+
+.zy-center-btn:active {
+	transform: scale(0.92);
+}
+
+.zy-center-plus {
+	font-size: 52rpx;
+	line-height: 1;
+	color: #ffffff;
+	transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.zy-center-btn.is-active .zy-center-plus {
+	transform: rotate(45deg);
+}

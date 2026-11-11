@@ -40,6 +40,8 @@ export const useThemeStore = defineStore('theme', {
 			try { uni.setStorageSync(STORAGE_KEY, next) } catch (e) { /* 忽略持久化失败 */ }
 			this.applyNavBar()
 			this.applyTabBar()
+			// H5 自定义 tabBar 监听此事件换纸色（mp 走下方 getTabBar().syncState()）
+			try { uni.$emit('zy:themechange') } catch (e) { /* 忽略 */ }
 		},
 		/** 导航条随主题联动（pages.json 静态值只保冷启动首帧）；不支持平台静默跳过 */
 		applyNavBar() {
@@ -60,6 +62,15 @@ export const useThemeStore = defineStore('theme', {
 					fail: () => {},
 				})
 			} catch (e) { /* H5 无原生 tabBar 时忽略 */ }
+			// #ifdef MP
+			// custom tabBar 不吃 setTabBarStyle，直接通知当前页组件换纸色
+			try {
+				const pages = getCurrentPages()
+				const current = pages.length ? pages[pages.length - 1] : null
+				const bar = current && typeof current.getTabBar === 'function' ? current.getTabBar() : null
+				if (bar && typeof bar.syncState === 'function') bar.syncState()
+			} catch (e) { /* 页面栈不可用时由 tabBar 自身 show 兜底 */ }
+			// #endif
 		},
 	},
 })

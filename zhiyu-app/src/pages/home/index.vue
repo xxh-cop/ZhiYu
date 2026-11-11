@@ -482,6 +482,10 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 
 <style scoped>
 .home-page { min-height: 100vh; color: var(--zy-title); padding: 32rpx 32rpx 64rpx; box-sizing: border-box; }
+/* #ifdef MP */
+/* 小程序 custom tabBar 不占页面视口（windowHeight 含 tabBar 区），页面需自留底部空间 */
+.home-page { padding-bottom: calc(112rpx + env(safe-area-inset-bottom)); }
+/* #endif */
 .home-inner { max-width: 1080px; margin: auto; }
 
 /* ── 页头 ── */

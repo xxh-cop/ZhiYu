@@ -104,17 +104,33 @@ defineExpose({ refresh })
 	right: 0;
 	bottom: 0;
 	z-index: 990;
+	box-sizing: border-box;
 	height: calc(112rpx + constant(safe-area-inset-bottom));
 	height: calc(112rpx + env(safe-area-inset-bottom));
 	padding-bottom: constant(safe-area-inset-bottom);
 	padding-bottom: env(safe-area-inset-bottom);
 }
+/* 安全区用独立色块填充；根节点保持透明，否则会把缺口的镂空也涂白 */
+.zy-tabbar::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: constant(safe-area-inset-bottom);
+	height: env(safe-area-inset-bottom);
+	background-color: #ffffff;
+}
+.zy-tabbar--warm::after {
+	background-color: #fffdf7;
+}
+/* 缺口只铺 112rpx 条体；安全区由 ::after 色块填充，避免 SVG 被竖直拉伸 */
 .zy-tabbar-bar {
 	position: absolute;
 	top: 0;
 	right: 0;
-	bottom: 0;
 	left: 0;
+	height: 112rpx;
 	background-repeat: no-repeat;
 	background-size: 100% 100%;
 	box-shadow: 0 -6rpx 24rpx rgba(51, 48, 42, 0.06);

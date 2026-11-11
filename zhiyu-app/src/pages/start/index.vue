@@ -81,4 +81,8 @@ function go(path){uni.navigateTo({url:path.startsWith('/')?path:'/pages/'+path})
 @media (prefers-reduced-motion: reduce) {
  .short-item { transition: none; }
 }
+/* #ifdef MP */
+/* 小程序 custom tabBar 不占页面视口，页面自留底部空间（含安全区） */
+.growth-page { padding-bottom: calc(112rpx + env(safe-area-inset-bottom)); }
+/* #endif */
 </style>
