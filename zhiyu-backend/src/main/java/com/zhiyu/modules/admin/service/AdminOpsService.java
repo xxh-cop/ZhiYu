@@ -159,10 +159,12 @@ public class AdminOpsService {
 
     private Component ragComponent() {
         try {
-            Path path = Path.of(env.getProperty("zhiyu.rag.vector-store-path", "./rag-store.json"));
+            Path path = Path.of(env.getProperty("zhiyu.ai.rag.vector-store-path", "./rag-store.json"))
+                    .toAbsolutePath().normalize();
             if (Files.isRegularFile(path)) {
                 return new Component("rag", "RAG 本地存储", "UP",
-                        "文件存在，" + Math.max(1, Files.size(path) / 1024) + " KB（未校验向量内容）", null);
+                        "文件存在，" + Math.max(1, Files.size(path) / 1024) + " KB（路径：" + path
+                                + "；未校验向量内容）", null);
             }
             return new Component("rag", "RAG 本地存储", "WARN", "尚未构建，首次运行按需创建", null);
         } catch (Exception e) {

@@ -101,6 +101,11 @@ public class DoubaoEmbeddingModel implements EmbeddingModel {
         return dimensions;
     }
 
+    /** 实际生效的模型名，供 RAG 索引指纹使用。 */
+    public String modelName() {
+        return model;
+    }
+
     /**
      * 解析豆包 API 响应。
      *

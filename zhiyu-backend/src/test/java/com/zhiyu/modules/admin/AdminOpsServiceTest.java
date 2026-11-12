@@ -49,7 +49,7 @@ class AdminOpsServiceTest {
         Files.writeString(temp.resolve("rag-store.json"), "{}");
         var env = new MockEnvironment();
         env.setProperty("zhiyu.file.upload-dir", temp.resolve("uploads").toString());
-        env.setProperty("zhiyu.rag.vector-store-path", temp.resolve("rag-store.json").toString());
+        env.setProperty("zhiyu.ai.rag.vector-store-path", temp.resolve("rag-store.json").toString());
         var executor = new org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor();
         executor.setCorePoolSize(16);
         executor.setMaxPoolSize(16);
@@ -82,6 +82,33 @@ class AdminOpsServiceTest {
         assertEquals("WARN", redis.status());
         assertEquals(0, health.counts().aiAudit24h());
         assertTrue(health.jvm().heapMaxMb() >= 1);
+    }
+
+    @Test
+    @DisplayName("RAG 健康检查读取 zhiyu.ai.rag.vector-store-path 指向的文件")
+    void ragHealthUsesCorrectConfiguredPath() throws Exception {
+        Path custom = temp.resolve("custom-rag-store.json");
+        Files.writeString(custom, "{}");
+        Path legacyWrong = temp.resolve("legacy-wrong-rag-store.json");
+        Files.writeString(legacyWrong, "{}");
+
+        var env = new MockEnvironment();
+        env.setProperty("zhiyu.file.upload-dir", temp.resolve("uploads").toString());
+        env.setProperty("zhiyu.rag.vector-store-path", legacyWrong.toString());
+        env.setProperty("zhiyu.ai.rag.vector-store-path", custom.toString());
+        var executor = new org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(8);
+        executor.initialize();
+        var customService = new AdminOpsService(db, db.getDataSource(), new BusinessAccess(db), env, null, executor);
+
+        var rag = customService.health().components().stream()
+                .filter(c -> "rag".equals(c.key())).findFirst().orElseThrow();
+
+        assertEquals("UP", rag.status());
+        assertTrue(rag.detail().contains(custom.toAbsolutePath().normalize().toString()), rag.detail());
+        assertFalse(rag.detail().contains(legacyWrong.getFileName().toString()), rag.detail());
     }
 
     @Test
