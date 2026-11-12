@@ -18,10 +18,11 @@
 					data-path="{{item.path}}"
 					bindtap="onCenterTap"
 					aria-role="button"
-					aria-label="开始"
+					aria-label="手作"
 				>
 					<text class="zy-center-plus">＋</text>
 				</view>
+				<text class="zy-center-label">手作</text>
 			</view>
 		</block>
 	</view>

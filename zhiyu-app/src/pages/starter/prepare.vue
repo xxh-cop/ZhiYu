@@ -23,5 +23,5 @@ function start(){if(checked.value.length!==item.value.materials.length)return;un
 function back(){uni.navigateBack()}
 function copySource(){uni.setClipboardData({data:item.value.source.url})}
 </script>
-<style src="../../styles/growth.css"></style>
+
 <style scoped>.growth-muted{display:block;margin-top:8rpx}.material-row{display:flex;gap:20rpx;padding:24rpx 0;background:transparent;text-align:left;line-height:1.8;border-bottom:1rpx solid #e1e9e5}.check{color:#267b6e;font-size:34rpx}.material-title{font-size:28rpx;font-weight:600}.step-preview{padding:22rpx 0;border-bottom:1rpx solid #e1e9e5;font-size:28rpx}.rescue{display:block;color:#8b652d;background:#faf6ed;border-radius:10rpx;padding:14rpx;font-size:24rpx;line-height:1.8;margin-top:12rpx}.safety-card{border-left:6rpx solid #d6b475}button::after{border:0}</style>

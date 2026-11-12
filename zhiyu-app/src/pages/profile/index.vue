@@ -140,7 +140,7 @@ const menuSections = [
 	{
 		title: '我的参与',
 		items: [
-			{ icon: 'group', label: '活动与预约', action: 'programs', tone: 'brand' },
+			{ icon: 'usergroup', label: '活动与预约', action: 'programs', tone: 'brand' },
 			{ icon: 'chat1', label: '非遗问答', action: 'rag', tone: 'brand-light' },
 			{ icon: 'user', label: '校园身份', action: 'campus', tone: 'brand' },
 		],
@@ -148,7 +148,7 @@ const menuSections = [
 	{
 		title: '支持与设置',
 		items: [
-			{ icon: 'phone', label: '心理援助', action: 'crisis', tone: 'care' },
+			{ icon: 'call', label: '心理援助', action: 'crisis', tone: 'care' },
 			{ icon: 'setting', label: '个人设置', action: 'settings', tone: 'brand' },
 			{ icon: 'setting1', label: '隐私设置', action: 'privacy', tone: 'neutral' },
 		],
@@ -261,7 +261,8 @@ function handleMenu(item) {
 	if (item.action === 'favorites') { uni.navigateTo({ url: '/pages/work/favorites' }); return }
 	if (item.action === 'campus') { uni.navigateTo({ url: '/pages/campus/index' }); return }
 	if (item.action === 'history') { uni.navigateTo({ url: '/pages/emotion/history' }); return }
-	if (['journey', 'assessment', 'programs'].includes(item.action)) { uni.navigateTo({ url: '/pages/' + item.action + '/index' }); return }
+	if (item.action === 'programs') { uni.navigateTo({ url: '/sub-programs/pages/programs/index' }); return }
+	if (['journey', 'assessment'].includes(item.action)) { uni.navigateTo({ url: '/pages/' + item.action + '/index' }); return }
 	if (item.action === 'crisis') { uni.navigateTo({ url: '/pages/crisis/index' }); return }
 	if (item.action === 'privacy') { uni.navigateTo({ url: '/pages/privacy/settings' }); return }
 	if (item.action === 'settings') { uni.navigateTo({ url: '/pages/settings/index' }); return }

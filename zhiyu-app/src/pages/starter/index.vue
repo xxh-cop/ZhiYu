@@ -43,5 +43,5 @@ function reset(){Object.assign(options,{minutes:20,medium:'全部',place:'宿舍
 function open(item){uni.navigateTo({url:'/pages/starter/prepare?id='+item.id})}
 function resume(s){uni.navigateTo({url:`/pages/craft/session?projectId=${s.projectId}&sessionId=${s.sessionId}`})}
 </script>
-<style src="../../styles/growth.css"></style>
+
 <style scoped>.growth-page .filters button.growth-choice{width:auto;flex:1;padding:14rpx 10rpx;margin:0;text-align:center;font-size:24rpx}.growth-muted{display:block}.filter-label{display:block;margin:28rpx 0 14rpx;font-size:25rpx;font-weight:600}.growth-row{flex-wrap:wrap}.tool-toggle{margin:26rpx 0 0;text-align:left;background:#edf5f2;color:#267a6c;font-size:26rpx;border-radius:14rpx}.featured{border-color:#b9d8cb}.result{text-align:left;width:100%;margin:0;line-height:1.7}.resume-row{display:flex;justify-content:space-between;gap:18rpx;flex-wrap:wrap;text-align:left;padding:20rpx 0;border-bottom:1rpx solid #dfe8e5;background:transparent;font-size:26rpx}.resume-card{border-left:6rpx solid #dbb370}button::after{border:0}</style>

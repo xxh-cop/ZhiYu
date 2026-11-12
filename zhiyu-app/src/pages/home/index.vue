@@ -18,13 +18,17 @@
 				</view>
 			</view>
 			<text class="hello-row">{{welcome}}</text>
+			<view v-if="showConsentBanner" class="consent-banner" role="status">
+				<text class="consent-banner-text">同意隐私政策后，才能使用对话与记录。</text>
+				<AccessibleButton variant="ghost" size="sm" @click="goOnboarding">去开启</AccessibleButton>
+			</view>
 
 			<!-- 主视觉（去框化，落在暖纸底上） -->
 			<view class="home-hero">
 				<view class="hero-copy">
-					<text class="eyebrow">A MOMENT FOR YOURSELF</text>
+					<text class="eyebrow">AI 陪伴 · 非遗手作</text>
 					<text class="hero-title zy-t-serif">慢一点，<br/>给心情一个家。</text>
-					<text class="hero-note">从手边的一张纸、一根线开始，留一小段时间，给此刻的自己。</text>
+					<text class="hero-note">织愈是一个用 AI 陪伴 + 非遗手作，帮你把情绪慢下来的学生工具。</text>
 					<AccessibleButton variant="primary" size="lg" class="hero-button" @click="goRecommend">开始一件小手作</AccessibleButton>
 				</view>
 				<view class="hero-pet" aria-hidden="true"><XiaotuanPet :size="112" /></view>
@@ -34,7 +38,7 @@
 			<StitchDivider />
 
 			<!-- 一、现在可以做什么：一主（倾诉）两次（推荐/创作） -->
-			<SectionHead eyebrow="WHAT NOW" title="现在，想怎么度过这几分钟？" />
+			<SectionHead eyebrow="此刻可以" title="现在，想怎么度过这几分钟？" />
 			<AccessibleButton class="main-card zy-card zy-card--mint" aria-label="和小织聊聊" @click="goEmotion">
 				<view class="main-card-pet"><XiaotuanPet :size="64" /></view>
 				<view class="main-card-copy">
@@ -58,7 +62,7 @@
 			</view>
 
 			<!-- 二、此刻状态：心情打卡 + 旅程数据行 -->
-			<SectionHead eyebrow="CHECK IN" title="此刻，你感觉怎么样？">
+			<SectionHead eyebrow="心情打卡" title="此刻，你感觉怎么样？">
 				<text class="small-label">仅当前页可见</text>
 			</SectionHead>
 			<view class="mood-row">
@@ -97,7 +101,7 @@
 			</view>
 
 			<!-- 三、有什么新东西 -->
-			<SectionHead eyebrow="WHAT'S NEW" title="今天为你挑的">
+			<SectionHead eyebrow="今天推荐" title="今天为你挑的">
 				<AccessibleButton variant="ghost" size="sm" :disabled="recommendLoading" @click="refreshRecommend">换一批 ↻</AccessibleButton>
 			</SectionHead>
 
@@ -145,7 +149,7 @@
 			<!-- 非遗入口：暖金 tint + 回纹角饰 -->
 			<AccessibleButton class="heritage-entry zy-card zy-card--warm" @click="goHeritage">
 				<view class="heritage-copy">
-					<text class="eyebrow eyebrow-heritage">HERITAGE STUDIES</text>
+					<text class="eyebrow eyebrow-heritage">非遗纹样</text>
 					<text class="heritage-title zy-t-serif">非遗纹样馆</text>
 					<text class="heritage-sub">四类工艺 · 来源可查</text>
 				</view>
@@ -161,7 +165,7 @@
 			<text class="home-foot">本系统不能替代专业心理咨询</text>
 
 			<ChatPanel v-if="showChatPanel" @close="onPanelClose"/>
-			<PrivacyConsent :visible="showConsent" @agree="onConsentAgree" @decline="onConsentDecline"/>
+
 			<!-- 小织按需出现：低落打卡（F2）与创作完成后回家（R3 时机③）的一句话陪伴 -->
 			<CompanionNudge
 				:open="nudgeOpen"
@@ -181,7 +185,7 @@ import XiaotuanPet from '../../components/XiaotuanPet.vue'
 import CraftCover from '../../components/CraftCover.vue'
 import ChatPanel from '../../components/ChatPanel.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
-import PrivacyConsent from '../../components/PrivacyConsent.vue'
+
 import CompanionNudge from '../../components/CompanionNudge.vue'
 import StitchDivider from '../../components/StitchDivider.vue'
 import SectionHead from '../../components/SectionHead.vue'
@@ -207,7 +211,7 @@ const loadingMe = ref(false)
 const quoteIndex = ref(0)
 const moodIndex = ref(null)
 const showChatPanel = ref(false)
-const showConsent = ref(false)
+const showConsentBanner = ref(false)
 
 const QUOTES = [
 	'每一针都是与自己和解的过程',
@@ -306,7 +310,7 @@ onShow(() => {
 		return
 	}
 	loadCurrentUser()
-	checkPrivacyConsent()
+	ensurePrivacyOnboarding()
 	if (recommends.value.length === 0) loadRecommends()
 	loadStats()
 	loadActiveSession()
@@ -330,22 +334,19 @@ onHide(() => {
 	if (aiStore.proactiveEnabled) aiStore.pauseIdle()
 })
 
-async function checkPrivacyConsent() {
+async function ensurePrivacyOnboarding() {
 	if (userStore.privacyAgreed === null) {
 		await userStore.fetchPrivacyStatus()
 	}
 	if (userStore.privacyAgreed === 0 && !userStore.consentDismissed) {
-		showConsent.value = true
+		uni.reLaunch({ url: '/pages/onboarding/index' })
+		return
 	}
+	showConsentBanner.value = userStore.privacyAgreed === 0 && userStore.consentDismissed
 }
 
-function onConsentAgree() {
-	userStore.setPrivacyAgreed(1)
-	showConsent.value = false
-}
-function onConsentDecline() {
-	userStore.setConsentDismissed(true)
-	showConsent.value = false
+function goOnboarding() {
+	uni.reLaunch({ url: '/pages/onboarding/index' })
 }
 function onPanelClose() {
 	showChatPanel.value = false
@@ -498,7 +499,10 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .bell { position: relative; width: 68rpx; height: 68rpx; min-width: 68rpx; border-radius: 50%; background: var(--zy-card-bg); box-shadow: var(--zy-shadow-card); padding: 0; margin: 0; }
 .bell-dot { position: absolute; top: 14rpx; right: 16rpx; width: 14rpx; height: 14rpx; border-radius: 50%; background: var(--zy-care); border: 3rpx solid var(--zy-card-bg); }
 .avatar { width: 68rpx; height: 68rpx; line-height: 68rpx; padding: 0; border-radius: 50%; background: var(--zy-bg-tint-mint); color: var(--zy-brand-700); font-size: 25rpx; margin: 0; min-width: 88rpx; }
-.hello-row { display: block; color: var(--zy-text); font-size: var(--zy-text-caption); margin: 0 4rpx 36rpx; }
+.hello-row { display: block; color: var(--zy-text); font-size: var(--zy-text-caption); margin: 0 4rpx 20rpx; }
+.consent-banner { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin: 0 0 22rpx; padding: 14rpx 18rpx; border: 1rpx dashed var(--zy-stitch, #C9BFA9); border-radius: 18rpx; background: var(--zy-bg-tint-mint, #E4EFE7); }
+.consent-banner-text { flex: 1; min-width: 0; font-size: var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-text, #5C5648); }
+.consent-banner button { flex-shrink: 0; margin: 0; padding: 0 8rpx; }
 
 /* ── 主视觉（去框化，直接落在纸底） ── */
 .home-hero { position: relative; padding: 20rpx 4rpx 52rpx; }

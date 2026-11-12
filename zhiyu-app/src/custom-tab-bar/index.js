@@ -7,7 +7,7 @@
 const TAB_ITEMS = [
 	{ path: '/pages/home/index', text: '首页', icon: '/static/tabbar/home-normal.png', activeIcon: '/static/tabbar/home-active.png' },
 	{ path: '/pages/work/list', text: '社区', icon: '/static/tabbar/community-normal.png', activeIcon: '/static/tabbar/community-active.png' },
-	{ path: '/pages/start/index', text: '开始', center: true, icon: '/static/tabbar/start-normal.png', activeIcon: '/static/tabbar/start-active.png' },
+	{ path: '/pages/start/index', text: '手作', center: true, icon: '/static/tabbar/start-normal.png', activeIcon: '/static/tabbar/start-active.png' },
 	{ path: '/pages/group/list', text: '小组', icon: '/static/tabbar/group-normal.png', activeIcon: '/static/tabbar/group-active.png' },
 	{ path: '/pages/profile/index', text: '我的', icon: '/static/tabbar/profile-normal.png', activeIcon: '/static/tabbar/profile-active.png' },
 ]

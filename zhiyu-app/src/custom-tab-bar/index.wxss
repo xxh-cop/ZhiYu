@@ -126,6 +126,17 @@
 	transform: scale(0.92);
 }
 
+.zy-center-label {
+	position: absolute;
+	bottom: 14rpx;
+	font-size: 22rpx;
+	line-height: 1.4;
+	color: #5c5648;
+}
+.zy-center-btn.is-active + .zy-center-label {
+	color: #1a645e;
+	font-weight: 600;
+}
 .zy-center-plus {
 	font-size: 52rpx;
 	line-height: 1;

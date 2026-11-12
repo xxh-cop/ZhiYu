@@ -2,6 +2,17 @@ import { defineStore } from 'pinia'
 import { http } from '../utils/request'
 import { TOKEN_KEY } from '../utils/config'
 
+const CONSENT_DISMISSED_KEY = 'zy-consent-dismissed-v1'
+
+/** 首次引导选择“先随便看看”后持久化，避免每次启动重复弹窗。 */
+function readConsentDismissed() {
+	try {
+		return uni.getStorageSync(CONSENT_DISMISSED_KEY) === '1'
+	} catch (e) {
+		return false
+	}
+}
+
 const B64_CHARS =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
@@ -95,8 +106,8 @@ export const useUserStore = defineStore('user', {
 		userInfo: null,
 		// 隐私政策同意状态：null 未查询 / 0 未同意 / 1 已同意
 		privacyAgreed: null,
-		// 本次会话内「不同意，仅浏览」标记，不持久化
-		consentDismissed: false,
+		// 首次引导「先随便看看」标记；持久化到本地，避免每次都弹
+		consentDismissed: readConsentDismissed(),
 		// 可联系授权：null 未查询 / 0 不允许 / 1 允许
 		canContact: null,
 	}),
@@ -150,6 +161,7 @@ export const useUserStore = defineStore('user', {
 			this.canContact = null
 			try {
 				uni.removeStorageSync(TOKEN_KEY)
+				uni.removeStorageSync(CONSENT_DISMISSED_KEY)
 			} catch (e) {
 				/* 忽略 */
 			}
@@ -175,6 +187,10 @@ export const useUserStore = defineStore('user', {
 
 		setPrivacyAgreed(val) {
 			this.privacyAgreed = val
+			if (val === 1) {
+				this.consentDismissed = false
+				try { uni.removeStorageSync(CONSENT_DISMISSED_KEY) } catch (e) { /* 忽略 */ }
+			}
 		},
 
 		setCanContact(val) {
@@ -183,6 +199,12 @@ export const useUserStore = defineStore('user', {
 
 		setConsentDismissed(val) {
 			this.consentDismissed = val
+			try {
+				if (val) uni.setStorageSync(CONSENT_DISMISSED_KEY, '1')
+				else uni.removeStorageSync(CONSENT_DISMISSED_KEY)
+			} catch (e) {
+				/* 存储不可用时只保留内存态 */
+			}
 		},
 
 		decodeRole() {

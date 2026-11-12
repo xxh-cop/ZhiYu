@@ -290,7 +290,7 @@ async function confirmDeleteAll() {
 }
 </script>
 
-<style src="../../styles/growth.css"></style>
+
 <style scoped>
 .memory-page {
 	max-width: 820px;

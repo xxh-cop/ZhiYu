@@ -20,11 +20,12 @@
 					<button
 						class="zy-center-btn"
 						:class="{ 'is-active': active === item.path }"
-						aria-label="开始"
+						aria-label="手作"
 						@click="goCenter(item.path)"
 					>
 						<text class="zy-center-plus" aria-hidden="true">＋</text>
 					</button>
+					<text class="zy-center-label" :class="{ 'is-active': active === item.path }">手作</text>
 				</view>
 			</block>
 		</view>
@@ -203,6 +204,17 @@ defineExpose({ refresh })
 }
 .zy-center-btn:active {
 	transform: scale(0.92);
+}
+.zy-center-label {
+	position: absolute;
+	bottom: 14rpx;
+	font-size: 22rpx;
+	line-height: 1.4;
+	color: var(--zy-text);
+}
+.zy-center-label.is-active {
+	color: var(--zy-brand-700);
+	font-weight: 600;
 }
 .zy-center-plus {
 	font-size: 52rpx;

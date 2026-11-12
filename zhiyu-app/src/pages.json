@@ -19,6 +19,13 @@
       }
     },
     {
+      "path": "pages/onboarding/index",
+      "style": {
+        "navigationBarTitleText": "欢迎来到织愈",
+        "navigationBarBackgroundColor": "#FFFFFF"
+      }
+    },
+    {
       "path": "pages/login/forgot",
       "style": {
         "navigationBarTitleText": "找回密码",
@@ -198,7 +205,7 @@
     {
       "path": "pages/start/index",
       "style": {
-        "navigationBarTitleText": "开始"
+        "navigationBarTitleText": "开始手作"
       }
     },
     {
@@ -371,7 +378,7 @@
       },
       {
         "pagePath": "pages/start/index",
-        "text": "开始",
+        "text": "手作",
         "iconPath": "static/tabbar/start-normal.png",
         "selectedIconPath": "static/tabbar/start-active.png"
       },

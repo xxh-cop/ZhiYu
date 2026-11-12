@@ -55,4 +55,4 @@ function act(p,cancel){if(busy.value)return;pending.value={p,cancel}}
 async function confirmAct(){const a=pending.value;if(!a||busy.value)return;busy.value=a.p.id;try{await request({url:'/api/growth/programs/'+a.p.id+'/book',method:a.cancel?'DELETE':'POST'});pending.value=null;await load();toast.success(a.cancel?'已取消':a.p.kind==='GUIDANCE'?'已提交，等待确认':'预约成功')}catch(e){error.value=e.message}finally{busy.value=''}}
 onShow(load)
 </script>
-<style src="@/styles/growth.css"></style><style scoped src="./programs.css"></style>
+<style scoped src="./programs.css"></style>

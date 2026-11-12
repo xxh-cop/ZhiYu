@@ -26,7 +26,7 @@ const pendingLeave=ref(false)
 function leave(){pendingLeave.value=true}
 function confirmLeave(){pendingLeave.value=false;active.value=null}
 function copySource(){uni.setClipboardData({data:active.value.source})}function help(){uni.navigateTo({url:'/pages/crisis/index'})}function journey(){uni.navigateTo({url:'/pages/journey/index'})}onLoad(o=>{requested=o.scale||'';load()})
-</script><style src="../../styles/growth.css">
+</script><style scoped>
 .source:focus-visible{outline:3px solid var(--zy-primary,#217e76);outline-offset:3px}
 </style><style scoped>
 /* AZ 精修（2026-11-05）：hero 补小织、量表卡加徽章层次、支持入口改温和关怀卡。结构/流程不动。 */

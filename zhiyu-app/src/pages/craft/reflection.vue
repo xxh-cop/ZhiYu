@@ -55,5 +55,5 @@ function publish(){
 }
 function home(){uni.switchTab({url:'/pages/home/index'})}
 </script>
-<style src="../../styles/growth.css"></style>
+
 <style scoped>.growth-choice{font-size:23rpx;padding:16rpx 12rpx;flex:1;text-align:center}.growth-row{gap:8rpx;margin-bottom:28rpx}.ai-heading{display:flex;flex-direction:column;gap:10rpx;margin-bottom:20rpx}.ai-summary{margin-top:24rpx;padding-top:20rpx;border-top:1rpx solid var(--zy-border,#dfe7dc)}.ai-count{display:block;text-align:right;font-size:22rpx;color:var(--zy-sub,#4a5f54);margin-top:8rpx}</style>

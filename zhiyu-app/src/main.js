@@ -11,6 +11,7 @@ import App from "./App.vue";
 import { useThemeStore } from "./stores/theme";
 // #ifdef H5
 import ZyTabBar from "./components/ZyTabBar.vue";
+import { currentTabRoute, isTabRoute } from "./utils/tabbar";
 // #endif
 
 // wot-design-uni：通过 EasyCom 按需引入组件，无需全局 css import
@@ -54,6 +55,12 @@ export function createApp() {
 		},
 		onShow() {
 			theme.applyNavBar()
+			// #ifdef H5
+			try {
+				const host = document.getElementById('zy-tabbar-host')
+				if (host) host.style.display = isTabRoute(currentTabRoute()) ? '' : 'none'
+			} catch (e) { /* 忽略 */ }
+			// #endif
 			let current = null
 			try {
 				const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
@@ -84,6 +91,7 @@ export function createApp() {
 				host.id = 'zy-tabbar-host'
 				document.body.appendChild(host)
 				createSSRApp(ZyTabBar).mount('#zy-tabbar-host')
+				host.style.display = isTabRoute(currentTabRoute()) ? '' : 'none'
 			}
 		} catch (e) {
 			/* 挂载失败时保留原生 tabBar，不阻断页面 */

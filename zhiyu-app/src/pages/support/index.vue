@@ -15,5 +15,5 @@ function copy(data){uni.setClipboardData({data,success:()=>toast.success('已复
 function call(){uni.makePhoneCall({phoneNumber:campus.center.phone,fail:()=>toast.care('当前设备无法拨号，可复制号码后联系')})}
 function goCrisis(){uni.navigateTo({url:'/pages/crisis/index'})}
 </script>
-<style src="../../styles/growth.css"></style>
+
 <style scoped>.growth-muted{display:block;margin-top:8rpx;overflow-wrap:anywhere}.phone{display:block;font-size:42rpx;font-weight:600;letter-spacing:2rpx;margin:24rpx 0;color:var(--zy-brand-700,#217e76)}</style>

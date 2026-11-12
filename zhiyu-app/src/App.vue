@@ -53,6 +53,9 @@ page {
 @import '@/styles/animations.scss';
 /* 暖纸青玉工具类（字阶/卡片/缝线/焦点环/纸纹） */
 @import '@/styles/zy-toolkit.scss';
+/* 通用信息页骨架（2026-11-11）：growth-* 在微信小程序端必须全局引入，
+   页面级 <style src> 在小程序编译产物中会被丢弃（group/support 等页只剩 scoped 样式）。 */
+@import '@/styles/growth.css';
 </style>
 
 <style>page,body,uni-page-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background-color:var(--zy-bg);color:var(--zy-title)}button:focus-visible{outline:3px solid var(--zy-brand-700);outline-offset:3px}/* #ifdef H5 */
