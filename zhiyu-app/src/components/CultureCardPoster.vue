@@ -14,9 +14,10 @@
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { buildHeritageGeometry } from '@/utils/heritage-pattern'
 import { drawHeritagePattern } from '@/utils/heritage-studio'
+import { XIAOZHI_FRAMES } from '@/utils/xiaozhi'
 
 // 文化卡分享图：1080×1440 打印级画布，屏幕外挂载，不进入页面布局。
-// 画布颜色只来自 pattern/palette 与中性纸墨色（纸 #F6F1E7 / 墨 #33302A / 次级墨 #5C5648），
+// 纹样颜色来自 pattern/palette，纸墨色与角落小织使用各自的固定色板。
 // 不使用 CSS 变量（canvas 无法解析 --zy-* 令牌）。
 const CANVAS_ID = 'culture-poster'
 const POSTER_WIDTH = 1080
@@ -48,6 +49,20 @@ const posterWidth = POSTER_WIDTH
 const posterHeight = POSTER_HEIGHT
 let context = null
 let redrawTimer = null
+let spritePath = ''
+let spritePromise = null
+let disposed = false
+
+function loadSprite() {
+	if (!spritePromise) spritePromise = new Promise(resolve => {
+		uni.getImageInfo({
+			src: XIAOZHI_FRAMES.complete,
+			success: result => { spritePath = result.path || XIAOZHI_FRAMES.complete; resolve() },
+			fail: () => resolve(), // 装饰图片失败不阻断用户作品导出。
+		})
+	})
+	return spritePromise
+}
 
 const posterPalette = computed(() => {
 	const own = Array.isArray(props.palette) ? props.palette.slice(0, 4) : []
@@ -194,6 +209,7 @@ function drawPoster(onDone) {
 		}
 
 		// 8. 边界与免责声明 + 落款
+		if (spritePath) ctx.drawImage(spritePath, 72, 1256, 112, 112)
 		paintText(ctx, '原创教学 · 屏幕练习不是实物工艺', 540, 1282, { size: 24, color: INK_SOFT, align: 'center' })
 		paintText(ctx, '本系统不能替代专业心理咨询', 540, 1316, { size: 24, color: INK_SOFT, align: 'center' })
 		paintText(ctx, '织愈 · 一针一线', 1000, 1372, { size: 22, color: INK_SOFT, align: 'right' })
@@ -333,6 +349,7 @@ async function exportImage() {
 	exporting.value = true
 	try {
 		await nextTick()
+		await loadSprite()
 		await wait(100)
 		await paintAndWait()
 		let filePath = ''
@@ -362,9 +379,13 @@ function scheduleDraw() {
 	}, 200)
 }
 
-onMounted(() => nextTick(scheduleDraw))
+onMounted(() => {
+	nextTick(scheduleDraw)
+	loadSprite().then(() => { if (!disposed) scheduleDraw() })
+})
 watch(() => [props.pattern, props.palette, props.note, props.tradition], scheduleDraw, { deep: true })
 onBeforeUnmount(() => {
+	disposed = true
 	if (redrawTimer) clearTimeout(redrawTimer)
 })
 

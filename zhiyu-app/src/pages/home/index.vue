@@ -31,7 +31,7 @@
 					<text class="hero-note">选一件手作，跟着步骤做。做不完也没关系。</text>
 					<AccessibleButton variant="primary" size="lg" class="hero-button" @click="goRecommend">开始一件小手作</AccessibleButton>
 				</view>
-				<view class="hero-pet" aria-hidden="true"><XiaotuanPet :size="112" /></view>
+				<view class="hero-pet" aria-hidden="true"><XiaotuanPet :size="112" face="welcome" /></view>
 				<text class="hero-bottom">约 10 分钟 · 材料就在手边</text>
 			</view>
 
@@ -40,7 +40,7 @@
 			<!-- 一、现在可以做什么：一主（倾诉）两次（推荐/创作） -->
 			<SectionHead eyebrow="此刻可以" title="现在，想怎么度过这几分钟？" />
 			<AccessibleButton class="main-card zy-card zy-card--mint" aria-label="和小织聊聊" @click="goEmotion">
-				<view class="main-card-pet"><XiaotuanPet :size="64" /></view>
+				<view class="main-card-pet"><XiaotuanPet :size="64" face="listen" /></view>
 				<view class="main-card-copy">
 					<text class="main-card-kicker">01 / 倾诉</text>
 					<text class="main-card-title">和小织聊聊</text>

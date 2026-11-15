@@ -9,7 +9,7 @@
 			<text class="state-title loading-title">{{ title || '正在加载…' }}</text>
 		</template>
 		<template v-else>
-			<!-- R2：H5 空态插画（内联 SVG 零请求）；小程序端降级为小织表情（不新增 PNG） -->
+			<!-- H5 场景插画复用新小织素材；小程序显示相同角色的独立状态图 -->
 			<!-- #ifdef H5 -->
 			<EmptyArt v-if="art" :variant="art" class="state-art" />
 			<XiaotuanPet v-else class="state-mascot" :size="mascotSize" :face="faceName" aria-hidden="true" />
@@ -40,8 +40,7 @@ import AccessibleButton from './AccessibleButton.vue'
 
 /**
  * StateBlock —— 空 / 错 / 加载三态合一（计划 §3.4）。
- * loading：骨架屏优先于 spinner；empty/error 用小织线团小兽作视觉锚点，
- * 不再引用旧版 xiaozhi 静态 PNG。
+ * loading：骨架屏优先于 spinner；empty/error 使用织结小精灵。
  */
 const props = defineProps({
 	type: { type: String, default: 'empty', validator: (v) => ['loading', 'empty', 'error'].includes(v) },

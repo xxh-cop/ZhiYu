@@ -132,7 +132,7 @@ const { messages, streaming, errorMsg, scrollSignal } = storeToRefs(emotionStore
 const inputText = ref('')
 const scrollTop = ref(0)
 
-// ── 头部小织渲染（线团小兽，组件内部跟随 aiStore.petState） ──
+// ── 头部小织使用独立重画的小尺寸头像 ──
 
 // ── 键盘高度（小程序端） ──
 const keyboardHeight = ref(0)

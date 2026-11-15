@@ -31,8 +31,7 @@ const STATE_PRIORITY = {
 	idle: 1,
 }
 
-// petState → 表情的渲染映射由 components/XiaotuanPet.vue 的 FACE_MAP 统一承载
-// （2026-11-04 小织统一：渲染层不再读取本 store 的图片路径）。
+// petState → 织结小精灵素材的映射统一放在 utils/xiaozhi.js；本 store 保留行为编排。
 
 function readPos() {
 	try {

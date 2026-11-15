@@ -2,7 +2,7 @@
 	<view class="breathing-mask" @click.stop>
 		<view class="breathing-sheet" role="dialog" aria-modal="true" aria-label="呼吸引导">
 			<view class="sheet-head">
-				<XiaotuanPet :size="88" face="care" />
+				<XiaotuanPet :size="88" face="rest" quiet />
 				<view class="sheet-copy">
 					<text class="sheet-title">先停一下，跟着小织呼吸</text>
 					<text class="sheet-sub">不用做得完美，跟着圆圈慢慢来</text>
