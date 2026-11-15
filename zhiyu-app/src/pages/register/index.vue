@@ -1,5 +1,5 @@
 <template>
-	<AccountShell :class="zyThemeClass" title="从这里开始" eyebrow="给自己留一点创作时间" description="织愈是一个用 AI 陪伴 + 非遗手作，帮你把情绪慢下来的学生工具。创建账号后开始。">
+	<AccountShell :class="zyThemeClass" title="从这里开始" eyebrow="给自己留一点创作时间" description="先注册，再做第一件。">
     <view v-if="accountCreated" class="account-notice success" role="status">账号已创建。若自动登录未完成，可以重试登录，无需再次注册。</view>
     <AccountField id="register-username" ref="usernameField" v-model="form.username" label="登录名" placeholder="设置一个好记的登录名" hint="3–50 个字符，之后用它登录" autocomplete="username" :maxlength="50" :disabled="loading||accountCreated" :error="errors.username" @blur="validate('username')" @confirm="nicknameField?.focus()"/>
     <template v-if="!accountCreated">

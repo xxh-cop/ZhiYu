@@ -17,7 +17,7 @@
    <view v-if="matches.length>1" class="growth-grid"><AccessibleButton v-for="item in matches.filter(x=>x.id!==featured.id)" :key="item.id" class="growth-card result" @click="open(item)" ><CraftCover :category="item.medium"/><text class="growth-card-title">{{item.title}}</text><text class="growth-muted">{{item.minutes}} 分钟 · {{item.medium}} · {{item.steps.length}} 步</text><text class="growth-muted">{{item.tools.length?item.tools.join(' / '):'无需剪刀与胶带'}}</text></AccessibleButton></view>
    <text class="growth-muted">原创入门练习，不代表传统技艺认证或专业疗效。具体来源见准备页。</text>
   </template>
-  <AccessibleButton class="growth-button secondary" @click="openCredits()">图片来源与授权 ↗</AccessibleButton><text class="growth-foot">本系统不能替代专业心理咨询</text>
+  <AccessibleButton class="growth-button secondary zy-link" @click="openCredits()"><text>图片来源与授权</text><ZyIcon name="external" :size="24" color="#1A645E" /></AccessibleButton><text class="growth-foot">本系统不能替代专业心理咨询</text>
  </view>
 </template>
 <script setup>
@@ -32,6 +32,7 @@ import {useInteraction} from '../../composables/useInteraction'
 import {filterStarter,starterReason} from '../../utils/starter'
 import StarterDiagram from '../../components/StarterDiagram.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 const {reducedMotion}=useInteraction(),items=ref([]),active=ref([]),loading=ref(false),error=ref(''),resumeError=ref(''),choice=ref(0)
 const options=reactive({minutes:20,medium:'全部',place:'宿舍桌面',noScissors:false})
 const matches=computed(()=>filterStarter(items.value,options)),featured=computed(()=>matches.value[choice.value%matches.value.length])
@@ -44,4 +45,4 @@ function open(item){uni.navigateTo({url:'/pages/starter/prepare?id='+item.id})}
 function resume(s){uni.navigateTo({url:`/pages/craft/session?projectId=${s.projectId}&sessionId=${s.sessionId}`})}
 </script>
 
-<style scoped>.growth-page .filters button.growth-choice{width:auto;flex:1;padding:14rpx 10rpx;margin:0;text-align:center;font-size:24rpx}.growth-muted{display:block}.filter-label{display:block;margin:28rpx 0 14rpx;font-size:25rpx;font-weight:600}.growth-row{flex-wrap:wrap}.tool-toggle{margin:26rpx 0 0;text-align:left;background:#edf5f2;color:#267a6c;font-size:26rpx;border-radius:14rpx}.featured{border-color:#b9d8cb}.result{text-align:left;width:100%;margin:0;line-height:1.7}.resume-row{display:flex;justify-content:space-between;gap:18rpx;flex-wrap:wrap;text-align:left;padding:20rpx 0;border-bottom:1rpx solid #dfe8e5;background:transparent;font-size:26rpx}.resume-card{border-left:6rpx solid #dbb370}button::after{border:0}</style>
+<style scoped>.growth-page .filters button.growth-choice{width:auto;flex:1;padding:14rpx 10rpx;margin:0;text-align:center;font-size:var(--zy-text-caption, 24rpx)}.growth-muted{display:block}.filter-label{display:block;margin:28rpx 0 14rpx;font-size:var(--zy-text-caption, 24rpx);font-weight:600}.growth-row{flex-wrap:wrap}.tool-toggle{margin:26rpx 0 0;text-align:left;background:#edf5f2;color:#267a6c;font-size:var(--zy-text-caption, 24rpx);border-radius:14rpx}.featured{border-color:#b9d8cb}.result{text-align:left;width:100%;margin:0;line-height:1.7}.resume-row{display:flex;justify-content:space-between;gap:18rpx;flex-wrap:wrap;text-align:left;padding:20rpx 0;border-bottom:1rpx solid #dfe8e5;background:transparent;font-size:var(--zy-text-caption, 24rpx)}.resume-card{border-left:6rpx solid #dbb370}button::after{border:0}</style>

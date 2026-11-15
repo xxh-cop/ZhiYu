@@ -662,6 +662,7 @@ components:
             preferred_minutes: { type: string, pattern: '^[0-9]+$', description: '1-180 分钟的整数' }
             preferred_material: { type: string, enum: [bamboo, thread, paper, porcelain] }
             preferred_pattern_family: { type: string, enum: [stitch, weave, cutout, porcelain] }
+            avoid_topics: { type: string, description: '逗号分隔，最多 3 个话题、每个 1-12 字，不允许换行；空串表示清空' }
 
     CompanionMemoryVO:
       type: object
@@ -678,6 +679,23 @@ components:
               value: { type: string }
               valueLabel: { type: string }
         disclaimer: { type: string }
+        avoidTopics:
+          type: array
+          description: '用户明确设置的不想聊的话题（最多 3 个）'
+          items: { type: string }
+        derived:
+          type: array
+          description: '派生陪伴档案：实时统计，只有计数与时段；关闭记忆时为空'
+          items:
+            type: object
+            properties:
+              key: { type: string, enum: [calm_strategy, preferred_time_window, completed_crafts, recent_low_days] }
+              label: { type: string }
+              value: { type: string }
+              source: { type: string, description: '数据来源说明（不含原文）' }
+        consentVersion: { type: string, example: memory-v2 }
+        profileNote: { type: string }
+        maxPromptLines: { type: integer, example: 3, description: '对话注入的记忆条数上限' }
 
     CompanionMessageReq:
       type: object
@@ -2947,7 +2965,7 @@ paths:
     get:
       operationId: companionMemoryGet
       summary: 读取小织记忆状态
-      description: '默认关闭；只返回三个白名单偏好，不返回对话原文、情绪细节或高危信息。'
+      description: '默认关闭；返回用户填写的偏好/回避话题与派生陪伴档案（只有计数与时段），不返回对话原文、情绪细节或高危信息。'
       security:
         - bearerAuth: []
       responses:
@@ -2966,7 +2984,7 @@ paths:
     put:
       operationId: companionMemorySave
       summary: 保存小织偏好记忆
-      description: '需先开启并确认授权；只接受 preferred_minutes、preferred_material、preferred_pattern_family，加密保存 180 天。'
+      description: '需先开启并确认授权（memory-v2）；接受 preferred_minutes、preferred_material、preferred_pattern_family 与 avoid_topics（逗号分隔，最多 3 个、每个 12 字以内），加密保存 180 天。'
       security:
         - bearerAuth: []
       requestBody:
@@ -3004,6 +3022,32 @@ paths:
                   - type: object
                     properties:
                       data: { $ref: '#/components/schemas/CompanionMemoryVO' }
+        '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
+
+  /api/companion/memory/item:
+    delete:
+      operationId: companionMemoryDeleteItem
+      summary: 删除单条用户填写的记忆
+      description: '按 key 软删一条用户填写的偏好或回避话题；派生档案不持久化，关闭记忆即不再使用。'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema: { type: string, enum: [preferred_minutes, preferred_material, preferred_pattern_family, avoid_topics] }
+      responses:
+        '200':
+          description: Result.data 为 CompanionMemoryVO
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CompanionMemoryVO' }
+        '400': { description: 非法 key（code=1001）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
         '401': { description: 未登录（code=1002）, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResult' } } } }
 
   /api/companion/memory/enabled:

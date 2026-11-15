@@ -161,7 +161,7 @@
     {
       "path": "pages/settings/memory",
       "style": {
-        "navigationBarTitleText": "小织记忆",
+        "navigationBarTitleText": "小织记得的",
         "navigationBarBackgroundColor": "#FFFFFF"
       }
     },

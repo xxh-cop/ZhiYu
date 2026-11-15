@@ -1,419 +1,202 @@
 <template>
-	<view class="growth-page memory-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
+	<view :class="zyThemeClass" class="growth-page zy-page-enter">
 		<view class="growth-hero">
-			<text class="growth-eyebrow">A LITTLE MEMORY</text>
-			<text class="growth-title">小织记忆</text>
-			<text class="growth-subtitle">只记住你愿意留下的练习偏好，不记住对话。</text>
+			<text class="growth-eyebrow">陪伴档案</text>
+			<text class="growth-title">我记得什么，你说了算。</text>
+			<text class="growth-subtitle">你告诉我的，和我注意到的。都能看、能改、能删。</text>
 		</view>
 
-		<view v-if="error" class="growth-error" role="alert">
-			{{ error }}
-			<AccessibleButton class="growth-button secondary" @click="load">重试</AccessibleButton>
+		<view v-if="loading" class="growth-card">
+			<view class="growth-skeleton" /><view class="growth-skeleton short" />
 		</view>
-		<text v-if="loading" class="growth-muted">正在读取记忆设置…</text>
+		<view v-if="error" class="growth-error" role="alert">{{ error }}</view>
 
-		<template v-else>
-			<view class="growth-card">
-				<view class="memory-head">
-					<view class="memory-head-copy">
-						<text class="growth-card-title">让小织记住偏好</text>
-						<text class="growth-muted">默认关闭；开启后只用于练习推荐。</text>
-					</view>
-					<AccessibleButton
-						class="memory-switch"
-						:class="{ on: enabled }"
-						role="switch"
-						:aria-checked="enabled ? 'true' : 'false'"
-						@click="toggleSwitch"
-					>{{ enabled ? '已开启' : '已关闭' }}</AccessibleButton>
-				</view>
-				<view class="memory-facts">
-					<text>只保存 3 个偏好键</text>
-					<text>不保存对话原文、情绪细节或高危信息</text>
-					<text>180 天后自动失效</text>
-					<text>可随时查看和删除</text>
-				</view>
-			</view>
-
-			<view v-if="!enabled" class="growth-card">
-				<text class="growth-card-title">开启前，请确认</text>
-				<AccessibleButton
-					class="memory-consent"
-					:class="{ 'is-checked': consent }"
-					role="checkbox"
-					:aria-checked="consent ? 'true' : 'false'"
-					aria-label="同意小织保存练习偏好，不保存对话原文"
-					@click="consent = !consent"
-				>
-					<view class="memory-check" aria-hidden="true">{{ consent ? '✓' : '' }}</view>
-					<text>我同意小织保存我选择的练习偏好，用于推荐更合适的练习；不保存对话原文。</text>
-				</AccessibleButton>
-				<AccessibleButton class="growth-button" :disabled="!consent || busy" @click="enableMemory">
-					{{ busy ? '正在开启…' : '开启小织记忆' }}
+		<view class="growth-card">
+			<text class="growth-card-title">记忆开关</text>
+			<text class="growth-muted">{{ disclaimer }}</text>
+			<view class="growth-row">
+				<AccessibleButton class="growth-button" :class="{ secondary: !enabled }" :disabled="saving" @click="toggle">
+					{{ enabled ? '关闭小织记忆' : '开启小织记忆' }}
 				</AccessibleButton>
 			</view>
+			<view class="consent" role="checkbox" :aria-checked="consent" tabindex="0" @click="consent = !consent" @keydown.enter.prevent="consent = !consent" @keydown.space.prevent="consent = !consent">
+				<text class="consent-box">{{ consent ? '✓' : '' }}</text>
+				<text>我已阅读授权说明，知道小织会记住我填写的偏好和话题，并用手作/便签记录算出「我注意到的」。授权版本 memory-v2。</text>
+			</view>
+		</view>
 
-			<template v-else>
-				<view class="growth-card">
-					<text class="growth-card-title">常用练习时长</text>
-					<text class="growth-muted">下次推荐会优先考虑这个时间预算。</text>
-					<view class="memory-options">
-						<AccessibleButton
-							v-for="minutes in minutesOptions"
-							:key="minutes"
-							:class="{ selected: preferences.preferred_minutes === String(minutes) }"
-							:aria-pressed="preferences.preferred_minutes === String(minutes)"
-							@click="setPreference('preferred_minutes', String(minutes))"
-						>{{ minutes }} 分钟</AccessibleButton>
-					</view>
-				</view>
-
-				<view class="growth-card">
-					<text class="growth-card-title">偏好材料</text>
-					<text class="growth-muted">只是推荐参考，不影响你已经开始的练习。</text>
-					<view class="memory-options">
-						<AccessibleButton
-							v-for="item in materialOptions"
-							:key="item.code"
-							:class="{ selected: preferences.preferred_material === item.code }"
-							:aria-pressed="preferences.preferred_material === item.code"
-							@click="setPreference('preferred_material', item.code)"
-						>{{ item.label }}</AccessibleButton>
-					</view>
-				</view>
-
-				<view class="growth-card">
-					<text class="growth-card-title">偏好纹样族</text>
-					<text class="growth-muted">选择你更想先看的纹样结构。</text>
-					<view class="memory-options">
-						<AccessibleButton
-							v-for="item in familyOptions"
-							:key="item.code"
-							:class="{ selected: preferences.preferred_pattern_family === item.code }"
-							:aria-pressed="preferences.preferred_pattern_family === item.code"
-							@click="setPreference('preferred_pattern_family', item.code)"
-						>{{ item.label }}</AccessibleButton>
-					</view>
-				</view>
-
-				<view class="growth-card memory-actions">
-					<AccessibleButton class="growth-button" :disabled="busy || !hasPreferences" @click="savePreferences">
-						{{ busy ? '正在保存…' : '保存偏好' }}
-					</AccessibleButton>
-					<AccessibleButton class="growth-button secondary" :disabled="busy" @click="disableMemory">关闭记忆</AccessibleButton>
-					<AccessibleButton class="growth-button danger" :disabled="busy" @click="deleteAll">删除全部记忆</AccessibleButton>
-				</view>
+		<view class="growth-card">
+			<text class="growth-card-title">你告诉我的</text>
+			<text class="growth-muted">只在你开启记忆后生效，{{ ttlDays }} 天后自动忘记。</text>
+			<template v-if="enabled">
+				<text class="field-label">愿意做多久</text>
+				<picker mode="selector" :range="minuteOptions" range-key="label" @change="minutes = minuteOptions[$event.detail.value].value">
+					<view class="growth-choice selected">{{ valueLabel('preferred_minutes') }}</view>
+				</picker>
+				<text class="field-label">顺手的材料</text>
+				<picker mode="selector" :range="materialOptions" range-key="label" @change="material = materialOptions[$event.detail.value].value">
+					<view class="growth-choice selected">{{ valueLabel('preferred_material') }}</view>
+				</picker>
+				<text class="field-label">喜欢的纹样</text>
+				<picker mode="selector" :range="familyOptions" range-key="label" @change="family = familyOptions[$event.detail.value].value">
+					<view class="growth-choice selected">{{ valueLabel('preferred_pattern_family') }}</view>
+				</picker>
 			</template>
+			<view v-else class="growth-muted memory-off">开启后，这里可以选练习时长、材料和纹样。</view>
 
-			<text v-if="status" class="memory-status" role="status" aria-live="polite">{{ status }}</text>
-			<text class="growth-foot">本系统不能替代专业心理咨询</text>
-		</template>
-		<ActionSheet
-			:open="showDeleteSheet"
-			title="删除全部小织记忆"
-			description="只删除偏好记忆，不删除练习会话或作品。是否继续？"
-			:actions="[{ key: 'confirm', label: '删除全部记忆', tone: 'danger' }]"
-			cancel-text="再想想"
-			@select="confirmDeleteAll"
-			@close="showDeleteSheet = false"
-		/>
-		<Toast />
+			<text class="field-label">不想聊的话题（最多 3 个）</text>
+			<text class="growth-muted">写下来，小织就不主动提。例如：考试、家庭、体重。</text>
+			<view class="topic-row">
+				<input class="growth-input topic-input" v-model="newTopic" maxlength="12" placeholder="写一个话题，12 字以内" :disabled="!enabled" @confirm="addTopic" />
+				<AccessibleButton class="growth-button topic-add" :disabled="!enabled || !newTopic.trim()" @click="addTopic">加上</AccessibleButton>
+			</view>
+			<view v-if="avoidTopics.length" class="topic-list">
+				<view v-for="(topic, i) in avoidTopics" :key="topic" class="topic-tag">
+					<text>{{ topic }}</text>
+					<text class="topic-remove" role="button" tabindex="0" :aria-label="'删除话题 ' + topic" @click="avoidTopics.splice(i, 1)" @keydown.enter.prevent="avoidTopics.splice(i, 1)" @keydown.space.prevent="avoidTopics.splice(i, 1)">×</text>
+				</view>
+			</view>
+			<text v-else class="growth-muted">还没有设置。没有这个需要也没关系。</text>
+			<AccessibleButton v-if="enabled" class="growth-button" :disabled="saving" @click="save">保存这些</AccessibleButton>
+		</view>
+
+		<view class="growth-card">
+			<text class="growth-card-title">我注意到的</text>
+			<text class="growth-muted">{{ profileNote }}</text>
+			<view v-if="!enabled" class="growth-muted memory-off">记忆关着，小织不看这些记录。</view>
+			<view v-else-if="!derived.length" class="growth-muted memory-off">还没有可说的。做几件手作、写几条便签，小织才会有发现。</view>
+			<view v-for="item in derived" :key="item.key" class="derived-item">
+				<view class="derived-main">
+					<text class="derived-label">{{ item.label }}</text>
+					<text class="derived-value">{{ item.value }}</text>
+					<text class="derived-source">{{ item.source }}</text>
+				</view>
+			</view>
+		</view>
+
+		<view class="growth-card">
+			<text class="growth-card-title">聊天里怎么用</text>
+			<text class="growth-muted">最多带 {{ maxPromptLines }} 条进对话，不说原话；你不想聊的话题不会提；低落天数只在这里给你看，不拿去定义你。关闭记忆后，下一句就不再使用。</text>
+			<AccessibleButton class="growth-button secondary" @click="goChat">去和小织聊聊</AccessibleButton>
+		</view>
+
+		<view v-if="status" class="growth-muted" role="status" aria-live="polite">{{ status }}</view>
+		<AccessibleButton class="growth-button danger" :disabled="saving" @click="clear">删除全部记忆</AccessibleButton>
+		<text class="growth-foot">小织是陪伴工具，不能替代专业心理咨询；感到撑不住时请立即联系学校心理中心或心理援助热线。</text>
 	</view>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { request } from '../../utils/request'
-import { useInteraction } from '../../composables/useInteraction'
-import ActionSheet from '../../components/ActionSheet.vue'
-import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
-import { useToast } from '../../composables/useToast'
+import { request } from '../../utils/request'
 
-const toast = useToast()
-const { reducedMotion } = useInteraction()
-const loading = ref(false)
-const busy = ref(false)
-const error = ref('')
-const status = ref('')
-const enabled = ref(false)
-const consent = ref(false)
-const preferences = ref({
-	preferred_minutes: '',
-	preferred_material: '',
-	preferred_pattern_family: '',
-})
-
-const minutesOptions = [10, 15, 20, 30]
+const loading = ref(true), saving = ref(false), error = ref(''), status = ref('')
+const enabled = ref(false), consent = ref(false), ttlDays = ref(180), disclaimer = ref(''), profileNote = ref('')
+const maxPromptLines = ref(3)
+const minutes = ref('10'), material = ref('bamboo'), family = ref('weave')
+const items = ref([]), derived = ref([]), avoidTopics = ref([]), newTopic = ref('')
+const minuteOptions = ['5', '10', '15', '20', '30'].map(value => ({ value, label: `${value} 分钟` }))
 const materialOptions = [
-	{ code: 'bamboo', label: '竹' },
-	{ code: 'thread', label: '线' },
-	{ code: 'paper', label: '纸' },
-	{ code: 'porcelain', label: '瓷' },
+	{ value: 'bamboo', label: '竹' }, { value: 'thread', label: '线' },
+	{ value: 'paper', label: '纸' }, { value: 'porcelain', label: '瓷' },
 ]
 const familyOptions = [
-	{ code: 'stitch', label: '针线' },
-	{ code: 'weave', label: '编织' },
-	{ code: 'cutout', label: '剪刻' },
-	{ code: 'porcelain', label: '器面' },
+	{ value: 'stitch', label: '针线' }, { value: 'weave', label: '编织' },
+	{ value: 'cutout', label: '剪刻' }, { value: 'porcelain', label: '器面' },
 ]
-const hasPreferences = computed(() => Object.values(preferences.value).some(Boolean))
 
-onShow(load)
-
-async function load() {
-	loading.value = true
-	error.value = ''
-	try {
-		const data = await request({ url: '/api/companion/memory', method: 'GET' })
-		apply(data)
-	} catch (e) {
-		error.value = e.message || '记忆设置暂时无法读取'
-	} finally {
-		loading.value = false
-	}
+function valueLabel(key) {
+	const found = items.value.find(item => item.key === key)
+	return found ? found.valueLabel : '未设置'
 }
 
 function apply(data) {
-	enabled.value = !!(data && data.enabled)
-	const next = { preferred_minutes: '', preferred_material: '', preferred_pattern_family: '' }
-	for (const item of (data && data.items) || []) {
-		if (item && item.key in next) next[item.key] = item.value || ''
-	}
-	preferences.value = next
-	if (!enabled.value) consent.value = false
-}
-
-async function toggleSwitch() {
-	if (busy.value) return
-	if (enabled.value) {
-		await disableMemory()
-	} else {
-		status.value = '勾选下方授权后即可开启。'
+	enabled.value = !!data.enabled
+	ttlDays.value = data.ttlDays || 180
+	disclaimer.value = data.disclaimer || ''
+	profileNote.value = data.profileNote || ''
+	maxPromptLines.value = data.maxPromptLines || 3
+	items.value = data.items || []
+	derived.value = data.derived || []
+	avoidTopics.value = data.avoidTopics || []
+	for (const item of items.value) {
+		if (item.key === 'preferred_minutes') minutes.value = item.value
+		if (item.key === 'preferred_material') material.value = item.value
+		if (item.key === 'preferred_pattern_family') family.value = item.value
 	}
 }
 
-async function enableMemory() {
-	if (busy.value) return
-	if (!consent.value) {
-		status.value = '请先勾选授权。'
-		return
-	}
-	busy.value = true
-	status.value = ''
-	try {
-		const data = await request({
-			url: '/api/companion/memory/enabled',
-			method: 'PUT',
-			data: { enabled: true, consent: true },
-		})
-		apply(data)
-		status.value = '小织记忆已开启，只保存你选择的偏好。'
-	} catch (e) {
-		status.value = e.message || '开启失败，请重试'
-	} finally {
-		busy.value = false
-	}
+async function run(action) {
+	if (saving.value) return
+	saving.value = true; error.value = ''; status.value = ''
+	try { apply(await action()) } catch (e) { error.value = e.message || '操作未完成，请稍后重试。' }
+	finally { saving.value = false }
 }
 
-async function disableMemory() {
-	if (busy.value) return
-	busy.value = true
-	status.value = ''
-	try {
-		const data = await request({
-			url: '/api/companion/memory/enabled',
-			method: 'PUT',
-			data: { enabled: false },
-		})
-		apply(data)
-		status.value = '小织记忆已关闭；已有偏好不会被用于推荐。'
-	} catch (e) {
-		status.value = e.message || '关闭失败，请重试'
-	} finally {
-		busy.value = false
-	}
+async function load() {
+	loading.value = true; error.value = ''
+	try { apply(await request({ url: '/api/companion/memory' })) }
+	catch (e) { error.value = e.message || '记忆设置暂时无法加载。' }
+	finally { loading.value = false }
 }
 
-function setPreference(key, value) {
-	preferences.value = {
-		...preferences.value,
-		[key]: preferences.value[key] === value ? '' : value,
-	}
+function addTopic() {
+	const topic = newTopic.value.trim()
+	if (!topic) return
+	if (avoidTopics.value.includes(topic)) { status.value = '这个话题已经在了。'; return }
+	if (avoidTopics.value.length >= 3) { error.value = '最多设置 3 个不想聊的话题。'; return }
+	error.value = ''; status.value = ''
+	avoidTopics.value.push(topic)
+	newTopic.value = ''
 }
 
-async function savePreferences() {
-	if (busy.value || !hasPreferences.value) return
-	busy.value = true
-	status.value = ''
-	try {
-		const payload = {}
-		for (const [key, value] of Object.entries(preferences.value)) {
-			if (value) payload[key] = value
-		}
-		const data = await request({
-			url: '/api/companion/memory',
-			method: 'PUT',
-			data: { consent: true, preferences: payload },
-		})
-		apply(data)
-		status.value = '偏好已保存，180 天后自动失效。'
-	} catch (e) {
-		status.value = e.message || '保存失败，请重试'
-	} finally {
-		busy.value = false
-	}
+function toggle() {
+	if (enabled.value) return run(() => request({ url: '/api/companion/memory/enabled', method: 'PUT', data: { enabled: false, consent: true } }))
+	if (!consent.value) { error.value = '请先勾选授权说明。'; return }
+	return run(() => request({ url: '/api/companion/memory/enabled', method: 'PUT', data: { enabled: true, consent: true } }))
 }
 
-const showDeleteSheet = ref(false)
-
-function deleteAll() {
-	if (busy.value) return
-	showDeleteSheet.value = true
+function save() {
+	if (!consent.value) { error.value = '请先勾选授权说明。'; return }
+	run(async () => {
+		const data = await request({ url: '/api/companion/memory', method: 'PUT', data: { consent: true, preferences: { preferred_minutes: minutes.value, preferred_material: material.value, preferred_pattern_family: family.value, avoid_topics: avoidTopics.value.join(',') } } })
+		status.value = '存好了，半年后自动忘记。'
+		return data
+	})
 }
 
-async function confirmDeleteAll() {
-	showDeleteSheet.value = false
-	if (busy.value) return
-	busy.value = true
-	status.value = ''
-	try {
-		const data = await request({ url: '/api/companion/memory', method: 'DELETE' })
-		apply(data)
-		toast.success('小织记忆已删除并关闭。')
-	} catch (e) {
-		status.value = e.message || '删除失败，请重试'
-	} finally {
-		busy.value = false
-	}
+function clear() {
+	uni.showModal({
+		title: '删除全部记忆', content: '偏好、话题和授权都会删掉，「我注意到的」也不再用。这个操作不能撤回。',
+		confirmText: '删除', confirmColor: '#a64842',
+		success: ({ confirm }) => {
+			if (confirm) run(async () => { const data = await request({ url: '/api/companion/memory', method: 'DELETE' }); consent.value = false; status.value = '记忆已全部删除。'; return data })
+		},
+	})
 }
+
+function goChat() { uni.navigateTo({ url: '/pages/emotion/chat' }) }
+onShow(load)
 </script>
 
-
 <style scoped>
-.memory-page {
-	max-width: 820px;
-	margin: 0 auto;
-}
-.memory-head {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 12rpx 18rpx;
-}
-.memory-head-copy {
-	flex: 1 1 320rpx;
-	min-width: 0;
-}
-.memory-head .growth-muted {
-	display: block;
-	margin-top: 6rpx;
-}
-.memory-switch {
-	flex: 0 0 auto;
-	min-height: 44px;
-	margin: 0;
-	padding: 0 24rpx;
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: 999rpx;
-	background: var(--zy-bg, #ffffff);
-	color: var(--zy-content, #4a5f54);
-	font-size: 23rpx;
-	line-height: 44px;
-}
-.memory-switch.on {
-	border-color: var(--zy-primary, #217e76);
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #217e76);
-}
-.memory-facts {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 8rpx 16rpx;
-	margin-top: 18rpx;
-	padding-top: 16rpx;
-	border-top: 1rpx solid var(--zy-border, #dfe7dc);
-}
-.memory-facts text {
-	font-size: 21rpx;
-	line-height: 1.7;
-	color: var(--zy-content, #4a5f54);
-}
-.memory-consent {
-	display: flex;
-	align-items: flex-start;
-	gap: 12rpx;
-	width: 100%;
-	margin: 16rpx 0;
-	padding: 14rpx 16rpx;
-	text-align: left;
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: 14rpx;
-	background: var(--zy-bg, #ffffff);
-	color: var(--zy-content, #4a5f54);
-	font-size: 23rpx;
-	line-height: 1.6;
-}
-.memory-consent.is-checked {
-	border-color: var(--zy-primary, #217e76);
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #217e76);
-}
-.memory-check {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 34rpx;
-	height: 34rpx;
-	flex-shrink: 0;
-	margin-top: 2rpx;
-	border: 1rpx solid currentColor;
-	border-radius: 8rpx;
-	font-size: 20rpx;
-}
-.memory-options {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 10rpx;
-	margin-top: 16rpx;
-}
-.memory-options button {
-	min-width: 0;
-	min-height: 44px;
-	margin: 0;
-	padding: 0 6rpx;
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: 12rpx;
-	background: var(--zy-card-bg, #fff);
-	color: var(--zy-content, #4a5f54);
-	font-size: 22rpx;
-	line-height: 44px;
-}
-.memory-options button.selected {
-	border-color: var(--zy-primary, #217e76);
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #217e76);
-}
-.memory-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 14rpx;
-}
-.memory-status {
-	display: block;
-	margin: 16rpx 0 0;
-	font-size: 22rpx;
-	line-height: 1.7;
-	color: var(--zy-brand-700, #217e76);
-}
-@media (max-width: 420px) {
-	.memory-facts {
-		grid-template-columns: minmax(0, 1fr);
-	}
-	.memory-options {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-}
+.field-label { display: block; font-size: var(--zy-text-body, 28rpx); font-weight: 600; margin-top: 26rpx; margin-bottom: 6rpx; }
+.consent { display: flex; gap: 12rpx; align-items: flex-start; font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-text, #5c5648); margin-top: 20rpx; }
+.consent-box { width: 32rpx; height: 32rpx; border: 2rpx solid var(--zy-brand-600, #217e76); border-radius: 8rpx; text-align: center; line-height: 30rpx; color: var(--zy-brand-700, #1a645e); flex-shrink: 0; }
+.memory-off { display: block; margin-top: 18rpx; }
+.topic-row { display: flex; align-items: center; gap: 16rpx; }
+.topic-input { flex: 1; }
+.topic-add { margin-top: 18rpx; padding: 0 28rpx; }
+.topic-list { display: flex; flex-wrap: wrap; gap: 12rpx; margin: 16rpx 0; }
+.topic-tag { display: inline-flex; align-items: center; gap: 8rpx; background: var(--zy-bg-tint-mint, #e4efe7); color: var(--zy-brand-700, #1a645e); border-radius: 999rpx; padding: 8rpx 12rpx 8rpx 20rpx; font-size: var(--zy-text-caption, 24rpx); }
+.topic-remove { font-size: var(--zy-text-body, 28rpx); line-height: 1; padding: 4rpx 8rpx; color: var(--zy-brand-700, #1a645e); cursor: pointer; }
+.topic-remove::after { border: 0; }
+.derived-item { display: flex; padding: 22rpx 0; border-top: 1rpx solid var(--zy-line-soft, #e9e2d5); }
+.derived-item:first-of-type { border-top: 0; }
+.derived-main { flex: 1; }
+.derived-label { display: block; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-text, #5c5648); }
+.derived-value { display: block; font-size: var(--zy-text-title, 32rpx); font-weight: 600; color: var(--zy-title, #33302a); margin-top: 6rpx; }
+.derived-source { display: block; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); margin-top: 6rpx; }
 </style>

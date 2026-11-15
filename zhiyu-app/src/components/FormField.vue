@@ -54,7 +54,7 @@ const showCounter = computed(() => props.maxlength > 0)
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
-.field-required { color: var(--zy-care, #a64842); }
+.field-required { color: var(--zy-care, var(--zy-care, #a64842)); }
 .field-optional { font-size: var(--zy-font-xs, 20rpx); font-weight: 400; color: var(--zy-text-secondary, #4a5f54); }
 .field-hint {
 	font-size: var(--zy-font-sm, 24rpx);
@@ -64,7 +64,7 @@ const showCounter = computed(() => props.maxlength > 0)
 .field-footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
 .field-error {
 	font-size: var(--zy-font-sm, 24rpx);
-	color: var(--zy-care, #a64842);
+	color: var(--zy-care, var(--zy-care, #a64842));
 	line-height: 1.6;
 	overflow-wrap: anywhere;
 }
@@ -75,5 +75,5 @@ const showCounter = computed(() => props.maxlength > 0)
 	font-variant-numeric: tabular-nums;
 }
 .has-error ::v-deep textarea,
-.has-error ::v-deep input { border-color: var(--zy-care, #a64842) !important; }
+.has-error ::v-deep input { border-color: var(--zy-care, var(--zy-care, #a64842)) !important; }
 </style>

@@ -243,7 +243,7 @@ onLoad(options => {
 .group-title {
 	display: block;
 	margin-top: 8rpx;
-	font-size: 44rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	line-height: 1.35;
 	color: var(--zy-title, #33302A);
@@ -251,7 +251,7 @@ onLoad(options => {
 .group-sub {
 	display: block;
 	margin-top: 10rpx;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 	color: var(--zy-text, #5C5648);
 }
@@ -265,13 +265,13 @@ onLoad(options => {
 	padding: 6rpx 16rpx;
 	border-radius: 999rpx;
 	background: var(--zy-bg-sunken, #F4F4F2);
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #5C5648);
 }
 .group-description {
 	display: block;
 	white-space: pre-wrap;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.9;
 	margin: 8rpx 0 20rpx;
 }
@@ -297,19 +297,19 @@ onLoad(options => {
 	height: 36rpx;
 	border-radius: 50%;
 	background: var(--zy-bg-tint-mint, #E4EFE7);
-	color: var(--zy-brand-700, #1A645E);
-	font-size: 20rpx;
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	font-size:var(--zy-text-micro, 22rpx);
 	font-weight: 600;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 .member-name {
-	font-size: 23rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #5C5648);
 }
 .member-more {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #5C5648);
 }
 .leader-box {
@@ -320,7 +320,7 @@ onLoad(options => {
 }
 .leader-title {
 	display: block;
-	font-size: 25rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 600;
 	margin-bottom: 6rpx;
 }
@@ -330,7 +330,7 @@ onLoad(options => {
 	justify-content: space-between;
 	gap: 12rpx;
 	padding-top: 10rpx;
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 }
 .manage-row {
 	display: flex;
@@ -340,7 +340,7 @@ onLoad(options => {
 	margin-top: 18rpx;
 }
 .leave-link {
-	color: var(--zy-care, #A64842);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 .chat-card .growth-card-title {
 	margin-bottom: 6rpx;
@@ -355,7 +355,7 @@ onLoad(options => {
 	border: 1rpx solid var(--zy-border, #E4DCCB);
 	border-radius: 16rpx;
 	background: var(--zy-bg, #FFFFFF);
-	font-size: 27rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.7;
 	color: var(--zy-title, #33302A);
 }
@@ -372,12 +372,12 @@ onLoad(options => {
 	gap: 12rpx;
 }
 .message-author {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 600;
 	color: var(--zy-title, #33302A);
 }
 .message-time {
-	font-size: 21rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #5C5648);
 }
 .message-head button {
@@ -386,7 +386,7 @@ onLoad(options => {
 .message-body {
 	display: block;
 	margin-top: 8rpx;
-	font-size: 27rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.8;
 	color: var(--zy-text, #5C5648);
 	white-space: pre-wrap;

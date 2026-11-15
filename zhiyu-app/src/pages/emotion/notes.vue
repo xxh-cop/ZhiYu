@@ -43,9 +43,9 @@
 				@longpress="onLongPress(item)"
 			>
 				<view class="card-main">
-					<!-- 左侧心情 emoji 圆形底 -->
+					<!-- 左侧心情脸谱（CSS 绘制，替代 emoji） -->
 					<view class="mood-circle" :style="moodGradient(item.mood)">
-						<text class="mood-emoji">{{ moodEmoji(item.mood) }}</text>
+						<MoodFace :kind="moodKind(item.mood)" :label="moodLabel(item.mood) || '未标注心情'" :size="52" flat :show-label="false" />
 					</view>
 					<!-- 中间内容 -->
 					<view class="card-center">
@@ -53,7 +53,7 @@
 						<text class="note-date">{{ formatDate(item.noteDate) }}</text>
 					</view>
 					<!-- 右侧箭头 -->
-					<wd-icon name="arrow-right" size="28rpx" color="#D1D5DB" />
+					<wd-icon name="arrow-right" size="28rpx" color="#C9BFA9" />
 				</view>
 				<!-- 底部心情标签 -->
 				<view v-if="item.mood" class="mood-tag-row">
@@ -99,21 +99,14 @@ import { http } from '../../utils/request'
 import StateBlock from '../../components/StateBlock.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
+import MoodFace from '../../components/MoodFace.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
 
-const MOOD_MAP = {
-	'开心': '😊',
-	'平静': '😌',
-	'一般': '😐',
-	'有点累': '😮💨',
-	'不太好': '😕',
-	'happy': '😊',
-	'calm': '😌',
-	'neutral': '😐',
-	'tired': '😮💨',
-	'down': '😕',
+const MOOD_KIND = {
+	'开心': 0, '平静': 1, '一般': 2, '有点累': 3, '不太好': 4,
+	'happy': 0, 'calm': 1, 'neutral': 2, 'tired': 3, 'down': 4,
 }
 
 /* 后端 mood 存英文枚举 key，展示一律映射为中文（MOOD_MAP 已兼容中文 key，二者并存时以中文为准） */
@@ -127,14 +120,14 @@ const MOOD_LABELS = {
 
 const MOOD_GRADIENTS = {
 	'开心': 'linear-gradient(135deg, var(--zy-accent, #8a6d1f), #FFD08A)',
-	'平静': 'linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8))',
-	'一般': 'linear-gradient(135deg, #6B7280, var(--zy-text, #4a5f54))',
-	'有点累': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), #8adcc6)',
+	'平静': 'linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8))',
+	'一般': 'linear-gradient(135deg, #A79B87, var(--zy-text, #5c5648))',
+	'有点累': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), var(--zy-brand-200, #8adcc6))',
 	'不太好': 'linear-gradient(135deg, var(--zy-care, #a64842), #d4736a)',
 	'happy': 'linear-gradient(135deg, var(--zy-accent, #8a6d1f), #FFD08A)',
-	'calm': 'linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8))',
-	'neutral': 'linear-gradient(135deg, #6B7280, var(--zy-text, #4a5f54))',
-	'tired': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), #8adcc6)',
+	'calm': 'linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8))',
+	'neutral': 'linear-gradient(135deg, #A79B87, var(--zy-text, #5c5648))',
+	'tired': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), var(--zy-brand-200, #8adcc6))',
 	'down': 'linear-gradient(135deg, var(--zy-care, #a64842), #d4736a)',
 }
 
@@ -196,9 +189,8 @@ async function loadMore() {
 	}
 }
 
-function moodEmoji(mood) {
-	if (!mood) return '📝'
-	return MOOD_MAP[mood] || '📝'
+function moodKind(mood) {
+	return MOOD_KIND[mood] ?? 1
 }
 
 function moodLabel(mood) {
@@ -207,7 +199,7 @@ function moodLabel(mood) {
 }
 
 function moodGradient(mood) {
-	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8))'
+	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8))'
 }
 
 function formatDate(dateStr) {
@@ -276,7 +268,7 @@ async function confirmDelete() {
 	width: 100rpx;
 	height: 100rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -336,30 +328,30 @@ async function confirmDelete() {
 }
 
 .empty-emoji {
-	font-size: 60rpx;
+	font-size:var(--zy-text-display, 56rpx);
 }
 
 .empty-title {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 }
 
 .empty-sub {
-	font-size: 26rpx;
-	color: var(--zy-text, #4a5f54);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-text, #5c5648);
 }
 
 .empty-btn {
 	margin-top: 16rpx;
 	padding: 16rpx 48rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, #217e76)));
 	box-shadow: var(--zy-shadow-md);
 }
 
 .empty-btn-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: #FFFFFF;
 	font-weight: 500;
 }
@@ -375,8 +367,8 @@ async function confirmDelete() {
 }
 
 .error-text {
-	font-size: 28rpx;
-	color: var(--zy-care, #a64842);
+	font-size:var(--zy-text-body, 28rpx);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 
 /* ── 卡片列表 ── */
@@ -418,7 +410,7 @@ async function confirmDelete() {
 }
 
 .mood-emoji {
-	font-size: 36rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	line-height: 1;
 }
 
@@ -433,9 +425,9 @@ async function confirmDelete() {
 
 .note-excerpt {
 	display: -webkit-box;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.6;
-	color: var(--zy-content, #4a5f54);
+	color: var(--zy-content, #5c5648);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
@@ -443,8 +435,8 @@ async function confirmDelete() {
 }
 
 .note-date {
-	font-size: 22rpx;
-	color: var(--zy-text, #4a5f54);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-text, #5c5648);
 }
 
 /* ── 底部心情标签 ── */
@@ -463,8 +455,8 @@ async function confirmDelete() {
 }
 
 .mood-tag-text {
-	font-size: 22rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-700, #1a645e));
 	font-weight: 500;
 }
 
@@ -488,7 +480,7 @@ async function confirmDelete() {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #217e76);
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76)));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -497,15 +489,15 @@ async function confirmDelete() {
 }
 
 .bottom-text {
-	font-size: 24rpx;
-	color: var(--zy-text, #4a5f54);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-text, #5c5648);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 22rpx;
-	color: var(--zy-text, #4a5f54);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-text, #5c5648);
 	text-align: center;
 }
 </style>

@@ -3,16 +3,17 @@
 		<XiaotuanPet :size="72"/>
 		<view class="xiaozhi-copy">
 			<text class="xiaozhi-label">小织 · 你的创作伙伴</text>
-			<text class="xiaozhi-title">我在这里，陪你慢慢来。</text>
-			<text class="xiaozhi-hint">聊聊此刻，或从一件小手作开始</text>
+			<text class="xiaozhi-title">想说了就聊两句。</text>
+			<text class="xiaozhi-hint">或者，从一件小手作开始</text>
 		</view>
-		<text class="xiaozhi-arrow">↗</text>
+		<ZyIcon name="arrow" :size="28" color="#1A645E" class="xiaozhi-arrow" />
 	</AccessibleButton>
 </template>
 
 <script setup>
 import XiaotuanPet from './XiaotuanPet.vue'
 import AccessibleButton from './AccessibleButton.vue'
+import ZyIcon from './ZyIcon.vue'
 
 defineEmits(['open'])
 </script>
@@ -32,10 +33,10 @@ defineEmits(['open'])
 	line-height: 1.6;
 }
 .xiaozhi-copy { flex: 1; min-width: 0; }
-.xiaozhi-label { display: block; font-size: 18rpx; color: var(--zy-text, #4a5f54); }
-.xiaozhi-title { display: block; font-size: 29rpx; font-weight: 600; color: var(--zy-title, #233d34); margin-top: 4rpx; }
-.xiaozhi-hint { display: block; font-size: 20rpx; color: var(--zy-text, #4a5f54); margin-top: 4rpx; }
-.xiaozhi-arrow { font-size: 30rpx; color: var(--zy-brand-700, #217e76); }
+.xiaozhi-label { display: block; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
+.xiaozhi-title { display: block; font-size:var(--zy-text-body-lg, 30rpx); font-weight: 600; color: var(--zy-title, #233d34); margin-top: 4rpx; }
+.xiaozhi-hint { display: block; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); margin-top: 4rpx; }
+.xiaozhi-arrow { font-size:var(--zy-text-body-lg, 30rpx); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
 .xiaozhi-card::after { border: 0; }
 .xiaozhi-card:active { opacity: .84; }
 </style>

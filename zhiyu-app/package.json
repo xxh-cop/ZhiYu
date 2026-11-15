@@ -38,7 +38,8 @@
     "check:isclass": "node scripts/check-wxss-isclass.js",
     "check:elements": "node scripts/check-wxss-elements.js",
     "check:contrast": "node scripts/check-contrast.js",
-    "check:heritage": "node scripts/check-heritage-svg.js"
+    "check:heritage": "node scripts/check-heritage-svg.js",
+    "check:tokens": "node scripts/check-design-tokens.js"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-5020620260917001",

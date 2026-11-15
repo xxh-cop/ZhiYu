@@ -117,7 +117,7 @@ function viewFullPolicy() {
 
 .panel-accent {
 	height: 8rpx;
-	background: linear-gradient(90deg, #217e76 0%, var(--zy-brand-300, #5bc4a8) 100%);
+	background: linear-gradient(90deg, var(--zy-brand-600, #217e76) 0%, var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)) 100%);
 }
 
 .panel-header {
@@ -131,7 +131,7 @@ function viewFullPolicy() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #217e76, #5BCFBF);
+	background: linear-gradient(135deg, var(--zy-brand-600, #217e76), #5BCFBF);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -140,20 +140,20 @@ function viewFullPolicy() {
 }
 
 .header-icon-text {
-	font-size: 40rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	color: #FFFFFF;
 }
 
 .panel-title {
-	font-size: 38rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	color: #233d34;
 }
 
 .panel-sub {
 	margin-top: 8rpx;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -170,7 +170,7 @@ function viewFullPolicy() {
 
 .clause-text {
 	flex: 1;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.6;
 	color: #4a5f54;
 }
@@ -178,8 +178,8 @@ function viewFullPolicy() {
 .policy-link {
 	display: block;
 	text-align: center;
-	font-size: 26rpx;
-	color: #1A645E;
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, #1a645e);
 	padding: 16rpx 0 8rpx;
 }
 
@@ -205,7 +205,7 @@ function viewFullPolicy() {
 }
 
 .btn-decline-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -213,7 +213,7 @@ function viewFullPolicy() {
 	flex: 1.2;
 	height: 88rpx;
 	border-radius: 999rpx;
-	background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -230,7 +230,7 @@ function viewFullPolicy() {
 }
 
 .btn-agree-text {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 }

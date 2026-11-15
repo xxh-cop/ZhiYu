@@ -2,7 +2,7 @@
 	<view class="ai-companion-root">
 		<!-- 恢复按钮（小织隐藏时显示） -->
 		<view v-if="isHidden" class="restore-dot" @click="onRestore">
-			<text class="restore-emoji">🐾</text>
+			<XiaotuanPet :size="36" class="restore-emoji" />
 		</view>
 
 		<!-- 隐藏区提示条（拖动时显示） -->
@@ -281,7 +281,7 @@ watch(
 	background: var(--zy-card-bg, #ffffff);
 	border-radius: var(--zy-radius-md, 24rpx);
 	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(33, 126, 118, 0.08));
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.5;
 	color: var(--zy-title, #233d34);
 	white-space: normal;
@@ -293,7 +293,7 @@ watch(
 }
 
 .bubble-text {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-title, #233d34);
 	line-height: 1.5;
 }
@@ -337,13 +337,13 @@ watch(
 }
 
 .hide-zone-text {
-	font-size: 26rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	white-space: nowrap;
 }
 
 .hide-zone-hint.active {
-	background: var(--zy-primary, #217e76);
+	background: var(--zy-primary, var(--zy-brand-600, #217e76));
 	border-color: transparent;
 	transform: translateX(-50%) scale(1.05);
 }
@@ -386,7 +386,7 @@ watch(
 }
 
 .restore-emoji {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 }
 
 /* ── 呼吸动画 ── */

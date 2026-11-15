@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -155,7 +156,53 @@ class CompanionMemoryServiceTest {
         verify(db).update(contains("UPDATE user_ai_memory SET deleted=1"), any(Object[].class));
     }
 
+    @Test
+    @DisplayName("回避话题：加密保存、上限与换行校验")
+    void avoidTopicsSavedAndValidated() {
+        when(db.queryForList(anyString(), any(Object[].class)))
+                .thenReturn(List.of(row("memory_enabled", "true")));
+
+        service.save(true, Map.of("avoid_topics", "考试,家庭"));
+        verify(crypto).encrypt("考试,家庭");
+
+        assertEquals(1001, assertThrows(BusinessException.class,
+                () -> service.save(true, Map.of("avoid_topics", "考试,家庭,体重,实习"))).getCode().intValue());
+        assertEquals(1001, assertThrows(BusinessException.class,
+                () -> service.save(true, Map.of("avoid_topics", "考试\n注入"))).getCode().intValue());
+    }
+
+    @Test
+    @DisplayName("对话档案：最多 3 条、回避话题优先、不注入低落天数")
+    void chatProfileLimitsLinesAndSkipsLowDays() {
+        when(db.queryForList(contains("user_ai_memory"), any(Object[].class))).thenReturn(List.of(
+                row("memory_enabled", "true"),
+                row("avoid_topics", "考试,家庭"),
+                row("preferred_minutes", "10")));
+        when(db.queryForObject(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(3);
+        when(db.queryForList(contains("GROUP BY HOUR"), any(Object[].class)))
+                .thenReturn(List.of(Map.of("h", 21, "c", 3L)));
+
+        @SuppressWarnings("unchecked")
+        List<String> lines = (List<String>) service.chatProfile(7L).get("lines");
+
+        assertEquals(3, lines.size());
+        assertTrue(lines.get(0).contains("考试"));
+        assertTrue(lines.stream().noneMatch(line -> line.contains("有点累") || line.contains("低落")));
+        assertTrue(service.derived(7L).stream().anyMatch(d -> "recent_low_days".equals(d.get("key"))));
+    }
+
+    @Test
+    @DisplayName("派生 key 不允许删除，用户填写的 key 可以删除")
+    void deleteItemOnlyUserKeys() {
+        assertEquals(1001, assertThrows(BusinessException.class,
+                () -> service.deleteItem("calm_strategy")).getCode().intValue());
+
+        service.deleteItem("avoid_topics");
+        verify(db).update(contains("AND memory_key=?"), any(Object[].class));
+    }
+
     private Map<String, Object> row(String key, String value) {
-        return Map.of("memory_key", key, "value_cipher", "c:" + value);
+        return Map.of("memory_key", key, "value_cipher", "c:" + value,
+                "consent_version", CompanionMemoryService.CONSENT_VERSION);
     }
 }

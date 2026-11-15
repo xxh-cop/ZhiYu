@@ -106,8 +106,13 @@ class EmotionControllerViaCommanderTest {
             return null;
         }).when(executor).execute(any(Runnable.class));
 
+        com.zhiyu.modules.companion.memory.CompanionMemoryService memoryService =
+                mock(com.zhiyu.modules.companion.memory.CompanionMemoryService.class);
+        lenient().when(memoryService.chatProfile(anyLong()))
+                .thenReturn(java.util.Map.of("enabled", false, "lines", List.of(), "avoidTopics", List.of()));
+
         EmotionController controller = new EmotionController(access, aiClient, emotionService,
-                new ObjectMapper(), dialogueContext, commander, executor);
+                new ObjectMapper(), dialogueContext, commander, memoryService, executor);
         ReflectionTestUtils.setField(controller, "maxHistoryTurns", 10);
         ReflectionTestUtils.setField(controller, "rollingSummaryEnabled", false);
         ReflectionTestUtils.setField(controller, "listeningViaCommander", true);

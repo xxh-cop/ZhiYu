@@ -114,14 +114,14 @@ onBeforeUnmount(() => clearTimeout(timer))
 }
 .nudge-main::after { border: 0; }
 .nudge-text {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 	white-space: nowrap;
 }
 .nudge-action {
-	font-size: 22rpx;
-	color: var(--zy-brand-600, #1A645E);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-600, var(--zy-brand-700, #1a645e));
 }
 .nudge-close {
 	flex-shrink: 0;
@@ -136,11 +136,11 @@ onBeforeUnmount(() => clearTimeout(timer))
 	justify-content: center;
 	background: transparent;
 	color: var(--zy-text, #4a5f54);
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1;
 }
 .nudge-close::after { border: 0; }
-button:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 3px; }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
 	.nudge { animation: none; }
 	.nudge.leaving { transition: none; }

@@ -76,7 +76,7 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 .skeleton-bar {
 	height: 32rpx;
 	border-radius: var(--zy-radius-sm, 12rpx);
-	background: linear-gradient(90deg, var(--zy-bg-tint-mint, #e8efe4) 25%, var(--zy-brand-50, #eaf4f1) 50%, var(--zy-bg-tint-mint, #e8efe4) 75%);
+	background: linear-gradient(90deg, var(--zy-bg-tint-mint, #e8efe4) 25%, var(--zy-brand-50, var(--zy-brand-50, #eaf4f1)) 50%, var(--zy-bg-tint-mint, #e8efe4) 75%);
 	background-size: 200% 100%;
 	animation: zy-shimmer 1.6s var(--zy-ease-linear, linear) infinite;
 }
@@ -105,18 +105,18 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 	margin: 8rpx 0 0;
 	padding: 16rpx 44rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	color: #fff;
 	font-size: var(--zy-font-base, 28rpx);
 	line-height: 1.5;
 }
 .state-action.secondary {
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #1a645e);
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 }
 .state-action::after { border: 0; }
 .state-action.is-disabled { opacity: .55; }
-.state-action:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 3px; }
+.state-action:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
 
 @keyframes zy-shimmer {
 	0% { background-position: 200% 0; }

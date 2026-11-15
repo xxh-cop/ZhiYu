@@ -61,7 +61,7 @@
 						<image class="heritage-ref-img" :src="reference.src" mode="aspectFill" :alt="reference.title" />
 						<text class="heritage-ref-title zy-t-caption">{{ reference.title }}</text>
 						<text class="heritage-ref-credit zy-t-micro">{{ reference.attribution }}</text>
-						<text class="heritage-ref-license zy-t-micro" @click="openLicense(reference)">查看许可 ↗</text>
+						<view class="heritage-ref-license zy-t-micro zy-link" @click="openLicense(reference)"><text>查看许可</text><ZyIcon name="external" :size="22" color="#1A645E" /></view>
 					</view>
 				</scroll-view>
 			</view>
@@ -96,7 +96,7 @@
 					:aria-label="'打开来源 ' + source.title"
 					@click="openSource(source)"
 				>
-					<text class="heritage-source-title">{{ source.title }} ↗</text>
+					<view class="heritage-source-title zy-link"><text>{{ source.title }}</text><ZyIcon name="external" :size="26" color="#1A645E" /></view>
 					<text class="heritage-source-meta">{{ source.organization }} · 访问于 {{ source.accessedAt }}</text>
 				</AccessibleButton>
 				<text class="heritage-muted zy-t-caption heritage-source-note">来源仅作材料与技艺背景参考，不表示官方认可本图案，也不代表本图是传统原作。</text>
@@ -130,6 +130,7 @@ import { useInteraction } from '@/composables/useInteraction'
 import { createPracticeSession } from '@/utils/practice-session'
 import Toast from '@/components/Toast.vue'
 import AccessibleButton from '@/components/AccessibleButton.vue'
+import ZyIcon from '@/components/ZyIcon.vue'
 import SectionHead from '@/components/SectionHead.vue'
 import PatternLive from '@/components/PatternLive.vue'
 import ProcessStrip from '@/components/ProcessStrip.vue'

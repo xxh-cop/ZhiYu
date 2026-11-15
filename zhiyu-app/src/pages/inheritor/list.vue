@@ -71,7 +71,7 @@
 		<!-- 空状态 -->
 		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="status-box">
 			<view class="empty-icon-wrap">
-				<text class="empty-emoji">🔍</text>
+				<ZyIcon name="search" :size="56" color="#A79B87" class="empty-emoji" />
 			</view>
 			<text class="empty-text">暂无传承人</text>
 		</view>
@@ -143,6 +143,7 @@ import { onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import HeritageCard from '../../components/HeritageCard.vue'
 import RegionSeal from '../../components/RegionSeal.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 
 const loading = ref(false)
 const errorMsg = ref('')
@@ -294,7 +295,7 @@ loadStories()
 }
 
 .page-title {
-	font-size: 44rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -321,12 +322,12 @@ loadStories()
 }
 
 .search-input-wrap.is-focused {
-	border-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .search-input {
 	flex: 1;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-title, #233d34);
 }
 
@@ -335,8 +336,8 @@ loadStories()
 }
 
 .search-btn {
-	font-size: 28rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-body, 28rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	white-space: nowrap;
 }
 
@@ -401,17 +402,17 @@ loadStories()
 }
 
 .empty-emoji {
-	font-size: 56rpx;
+	font-size:var(--zy-text-display, 56rpx);
 }
 
 .empty-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
 .error-text {
-	font-size: 28rpx;
-	color: var(--zy-danger, #a64842);
+	font-size:var(--zy-text-body, 28rpx);
+	color: var(--zy-danger, var(--zy-care, #a64842));
 }
 
 /* ── 卡片列表 ── */
@@ -444,7 +445,7 @@ loadStories()
 	height: 132rpx;
 	border-radius: 50%;
 	padding: 4rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
 	flex-shrink: 0;
 }
 
@@ -460,7 +461,7 @@ loadStories()
 }
 
 .avatar-letter {
-	font-size: 44rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	color: #FFFFFF;
 }
@@ -487,12 +488,12 @@ loadStories()
 }
 
 .verified-text {
-	font-size: 22rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 .project-count-text {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -516,7 +517,7 @@ loadStories()
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #217e76);
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -525,14 +526,14 @@ loadStories()
 }
 
 .bottom-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
@@ -541,17 +542,17 @@ loadStories()
 <style scoped>
 .story-section { margin-bottom: 26rpx; }
 .story-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12rpx; margin-bottom: 14rpx; }
-.story-eyebrow { display: block; font-family: var(--zy-serif); font-size: 30rpx; font-weight: 600; color: var(--zy-title, #233d34); }
-.story-note { display: block; margin-top: 6rpx; font-size: 19rpx; letter-spacing: 1rpx; color: var(--zy-text, #4a5f54); }
+.story-eyebrow { display: block; font-family: var(--zy-serif); font-size:var(--zy-text-body-lg, 30rpx); font-weight: 600; color: var(--zy-title, #233d34); }
+.story-note { display: block; margin-top: 6rpx; font-size:var(--zy-text-micro, 22rpx); letter-spacing: 1rpx; color: var(--zy-text, #4a5f54); }
 .story-skeleton { height: 260rpx; border-radius: 20rpx; }
-.story-error { padding: 22rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-card-bg, #fff); font-size: 22rpx; line-height: 1.7; color: var(--zy-content, #4a5f54); }
+.story-error { padding: 22rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-card-bg, #fff); font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-content, #4a5f54); }
 .story-scroll { width: 100%; white-space: nowrap; }
 .story-cell { display: inline-block; width: 320rpx; margin-right: 16rpx; vertical-align: top; white-space: normal; }
 .story-cell:last-child { margin-right: 0; }
 .story-card { height: 100%; }
-.story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size: 21rpx; line-height: 1.7; color: var(--zy-content, #4a5f54); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.story-link { display: block; font-size: 20rpx; color: var(--zy-brand-700, #217e76); }
-.story-boundary { display: block; margin-top: 12rpx; font-size: 19rpx; line-height: 1.7; color: var(--zy-text, #4a5f54); }
+.story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-content, #4a5f54); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.story-link { display: block; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.story-boundary { display: block; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-text, #4a5f54); }
 @media (prefers-reduced-motion: reduce) {
   .story-card { transition: none; }
 }

@@ -208,7 +208,7 @@ defineExpose({ refresh })
 .zy-center-label {
 	position: absolute;
 	bottom: 14rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.4;
 	color: var(--zy-text);
 }
@@ -217,7 +217,7 @@ defineExpose({ refresh })
 	font-weight: 600;
 }
 .zy-center-plus {
-	font-size: 52rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	line-height: 1;
 	color: #ffffff;
 	transition: transform var(--zy-duration-base) var(--zy-ease-smooth);

@@ -12,8 +12,8 @@ export default {
 /* 每个页面公共 css —— 冷调薄荷青主题（v3.0） */
 page {
 	background: var(--zy-bg, #ffffff);
-	color: var(--zy-title, #1F2937);
-	font-size: 28rpx;
+	color: var(--zy-title, #33302a);
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.6;
 }
 
@@ -35,7 +35,7 @@ page {
 
 /* ── 骨架屏 shimmer ── */
 .zy-skeleton {
-	background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+	background: linear-gradient(90deg, #EFE8DA 25%, #F6F1E7 50%, #EFE8DA 75%);
 	background-size: 200% 100%;
 	animation: shimmer 1.5s ease-in-out infinite;
 	border-radius: var(--zy-radius-sm, 12rpx);

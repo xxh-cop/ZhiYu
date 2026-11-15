@@ -14,10 +14,10 @@
 
 					<view class="hero">
 						<XiaotuanPet :size="92" face="calm" aria-hidden="true" />
-						<text class="eyebrow">AI 陪伴 · 非遗手作 · 学生支持</text>
+						<text class="eyebrow">手作 · 记录 · 校内支持</text>
 						<text class="title zy-t-serif">把情绪，慢慢放下来。</text>
 						<text class="definition">
-							织愈是一个用 AI 陪伴 + 非遗手作，帮你在情绪低落时慢下来的学生工具。
+							选一件手作，跟着步骤做。做不完也没关系。
 						</text>
 					</view>
 
@@ -130,7 +130,7 @@ function decline() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #5C5648);
 }
 .onboarding-scroll {
@@ -154,7 +154,7 @@ function decline() {
 	border-radius: 14rpx;
 }
 .brand-name {
-	font-size: 34rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
 	letter-spacing: 4rpx;
 }
@@ -167,15 +167,15 @@ function decline() {
 .eyebrow {
 	width: 100%;
 	margin-top: 20rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 3rpx;
-	color: var(--zy-brand-700, #1A645E);
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 }
 .title {
 	display: block;
 	width: 100%;
 	margin-top: 18rpx;
-	font-size: 52rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	line-height: 1.35;
 	font-weight: 600;
 	letter-spacing: 1rpx;
@@ -184,7 +184,7 @@ function decline() {
 	display: block;
 	width: 100%;
 	margin-top: 18rpx;
-	font-size: 29rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	line-height: 1.85;
 	color: var(--zy-text, #5C5648);
 }
@@ -200,9 +200,9 @@ function decline() {
 }
 .thing-mark {
 	flex: 0 0 auto;
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 600;
-	color: var(--zy-brand-700, #1A645E);
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	padding-top: 4rpx;
 }
 .thing-copy {
@@ -211,13 +211,13 @@ function decline() {
 }
 .thing-title {
 	display: block;
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 600;
 }
 .thing-sub {
 	display: block;
 	margin-top: 6rpx;
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 	color: var(--zy-text, #5C5648);
 }
@@ -229,27 +229,27 @@ function decline() {
 }
 .privacy-title {
 	display: block;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 600;
 	margin-bottom: 14rpx;
 }
 .privacy-line {
 	display: block;
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.8;
 	color: var(--zy-text, #5C5648);
 }
 .policy-link {
 	margin: 8rpx 0 0;
 	padding-left: 0;
-	font-size: 24rpx;
-	color: var(--zy-brand-700, #1A645E);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	justify-content: flex-start;
 }
 .disclaimer {
 	display: block;
 	margin-top: 28rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.8;
 	color: var(--zy-text, #5C5648);
 }

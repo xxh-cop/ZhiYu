@@ -58,7 +58,7 @@
 				@click="send"
 			>{{ busy ? '……' : '发送' }}</AccessibleButton>
 		</view>
-		<text class="companion-foot">本轮文字只用于当前练习；AI 审计加密保存，不向其他同学展示。生成失败时会使用本地引导。</text>
+		<text class="companion-foot">这段文字只用于这次练习，加密保存，不会给其他同学看。小织忙不过来时，会用本地引导。</text>
 	</view>
 </template>
 
@@ -220,17 +220,17 @@ onBeforeUnmount(() => {
 }
 .companion-eyebrow {
 	display: block;
-	font-size: 19rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 3rpx;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 .companion-stage {
 	flex-shrink: 0;
 	padding: 4rpx 12rpx;
 	border-radius: 999rpx;
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #217e76);
-	font-size: 21rpx;
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	font-size:var(--zy-text-micro, 22rpx);
 }
 .companion-intro {
 	display: block;
@@ -258,11 +258,11 @@ onBeforeUnmount(() => {
 	background: var(--zy-bg-tint-mint, #e8efe4);
 }
 .companion-message-meta {
-	font-size: 19rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 .companion-message-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 	color: var(--zy-title, #233d34);
 	overflow-wrap: anywhere;
@@ -272,14 +272,14 @@ onBeforeUnmount(() => {
 	margin-top: 6rpx;
 	padding-top: 8rpx;
 	border-top: 1rpx solid var(--zy-border, #dfe7dc);
-	font-size: 21rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.7;
-	color: var(--zy-accent, #8a6d1f);
+	color: var(--zy-accent, var(--zy-accent, #7a5c12));
 }
 .companion-thinking {
 	display: block;
 	margin: 6rpx 0 10rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 }
 .companion-tool {
@@ -291,14 +291,14 @@ onBeforeUnmount(() => {
 }
 .companion-tool-title {
 	display: block;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
 .companion-tool-line {
 	display: block;
 	margin-top: 6rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.6;
 	color: var(--zy-text, #4a5f54);
 	overflow-wrap: anywhere;
@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
 	margin-top: 10rpx;
 	padding-top: 8rpx;
 	border-top: 1rpx solid var(--zy-border, #dfe7dc);
-	font-size: 21rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.7;
 	color: var(--zy-content, #4a5f54);
 }
@@ -321,7 +321,7 @@ onBeforeUnmount(() => {
 .companion-citation {
 	display: block;
 	margin-top: 4rpx;
-	font-size: 21rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.6;
 	color: var(--zy-text, #4a5f54);
 	overflow-wrap: anywhere;
@@ -329,9 +329,9 @@ onBeforeUnmount(() => {
 .companion-error {
 	display: block;
 	margin-top: 12rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.6;
-	color: var(--zy-care, #a64842);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 .companion-input-row {
 	display: flex;
@@ -351,7 +351,7 @@ onBeforeUnmount(() => {
 	border-radius: 14rpx;
 	background: var(--zy-bg, #ffffff);
 	color: var(--zy-title, #233d34);
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.6;
 }
 .companion-send {
@@ -366,7 +366,7 @@ onBeforeUnmount(() => {
 .companion-foot {
 	display: block;
 	margin-top: 12rpx;
-	font-size: 20rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.7;
 	color: var(--zy-text, #4a5f54);
 }

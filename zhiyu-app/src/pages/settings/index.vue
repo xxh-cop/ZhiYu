@@ -211,7 +211,7 @@
 			style="--stagger-i: 4"
 			role="button"
 			tabindex="0"
-			aria-label="打开小织记忆设置"
+			aria-label="打开小织记得的设置"
 			@click="goMemory"
 			@keydown.enter.prevent="goMemory"
 			@keydown.space.prevent="goMemory"
@@ -220,7 +220,7 @@
 				<view class="card-icon-wrap card-icon-memory">
 					<wd-icon name="heart" size="32rpx" color="#FFFFFF" />
 				</view>
-				<text class="section-heading">小织记忆</text>
+				<text class="section-heading">小织记得的</text>
 				<text class="memory-entry-arrow" aria-hidden="true">›</text>
 			</view>
 			<text class="memory-entry-text">默认关闭 · 只保存练习偏好 · 180 天后失效 · 可随时删除</text>
@@ -593,7 +593,7 @@ async function handleChangePassword() {
 }
 
 .page-title {
-	font-size: 44rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -601,7 +601,7 @@ async function handleChangePassword() {
 }
 
 .page-subtitle {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 	display: block;
 	margin-top: 8rpx;
@@ -621,7 +621,7 @@ async function handleChangePassword() {
 	height: 140rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
 	flex-shrink: 0;
 }
 
@@ -637,7 +637,7 @@ async function handleChangePassword() {
 	width: 100%;
 	height: 100%;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-brand-700, #1a645e) 0%, var(--zy-primary, #217e76) 100%);
+	background: linear-gradient(135deg, var(--zy-brand-700, var(--zy-brand-700, #1a645e)) 0%, var(--zy-primary, var(--zy-brand-600, #217e76)) 100%);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -646,13 +646,13 @@ async function handleChangePassword() {
 }
 
 .avatar-placeholder-text {
-	font-size: 52rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	font-weight: 600;
 	color: #FFFFFF;
 }
 
 .avatar-hint {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -677,7 +677,7 @@ async function handleChangePassword() {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -685,11 +685,11 @@ async function handleChangePassword() {
 }
 
 .card-icon-security {
-	background: linear-gradient(135deg, var(--zy-accent, #8a6d1f), var(--zy-gold, #d9a441));
+	background: linear-gradient(135deg, var(--zy-accent, var(--zy-accent, #7a5c12)), var(--zy-gold, #d9a441));
 }
 
 .section-heading {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
@@ -704,7 +704,7 @@ async function handleChangePassword() {
 }
 
 .form-label {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 	display: block;
 	margin-bottom: 10rpx;
@@ -714,7 +714,7 @@ async function handleChangePassword() {
 	width: 100%;
 	height: 80rpx;
 	padding: 0 24rpx;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-title, #233d34);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 16rpx);
@@ -724,7 +724,7 @@ async function handleChangePassword() {
 }
 
 .form-input.is-focused {
-	border-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .form-input--disabled {
@@ -734,7 +734,7 @@ async function handleChangePassword() {
 .form-textarea {
 	width: 100%;
 	padding: 20rpx 24rpx;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-title, #233d34);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-md, 16rpx);
@@ -744,7 +744,7 @@ async function handleChangePassword() {
 }
 
 .form-textarea.is-focused {
-	border-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .form-readonly {
@@ -754,7 +754,7 @@ async function handleChangePassword() {
 }
 
 .form-readonly-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-title, #233d34);
 }
 
@@ -762,7 +762,7 @@ async function handleChangePassword() {
 .btn-primary {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -775,7 +775,7 @@ async function handleChangePassword() {
 }
 
 .btn-primary--accent {
-	background: var(--zy-accent, #8a6d1f);
+	background: var(--zy-accent, var(--zy-accent, #7a5c12));
 }
 
 .btn-primary--disabled {
@@ -784,7 +784,7 @@ async function handleChangePassword() {
 }
 
 .btn-primary-text {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 }
@@ -793,7 +793,7 @@ async function handleChangePassword() {
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
@@ -802,7 +802,7 @@ async function handleChangePassword() {
 <style scoped>
 .avatar-ring:focus-visible,
 .btn-primary:focus-visible {
-	outline: 3px solid var(--zy-primary, #217e76);
+	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	outline-offset: 3px;
 }
 .settings-error {
@@ -816,23 +816,23 @@ async function handleChangePassword() {
 	border-radius: var(--zy-radius-md, 24rpx);
 	background: var(--zy-card-bg, #fff);
 	color: var(--zy-content, #4a5f54);
-	font-size: 23rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 }
 .settings-error button {
 	flex-shrink: 0;
 	min-height: 64rpx;
 	padding: 0 22rpx;
-	border: 1rpx solid var(--zy-primary, #217e76);
+	border: 1rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #217e76);
-	font-size: 23rpx;
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 2.5;
 }
 .settings-error button::after { border: 0; }
 .card-icon-memory {
-	background: linear-gradient(135deg, var(--zy-accent, #8a6d1f), var(--zy-primary, #217e76));
+	background: linear-gradient(135deg, var(--zy-accent, var(--zy-accent, #7a5c12)), var(--zy-primary, var(--zy-brand-600, #217e76)));
 }
 .memory-entry {
 	cursor: pointer;
@@ -843,12 +843,12 @@ async function handleChangePassword() {
 .memory-entry-arrow {
 	margin-left: auto;
 	color: var(--zy-text, #4a5f54);
-	font-size: 40rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	line-height: 1;
 }
 .memory-entry-text {
 	display: block;
-	font-size: 23rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 	color: var(--zy-content, #4a5f54);
 }
@@ -856,8 +856,8 @@ async function handleChangePassword() {
 .nudge-toggle {
 	margin-top: 18rpx;
 	padding: 12rpx 26rpx;
-	font-size: 24rpx;
-	color: var(--zy-brand-700, #1a645e);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	background: var(--zy-bg-tint-mint, #e8efe4);
 	border-radius: 999rpx;
 }

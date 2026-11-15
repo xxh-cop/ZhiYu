@@ -334,13 +334,13 @@ onUnmounted(() => {
 }
 
 .cp-header-title {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
 
 .cp-header-sub {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -369,7 +369,7 @@ onUnmounted(() => {
 }
 
 .cp-close-icon {
-	font-size: 40rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	color: var(--zy-aid, #4a5f54);
 	line-height: 1;
 }
@@ -394,13 +394,13 @@ onUnmounted(() => {
 }
 
 .cp-welcome-text {
-	font-size: 30rpx;
-	color: var(--wot-color-theme, #1A645E);
+	font-size:var(--zy-text-body-lg, 30rpx);
+	color: var(--wot-color-theme, var(--zy-brand-700, #1a645e));
 	margin-bottom: 16rpx;
 }
 
 .cp-welcome-hint {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -454,9 +454,9 @@ onUnmounted(() => {
 }
 
 .cp-ai-avatar-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 600;
-	color: var(--wot-color-theme, #1A645E);
+	color: var(--wot-color-theme, var(--zy-brand-700, #1a645e));
 }
 
 /* ── 用户头像 ── */
@@ -472,7 +472,7 @@ onUnmounted(() => {
 }
 
 .cp-user-avatar-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 500;
 	color: var(--zy-text, #4a5f54);
 }
@@ -487,7 +487,7 @@ onUnmounted(() => {
 }
 
 .cp-bubble-user {
-	background-color: var(--wot-color-theme, #217e76);
+	background-color: var(--wot-color-theme, var(--zy-brand-600, #217e76));
 }
 
 .cp-bubble-ai {
@@ -512,7 +512,7 @@ onUnmounted(() => {
 /* ── 打字机光标 ── */
 .cp-typing {
 	font-size: 15px;
-	color: var(--wot-color-theme, #1A645E);
+	color: var(--wot-color-theme, var(--zy-brand-700, #1a645e));
 	margin-left: 2px;
 	animation: cpBlink 0.8s steps(2) infinite;
 }
@@ -525,7 +525,7 @@ onUnmounted(() => {
 /* ── 时间戳 ── */
 .cp-msg-time {
 	margin-top: 8rpx;
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -544,7 +544,7 @@ onUnmounted(() => {
 
 .cp-error-text {
 	font-size: 13px;
-	color: var(--zy-danger, #a64842);
+	color: var(--zy-danger, var(--zy-care, #a64842));
 }
 
 /* ── 输入区 ── */
@@ -579,7 +579,7 @@ onUnmounted(() => {
 }
 
 .cp-disclaimer-text {
-	font-size: 20rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 </style>

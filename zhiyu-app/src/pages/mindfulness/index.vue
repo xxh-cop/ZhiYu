@@ -119,9 +119,9 @@ onUnload(pause)
 }
 .mindful-header { text-align: center; margin-bottom: 40rpx; }
 .eyebrow,.title,.subtitle,.time,.caption,.safety-note,.disclaimer { display: block; }
-.eyebrow { color: var(--zy-brand-700, #1a645e); font-size: 22rpx; letter-spacing: 4rpx; }
-.title { font-family: var(--zy-serif); font-size: 48rpx; margin: 16rpx 0; font-weight: 600; color: var(--zy-title, #233d34); }
-.subtitle { font-size: 26rpx; color: var(--zy-text, #4a5f54); }
+.eyebrow { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-micro, 22rpx); letter-spacing: 4rpx; }
+.title { font-family: var(--zy-serif); font-size:var(--zy-text-display, 56rpx); margin: 16rpx 0; font-weight: 600; color: var(--zy-title, #233d34); }
+.subtitle { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); }
 
 .practice-card {
 	padding: 36rpx 32rpx;
@@ -134,7 +134,7 @@ onUnload(pause)
 .duration-row { display: flex; gap: 16rpx; }
 .duration-row button {
 	flex: 1;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	background: transparent;
 	color: var(--zy-text, #4a5f54);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
@@ -143,8 +143,8 @@ onUnload(pause)
 }
 .duration-row .selected {
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	border-color: var(--zy-brand-600, #217e76);
-	color: var(--zy-brand-700, #1a645e);
+	border-color: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	font-weight: 600;
 }
 .duration-row button.is-disabled { opacity: .7; }
@@ -155,8 +155,8 @@ button::after { border: 0; }
 	width: 270rpx;
 	height: 270rpx;
 	border-radius: 50%;
-	border: 2rpx solid var(--zy-brand-300, #5bc4a8);
-	background: var(--zy-brand-600, #217e76);
+	border: 2rpx solid var(--zy-brand-300, var(--zy-brand-300, #5bc4a8));
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	box-shadow: 0 0 0 22rpx rgba(33, 126, 118, 0.10), 0 0 0 44rpx rgba(33, 126, 118, 0.06);
 	display: flex;
 	flex-direction: column;
@@ -166,19 +166,19 @@ button::after { border: 0; }
 	transition: transform ease-in-out;
 }
 .orb.expanding { transform: scale(1.12); }
-.phase { font-size: 34rpx; color: #ffffff; }
-.phase-detail { font-size: 22rpx; color: rgba(255, 255, 255, 0.85); }
-.time { font-size: 52rpx; font-variant-numeric: tabular-nums; color: var(--zy-title, #233d34); }
-.caption { font-size: 24rpx; color: var(--zy-text, #4a5f54); margin: 8rpx 0 32rpx; }
+.phase { font-size:var(--zy-text-title, 32rpx); color: #ffffff; }
+.phase-detail { font-size:var(--zy-text-micro, 22rpx); color: rgba(255, 255, 255, 0.85); }
+.time { font-size:var(--zy-text-display, 56rpx); font-variant-numeric: tabular-nums; color: var(--zy-title, #233d34); }
+.caption { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); margin: 8rpx 0 32rpx; }
 .primary-action {
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	color: #ffffff;
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	font-weight: 600;
 	box-shadow: var(--zy-shadow-md, 0 8rpx 24rpx rgba(33, 126, 118, 0.18));
 }
-.text-action { color: var(--zy-brand-700, #1a645e); background: transparent; font-size: 24rpx; margin-top: 12rpx; }
+.text-action { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); background: transparent; font-size:var(--zy-text-caption, 24rpx); margin-top: 12rpx; }
 
 .sound-card {
 	display: flex;
@@ -192,19 +192,19 @@ button::after { border: 0; }
 	background: var(--zy-card-bg, #ffffff);
 }
 .sound-title,.sound-description { display: block; }
-.sound-title { font-size: 28rpx; color: var(--zy-title, #233d34); }
-.sound-description { font-size: 22rpx; color: var(--zy-text, #4a5f54); margin-top: 8rpx; }
+.sound-title { font-size:var(--zy-text-body, 28rpx); color: var(--zy-title, #233d34); }
+.sound-description { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); margin-top: 8rpx; }
 .sound-toggle {
 	flex-shrink: 0;
 	margin: 0;
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #1a645e);
-	font-size: 24rpx;
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	font-size:var(--zy-text-caption, 24rpx);
 	border-radius: 12rpx;
 }
 .other-actions { display: flex; gap: 16rpx; margin-top: 24rpx; }
-.other-actions button { background: transparent; color: var(--zy-brand-700, #1a645e); font-size: 24rpx; padding: 0 8rpx; }
-.safety-note,.disclaimer { font-size: 22rpx; color: var(--zy-text, #4a5f54); line-height: 1.8; text-align: center; margin-top: 24rpx; }
+.other-actions button { background: transparent; color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-caption, 24rpx); padding: 0 8rpx; }
+.safety-note,.disclaimer { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); line-height: 1.8; text-align: center; margin-top: 24rpx; }
 
 /* 睡前安顿卡 + 夜间安静模式：暗色保留，统一为令牌墨绿 */
 .sleep-card { padding: 28rpx; margin-top: 24rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 24rpx; line-height: 1.8; background: var(--zy-card-bg, #ffffff); }
@@ -214,9 +214,9 @@ button::after { border: 0; }
 .sleeping .time { color: var(--zy-bg-tint-mint, #e8efe4); }
 .sleeping .caption { color: rgba(232, 239, 228, 0.75); }
 .sleeping .duration-row button { color: rgba(232, 239, 228, 0.85); border-color: rgba(255, 255, 255, 0.2); }
-.sleeping .duration-row .selected { background: rgba(91, 196, 168, 0.2); border-color: var(--zy-brand-300, #5bc4a8); color: var(--zy-bg-tint-mint, #e8efe4); }
-.sleeping .orb { box-shadow: none; background: var(--zy-brand-700, #1a645e); border-color: var(--zy-brand-600, #217e76); }
-.sleeping .primary-action { background: var(--zy-brand-300, #5bc4a8); color: var(--zy-title, #233d34); box-shadow: none; }
+.sleeping .duration-row .selected { background: rgba(91, 196, 168, 0.2); border-color: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)); color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .orb { box-shadow: none; background: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); border-color: var(--zy-brand-600, var(--zy-brand-600, #217e76)); }
+.sleeping .primary-action { background: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)); color: var(--zy-title, #233d34); box-shadow: none; }
 .sleeping .text-action { color: rgba(232, 239, 228, 0.85); }
 .sleeping .sound-card { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
 .sleeping .sound-title { color: var(--zy-bg-tint-mint, #e8efe4); }

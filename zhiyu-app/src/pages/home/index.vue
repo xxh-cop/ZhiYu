@@ -26,13 +26,13 @@
 			<!-- 主视觉（去框化，落在暖纸底上） -->
 			<view class="home-hero">
 				<view class="hero-copy">
-					<text class="eyebrow">AI 陪伴 · 非遗手作</text>
-					<text class="hero-title zy-t-serif">慢一点，<br/>给心情一个家。</text>
-					<text class="hero-note">织愈是一个用 AI 陪伴 + 非遗手作，帮你把情绪慢下来的学生工具。</text>
+					<text class="eyebrow">非遗手作 · 校园陪伴</text>
+					<text class="hero-title zy-t-serif">说不出口的，<br/>手上慢慢做。</text>
+					<text class="hero-note">选一件手作，跟着步骤做。做不完也没关系。</text>
 					<AccessibleButton variant="primary" size="lg" class="hero-button" @click="goRecommend">开始一件小手作</AccessibleButton>
 				</view>
 				<view class="hero-pet" aria-hidden="true"><XiaotuanPet :size="112" /></view>
-				<text class="hero-bottom">用一针一线，连接生活里的小确幸</text>
+				<text class="hero-bottom">约 10 分钟 · 材料就在手边</text>
 			</view>
 
 			<StitchDivider />
@@ -69,7 +69,7 @@
 				<MoodFace v-for="(m,i) in moods" :key="m.label" :kind="i" :label="m.label" :selected="moodIndex===i" @select="selectMood(i)" />
 			</view>
 			<view v-if="moodIndex!==null" class="mood-response">
-				<text>{{moodIndex>=3?'今天也辛苦了。想说说的话，小织在这里。':'谢谢你留意此刻的感受。跟着自己的节奏就好。'}}</text>
+				<text>{{moodIndex>=3?'今天不容易。要说说，还是先做点手上的事？':'记下了。想说说，还是先做点什么？'}}</text>
 				<AccessibleButton variant="ghost" size="sm" @click="goEmotion">和小织聊聊 →</AccessibleButton>
 			</view>
 
@@ -143,7 +143,7 @@
 			<!-- 每日寄语：居中衬线引言，无容器 -->
 			<view class="daily-note" @click="nextQuote">
 				<text class="quote zy-t-serif">“{{currentQuote}}”</text>
-				<text class="note-hint">轻点换一句 · 不必事事都做到完美</text>
+				<text class="note-hint">轻点换一句</text>
 			</view>
 
 			<!-- 非遗入口：暖金 tint + 回纹角饰 -->
@@ -493,12 +493,12 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
 .wordmark { display: flex; gap: 15rpx; align-items: center; }
 .wordmark image { width: 70rpx; height: 70rpx; }
-.brand-name { display: block; font-size: 35rpx; font-weight: 600; letter-spacing: 5rpx; }
+.brand-name { display: block; font-size:var(--zy-text-title-lg, 40rpx); font-weight: 600; letter-spacing: 5rpx; }
 .brand-caption { display: block; font-size: var(--zy-text-micro); color: var(--zy-text); letter-spacing: 2rpx; margin-top: 3rpx; }
 .header-right { display: flex; align-items: center; gap: 20rpx; }
 .bell { position: relative; width: 68rpx; height: 68rpx; min-width: 68rpx; border-radius: 50%; background: var(--zy-card-bg); box-shadow: var(--zy-shadow-card); padding: 0; margin: 0; }
 .bell-dot { position: absolute; top: 14rpx; right: 16rpx; width: 14rpx; height: 14rpx; border-radius: 50%; background: var(--zy-care); border: 3rpx solid var(--zy-card-bg); }
-.avatar { width: 68rpx; height: 68rpx; line-height: 68rpx; padding: 0; border-radius: 50%; background: var(--zy-bg-tint-mint); color: var(--zy-brand-700); font-size: 25rpx; margin: 0; min-width: 88rpx; }
+.avatar { width: 68rpx; height: 68rpx; line-height: 68rpx; padding: 0; border-radius: 50%; background: var(--zy-bg-tint-mint); color: var(--zy-brand-700); font-size:var(--zy-text-caption, 24rpx); margin: 0; min-width: 88rpx; }
 .hello-row { display: block; color: var(--zy-text); font-size: var(--zy-text-caption); margin: 0 4rpx 20rpx; }
 .consent-banner { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin: 0 0 22rpx; padding: 14rpx 18rpx; border: 1rpx dashed var(--zy-stitch, #C9BFA9); border-radius: 18rpx; background: var(--zy-bg-tint-mint, #E4EFE7); }
 .consent-banner-text { flex: 1; min-width: 0; font-size: var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-text, #5C5648); }
@@ -521,7 +521,7 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .main-card-kicker { font-size: var(--zy-text-micro); letter-spacing: 2rpx; color: var(--zy-brand-700); }
 .main-card-title { font-size: var(--zy-text-title-lg); font-weight: 600; color: var(--zy-title); margin-top: 4rpx; }
 .main-card-sub { font-size: var(--zy-text-caption); color: var(--zy-text); margin-top: 6rpx; }
-.main-card-arrow { width: 68rpx; height: 68rpx; border-radius: 50%; background: var(--zy-brand-600); color: #FFFFFF; font-size: 30rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.main-card-arrow { width: 68rpx; height: 68rpx; border-radius: 50%; background: var(--zy-brand-600); color: #FFFFFF; font-size:var(--zy-text-body-lg, 30rpx); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 /* ── 两次卡 ── */
 .duo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24rpx; margin-top: 24rpx; }
@@ -561,7 +561,7 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .ph-yarn { background-color: var(--zy-brand-100); }
 .ph-clay { background-color: var(--zy-bg-tint-warm); }
 .ph-paper { background-color: var(--zy-brand-50); }
-.ph-mono { font-size: 44rpx; font-weight: 600; color: var(--zy-brand-700); line-height: 1.2; }
+.ph-mono { font-size:var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-brand-700); line-height: 1.2; }
 .ph-label { font-size: var(--zy-text-micro); color: var(--zy-brand-700); letter-spacing: 1rpx; margin-top: 4rpx; }
 .craft-copy { flex: 1; min-width: 0; }
 .craft-category { display: block; font-size: var(--zy-text-micro); color: var(--zy-accent); margin-bottom: 6rpx; letter-spacing: 2rpx; }
@@ -579,7 +579,7 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .eyebrow-heritage { color: var(--zy-accent); margin-bottom: 10rpx; }
 .heritage-title { display: block; font-size: var(--zy-text-title-lg); font-weight: 600; letter-spacing: 2rpx; }
 .heritage-sub { display: block; margin-top: 8rpx; font-size: var(--zy-text-caption); color: var(--zy-text); }
-.heritage-arrow { font-size: 32rpx; color: var(--zy-accent); flex-shrink: 0; }
+.heritage-arrow { font-size:var(--zy-text-title, 32rpx); color: var(--zy-accent); flex-shrink: 0; }
 .heritage-corner { position: absolute; right: -12rpx; bottom: -12rpx; width: 168rpx; height: 168rpx; opacity: .14; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%237A5C12' stroke-width='2.5'%3E%3Cpath d='M8 76 V44 H40 V76 H24 V60'/%3E%3Cpath d='M44 76 V28 H76 V60 H60 V44'/%3E%3C/g%3E%3C/svg%3E"); background-size: contain; }
 
 /* ── 页脚链接与免责 ── */

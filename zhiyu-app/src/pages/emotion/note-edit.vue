@@ -23,7 +23,7 @@
 						@keydown.space.prevent="selectMood(m)"
 					>
 						<view v-if="selectedMood === m.label" class="mood-ring"></view>
-						<text class="mood-emoji">{{ m.emoji }}</text>
+						<MoodFace :kind="m.kind" :label="m.label" :selected="selectedMood === m.label" />
 						<text class="mood-label">{{ m.label }}</text>
 					</view>
 				</view>
@@ -88,16 +88,17 @@ import { http } from '../../utils/request'
 import ActionSheet from '../../components/ActionSheet.vue'
 import FormField from '../../components/FormField.vue'
 import Toast from '../../components/Toast.vue'
+import MoodFace from '../../components/MoodFace.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
 
 const moods = [
-	{ emoji: '😊', label: '开心' },
-	{ emoji: '😌', label: '平静' },
-	{ emoji: '😐', label: '一般' },
-	{ emoji: '😮💨', label: '有点累' },
-	{ emoji: '😕', label: '不太好' },
+	{ kind: 0, label: '开心' },
+	{ kind: 1, label: '平静' },
+	{ kind: 2, label: '一般' },
+	{ kind: 3, label: '有点累' },
+	{ kind: 4, label: '不太好' },
 ]
 
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
@@ -220,7 +221,7 @@ async function confirmDelete() {
 }
 
 .date-big {
-	font-size: 48rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	font-weight: 700;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -229,7 +230,7 @@ async function confirmDelete() {
 }
 
 .date-week {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 	display: block;
 	margin-top: 4rpx;
@@ -242,7 +243,7 @@ async function confirmDelete() {
 
 .section-title {
 	display: block;
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	margin-bottom: 20rpx;
@@ -279,7 +280,7 @@ async function confirmDelete() {
 	position: absolute;
 	inset: -2rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
-	border: 3rpx solid var(--zy-primary, #217e76);
+	border: 3rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	pointer-events: none;
 }
 
@@ -291,17 +292,17 @@ async function confirmDelete() {
 }
 
 .mood-emoji {
-	font-size: 48rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	line-height: 1;
 }
 
 .mood-label {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
 .mood-item--active .mood-label {
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	font-weight: 500;
 }
 
@@ -317,7 +318,7 @@ async function confirmDelete() {
 .note-textarea {
 	width: 100%;
 	min-height: 200rpx;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.7;
 	color: var(--zy-title, #233d34);
 	background-color: transparent;
@@ -328,7 +329,7 @@ async function confirmDelete() {
 	display: block;
 	text-align: right;
 	margin-top: 12rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -343,7 +344,7 @@ async function confirmDelete() {
 .save-btn {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -358,7 +359,7 @@ async function confirmDelete() {
 .save-btn:focus-visible,
 .delete-btn:focus-visible,
 .mood-item:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	outline-offset: 3px;
 }
 
@@ -367,7 +368,7 @@ async function confirmDelete() {
 }
 
 .save-btn-text {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 }
@@ -375,7 +376,7 @@ async function confirmDelete() {
 .delete-btn {
 	height: 80rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 1rpx solid var(--zy-care, #a64842);
+	border: 1rpx solid var(--zy-care, var(--zy-care, #a64842));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -387,15 +388,15 @@ async function confirmDelete() {
 }
 
 .delete-btn-text {
-	font-size: 30rpx;
-	color: var(--zy-care, #a64842);
+	font-size:var(--zy-text-body-lg, 30rpx);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 
 /* ── 底部免责 ── */
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }

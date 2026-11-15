@@ -152,7 +152,7 @@ onBeforeUnmount(release)
 	justify-content: center;
 	background: transparent;
 	color: var(--zy-text-secondary, #4a5f54);
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1;
 }
 .sheet-close::after { border: 0; }
@@ -181,8 +181,8 @@ onBeforeUnmount(release)
 }
 .sheet-action::after { border: 0; }
 .sheet-action.tone-default { background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-title, #233d34); }
-.sheet-action.tone-primary { background: var(--zy-brand-600, #1A645E); color: #fff; }
-.sheet-action.tone-danger { background: transparent; border: 1rpx solid var(--zy-care, #a64842); color: var(--zy-care, #a64842); }
+.sheet-action.tone-primary { background: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); color: #fff; }
+.sheet-action.tone-danger { background: transparent; border: 1rpx solid var(--zy-care, var(--zy-care, #a64842)); color: var(--zy-care, var(--zy-care, #a64842)); }
 .sheet-action.disabled { opacity: .5; }
 .sheet-action.is-disabled { opacity: .55; }
 .action-label { font-size: var(--zy-font-base, 28rpx); font-weight: 600; }
@@ -199,7 +199,7 @@ onBeforeUnmount(release)
 	line-height: 1.5;
 }
 .sheet-cancel::after { border: 0; }
-button:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 3px; }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
 @keyframes sheet-rise {
 	from { transform: translateY(32rpx); opacity: 0; }
 	to { transform: translateY(0); opacity: 1; }

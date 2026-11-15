@@ -24,28 +24,28 @@ onShow(load)
 .campus-hero { display: flex; align-items: center; gap: 16rpx; padding: 32rpx; margin-bottom: 28rpx; background: linear-gradient(120deg, var(--zy-bg-tint-mint, #e8efe4), var(--zy-bg-tint-warm, #f7efd9)); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 28rpx; }
 .hero-copy { flex: 1; min-width: 0; }
 .hero-pet { flex-shrink: 0; }
-.eyebrow { display: block; font-size: 22rpx; letter-spacing: 3rpx; color: var(--zy-brand-700, #1a645e); }
-.title { display: block; font-family: var(--zy-serif); font-size: 42rpx; font-weight: 600; color: var(--zy-title, #233d34); margin-top: 10rpx; }
-.intro { display: block; font-size: 25rpx; line-height: 1.8; color: var(--zy-text, #4a5f54); margin-top: 12rpx; }
+.eyebrow { display: block; font-size:var(--zy-text-micro, 22rpx); letter-spacing: 3rpx; color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); }
+.title { display: block; font-family: var(--zy-serif); font-size:var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-title, #233d34); margin-top: 10rpx; }
+.intro { display: block; font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-text, #4a5f54); margin-top: 12rpx; }
 .campus-card { padding: 32rpx; background: var(--zy-card-bg, #ffffff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 28rpx; box-shadow: var(--zy-shadow-sm, 0 4rpx 16rpx rgba(35, 61, 52, 0.04)); margin-bottom: 24rpx; }
 /* class 落在 uni-input 包装元素上：包装定高 + flex 居中，内层运行时 input 用 :deep 着色 */
 .campus-input { padding: 0 24rpx; background: var(--zy-card-bg, #ffffff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; box-sizing: border-box; width: 100%; height: 84rpx; display: flex; align-items: center; }
-.campus-input :deep(input) { font-size: 28rpx; color: var(--zy-title, #233d34); }
-.campus-input.is-focused { border-color: var(--zy-brand-600, #217e76); }
-.submit { margin-top: 12rpx; width: 100%; background: var(--zy-brand-600, #1A645E); color: #ffffff; border-radius: var(--zy-radius-full, 9999rpx); font-weight: 600; box-shadow: var(--zy-shadow-md, 0 8rpx 24rpx rgba(33, 126, 118, 0.18)); }
+.campus-input :deep(input) { font-size:var(--zy-text-body, 28rpx); color: var(--zy-title, #233d34); }
+.campus-input.is-focused { border-color: var(--zy-brand-600, var(--zy-brand-600, #217e76)); }
+.submit { margin-top: 12rpx; width: 100%; background: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); color: #ffffff; border-radius: var(--zy-radius-full, 9999rpx); font-weight: 600; box-shadow: var(--zy-shadow-md, 0 8rpx 24rpx rgba(33, 126, 118, 0.18)); }
 /* 状态分级：审核中=暖底 / 已通过=薄荷底 / 未通过=绛红边 */
 .status-card { gap: 12rpx; }
-.status-label { font-size: 30rpx; font-weight: 600; }
-.status-reason { font-size: 25rpx; line-height: 1.8; color: var(--zy-text, #4a5f54); }
+.status-label { font-size:var(--zy-text-body-lg, 30rpx); font-weight: 600; }
+.status-reason { font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-text, #4a5f54); }
 .status-pending { background: var(--zy-bg-tint-warm, #f7efd9); border-color: var(--zy-border, #dfe7dc); }
-.status-pending .status-label { color: var(--zy-warning-text, #8a6d1f); }
+.status-pending .status-label { color: var(--zy-warning-text, var(--zy-accent, #7a5c12)); }
 .status-approved { background: var(--zy-bg-tint-mint, #e8efe4); }
-.status-approved .status-label { color: var(--zy-brand-700, #1a645e); }
-.status-rejected { background: var(--zy-card-bg, #ffffff); border-color: var(--zy-care, #a64842); }
-.status-rejected .status-label { color: var(--zy-care, #a64842); }
-.error-card { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; padding: 24rpx 28rpx; background: var(--zy-card-bg, #ffffff); border: 1rpx solid var(--zy-care, #a64842); border-radius: 20rpx; }
-.error { color: var(--zy-care, #a64842); font-size: 26rpx; }
-.error-retry { flex-shrink: 0; margin: 0; padding: 8rpx 24rpx; background: transparent; color: var(--zy-brand-700, #1a645e); font-size: 24rpx; }
-.disclaimer { display: block; text-align: center; margin-top: 36rpx; font-size: 24rpx; color: var(--zy-text, #4a5f54); }
-button:focus-visible { outline: 3px solid var(--zy-brand-700, #1a645e); outline-offset: 3px; }
+.status-approved .status-label { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); }
+.status-rejected { background: var(--zy-card-bg, #ffffff); border-color: var(--zy-care, var(--zy-care, #a64842)); }
+.status-rejected .status-label { color: var(--zy-care, var(--zy-care, #a64842)); }
+.error-card { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; padding: 24rpx 28rpx; background: var(--zy-card-bg, #ffffff); border: 1rpx solid var(--zy-care, var(--zy-care, #a64842)); border-radius: 20rpx; }
+.error { color: var(--zy-care, var(--zy-care, #a64842)); font-size:var(--zy-text-caption, 24rpx); }
+.error-retry { flex-shrink: 0; margin: 0; padding: 8rpx 24rpx; background: transparent; color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-caption, 24rpx); }
+.disclaimer { display: block; text-align: center; margin-top: 36rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
 </style>

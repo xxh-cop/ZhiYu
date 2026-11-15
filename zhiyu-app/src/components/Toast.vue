@@ -51,7 +51,7 @@ onBeforeUnmount(() => _trackToastMount(-1))
 	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(33, 126, 118, 0.08));
 }
 .toast-item.tone-success { background: var(--zy-success, #2e7d5b); }
-.toast-item.tone-care { background: var(--zy-care, #a64842); }
+.toast-item.tone-care { background: var(--zy-care, var(--zy-care, #a64842)); }
 @media (prefers-reduced-motion: reduce) {
 	.toast-item { animation: none; }
 }

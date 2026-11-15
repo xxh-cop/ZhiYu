@@ -25,7 +25,7 @@
 			>
 				<text v-if="voiceState === 'recording'" class="zy-inputbar-voice-text">停止</text>
 				<text v-else-if="voiceState === 'processing'" class="zy-inputbar-voice-text">…</text>
-				<wd-icon v-else name="service" size="34rpx" color="#5C5648" />
+				<ZyIcon v-else name="mic" :size="34" color="#5C5648" />
 			</AccessibleButton>
 			<AccessibleButton
 				variant="primary"
@@ -34,7 +34,7 @@
 				aria-label="发送"
 				:disabled="disabled || !canSend"
 				@click="$emit('send')"
-			>↑</AccessibleButton>
+			><ZyIcon name="send" :size="30" color="#FFFFFF" /></AccessibleButton>
 		</view>
 	</view>
 </template>
@@ -42,6 +42,7 @@
 <script setup>
 import { computed } from 'vue'
 import AccessibleButton from './AccessibleButton.vue'
+import ZyIcon from './ZyIcon.vue'
 
 defineOptions({ options: { virtualHost: true, styleIsolation: 'shared' } })
 const props = defineProps({
@@ -69,5 +70,5 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 .zy-inputbar-input { flex: 1; min-height: 64rpx; font-size: var(--zy-text-body, 28rpx); color: var(--zy-title, #33302a); background: transparent; }
 .zy-inputbar-voice { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; border-radius: 50%; background: transparent; padding: 0; margin: 0; }
 .zy-inputbar-voice-text { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
-.zy-inputbar-send { font-size: 30rpx; color: #FFFFFF; }
+.zy-inputbar-send { font-size:var(--zy-text-body-lg, 30rpx); color: #FFFFFF; }
 </style>

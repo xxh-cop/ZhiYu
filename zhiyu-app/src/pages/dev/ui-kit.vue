@@ -23,7 +23,7 @@
 			<AccessibleButton variant="primary" size="lg">lg 96</AccessibleButton>
 			<AccessibleButton variant="primary" size="md">md 88</AccessibleButton>
 			<AccessibleButton variant="primary" size="sm">sm 64</AccessibleButton>
-			<AccessibleButton variant="primary" size="icon" aria-label="图标按钮示例">↑</AccessibleButton>
+			<AccessibleButton variant="primary" size="icon" aria-label="图标按钮示例"><ZyIcon name="send" :size="30" color="#FFFFFF" /></AccessibleButton>
 		</view>
 
 		<text class="kit-h2">C1 状态（primary）</text>
@@ -89,6 +89,7 @@
 <script setup>
 import { ref } from 'vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import StitchDivider from '../../components/StitchDivider.vue'
 import SectionHead from '../../components/SectionHead.vue'
 import MoodFace from '../../components/MoodFace.vue'

@@ -79,7 +79,7 @@
 					<video v-if="item.videoUrl" class="card-cover-video" :src="fullUrl(item.videoUrl)" object-fit="cover" :controls="false" :autoplay="false" />
 					<view class="card-cover-play">
 						<view class="play-icon">
-							<text class="play-icon-text">▶</text>
+							<ZyIcon name="play" :size="30" color="#FFFFFF" class="play-icon-text" />
 						</view>
 					</view>
 				</view>
@@ -138,6 +138,7 @@ import { http } from '../../utils/request'
 import { API_BASE_URL } from '../../utils/config.js'
 import StateBlock from '../../components/StateBlock.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 
 const tabs = [
 	{ label: '全部', value: 'all' },
@@ -280,14 +281,14 @@ loadData(1)
 
 .brand-title {
 	font-family: var(--zy-serif);
-	font-size: 44rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	display: block;
 }
 
 .brand-subtitle {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 	margin-top: 4rpx;
 	display: block;
@@ -309,12 +310,12 @@ loadData(1)
 }
 
 .tab-active {
-	background-color: var(--zy-primary, #217e76);
-	border-color: var(--zy-primary, #217e76);
+	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .tab-text {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -403,8 +404,8 @@ loadData(1)
 }
 
 .play-icon-text {
-	font-size: 28rpx;
-	color: #1A645E;
+	font-size:var(--zy-text-body, 28rpx);
+	color: var(--zy-brand-700, #1a645e);
 	margin-left: 4rpx;
 }
 
@@ -416,8 +417,8 @@ loadData(1)
 }
 
 .card-cover-text-label {
-	font-size: 26rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 .cover-placeholder {
@@ -431,7 +432,7 @@ loadData(1)
 }
 
 .card-title {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	line-height: 1.4;
@@ -440,14 +441,14 @@ loadData(1)
 .card-author {
 	display: block;
 	margin-top: 8rpx;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
 .card-message {
 	display: -webkit-box;
 	margin-top: 12rpx;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.6;
 	color: var(--zy-content, #4a5f54);
 	overflow: hidden;
@@ -476,16 +477,16 @@ loadData(1)
 }
 
 .meta-num {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
 .meta-liked {
-	color: var(--zy-care, #a64842);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 
 .meta-time {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -509,7 +510,7 @@ loadData(1)
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #217e76);
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -518,14 +519,14 @@ loadData(1)
 }
 
 .bottom-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
@@ -534,7 +535,7 @@ loadData(1)
 <style scoped>
 .filter-tab:focus-visible,
 .work-card:focus-visible {
-	outline: 3px solid var(--zy-primary, #217e76);
+	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	outline-offset: 3px;
 }
 .bottom-error {
@@ -548,18 +549,18 @@ loadData(1)
 	border-radius: var(--zy-radius-md, 24rpx);
 	background: var(--zy-card-bg, #fff);
 	color: var(--zy-content, #4a5f54);
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 	text-align: center;
 }
 .bottom-error button {
 	min-height: 72rpx;
 	padding: 0 26rpx;
-	border: 1rpx solid var(--zy-primary, #217e76);
+	border: 1rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #217e76);
-	font-size: 24rpx;
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 2.6;
 }
 .bottom-error button::after { border: 0; }

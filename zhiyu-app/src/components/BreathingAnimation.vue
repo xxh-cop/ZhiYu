@@ -114,13 +114,13 @@ onUnmounted(() => {
 
 .sheet-title {
 	font-family: var(--zy-serif);
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
 
 .sheet-sub {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.6;
 	color: var(--zy-content, #4a5f54);
 }
@@ -137,8 +137,8 @@ onUnmounted(() => {
 	width: 200rpx;
 	height: 200rpx;
 	border-radius: 50%;
-	background-color: var(--zy-brand-100, #c9e4dd);
-	border: 4rpx solid var(--zy-brand-300, #5bc4a8);
+	background-color: var(--zy-brand-100, var(--zy-brand-100, #c9e4dd));
+	border: 4rpx solid var(--zy-brand-300, var(--zy-brand-300, #5bc4a8));
 	box-shadow: var(--zy-shadow-md);
 	transform: scale(0.8);
 	opacity: 0.6;
@@ -158,14 +158,14 @@ onUnmounted(() => {
 }
 
 .breathing-hint {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 500;
 	letter-spacing: 4rpx;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 .breathing-count {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-content, #4a5f54);
 }
 
@@ -173,11 +173,11 @@ onUnmounted(() => {
 	align-self: center;
 	margin: 0;
 	padding: 16rpx 48rpx;
-	border: 2rpx solid var(--zy-primary, #217e76);
+	border: 2rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background-color: transparent;
-	color: var(--zy-brand-700, #217e76);
-	font-size: 26rpx;
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.5;
 }
 

@@ -145,7 +145,7 @@ function goChat() {
 	width: 112rpx;
 	height: 112rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -154,14 +154,14 @@ function goChat() {
 }
 
 .hero-icon-text {
-	font-size: 48rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	font-weight: 600;
 	color: #FFFFFF;
 	font-family: var(--zy-serif);
 }
 
 .hero-title {
-	font-size: 44rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -169,7 +169,7 @@ function goChat() {
 
 .hero-sub {
 	margin-top: 12rpx;
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -194,11 +194,11 @@ function goChat() {
 }
 
 .stripe-warm {
-	background: linear-gradient(90deg, var(--zy-care, #a64842), var(--zy-d-care, #d4736a));
+	background: linear-gradient(90deg, var(--zy-care, var(--zy-care, #a64842)), var(--zy-d-care, #d4736a));
 }
 
 .stripe-mint {
-	background: linear-gradient(90deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
+	background: linear-gradient(90deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
 }
 
 .card-header {
@@ -233,21 +233,21 @@ function goChat() {
 }
 
 .card-title {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
 
 .card-desc {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
 .card-phone {
 	display: block;
-	font-size: 48rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	font-weight: 700;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	font-family: var(--zy-serif);
 	letter-spacing: 4rpx;
 	margin-bottom: 28rpx;
@@ -256,7 +256,7 @@ function goChat() {
 .card-btn {
 	height: 80rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-accent, #8a6d1f);
+	background: var(--zy-accent, var(--zy-accent, #7a5c12));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -270,12 +270,12 @@ function goChat() {
 }
 
 .card-btn-mint {
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	box-shadow: 0 4rpx 16rpx rgba(33, 126, 118, 0.25);
 }
 
 .card-btn-text {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 }
@@ -287,7 +287,7 @@ function goChat() {
 	gap: 24rpx;
 	padding: 36rpx 32rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	box-shadow: var(--zy-shadow-md);
 	margin-bottom: 32rpx;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
@@ -316,13 +316,13 @@ function goChat() {
 }
 
 .chat-card-title {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
 	color: #FFFFFF;
 }
 
 .chat-card-sub {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: rgba(255, 255, 255, 0.8);
 }
 
@@ -336,7 +336,7 @@ function goChat() {
 }
 
 .warm-line {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.8;
 	color: var(--zy-text, #4a5f54);
 	text-align: center;
@@ -345,9 +345,9 @@ function goChat() {
 /* ── 底部免责 ── */
 .footnote {
 	display: block;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
-button:focus-visible{outline:3px solid var(--zy-brand-700,#1a645e);outline-offset:3px}
+button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
 </style>

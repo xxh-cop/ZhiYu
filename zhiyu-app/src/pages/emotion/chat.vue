@@ -1,6 +1,6 @@
 <template>
 	<view :class="zyThemeClass" class="page" @touchstart="idleArm" @click="idleArm">
-		<view class="chat-header"><XiaotuanPet :size="42" aria-label="小织"/><view class="chat-header-copy"><text class="header-name zy-t-serif">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '按自己的节奏，慢慢说' }}</text></view><AccessibleButton v-if="emotionStore.sessionId" variant="ghost" size="sm" class="header-action" :disabled="streaming" @click="endConversation">结束倾听</AccessibleButton><AccessibleButton variant="danger" size="sm" class="header-action" @click="goCrisisPage">寻求支持</AccessibleButton></view>
+		<view class="chat-header"><XiaotuanPet :size="42" aria-label="小织"/><view class="chat-header-copy"><text class="header-name zy-t-serif">小织 · 倾听陪伴</text><text class="header-state">{{ streaming ? '正在回应你…' : '在听' }}</text></view><AccessibleButton v-if="emotionStore.sessionId" variant="ghost" size="sm" class="header-action" :disabled="streaming" @click="endConversation">结束倾听</AccessibleButton><AccessibleButton variant="danger" size="sm" class="header-action" @click="goCrisisPage">寻求支持</AccessibleButton></view>
 		<!-- 对话区 -->
 		<scroll-view
 			class="chat-area"
@@ -14,9 +14,13 @@
 					<view class="welcome-avatar">
 						<XiaotuanPet :size="110" aria-label="小织陪伴你"/>
 					</view>
-					<text class="welcome-title zy-t-serif">我在这里陪你</text>
-					<text class="welcome-sub">我是小织，一个耐心的倾听者</text>
+					<text class="welcome-title zy-t-serif">今天想从哪儿说起？</text>
+					<text class="welcome-sub">不用想好句子，说半句也行。</text>
 					<text class="welcome-hint">说说今天发生了什么？</text>
+					<view v-if="memoryPreview" class="memory-hint" role="button" tabindex="0" @click="goMemory" @keydown.enter.prevent="goMemory" @keydown.space.prevent="goMemory">
+						<text class="memory-hint-text">{{ memoryPreview }}</text>
+						<text class="memory-hint-link">改</text>
+					</view>
 					<view class="welcome-chips">
 						<AccessibleButton v-for="c in OPENERS" :key="c" class="opener-chip" @click="fillInput(c)">{{ c }}</AccessibleButton>
 					</view>
@@ -72,7 +76,7 @@
 					<view class="crisis-avatar"><XiaotuanPet :size="30" face="care" /></view>
 					<text class="crisis-card-title zy-t-serif">小织想对你说</text>
 				</view>
-				<text class="crisis-card-text">我在这里陪着你。如果需要，可以联系专业资源。</text>
+				<text class="crisis-card-text">我先陪你一会儿。如果撑不住，这些电话现在就能打。</text>
 				<view class="crisis-card-btns">
 					<AccessibleButton variant="care" size="md" aria-label="查看心理援助资源" @click="goCrisisPage">
 						<wd-icon name="phone" size="28rpx" color="#FFFFFF" />
@@ -136,7 +140,7 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import {request} from '../../utils/request'
-import { onLoad, onUnload } from '@dcloudio/uni-app'
+import { onLoad, onUnload, onShow } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
 import { useUserStore } from '../../stores/user'
 import {useVoiceInput} from '../../composables/useVoiceInput'
@@ -152,6 +156,24 @@ import { useToast } from '../../composables/useToast'
 import { useIdleNudge } from '../../composables/useIdleNudge'
 
 const toast = useToast()
+
+// 「小织记得的」（2026-11-15）：空状态时给一条可修改的记忆提示；未开启记忆时不显示。
+const memoryPreview = ref('')
+async function loadMemoryHint() {
+	try {
+		const m = await request({ url: '/api/companion/memory' })
+		if (!m.enabled) { memoryPreview.value = ''; return }
+		const parts = []
+		const calm = (m.derived || []).find(d => d.key === 'calm_strategy')
+		if (calm) parts.push(calm.value)
+		const minutes = (m.items || []).find(i => i.key === 'preferred_minutes')
+		if (minutes) parts.push(`一次 ${minutes.value} 分钟`)
+		if ((m.avoidTopics || []).length) parts.push(`不聊${m.avoidTopics.join('、')}`)
+		memoryPreview.value = parts.length ? `小织记得：${parts.slice(0, 2).join(' · ')}` : ''
+	} catch (e) { memoryPreview.value = '' }
+}
+function goMemory() { uni.navigateTo({ url: '/pages/settings/memory' }) }
+onShow(loadMemoryHint)
 
 const emotionStore = useEmotionStore()
 const userStore = useUserStore()
@@ -381,6 +403,9 @@ const voiceStateView = computed(() => {
 .welcome-title { font-size: var(--zy-text-title-lg); font-weight: 600; color: var(--zy-title); letter-spacing: 1rpx; }
 .welcome-sub { margin-top: 12rpx; font-size: var(--zy-text-body); color: var(--zy-brand-700); }
 .welcome-hint { margin-top: 28rpx; font-size: var(--zy-text-caption); color: var(--zy-text); }
+.memory-hint { display: flex; align-items: center; gap: 12rpx; margin-top: 24rpx; padding: 14rpx 20rpx; max-width: 100%; background: var(--zy-card-bg, #fffdf7); border: 1rpx solid var(--zy-line-soft, #e9e2d5); border-radius: 999rpx; }
+.memory-hint-text { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
+.memory-hint-link { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, #1a645e); padding: 0 6rpx; }
 .welcome-chips { display: flex; flex-direction: column; gap: 16rpx; margin-top: 32rpx; align-items: center; }
 .opener-chip { background: transparent; border: 2rpx dashed var(--zy-stitch); color: var(--zy-text); border-radius: 999rpx; padding: 16rpx 32rpx; font-size: var(--zy-text-caption); margin: 0; line-height: 1.6; }
 
@@ -399,7 +424,7 @@ const voiceStateView = computed(() => {
 
 /* ── 错误重试 ── */
 .error-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
-.error-text { font-size: var(--zy-text-caption); color: var(--zy-danger, #a64842); }
+.error-text { font-size: var(--zy-text-caption); color: var(--zy-danger, var(--zy-care, #a64842)); }
 
 /* ── 本地兜底持续轻注 ── */
 .local-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 12rpx 24rpx; background: var(--zy-bg-tint-mint); border-top: 2rpx dashed var(--zy-stitch); }

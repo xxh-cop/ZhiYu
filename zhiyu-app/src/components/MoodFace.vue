@@ -6,37 +6,47 @@
 	-->
 	<AccessibleButton
 		class="zy-mood"
+		:class="flat ? 'is-flat' : ''"
 		:aria-pressed="selected"
 		:aria-label="label"
 		@click="$emit('select')"
 	>
 		<view class="zy-mood-ring">
-			<view class="zy-mood-face" :class="'zy-mood-face--' + kind">
+			<view class="zy-mood-face" :class="'zy-mood-face--' + kind" :style="faceStyle">
 				<view class="zy-mood-eyes"></view>
 				<view class="zy-mood-mouth"></view>
 			</view>
 		</view>
-		<text class="zy-mood-label">{{ label }}</text>
+		<text v-if="showLabel" class="zy-mood-label">{{ label }}</text>
 	</AccessibleButton>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import AccessibleButton from './AccessibleButton.vue'
 
 defineOptions({ options: { virtualHost: true, styleIsolation: 'shared' } })
-defineProps({
+const props = defineProps({
 	kind: { type: Number, default: 0 },
 	label: { type: String, required: true },
 	selected: Boolean,
+	// size>0 时按比例缩放脸谱（rpx）；flat 用于列表等已有圆形底的场景；showLabel=false 隐藏文字
+	size: { type: Number, default: 0 },
+	flat: Boolean,
+	showLabel: { type: Boolean, default: true },
 })
 defineEmits(['select'])
+
+const faceStyle = computed(() => (props.size > 0 ? { transform: `scale(${props.size / 68})` } : {}))
 </script>
 
 <style scoped>
 .zy-mood { background: transparent; padding: 0 4rpx; margin: 0; line-height: 1.8; border-radius: 16rpx; min-height: 88rpx; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0; }
+.zy-mood.is-flat { min-height: 0; padding: 0; }
+.zy-mood.is-flat .zy-mood-ring { margin: 0; }
 .zy-mood-ring { width: 92rpx; height: 92rpx; border-radius: 50%; border: 2rpx dashed transparent; display: flex; align-items: center; justify-content: center; margin: 0 auto 12rpx; transition: border-color 200ms ease-out, background-color 200ms ease-out; }
-.zy-mood.is-selected .zy-mood-ring { border: 2rpx solid var(--zy-brand-600, #217e76); background: var(--zy-bg-tint-mint, #e4efe7); }
-.zy-mood.is-selected .zy-mood-label { color: var(--zy-brand-700, #1a645e); font-weight: 500; }
+.zy-mood.is-selected .zy-mood-ring { border: 2rpx solid var(--zy-brand-600, var(--zy-brand-600, #217e76)); background: var(--zy-bg-tint-mint, #e4efe7); }
+.zy-mood.is-selected .zy-mood-label { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-weight: 500; }
 .zy-mood-label { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
 
 /* ── 脸谱（与首页 P0 版一致的五官绘制） ── */

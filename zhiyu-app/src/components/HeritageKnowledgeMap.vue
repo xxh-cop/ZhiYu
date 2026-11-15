@@ -92,12 +92,12 @@ onBeforeUnmount(() => {
 .knowledge-map { padding: 8rpx 0 0; }
 .knowledge-map-canvas { display: block; margin: 0 auto; border-radius: 20rpx; background: #f7f9f4; }
 .knowledge-map-legend { display: flex; justify-content: center; gap: 24rpx; margin: 12rpx 0 16rpx; }
-.legend-item { display: flex; align-items: center; gap: 8rpx; font-size: 21rpx; color: var(--zy-text, #4a5f54); }
+.legend-item { display: flex; align-items: center; gap: 8rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
 .legend-dot { width: 16rpx; height: 16rpx; border-radius: 50%; }
-.legend-dot.tradition { background: #217e76; }
+.legend-dot.tradition { background: var(--zy-brand-600, #217e76); }
 .legend-dot.source { background: #bb914d; }
 .knowledge-map-list { display: flex; flex-direction: column; gap: 12rpx; }
 .knowledge-group { padding: 14rpx 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #ffffff); }
-.knowledge-group-title { display: block; font-size: 24rpx; color: var(--zy-title, #233d34); font-weight: 600; }
-.knowledge-group-meta, .knowledge-group-patterns { display: block; margin-top: 4rpx; font-size: 21rpx; line-height: 1.6; color: var(--zy-text, #4a5f54); word-break: break-word; }
+.knowledge-group-title { display: block; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-title, #233d34); font-weight: 600; }
+.knowledge-group-meta, .knowledge-group-patterns { display: block; margin-top: 4rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-text, #4a5f54); word-break: break-word; }
 </style>

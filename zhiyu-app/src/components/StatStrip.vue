@@ -28,7 +28,7 @@ defineProps({
 <style scoped>
 .zy-stat-strip { display: flex; align-items: center; justify-content: space-around; padding: 28rpx 0; }
 .zy-stat { text-align: center; flex: 1; min-width: 0; }
-.zy-stat-num { display: block; font-size: var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-brand-600, #217e76); font-variant-numeric: tabular-nums; }
+.zy-stat-num { display: block; font-size: var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-brand-600, var(--zy-brand-600, #217e76)); font-variant-numeric: tabular-nums; }
 .zy-stat-label { display: block; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); margin-top: 6rpx; }
 .zy-stat-divider { height: 60rpx; flex-shrink: 0; }
 </style>

@@ -16,4 +16,4 @@ function call(){uni.makePhoneCall({phoneNumber:campus.center.phone,fail:()=>toas
 function goCrisis(){uni.navigateTo({url:'/pages/crisis/index'})}
 </script>
 
-<style scoped>.growth-muted{display:block;margin-top:8rpx;overflow-wrap:anywhere}.phone{display:block;font-size:42rpx;font-weight:600;letter-spacing:2rpx;margin:24rpx 0;color:var(--zy-brand-700,#217e76)}</style>
+<style scoped>.growth-muted{display:block;margin-top:8rpx;overflow-wrap:anywhere}.phone{display:block;font-size:var(--zy-text-title-lg, 40rpx);font-weight:600;letter-spacing:2rpx;margin:24rpx 0;color:var(--zy-brand-700,var(--zy-brand-600, #217e76))}</style>

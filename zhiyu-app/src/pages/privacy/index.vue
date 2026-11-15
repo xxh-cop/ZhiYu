@@ -229,7 +229,7 @@ async function handleAgree() {
 }
 
 .cover-title {
-	font-size: 40rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -237,7 +237,7 @@ async function handleAgree() {
 
 .cover-sub {
 	margin-top: 8rpx;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -251,7 +251,7 @@ async function handleAgree() {
 }
 
 .disclaimer-text {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 	color: var(--zy-warning, #92400E);
 }
@@ -266,9 +266,9 @@ async function handleAgree() {
 }
 
 .section-heading {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	display: block;
 	margin-bottom: 16rpx;
 }
@@ -278,7 +278,7 @@ async function handleAgree() {
 }
 
 .para-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.8;
 	color: var(--zy-content, #4a5f54);
 }
@@ -294,7 +294,7 @@ async function handleAgree() {
 }
 
 .table-cell {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.6;
 	color: var(--zy-text, #4a5f54);
 }
@@ -308,13 +308,13 @@ async function handleAgree() {
 }
 
 .contact-label {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 	display: block;
 }
 
 .contact-value {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-content, #4a5f54);
 	display: block;
 	margin-top: 6rpx;
@@ -341,7 +341,7 @@ async function handleAgree() {
 .btn-agree {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -358,13 +358,13 @@ async function handleAgree() {
 }
 
 .btn-agree-text {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 }
 
 button:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	outline-offset: 3px;
 }
 </style>

@@ -196,7 +196,7 @@ function handleCancel() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -206,14 +206,14 @@ function handleCancel() {
 
 .hero-title {
 	font-family: var(--zy-serif);
-	font-size: 40rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
 
 .hero-sub {
 	margin-top: 8rpx;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -239,29 +239,29 @@ function handleCancel() {
 }
 
 .form-label {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 }
 
 .required {
-	color: var(--zy-danger, #a64842);
+	color: var(--zy-danger, var(--zy-care, #a64842));
 }
 
 .form-hint {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
 .char-hint {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 	text-align: right;
 }
 
 .form-error {
-	font-size: 24rpx;
-	color: var(--zy-danger, #a64842);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-danger, var(--zy-care, #a64842));
 }
 
 /* ── 底部按钮区 ── */
@@ -274,7 +274,7 @@ function handleCancel() {
 .btn-primary {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -290,7 +290,7 @@ function handleCancel() {
 }
 
 .btn-primary-text {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 	letter-spacing: 2rpx;
@@ -311,7 +311,7 @@ function handleCancel() {
 }
 
 .btn-secondary-text {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	color: var(--zy-content, #4a5f54);
 }
 
@@ -319,7 +319,7 @@ function handleCancel() {
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
@@ -327,7 +327,7 @@ function handleCancel() {
 button:focus-visible,
 .btn-primary:focus-visible,
 .btn-secondary:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	outline-offset: 3px;
 }
 </style>

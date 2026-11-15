@@ -70,21 +70,21 @@ const hint = computed(() => {
 }
 .practice-bar-kicker {
 	display: block;
-	font-size: 20rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 2rpx;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 .practice-bar-title {
 	display: block;
 	margin-top: 4rpx;
-	font-size: 27rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 }
 .practice-bar-sub {
 	display: block;
 	margin-top: 4rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.6;
 	color: var(--zy-text, #4a5f54);
 }
@@ -100,8 +100,8 @@ const hint = computed(() => {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 12rpx;
 	background: var(--zy-bg, #ffffff);
-	color: var(--zy-brand-700, #217e76);
-	font-size: 23rpx;
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 44px;
 }
 .practice-bar-button.is-disabled {
@@ -110,8 +110,8 @@ const hint = computed(() => {
 .practice-bar-error {
 	display: block;
 	margin-top: 10rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.6;
-	color: var(--zy-care, #a64842);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 </style>

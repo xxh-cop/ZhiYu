@@ -221,8 +221,8 @@
 						<wd-icon name="tips" size="36rpx" color="#217e76" />
 					</view>
 					<view class="ai-hint-info">
-						<text class="ai-hint-title">AI 寄语</text>
-						<text class="ai-hint-text">作品发布后，AI 会根据你的创作过程自动生成一句温暖寄语</text>
+						<text class="ai-hint-title">小织会留一句话</text>
+						<text class="ai-hint-text">发布后写一句，你可以改，也可以不要。</text>
 					</view>
 				</view>
 			</view>
@@ -565,7 +565,7 @@ function goMine() {
 
 .nav-title {
 	font-family: var(--zy-serif);
-	font-size: 36rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 }
@@ -596,7 +596,7 @@ function goMine() {
 }
 
 .step-dot--active {
-	background-color: var(--zy-primary, #217e76);
+	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .step-dot--current {
@@ -604,7 +604,7 @@ function goMine() {
 }
 
 .step-dot-text {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 600;
 	color: var(--zy-text, #4a5f54);
 }
@@ -621,7 +621,7 @@ function goMine() {
 }
 
 .step-line--active {
-	background-color: var(--zy-primary, #217e76);
+	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 /* ── 步骤内容 ── */
@@ -640,7 +640,7 @@ function goMine() {
 .step-card-title {
 	display: block;
 	font-family: var(--zy-serif);
-	font-size: 36rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	margin-bottom: 8rpx;
@@ -648,7 +648,7 @@ function goMine() {
 
 .step-card-sub {
 	display: block;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 	margin-bottom: 32rpx;
 }
@@ -674,17 +674,17 @@ function goMine() {
 }
 
 .media-tab--active {
-	border-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
 .media-tab-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
 .media-tab-text--active {
-	color: var(--zy-brand-700, #1a645e);
+	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	font-weight: 500;
 }
 
@@ -703,7 +703,7 @@ function goMine() {
 }
 
 .image-upload-area:active {
-	border-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .image-preview {
@@ -719,12 +719,12 @@ function goMine() {
 }
 
 .image-placeholder-text {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
 .image-placeholder-hint {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 	opacity: 0.7;
 }
@@ -742,7 +742,7 @@ function goMine() {
 	height: 48rpx;
 	border-radius: 50%;
 	border: 4rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #217e76);
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -751,7 +751,7 @@ function goMine() {
 }
 
 .upload-loading-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -766,7 +766,7 @@ function goMine() {
 .upload-progress-fill {
 	height: 100%;
 	border-radius: 4rpx;
-	background: linear-gradient(90deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
+	background: linear-gradient(90deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
 	transition: width 0.2s ease;
 }
 
@@ -778,8 +778,8 @@ function goMine() {
 }
 
 .re-upload-text {
-	font-size: 26rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 /* ── 纯文字提示 ── */
@@ -803,13 +803,13 @@ function goMine() {
 }
 
 .text-only-title {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 }
 
 .text-only-sub {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
@@ -830,22 +830,22 @@ function goMine() {
 }
 
 .form-label {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 }
 
 .required {
-	color: var(--zy-care, #a64842);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 
 .form-hint {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
 .char-hint {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 	text-align: right;
 }
@@ -869,7 +869,7 @@ function goMine() {
 }
 
 .radio-active {
-	border-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 	background-color: var(--zy-bg-tint-mint, #e8efe4);
 }
 
@@ -883,13 +883,13 @@ function goMine() {
 }
 
 .dot-active {
-	border-color: var(--zy-primary, #217e76);
-	background-color: var(--zy-primary, #217e76);
+	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 	box-shadow: inset 0 0 0 4rpx var(--zy-card-bg, #FFFFFF);
 }
 
 .radio-label {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-content, #4a5f54);
 }
 
@@ -916,7 +916,7 @@ function goMine() {
 }
 
 .switch-on {
-	background-color: var(--zy-primary, #217e76);
+	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .switch-knob {
@@ -965,13 +965,13 @@ function goMine() {
 }
 
 .ai-hint-title {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 }
 
 .ai-hint-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-content, #4a5f54);
 	line-height: 1.5;
 }
@@ -1004,11 +1004,11 @@ function goMine() {
 }
 
 .preview-cover--placeholder {
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-brand-300, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
 }
 
 .preview-cover-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: rgba(255, 255, 255, 0.8);
 	margin-top: 8rpx;
 }
@@ -1020,7 +1020,7 @@ function goMine() {
 .preview-title {
 	display: block;
 	font-family: var(--zy-serif);
-	font-size: 34rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	margin-bottom: 12rpx;
@@ -1028,7 +1028,7 @@ function goMine() {
 
 .preview-message {
 	display: block;
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.6;
 	color: var(--zy-content, #4a5f54);
 	margin-bottom: 16rpx;
@@ -1046,8 +1046,8 @@ function goMine() {
 }
 
 .preview-tag-text {
-	font-size: 22rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 /* ── 按钮行 ── */
@@ -1060,7 +1060,7 @@ function goMine() {
 	flex: 1;
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1076,7 +1076,7 @@ function goMine() {
 }
 
 .btn-primary-text {
-	font-size: 32rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 	letter-spacing: 2rpx;
@@ -1098,7 +1098,7 @@ function goMine() {
 }
 
 .btn-secondary-text {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	color: var(--zy-content, #4a5f54);
 }
 
@@ -1140,13 +1140,13 @@ function goMine() {
 
 .success-title {
 	font-family: var(--zy-serif);
-	font-size: 36rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 .success-hint {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-content, #4a5f54);
 }
 
@@ -1154,7 +1154,7 @@ function goMine() {
 	margin-top: 16rpx;
 	padding: 20rpx 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76);
+	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
@@ -1163,7 +1163,7 @@ function goMine() {
 }
 
 .success-btn-text {
-	font-size: 30rpx;
+	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 	color: #FFFFFF;
 }
@@ -1172,13 +1172,13 @@ function goMine() {
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
 </style>
 
-<style scoped>.upload-actions,.upload-error{padding:20rpx;font-size:25rpx;line-height:1.8}.upload-error{color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button{font-size:24rpx;color:var(--zy-brand-700);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice{display:block;font-size:23rpx;color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>
+<style scoped>.upload-actions,.upload-error{padding:20rpx;font-size:var(--zy-text-caption, 24rpx);line-height:1.8}.upload-error{color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button{font-size:var(--zy-text-caption, 24rpx);color:var(--zy-brand-700);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice{display:block;font-size:var(--zy-text-caption, 24rpx);color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>
 
 <style scoped>
 .media-tab:focus-visible,
@@ -1186,12 +1186,12 @@ function goMine() {
 .re-upload-btn:focus-visible,
 .radio-item:focus-visible,
 .switch:focus-visible {
-	outline: 3px solid var(--zy-primary, #217e76);
+	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	outline-offset: 3px;
 }
 
 button:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	outline-offset: 3px;
 }
 </style>

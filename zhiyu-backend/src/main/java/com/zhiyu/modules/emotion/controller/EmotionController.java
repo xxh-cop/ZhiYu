@@ -62,6 +62,7 @@ public class EmotionController {
     private final ObjectMapper objectMapper;
     private final com.zhiyu.modules.dialogue.DialogueContextService dialogueContext;
     private final DialogueCommander dialogueCommander;
+    private final com.zhiyu.modules.companion.memory.CompanionMemoryService companionMemoryService;
     @Qualifier("sseExecutor")
     private final ThreadPoolTaskExecutor sseExecutor;
 
@@ -117,6 +118,23 @@ public class EmotionController {
                         withContext.add(ChatMessage.system(contextPrefix));
                         withContext.addAll(history);
                         history = withContext;
+                    }
+                }
+
+                // 「小织记得的」（2026-11-15）：用户授权的跨会话陪伴档案，最多 3 条、不含原句。
+                // 危机检测已在 appendMessage 前短路；未开启或撤回授权时 history 保持原样。
+                Map<String, Object> profile = companionMemoryService.chatProfile(userId);
+                if (Boolean.TRUE.equals(profile.get("enabled"))) {
+                    @SuppressWarnings("unchecked")
+                    List<String> lines = (List<String>) profile.getOrDefault("lines", List.of());
+                    if (!lines.isEmpty()) {
+                        var withProfile = new java.util.ArrayList<ChatMessage>(history.size() + 1);
+                        withProfile.add(ChatMessage.system(
+                                "以下是小织记得的、对方授权且可随时查看/修改/删除的陪伴档案，不是本次对话内容：\n"
+                                        + String.join("\n", lines)
+                                        + "\n只在相关时自然用到，不主动复述这些记录，不评价对方，不贴标签。"));
+                        withProfile.addAll(history);
+                        history = withProfile;
                     }
                 }
 

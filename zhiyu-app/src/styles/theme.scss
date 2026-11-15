@@ -21,6 +21,7 @@ page {
 	/* ── 品牌色阶（青玉案） ── */
 	--zy-brand-50: #eaf4f1;
 	--zy-brand-100: #c9e4dd;
+	--zy-brand-200: #8adcc6;    /* 浅青玉图形（不作正文） */
 	--zy-brand-300: #5bc4a8;    /* 深色态主色 / 浅色态图形 */
 	--zy-brand-500: #2d9b8f;    /* hover / 图表 / 图形（不作按钮底） */
 	--zy-brand-600: #217e76;    /* 主色：按钮、链接、导航选中 */
@@ -36,13 +37,13 @@ page {
 
 	--wot-color-bg: #ffffff;            /* 页面底（云白，默认主题） */
 	--wot-color-border: #dcdcd6;        /* 发丝线（随 --zy-border） */
-	--wot-color-border-light: #F3F4F6;  /* 浅冷灰 */
+	--wot-color-border-light: #EDE7DB;  /* 暖纸浅线（原浅冷灰） */
 
 	--wot-color-title: #33302a;         /* 标题（暖墨） */
 	--wot-color-content: #5c5648;       /* 正文（暖灰棕，对暖纸底 6.4:1） */
 	--wot-color-secondary: #5c5648;     /* 次要 */
 	--wot-color-aid: #5c5648;           /* 辅助 */
-	--wot-color-tip: #D1D5DB;           /* 银灰 — 占位提示（非正文用途） */
+	--wot-color-tip: #C9BFA9;           /* 暖灰 — 占位提示（非正文用途） */
 
 	/* ── 织愈色板（向后兼容别名，指向暖纸青玉令牌） ── */
 	--zy-primary: #217e76;
@@ -61,6 +62,7 @@ page {
 	--zy-bg-warm: #ffffff;              /* 卡片底别名（随主题） */
 	--zy-bg-tint-mint: #e4efe7;         /* 薄荷 tint — 平静/呼吸语义底 */
 	--zy-bg-tint-warm: #f3e9cf;         /* 暖金 tint — 非遗/关怀语义底 */
+	--zy-bg-tint-care: #f7ecea;         /* 关怀 tint — 危险操作与错误提示底 */
 	--zy-content: #5c5648;
 	--zy-aid: #5c5648;
 	--zy-stitch: #d8d8d4;               /* 缝线：虚线分隔/纹样，纯装饰不承载文本（云白默认） */

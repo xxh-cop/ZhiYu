@@ -27,18 +27,18 @@ function leave(){pendingLeave.value=true}
 function confirmLeave(){pendingLeave.value=false;active.value=null}
 function copySource(){uni.setClipboardData({data:active.value.source})}function help(){uni.navigateTo({url:'/pages/crisis/index'})}function journey(){uni.navigateTo({url:'/pages/journey/index'})}onLoad(o=>{requested=o.scale||'';load()})
 </script><style scoped>
-.source:focus-visible{outline:3px solid var(--zy-primary,#217e76);outline-offset:3px}
+.source:focus-visible{outline:3px solid var(--zy-primary,var(--zy-brand-600, #217e76));outline-offset:3px}
 </style><style scoped>
 /* AZ 精修（2026-11-05）：hero 补小织、量表卡加徽章层次、支持入口改温和关怀卡。结构/流程不动。 */
 .assess-hero{display:flex;align-items:center;gap:16rpx}.hero-copy{flex:1;min-width:0}.hero-pet{flex-shrink:0}
 .scale-card{display:flex;align-items:center;gap:22rpx}
 .scale-badge{flex-shrink:0;width:84rpx;height:84rpx;border-radius:24rpx;background:var(--zy-bg-tint-mint,#e8efe4);display:flex;align-items:center;justify-content:center}
-.scale-badge-text{font-size:24rpx;font-weight:600;color:var(--zy-brand-700,#1a645e)}
+.scale-badge-text{font-size:var(--zy-text-caption, 24rpx);font-weight:600;color:var(--zy-brand-700,var(--zy-brand-700, #1a645e))}
 .scale-copy{flex:1;min-width:0}
 .scale-action{flex-shrink:0;margin:0}
-.question{display:block;font-size:34rpx;line-height:1.8;margin:36rpx 0}.source{display:block;color:#1A645E;margin-top:20rpx}.growth-row button{flex:1}
-.source:focus-visible{outline:3px solid var(--zy-primary,#217e76);outline-offset:3px}
+.question{display:block;font-size:var(--zy-text-title, 32rpx);line-height:1.8;margin:36rpx 0}.source{display:block;color:var(--zy-brand-700, #1a645e);margin-top:20rpx}.growth-row button{flex:1}
+.source:focus-visible{outline:3px solid var(--zy-primary,var(--zy-brand-600, #217e76));outline-offset:3px}
 .support-card{display:flex;align-items:center;justify-content:space-between;gap:16rpx;margin-top:32rpx;padding:24rpx 28rpx;background:var(--zy-card-bg,#ffffff);border:1rpx solid var(--zy-border,#dfe7dc);border-radius:22rpx}
-.support-text{font-size:24rpx;line-height:1.7;color:var(--zy-text,#4a5f54)}
-.support-link{flex-shrink:0;margin:0;padding:8rpx 20rpx;background:transparent;color:var(--zy-brand-700,#1a645e);font-size:24rpx}
+.support-text{font-size:var(--zy-text-caption, 24rpx);line-height:1.7;color:var(--zy-text,#4a5f54)}
+.support-link{flex-shrink:0;margin:0;padding:8rpx 20rpx;background:transparent;color:var(--zy-brand-700,var(--zy-brand-700, #1a645e));font-size:var(--zy-text-caption, 24rpx)}
 </style>

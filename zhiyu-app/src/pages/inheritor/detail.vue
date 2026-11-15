@@ -343,8 +343,8 @@ function goProjectDetail(item) {
 }
 
 .error-text {
-	font-size: 28rpx;
-	color: var(--zy-danger, #a64842);
+	font-size:var(--zy-text-body, 28rpx);
+	color: var(--zy-danger, var(--zy-care, #a64842));
 }
 
 /* ── 渐变头部区 ── */
@@ -380,7 +380,7 @@ function goProjectDetail(item) {
 	height: 212rpx;
 	border-radius: 50%;
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, #217e76), var(--zy-primary-light, #5bc4a8));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
 	margin-bottom: 8rpx;
 }
 
@@ -397,13 +397,13 @@ function goProjectDetail(item) {
 }
 
 .hero-avatar-letter {
-	font-size: 72rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	font-weight: 600;
 	color: #FFFFFF;
 }
 
 .hero-name {
-	font-size: 40rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -423,8 +423,8 @@ function goProjectDetail(item) {
 }
 
 .skill-text {
-	font-size: 24rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 .honor-badge {
@@ -437,12 +437,12 @@ function goProjectDetail(item) {
 }
 
 .honor-text {
-	font-size: 24rpx;
-	color: var(--zy-accent, #8a6d1f);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-accent, var(--zy-accent, #7a5c12));
 }
 
 .hero-school {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -468,7 +468,7 @@ function goProjectDetail(item) {
 }
 
 .stat-num {
-	font-size: 40rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 700;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -476,7 +476,7 @@ function goProjectDetail(item) {
 }
 
 .stat-label {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -501,15 +501,15 @@ function goProjectDetail(item) {
 	position: absolute;
 	top: 8rpx;
 	left: 20rpx;
-	font-size: 56rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	font-family: var(--zy-serif);
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	opacity: 0.2;
 	line-height: 1;
 }
 
 .intro-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.8;
 	color: var(--zy-content, #4a5f54);
 }
@@ -520,7 +520,7 @@ function goProjectDetail(item) {
 }
 
 .section-title {
-	font-size: 34rpx;
+	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -536,7 +536,7 @@ function goProjectDetail(item) {
 }
 
 .empty-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -605,8 +605,8 @@ function goProjectDetail(item) {
 }
 
 .level-text {
-	font-size: 22rpx;
-	color: var(--zy-brand-900, #0f3d38);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-900, var(--zy-brand-900, #0f3d38));
 	font-weight: 600;
 }
 
@@ -616,7 +616,7 @@ function goProjectDetail(item) {
 }
 
 .card-title {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	display: -webkit-box;
@@ -629,7 +629,7 @@ function goProjectDetail(item) {
 .card-intro {
 	display: -webkit-box;
 	margin-top: 8rpx;
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.5;
 	color: var(--zy-content, #4a5f54);
 	overflow: hidden;
@@ -652,7 +652,7 @@ function goProjectDetail(item) {
 }
 
 .category-text {
-	font-size: 20rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -663,7 +663,7 @@ function goProjectDetail(item) {
 }
 
 .time-text {
-	font-size: 20rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
@@ -688,7 +688,7 @@ function goProjectDetail(item) {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, #217e76);
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -697,14 +697,14 @@ function goProjectDetail(item) {
 }
 
 .bottom-text {
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-aid, #4a5f54);
 }
 
 .footnote {
 	display: block;
 	margin: 24rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
@@ -727,13 +727,13 @@ function goProjectDetail(item) {
 .project-retry {
 	min-height: 88rpx;
 	padding: 0 28rpx;
-	border: 1rpx solid var(--zy-primary, #217e76);
+	border: 1rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	border-radius: var(--zy-radius-full, 9999rpx);
 	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, #217e76);
-	font-size: 25rpx;
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 2.8;
 }
 .project-retry::after { border: 0; }
-.project-retry:focus-visible { outline: 3px solid var(--zy-primary, #217e76); outline-offset: 3px; }
+.project-retry:focus-visible { outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76)); outline-offset: 3px; }
 </style>

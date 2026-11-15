@@ -23,7 +23,7 @@
 				<view v-else class="cover-pattern" :class="'ph-' + coverKind" aria-hidden="true"></view>
 				<view class="cover-scrim" aria-hidden="true"></view>
 				<button class="cover-fab cover-back" aria-label="返回上一页" @click="goBack"><text class="cover-fab-t">‹</text></button>
-				<button open-type="share" class="cover-fab cover-share" aria-label="分享手作项目" @click="share"><text class="cover-fab-t">↗</text></button>
+				<button open-type="share" class="cover-fab cover-share" aria-label="分享手作项目" @click="share"><ZyIcon name="share" :size="30" color="#FFFFFF" class="cover-fab-t" /></button>
 				<view class="cover-copy">
 					<text class="cover-kicker">{{ project.category || '手作' }} · {{ levelLabel(project.level) }}</text>
 					<text class="cover-title zy-t-serif">{{ project.title }}</text>
@@ -103,6 +103,7 @@ import MediaVideo from "../../components/MediaVideo.vue"
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import CraftSafety from '../../components/CraftSafety.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
@@ -204,7 +205,7 @@ const coverKind = computed(() => {
 /* ── 状态区 ── */
 .status-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 0; gap: 24rpx; }
 .status-text { font-size: var(--zy-text-body); color: var(--zy-text); }
-.error-text { font-size: var(--zy-text-body); color: var(--zy-care, #a64842); }
+.error-text { font-size: var(--zy-text-body); color: var(--zy-care, var(--zy-care, #a64842)); }
 .status-actions { display: flex; gap: 20rpx; }
 
 /* ── 通栏封面（16:10，展品感） ── */
@@ -219,7 +220,7 @@ const coverKind = computed(() => {
 .cover-fab::after { border: 0; }
 .cover-back { left: 24rpx; }
 .cover-share { right: 24rpx; }
-.cover-fab-t { font-size: 36rpx; color: var(--zy-title); }
+.cover-fab-t { font-size:var(--zy-text-title-lg, 40rpx); color: var(--zy-title); }
 .cover-copy { position: absolute; left: 32rpx; right: 32rpx; bottom: 28rpx; z-index: 1; }
 .cover-kicker { display: block; font-size: var(--zy-text-micro); letter-spacing: 4rpx; color: rgba(255,255,255,.92); }
 .cover-title { display: block; font-size: var(--zy-text-title-lg); font-weight: 600; letter-spacing: 2rpx; color: #FFFFFF; margin-top: 8rpx; }
@@ -238,7 +239,7 @@ const coverKind = computed(() => {
 
 /* ── 引言版式（文化背景） ── */
 .pull { margin: 40rpx 32rpx 0; padding: 8rpx 0 8rpx 28rpx; border-left: 3rpx dashed var(--zy-stitch); }
-.pull-mark { display: block; font-size: 52rpx; line-height: 1; color: var(--zy-gold); }
+.pull-mark { display: block; font-size:var(--zy-text-display, 56rpx); line-height: 1; color: var(--zy-gold); }
 .pull-text { display: block; margin-top: 8rpx; font-size: var(--zy-text-body-lg); line-height: 2; color: var(--zy-title); }
 .pull-src { display: block; margin-top: 12rpx; font-size: var(--zy-text-micro); color: var(--zy-text); letter-spacing: 1rpx; }
 

@@ -38,6 +38,9 @@
 /* ── 焦点环（双端统一：基座组件 @focus/@blur 切换 .zy-focused；H5 另保留 :focus-visible 渐进增强） ── */
 .zy-focused { box-shadow: 0 0 0 4rpx rgba(33, 126, 118, 0.35); }
 
+/* ── 行内链接（文字 + 线性图标；替代「查看许可 ↗」这类字符箭头） ── */
+.zy-link { display: inline-flex; align-items: center; gap: 6rpx; }
+
 /* ── 页面底色（纸纹属暖纸主题，见 theme.scss .zy-theme-warm） ── */
 page {
 	background-color: var(--zy-bg);

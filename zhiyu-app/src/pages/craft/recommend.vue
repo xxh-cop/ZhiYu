@@ -223,7 +223,7 @@ function dismiss(item) {
 }
 
 .page-title {
-	font-size: 44rpx;
+	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 500;
 	color: var(--zy-title, #233d34);
 	font-family: var(--zy-serif);
@@ -236,8 +236,8 @@ function dismiss(item) {
 }
 
 .mood-text {
-	font-size: 24rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 /* ── 推荐理由卡片 ── */
@@ -256,9 +256,9 @@ function dismiss(item) {
 	position: absolute;
 	top: 4rpx;
 	left: 16rpx;
-	font-size: 56rpx;
+	font-size:var(--zy-text-display, 56rpx);
 	font-family: var(--zy-serif);
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	opacity: 0.15;
 	line-height: 1;
 }
@@ -281,13 +281,13 @@ function dismiss(item) {
 }
 
 .reason-label {
-	font-size: 26rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 500;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 .reason-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.8;
 	color: var(--zy-content, #4a5f54);
 }
@@ -302,8 +302,8 @@ function dismiss(item) {
 }
 
 .refresh-icon {
-	font-size: 28rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-body, 28rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 	transition: transform 0.5s ease;
 }
 
@@ -312,8 +312,8 @@ function dismiss(item) {
 }
 
 .refresh-text {
-	font-size: 26rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 /* ── 骨架屏 ── */
@@ -354,13 +354,13 @@ function dismiss(item) {
 }
 
 .status-text {
-	font-size: 28rpx;
+	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-text, #4a5f54);
 }
 
 .error-text {
-	font-size: 28rpx;
-	color: var(--zy-care, #a64842);
+	font-size:var(--zy-text-body, 28rpx);
+	color: var(--zy-care, var(--zy-care, #a64842));
 }
 
 /* ── 卡片列表 ── */
@@ -396,7 +396,7 @@ function dismiss(item) {
 }
 
 .level-text {
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	color: #FFFFFF;
 	font-weight: 500;
 }
@@ -416,15 +416,15 @@ function dismiss(item) {
 }
 
 .tag-text {
-	font-size: 22rpx;
-	color: var(--zy-brand-700, #217e76);
+	font-size:var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
 }
 
 /* ── 底部免责 ── */
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size: 24rpx;
+	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
@@ -436,15 +436,15 @@ function dismiss(item) {
 }
 .dismiss-btn {
 	padding: 6rpx 16rpx;
-	font-size: 22rpx;
+	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.6;
 	color: var(--zy-text, #4a5f54);
 	background: transparent;
 	border-radius: 999rpx;
 }
 .dismiss-btn:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #1a645e);
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	outline-offset: 2px;
 }
-button:focus-visible{outline:3px solid var(--zy-brand-700,#1a645e);outline-offset:3px}
+button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
 </style>
