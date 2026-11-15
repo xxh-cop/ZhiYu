@@ -2,7 +2,7 @@
 	<view class="ai-companion-root">
 		<!-- 恢复按钮（小织隐藏时显示） -->
 		<view v-if="isHidden" class="restore-dot" @click="onRestore">
-			<text class="restore-emoji">🐾</text>
+			<XiaotuanPet :size="28" quiet aria-hidden="true" />
 		</view>
 
 		<!-- 隐藏区提示条（拖动时显示） -->
@@ -37,7 +37,7 @@
 			<text class="bubble-text">{{ breathingText }}</text>
 		</view>
 
-		<!-- 小织形象（线团小兽渲染层，跟随 aiStore.petState；点击反馈为组件内置 squish） — H5 + 小程序共用 -->
+		<!-- 织结小精灵，跟随 aiStore.petState；呼吸模式仅保留外层节奏 -->
 		<!-- #ifdef H5 -->
 		<view
 			class="xiaozhi-wrapper"
@@ -45,7 +45,7 @@
 			@mousedown="onMouseDown"
 			@click="onCompanionClick"
 		>
-			<XiaotuanPet :size="70" class="xiaotuan-render" />
+			<XiaotuanPet :size="70" :face="mode === 'breathing' ? 'rest' : ''" :quiet="mode === 'breathing'" class="xiaotuan-render" />
 		</view>
 		<!-- #endif -->
 
@@ -55,7 +55,7 @@
 			:class="{ breathing: mode === 'breathing' }"
 			@click="onCompanionClick"
 		>
-			<XiaotuanPet :size="70" class="xiaotuan-render" />
+			<XiaotuanPet :size="70" :face="mode === 'breathing' ? 'rest' : ''" :quiet="mode === 'breathing'" class="xiaotuan-render" />
 		</view>
 		<!-- #endif -->
 		</view>
@@ -87,8 +87,7 @@ const bubbleContent = computed(() => aiStore.bubbleText)
 const bubbleSide = computed(() => aiStore.bubbleSide)
 const breathingText = ref('跟着我，慢慢吸…')
 
-// 渲染层已切换到 XiaotuanPet（线团小兽）：表情由组件内部按 aiStore.petState 映射，
-// 点击反馈用组件内置 squish，旧 PNG 的 blink 叠加与加载失败降级不再需要。
+// 全站共用织结小精灵；状态图片加载和淡入由渲染组件处理。
 
 // 拖动状态
 let dragging = false

@@ -76,7 +76,7 @@
 			<view class="step-content zy-slide-up" :key="currentStep">
 				<!-- 小织陪伴：心流态隐藏，不打扰专注 -->
 				<view v-if="!craftStore.inFlow" class="pet-row">
-					<XiaotuanPet :size="88" @open="openChat" />
+					<XiaotuanPet :size="88" :face="craftStore.status === 2 ? 'rest' : 'craft'" :quiet="craftStore.status === 2" @open="openChat" />
 					<view class="pet-bubble"><text class="pet-bubble-text">{{ petLine }}</text></view>
 				</view>
 				<view class="step-card">

@@ -7,6 +7,11 @@
 	-->
 	<view class="kit-page" :class="zyThemeClass">
 		<text class="kit-h1">暖纸青玉 · 组件样张</text>
+		<text class="kit-h2">小织 · 织结小精灵</text>
+		<view class="kit-pet-stage"><XiaotuanPet :size="160" :face="petFace" /><text class="kit-note">{{ petStates.find(item => item.key === petFace).label }}</text></view>
+		<view class="kit-row"><AccessibleButton v-for="state in petStates" :key="state.key" size="sm" :aria-pressed="petFace === state.key" @click="petFace = state.key">{{ state.label }}</AccessibleButton></view>
+		<view class="kit-row kit-pet-thumbs"><view v-for="state in petStates" :key="state.key" class="kit-pet-sample"><XiaotuanPet :size="76" :face="state.key" quiet /><text class="kit-note">{{ state.label }}</text></view></view>
+		<view class="kit-row"><XiaotuanPet :size="40" /><text class="kit-note">40px</text><XiaotuanPet :size="48" /><text class="kit-note">48px</text><AccessibleButton size="sm" :aria-pressed="reducedMotion" @click="toggleMotion">{{ reducedMotion ? '减少动态效果：已开启' : '减少动态效果：未开启' }}</AccessibleButton></view>
 
 		<!-- C1 AccessibleButton -->
 		<text class="kit-h2">C1 AccessibleButton · 变体</text>
@@ -95,6 +100,17 @@ import MoodFace from '../../components/MoodFace.vue'
 import StatStrip from '../../components/StatStrip.vue'
 import ChatBubble from '../../components/ChatBubble.vue'
 import ChatInputBar from '../../components/ChatInputBar.vue'
+import XiaotuanPet from '../../components/XiaotuanPet.vue'
+import { useInteraction } from '../../composables/useInteraction'
+
+const { reducedMotion, toggleMotion } = useInteraction()
+const petFace = ref('calm')
+const petStates = [
+	{ key: 'calm', label: '标准' }, { key: 'welcome', label: '陪伴' },
+	{ key: 'listen', label: '倾听' }, { key: 'think', label: '想想' },
+	{ key: 'craft', label: '手作' }, { key: 'happy', label: '完成' },
+	{ key: 'sleepy', label: '休息' },
+]
 
 const moods = ['开心', '平静', '一般', '有点累', '不太好']
 const moodIndex = ref(1)
@@ -112,6 +128,9 @@ function onVoice() { voiceState.value = voiceState.value === 'recording' ? '' : 
 <style scoped>
 .kit-page { min-height: 100vh; padding: 40rpx 32rpx 96rpx; background: var(--zy-bg, #ffffff); }
 .kit-h1 { display: block; font-size: var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-title, #33302a); margin-bottom: 16rpx; }
+.kit-pet-stage { display: flex; flex-direction: column; align-items: center; gap: 16rpx; padding: 32rpx; margin-bottom: 24rpx; background: var(--zy-bg-tint-mint, #e8efe4); border-radius: 32rpx; }
+.kit-pet-thumbs { margin: 28rpx 0; }
+.kit-pet-sample { display: flex; flex-direction: column; align-items: center; }
 .kit-h2 { display: block; font-size: var(--zy-text-caption, 24rpx); letter-spacing: 2rpx; color: var(--zy-text, #5c5648); margin: 48rpx 0 20rpx; }
 .kit-col { display: flex; flex-direction: column; gap: 20rpx; align-items: flex-start; }
 .kit-row { display: flex; align-items: center; gap: 20rpx; flex-wrap: wrap; }
