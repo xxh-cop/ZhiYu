@@ -98,7 +98,7 @@ page {
 	--zy-radius-md: 24rpx;
 	--zy-radius-lg: 32rpx;
 	--zy-radius-xl: 48rpx;
-	--zy-radius-full: 9999rpx;
+	--zy-radius-full: 0;
 
 	/* ── 圆角（语义别名：卡片/控件/弹窗分级） ── */
 	--zy-radius-card: var(--zy-radius-lg);      /* 卡片 32rpx ≈ 16px */
@@ -224,4 +224,147 @@ html.zy-theme-warm .uni-tabbar-border { background-color: rgba(0, 0, 0, 0.33) !i
 /* H5 导航条同为 body 级 DOM + 内联背景（pages.json/setNavigationBarColor 写入），
    且 setNavigationBarColor 仅对当前页生效、切页即失效；html class 覆盖对全站页面免疫。 */
 html.zy-theme-warm .uni-page-head { background-color: #f6f1e7 !important; }
+/* #endif */
+
+/**
+ * ── v7「一线」视觉覆盖（2026-11-16）────────────────────────
+ * 冷瓷白 + 墨 + 一根朱砂线：去掉暖黄纸底、金色大面积、圆角卡片与投影。
+ * 保留旧变量名，避免 56 页逐页改引用；只在末尾覆盖值，回滚只需移除本段。
+ * 语义：brand=窑青（行动/链接/进度），celadon=影青（次级），cinnabar=朱砂（只做一根线/紧急），
+ * 哑金仅作金缮细线，不再承担大面积装饰。
+ */
+:root,
+page {
+	/* 品牌色阶：窑青 */
+	--zy-brand-50: #eef5f1;
+	--zy-brand-100: #dcece5;
+	--zy-brand-200: #b9ddd0;
+	--zy-brand-300: #8fc7b8;
+	--zy-brand-500: #2f7e72;
+	--zy-brand-600: #0e5b53;
+	--zy-brand-700: #0a403b;
+	--zy-brand-900: #072b27;
+
+	/* wot-design-uni：冷瓷白面 */
+	--wot-color-theme: #0e5b53;
+	--wot-color-success: #2f7d62;
+	--wot-color-warning: #8e4a3c;
+	--wot-color-danger: #a64842;
+	--wot-color-info: #42524c;
+	--wot-color-bg: #f1f4f1;
+	--wot-color-border: #d3ded8;
+	--wot-color-border-light: #e4ece8;
+	--wot-color-title: #111816;
+	--wot-color-content: #42524c;
+	--wot-color-secondary: #6e7b75;
+	--wot-color-aid: #6e7b75;
+	--wot-color-tip: #8b9994;
+
+	/* 面 / 字 / 线 */
+	--zy-primary: #0e5b53;
+	--zy-primary-light: #8fc7b8;
+	--zy-bg: #f1f4f1;
+	--zy-card-bg: #ffffff;
+	--zy-card-line: #d3ded8;
+	--zy-line-soft: #d3ded8;
+	--zy-bg-sunken: #e9efeb;
+	--zy-title: #111816;
+	--zy-text: #42524c;
+	--zy-muted: #6e7b75;
+	--zy-border: #d3ded8;
+	--zy-accent: #8e4a3c;
+	--zy-danger: #a64842;
+	--zy-bg-warm: #ffffff;
+	--zy-bg-tint-mint: #e7f0eb;
+	--zy-bg-tint-warm: #f2e9e4;
+	--zy-bg-tint-care: #f5e7e3;
+	--zy-content: #42524c;
+	--zy-aid: #6e7b75;
+	--zy-stitch: #b9cbc4;
+	--zy-faint: #8b9994;
+
+	/* 语义色：朱砂只做“一根线”和紧急 */
+	--zy-success: #2f7d62;
+	--zy-warning: #8e4a3c;
+	--zy-warning-text: #8e4a3c;
+	--zy-care: #a64842;
+	--zy-gold: #c8a45c;
+
+	/* 深色态：墨绿黑，用于倾听室 / 音乐 / 夜间 */
+	--zy-d-bg: #0b1513;
+	--zy-d-surface: #111e1a;
+	--zy-d-text: #f1f4f1;
+	--zy-d-text-secondary: #a9bbb2;
+	--zy-d-primary: #8fc7b8;
+	--zy-d-care: #d4736a;
+
+	/* 字体：宋体只做标题/展签/引言，正文回到无衬线 */
+	--zy-font: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+	--zy-serif: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
+	--zy-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+	--zy-font-display: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
+
+	/* 字阶：标题拉开，正文收敛 */
+	--zy-font-xs: 20rpx;
+	--zy-font-sm: 24rpx;
+	--zy-font-base: 28rpx;
+	--zy-font-md: 32rpx;
+	--zy-font-lg: 36rpx;
+	--zy-font-xl: 44rpx;
+	--zy-font-2xl: 56rpx;
+	--zy-leading: 1.7;
+	--zy-text-display: 72rpx;
+	--zy-text-title-lg: 44rpx;
+	--zy-text-title: 36rpx;
+	--zy-text-body-lg: 30rpx;
+	--zy-text-body: 28rpx;
+	--zy-text-caption: 24rpx;
+	--zy-text-micro: 22rpx;
+
+	/* 圆角：展签/卡片/控件直角，圆形只保留头像与图标按钮 */
+	--zy-radius-xs: 0;
+	--zy-radius-sm: 0;
+	--zy-radius-md: 0;
+	--zy-radius-lg: 0;
+	--zy-radius-xl: 0;
+	--zy-radius-card: 0;
+	--zy-radius-control: 0;
+	--zy-radius-dialog: 0;
+	--zy-radius-chip: 0;
+	--zy-radius-feature: 0;
+	--zy-radius-full: 0;
+
+	/* 投影：取消卡片阴影，用发丝线分层 */
+	--zy-shadow-card: none;
+	--zy-shadow-cta: none;
+	--zy-shadow-pop: none;
+	--zy-shadow-xs: none;
+	--zy-shadow-sm: none;
+	--zy-shadow-md: none;
+	--zy-shadow-lg: none;
+	--zy-shadow-xl: none;
+}
+
+/* 旧暖纸主题保留 class 兼容，但面级值全部并入冷瓷白，防止历史 storage 把页面拉回暖黄 */
+.zy-theme-warm {
+	--wot-color-bg: #f1f4f1;
+	--wot-color-border: #d3ded8;
+	--zy-bg: #f1f4f1;
+	--zy-card-bg: #ffffff;
+	--zy-card-line: #d3ded8;
+	--zy-bg-sunken: #e9efeb;
+	--zy-border: #d3ded8;
+	--zy-stitch: #b9cbc4;
+	--zy-bg-warm: #ffffff;
+	background-color: var(--zy-bg);
+	background-image: var(--zy-paper-noise);
+	background-size: 240rpx 240rpx;
+	min-height: 100vh;
+}
+
+/* H5：历史 warm class 下的模拟 tabBar / 导航条也回到冷瓷白 */
+/* #ifdef H5 */
+html.zy-theme-warm .uni-tabbar { background-color: #ffffff !important; }
+html.zy-theme-warm .uni-tabbar-border { background-color: #d3ded8 !important; }
+html.zy-theme-warm .uni-page-head { background-color: #f1f4f1 !important; }
 /* #endif */

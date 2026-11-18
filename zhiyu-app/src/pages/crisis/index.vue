@@ -10,11 +10,11 @@
 		</view>
 
 		<!-- 卡片 1：学校心理中心 -->
-		<view class="card zy-slide-up zy-stagger" style="--stagger-i: 1">
+		<view class="card card--signal zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<view class="card-stripe stripe-warm"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-warm">
-					<wd-icon name="call" size="40rpx" color="var(--zy-accent, #8a6d1f)" />
+					<wd-icon name="call" size="40rpx" color="var(--zy-care, #a64842)" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ psychCenterName }}</text>
@@ -28,9 +28,15 @@
 			</view>
 		</view>
 
-		<view class="card" role="button" tabindex="0" @click="goSupport" @keydown.enter.prevent="goSupport" @keydown.space.prevent="goSupport"><text class="card-title">校内预约与官方来源 →</text><text class="card-desc">查看地点、预约准备和信息核对日期</text></view>
+		<view class="card support-card" role="button" tabindex="0" @click="goSupport" @keydown.enter.prevent="goSupport" @keydown.space.prevent="goSupport">
+			<view class="support-copy">
+				<text class="card-title">校内预约与官方来源</text>
+				<text class="card-desc">查看地点、预约准备和信息核对日期</text>
+			</view>
+			<text class="support-arrow" aria-hidden="true">→</text>
+		</view>
 		<!-- 卡片 2：全国心理援助热线 -->
-		<view class="card zy-slide-up zy-stagger" style="--stagger-i: 2">
+		<view class="card card--signal zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="card-stripe stripe-mint"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-mint">
@@ -350,4 +356,36 @@ function goChat() {
 	text-align: center;
 }
 button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
+
+/* ── v9 冷瓷展签收口 ── */
+.page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
+.hero { align-items: flex-start; padding: 28rpx 0 28rpx; border-bottom: 0; }
+.hero-circle { width: 76rpx; height: 76rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-care); box-shadow: none; margin-bottom: 24rpx; }
+.hero-icon-text { font-size: 40rpx; font-weight: 500; color: var(--zy-care); font-family: var(--zy-font-display, serif); }
+.hero-icon-text { font-size: 40rpx; font-weight: 500; }
+.hero-title { font-size: 64rpx; font-weight: 500; line-height: 1.3; }
+.hero-sub { color: var(--zy-muted); }
+.card { margin: 32rpx 0; padding: 28rpx 0; border-radius: 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); box-shadow: none; }
+.card--signal { border-top: 0; padding-top: 0; }
+.support-card { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; }
+.support-copy { display: flex; flex-direction: column; gap: 8rpx; min-width: 0; }
+.support-arrow { flex-shrink: 0; font-size: 36rpx; color: var(--zy-brand-700); }
+.card-stripe { height: 2rpx; }
+.stripe-warm { background: var(--zy-care); }
+.stripe-mint { background: var(--zy-brand-600); }
+.card-icon-wrap { width: 56rpx; height: 56rpx; border-radius: 0; }
+.card-icon-warm, .card-icon-mint { background: transparent; border: 1rpx solid var(--zy-border); }
+.card-icon-warm { border-color: var(--zy-care, #a64842); }
+.card-title { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
+.card-desc { color: var(--zy-muted); }
+.card-phone { font-size: 72rpx; font-weight: 500; letter-spacing: 2rpx; }
+.card-btn { height: 84rpx; border-radius: 0; box-shadow: none; }
+.card-btn:active { transform: none; }
+.chat-card { border-radius: 0; box-shadow: none; padding: 28rpx; }
+.chat-card:active { transform: none; }
+.chat-card-icon { border-radius: 0; }
+.chat-card-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
+.warm-text { align-items: flex-start; padding-bottom: 40rpx; }
+.warm-line { text-align: left; color: var(--zy-muted); }
+.footnote { color: var(--zy-muted); }
 </style>

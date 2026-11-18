@@ -2,8 +2,9 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部品牌区 -->
 		<view class="brand-header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="brand-title">作品社区</text>
-			<text class="brand-subtitle">每个人都是创作者</text>
+			<text class="brand-eyebrow">COMMUNITY · 作品社区</text>
+			<text class="brand-title">把日子，做成作品</text>
+			<text class="brand-subtitle">每个人都是创作者。慢一点，也值得被看见。</text>
 		</view>
 
 		<!-- 筛选 tab -->
@@ -21,6 +22,29 @@
 				@keydown.space.prevent="switchTab(tab.value)"
 			>
 				<text class="tab-text" :class="{ 'tab-text-active': activeTab === tab.value }">{{ tab.label }}</text>
+			</view>
+		</view>
+
+		<!-- 本期一件：从作品流中提取一件有封面的作品 -->
+		<view
+			v-if="featured && !loading"
+			class="featured-work zy-slide-up"
+			role="button"
+			tabindex="0"
+			:aria-label="'查看本期作品 ' + featured.title"
+			@click="goDetail(featured)"
+			@keydown.enter.prevent="goDetail(featured)"
+			@keydown.space.prevent="goDetail(featured)"
+		>
+			<view class="featured-cover" :style="coverStyle(featured.coverUrl)">
+				<view class="featured-label">
+					<text class="featured-kicker">FEATURED · 本期一件</text>
+					<text class="featured-title">{{ featured.title }}</text>
+					<view class="featured-meta">
+						<text class="featured-author">{{ featured.authorName }}</text>
+						<text class="featured-note">一件慢下来的手作</text>
+					</view>
+				</view>
 			</view>
 		</view>
 
@@ -60,7 +84,7 @@
 		<!-- 作品卡片列表 -->
 		<view v-else class="card-list">
 			<view
-				v-for="(item, idx) in records"
+				v-for="(item, idx) in visibleRecords"
 				:key="item.id"
 				class="work-card zy-slide-up zy-stagger"
 				:style="{ '--stagger-i': idx }"
@@ -84,13 +108,15 @@
 					</view>
 				</view>
 				<view v-else-if="item.mediaType === 'text'" class="card-cover card-cover--text">
-					<text class="card-cover-text-label">纯文字作品</text>
+					<text class="text-cover-quote" aria-hidden="true">“</text>
+					<text class="text-cover-excerpt">{{ (item.message || item.title || '').slice(0, 48) }}</text>
+					<text class="card-cover-text-label">创作故事</text>
 				</view>
 
 				<view class="card-body">
 					<text class="card-title">{{ item.title }}</text>
 					<text class="card-author">{{ item.authorName }}</text>
-					<text v-if="item.message" class="card-message">{{ item.message }}</text>
+					<text v-if="item.message && item.mediaType !== 'text'" class="card-message">{{ item.message }}</text>
 
 					<view class="card-meta">
 						<view class="meta-left">
@@ -155,6 +181,17 @@ const total = ref(0)
 const size = 10
 
 const hasMore = computed(() => page.value * size < total.value)
+
+// 「全部」页顶部保留一件有封面的作品作为本期展签，避免第一屏只有文字卡片。
+const featured = computed(() => {
+	if (activeTab.value !== 'all') return null
+	return records.value.find(item => item.mediaType === 'image' && item.coverUrl) || null
+})
+
+const visibleRecords = computed(() => {
+	const item = featured.value
+	return item ? records.value.filter(record => record.id !== item.id) : records.value
+})
 
 function switchTab(val) {
 	if (activeTab.value === val) return
@@ -230,12 +267,12 @@ function coverStyle(coverUrl) {
 		return `background-image: url(${url}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #217e76 0%, #5bc4a8 100%);'
+	return 'background: var(--zy-bg-sunken);'
 }
 
 function fullUrl(url) {
 	if (!url) return ''
-	if (url.startsWith('http')) return url
+	if (url.startsWith('http') || url.startsWith('/static/')) return url
 	return API_BASE_URL + url
 }
 
@@ -530,6 +567,41 @@ loadData(1)
 	color: var(--zy-aid, #4a5f54);
 	text-align: center;
 }
+
+/* ── v9 冷瓷展签收口 ── */
+.page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg); }
+.brand-header { padding-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
+.brand-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 18rpx; }
+.brand-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
+.brand-subtitle { margin-top: 10rpx; color: var(--zy-muted); }
+.filter-tabs { gap: 28rpx; margin-top: 24rpx; margin-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
+.filter-tab { padding: 6rpx 0 10rpx; border-radius: 0; background: transparent; border: 0; border-bottom: 2rpx solid transparent; }
+.tab-active { background: transparent; border-color: transparent; border-bottom-color: var(--zy-brand-700); }
+.tab-text { color: var(--zy-text); }
+.tab-text-active { color: var(--zy-brand-700); font-weight: 500; }
+.skeleton-card { border-radius: 0; border: 1rpx solid var(--zy-border); }
+.card-list { gap: 32rpx; }
+.featured-work { margin-bottom: 40rpx; }
+.featured-cover { position: relative; height: 500rpx; border: 1rpx solid var(--zy-border); background-size: cover; background-position: center; }
+.featured-label { position: absolute; left: 0; right: 0; bottom: 0; padding: 26rpx 26rpx 24rpx; background: rgba(10, 64, 59, .94); border-top: 3rpx solid var(--zy-care); }
+.featured-kicker { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: rgba(255, 255, 255, .62); }
+.featured-title { display: block; margin-top: 10rpx; font-family: var(--zy-font-display, serif); font-size: 44rpx; font-weight: 500; line-height: 1.35; color: #fff; }
+.featured-meta { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; margin-top: 12rpx; font-size: var(--zy-text-caption, 24rpx); color: rgba(255, 255, 255, .68); }
+.featured-author { color: #fff; }
+.featured-note { color: rgba(255, 255, 255, .58); }
+.work-card { border-radius: 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); box-shadow: none; padding-top: 24rpx; }
+.work-card:active { transform: none; box-shadow: none; }
+.card-cover { height: 240rpx; }
+.card-cover--text { height: 210rpx; background: var(--zy-bg); border-bottom: 1rpx solid var(--zy-border); border-left: 3rpx solid var(--zy-care); position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 24rpx 26rpx 24rpx 22rpx; box-sizing: border-box; }
+.text-cover-quote { position: absolute; top: 10rpx; left: 18rpx; font-family: var(--zy-font-display, serif); font-size: 72rpx; line-height: 1; color: var(--zy-brand-600); opacity: .18; }
+.text-cover-excerpt { display: -webkit-box; overflow: hidden; max-width: 100%; font-family: var(--zy-font-display, serif); font-size: 32rpx; line-height: 1.65; color: var(--zy-title); -webkit-line-clamp: 2; -webkit-box-orient: vertical; position: relative; z-index: 1; }
+.card-cover-text-label { position: absolute; top: 22rpx; right: 24rpx; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); }
+.cover-placeholder { background: var(--zy-bg-sunken); }
+.card-body { padding: 20rpx 0 0; }
+.card-title { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; line-height: 1.45; }
+.card-author { color: var(--zy-muted); }
+.card-message { color: var(--zy-text); }
+.footnote { color: var(--zy-muted); }
 </style>
 
 <style scoped>

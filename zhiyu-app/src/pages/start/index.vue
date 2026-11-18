@@ -1,7 +1,7 @@
 <template>
 	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
-  <view class="growth-row growth-spread"><view class="start-brand"><image class="brand" src="/static/logo.png" aria-hidden="true"/><view><text>织愈 · 此刻</text><text class="start-brand-sub">MAKE ROOM FOR YOURSELF</text></view></view><AccessibleButton class="motion-toggle" :aria-pressed="reducedMotion" @click="toggleMotion">{{reducedMotion?'减少动效：开':'减少动效：关'}}</AccessibleButton></view>
-  <view class="growth-hero"><image class="start-art" src="/static/brand/weave-scene.png" mode="aspectFit" aria-hidden="true"/><text class="growth-eyebrow">ZHIYU · 留一点时间给自己</text><text class="growth-title">先做一件，<br/>让自己舒服的小事。</text><text class="growth-subtitle">不必准备很多，先为自己留出一小段时间。</text></view>
+  <view class="growth-row growth-spread"><view class="start-brand"><view class="start-seal" role="img" aria-label="织愈">织</view><view><text>织愈 · 此刻</text><text class="start-brand-sub">MAKE ROOM FOR YOURSELF</text></view></view><AccessibleButton class="motion-toggle" :aria-pressed="reducedMotion" @click="toggleMotion">{{reducedMotion?'减少动效：开':'减少动效：关'}}</AccessibleButton></view>
+  <view class="growth-hero"><view class="start-mark" aria-hidden="true"><view class="start-mark-rule"></view><text>留</text><text>一</text><text>点</text><text>白</text></view><text class="growth-eyebrow">ZHIYU · 留一点时间给自己</text><text class="growth-title">先做一件，<br/>让自己舒服的小事。</text><text class="growth-subtitle">不必准备很多，先为自己留出一小段时间。</text></view>
   <view class="moment-card"><text class="growth-card-title">此刻，有几分钟？</text><view class="time-tabs"><AccessibleButton v-for="m in [1,3,5,15]" :key="m" :class="{selected:minutes===m}" :aria-pressed="minutes===m" @click="minutes=m">{{m}} 分钟</AccessibleButton></view><text class="mood-label">此刻心情（可选）</text><view class="mood-row"><AccessibleButton v-for="m in moodOptions" :key="m.code" :class="{selected:moodCode===m.code}" :aria-pressed="moodCode===m.code" @click="toggleMood(m.code)">{{m.label}}</AccessibleButton></view><view class="moment-copy" :key="minutes"><text class="moment-title">{{suggestions[minutes]}}</text><text class="growth-muted">{{minutes===15?'数字配色练习 · 完成后记录到成长旅程':'无需准备材料 · 随时可以暂停'}}</text></view><view v-if="shortLoading||shortItems.length||shortError" class="short-suggest" aria-label="短练习推荐"><view class="short-suggest-head"><text class="short-suggest-title">此刻的短练习</text><text class="short-suggest-hint">{{shortLoading?'正在挑选…':'按分钟与心情推荐'}}</text></view><view v-if="shortLoading" class="short-skeleton zy-skeleton" aria-hidden="true"/><template v-else><AccessibleButton v-for="(item,index) in shortItems" :key="item.id" class="short-item" :class="{primary:index===0}" @click="startShort(item)"><view class="short-item-main"><view class="short-item-tags"><text class="short-kind">{{practiceKindLabel(item.kind)}}</text><text v-if="index===0" class="short-recommend">推荐</text><text class="short-minutes">{{item.minutes}} 分钟</text></view><text class="short-title">{{item.title}}</text><text class="short-subtitle">{{item.subtitle}}</text></view><text class="short-arrow">›</text></AccessibleButton></template><AccessibleButton v-if="shortAll.length>3&&!shortLoading" class="short-more" @click="showAllShort=!showAllShort">{{showAllShort?'收起短练习':'查看全部 '+shortAll.length+' 条短练习'}}</AccessibleButton><text v-if="shortError" class="practice-error" role="alert">{{shortError}}</text></view><AccessibleButton v-if="minutes===15" class="growth-button" :disabled="practiceStarting" @click="startHeritagePractice">{{practiceStarting?'正在准备练习…':'开始 15 分钟非遗手作 →'}}</AccessibleButton><AccessibleButton v-else class="growth-button" @click="go('mindfulness/index?minutes='+minutes)">开始 {{minutes}} 分钟呼吸练习 →</AccessibleButton><text v-if="practiceError" class="practice-error" role="alert">{{practiceError}}</text></view>
   <XiaozhiCard @open="openChat()"/><AccessibleButton class="growth-card entry" @click="openMusic()"><text class="entry-number">♫</text><view class="entry-copy"><text class="growth-card-title">听一段音乐，松一口气</text><text class="growth-muted">自主播放 · 定时停止</text></view><text class="arrow">›</text></AccessibleButton><text class="section-label">也可以这样开始</text>
   <AccessibleButton v-for="item in primary" :key="item.path" class="growth-card entry" @click="go(item.path)"><view class="entry-stitch zy-stitch-h" aria-hidden="true"/><view class="entry-number zy-t-serif">{{item.number}}</view><view class="entry-copy"><text class="growth-card-title">{{item.title}}</text><text class="growth-muted">{{item.desc}}</text></view><text class="arrow">›</text></AccessibleButton>
@@ -86,4 +86,46 @@ function go(path){uni.navigateTo({url:path.startsWith('/')?path:'/pages/'+path})
 /* 小程序 custom tabBar 不占页面视口，页面自留底部空间（含安全区） */
 .growth-page { padding-bottom: calc(112rpx + env(safe-area-inset-bottom)); }
 /* #endif */
+
+/* ── v9 冷瓷展签收口 ── */
+.growth-page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
+.motion-toggle { padding: 0; border: 0; background: transparent; color: var(--zy-muted); letter-spacing: 1rpx; }
+.start-brand { font-family: var(--zy-font-display, serif); font-weight: 500; letter-spacing: 1rpx; }
+.start-seal { width: 66rpx; height: 66rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1rpx solid var(--zy-care); color: var(--zy-care); font-family: var(--zy-font-display, serif); font-size: 30rpx; line-height: 1; }
+.motion-toggle { text-decoration: underline; text-underline-offset: 4rpx; }
+.start-brand-sub { color: var(--zy-muted); letter-spacing: 2px; }
+.growth-hero { padding: 44rpx 0 34rpx; border-bottom: 1rpx solid var(--zy-border); }
+.growth-hero .growth-title { max-width: 100%; font-family: var(--zy-font-display, serif); font-weight: 500; font-size: 56rpx; line-height: 1.32; }
+.growth-hero .growth-subtitle { color: var(--zy-muted); max-width: 600rpx; }
+.start-mark { position: absolute; top: 72rpx; right: 12rpx; display: flex; flex-direction: column; align-items: center; gap: 6rpx; color: var(--zy-muted); }
+.start-mark-rule { width: 2rpx; height: 68rpx; margin-bottom: 10rpx; background: var(--zy-care); }
+.start-mark text { font-family: var(--zy-font-display, serif); font-size: 22rpx; line-height: 1.5; letter-spacing: 4rpx; opacity: .62; }
+.growth-hero .growth-title { max-width: 78%; }
+.moment-card { padding: 28rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; margin-bottom: 36rpx; }
+.moment-card .growth-card-title { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; color: var(--zy-title); }
+.time-tabs { background: transparent; padding: 0; border: 1rpx solid var(--zy-border); border-radius: 0; gap: 0; }
+.time-tabs button { border-radius: 0; border-right: 1rpx solid var(--zy-border); color: var(--zy-text); }
+.time-tabs button:last-child { border-right: 0; }
+.time-tabs button.selected { background: transparent; color: var(--zy-title); box-shadow: inset 0 -3rpx 0 var(--zy-care); }
+.mood-label { color: var(--zy-muted); letter-spacing: 1rpx; }
+.mood-row { gap: 0; border: 1rpx solid var(--zy-border); }
+.mood-row button { border: 0; border-right: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-text); }
+.mood-row button:last-child { border-right: 0; }
+.mood-row button.selected { background: transparent; border-color: var(--zy-border); color: var(--zy-title); box-shadow: inset 0 -3rpx 0 var(--zy-care); }
+.moment-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
+.short-suggest { border-top: 1rpx solid var(--zy-border); }
+.short-suggest-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
+.short-item { padding: 20rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; }
+.short-item.primary { border: 0; border-left: 3rpx solid var(--zy-care); border-bottom: 1rpx solid var(--zy-border); background: transparent; padding-left: 18rpx; }
+.short-kind { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); padding: 2rpx 8rpx; color: var(--zy-muted); }
+.short-recommend { border-radius: 0; background: var(--zy-care); padding: 2rpx 8rpx; letter-spacing: 1rpx; }
+.short-title { font-family: var(--zy-font-display, serif); font-size: 34rpx; font-weight: 500; }
+.short-subtitle { color: var(--zy-muted); }
+.growth-button { border-radius: 0; }
+.entry { gap: 20rpx; padding: 24rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; }
+.entry-number { padding: 0; width: 60rpx; height: 60rpx; display: flex; align-items: center; justify-content: center; background: transparent; border: 1rpx solid var(--zy-border); border-radius: 0; font-family: var(--zy-font-display, serif); }
+.entry .growth-card-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
+.section-label { color: var(--zy-muted); letter-spacing: 2px; }
+.explore { padding: 22rpx 0 44rpx; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; }
+.explore .growth-card-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
 </style>

@@ -44,7 +44,10 @@ INSERT INTO user (id, username, password, nickname, role, status, create_time, u
 (1, 'admin',       '$2a$10$s9J7wtk3oYoLh9VDO8vz3O7huqZbalPVIE5FYT3QLXkFQ5cLJSrOO', '平台管理员',     3, 1, NOW(), NOW(), 0),
 (2, 'inheritor01', '$2a$10$L0W2j1URsZz52YM7ed2aDOL8pKV0mgLwJqG6HtymI5eRyIHkZDoEa', '赣绣王老师',     1, 1, NOW(), NOW(), 0),
 (3, 'counselor01', '$2a$10$TsnsqzwEd8L32V0UMbdrAuix6P4oPtQKG/9uAZ1XTllpjF6Go1wTO', '心理中心李老师', 2, 1, NOW(), NOW(), 0),
-(4, 'student01',   '$2a$10$fFLe25g4bZV5rKK.j5nnB.N9CKY3l2fqpOnJnpL3ZafPQKzdylyQa', '小织',           0, 1, NOW(), NOW(), 0) AS new
+(4, 'student01',   '$2a$10$fFLe25g4bZV5rKK.j5nnB.N9CKY3l2fqpOnJnpL3ZafPQKzdylyQa', '小织',           0, 1, NOW(), NOW(), 0),
+(910001, 'platform_demo_zaran', '$2a$10$dummyhash', '青禾（演示示范）', 1, 0, NOW(), NOW(), 0),
+(910002, 'platform_demo_paper', '$2a$10$dummyhash', '剪云（演示示范）', 1, 0, NOW(), NOW(), 0),
+(910003, 'platform_demo_clay',  '$2a$10$dummyhash', '陶然（演示示范）', 1, 0, NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   password    = new.password,
   nickname    = new.nickname,
@@ -55,7 +58,10 @@ ON DUPLICATE KEY UPDATE
 
 -- ---------- 传承人资料 ----------
 INSERT INTO inheritor_profile (id, user_id, skill, intro, honor, verified, create_time, update_time, deleted) VALUES
-(1, 2, '赣绣', '从事赣绣四十余年，擅长针脚细腻的丝线绣品。', '省级非遗代表性传承人', 1, NOW(), NOW(), 0) AS new
+(1, 2, '赣绣', '从事赣绣四十余年，擅长针脚细腻的丝线绣品。', '省级非遗代表性传承人', 1, NOW(), NOW(), 0),
+(9101, 910001, '扎染', '平台邀约的扎染演示示范者（AI 演示档案）。擅长蓝染、捆扎与方巾纹样设计。', '平台演示示范 · 非真实传承人认证', 1, NOW(), NOW(), 0),
+(9102, 910002, '剪纸', '平台邀约的剪纸演示示范者（AI 演示档案）。擅长团花、对称纹样与安全剪法。', '平台演示示范 · 非真实传承人认证', 1, NOW(), NOW(), 0),
+(9103, 910003, '陶艺', '平台邀约的陶艺演示示范者（AI 演示档案）。擅长免烧陶泥捏塑与触觉引导。', '平台演示示范 · 非真实传承人认证', 1, NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   user_id     = new.user_id,
   skill       = new.skill,
@@ -69,10 +75,10 @@ ON DUPLICATE KEY UPDATE
 -- category     = 技艺品类，取值见 sql/dict-category.sql 的 label，仅展示用
 -- therapy_tags = 疗愈效果标签，取值见 sql/dict-therapy-tags.sql 的 label，参与推荐匹配
 INSERT INTO craft_project (id, inheritor_id, title, intro, culture_bg, level, est_minutes, category, therapy_tags, cover_url, status, create_time, update_time, deleted) VALUES
-(101, 2, '解压扎染方巾', '用扎染的自然晕染，把焦虑折进布里、染在手中。',   '扎染是国家级非遗，通过捆扎、浸染形成不可预测的纹样。',           2, 45, '扎染', '放空,触觉安抚',          '/static/covers/zharan.jpg',  1, NOW(), NOW(), 0),
+(101, 910001, '解压扎染方巾', '用扎染的自然晕染，把焦虑折进布里、染在手中。',   '扎染是国家级非遗，通过捆扎、浸染形成不可预测的纹样。',           2, 45, '扎染', '放空,触觉安抚',          '/static/covers/zharan.jpg',  1, NOW(), NOW(), 0),
 (102, 2, '赣绣小书签',   '一针一线，在缓慢的穿引中把注意力拉回当下。',   '赣绣是江西地方刺绣，针法细腻、色彩温润。',                       2, 60, '赣绣', '专注,静心,情绪稳定',     '/static/covers/ganxiu.jpg',  1, NOW(), NOW(), 0),
-(103, 2, '剪纸释压团花', '一刀一纸，把烦恼剪进对称的纹样里。',           '剪纸在江西多地节庆中广泛使用，讲究对称与节奏。',                 2, 30, '剪纸', '成就感,创造表达,专注',   '/static/covers/jianzhi.jpg', 1, NOW(), NOW(), 0),
-(104, 2, '陶艺捏塑杯垫', '双手与泥土对话，在揉捏中释放紧绷。',           '陶艺手工塑形，触觉反馈强，适合情绪焦躁时使用。',                 2, 50, '陶艺', '物理宣泄,释放,触觉安抚', '/static/covers/taoyi.jpg',   1, NOW(), NOW(), 0) AS new
+(103, 910002, '剪纸释压团花', '一刀一纸，把烦恼剪进对称的纹样里。',           '剪纸在江西多地节庆中广泛使用，讲究对称与节奏。',                 2, 30, '剪纸', '成就感,创造表达,专注',   '/static/covers/jianzhi.jpg', 1, NOW(), NOW(), 0),
+(104, 910003, '陶艺捏塑杯垫', '双手与泥土对话，在揉捏中释放紧绷。',           '陶艺手工塑形，触觉反馈强，适合情绪焦躁时使用。',                 2, 50, '陶艺', '物理宣泄,释放,触觉安抚', '/static/covers/taoyi.jpg',   1, NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   inheritor_id = new.inheritor_id,
   title        = new.title,
@@ -86,6 +92,22 @@ ON DUPLICATE KEY UPDATE
   status       = new.status,
   update_time  = new.update_time,
   deleted      = new.deleted;
+
+-- ---------- 材料与工具安全标注（101–104） ----------
+-- 这是平台编辑材料风险提示，不是专业安全认证；实际材料包/工具变化时需复核。
+INSERT INTO craft_safety (id, project_id, medium, level, hazards, guidance, source, create_time, update_time, deleted) VALUES
+(9101, 101, '布·染料', 'GUIDED', '染料可能刺激皮肤或染色衣物；浸染时请戴手套、围裙，保持通风。', '使用预调染料，不接触眼口；皮肤敏感或破损时暂停；不加热、不使用明火。', '织愈编辑材料风险提示，未经专业安全认证', NOW(), NOW(), 0),
+(9102, 102, '线·针', 'GUIDED', '绣针尖锐，可能扎伤；剪刀可能划伤。', '针不用时放入针插，不朝向他人；不熟悉工具时请带领者协助。', '织愈编辑材料风险提示，未经专业安全认证', NOW(), NOW(), 0),
+(9103, 103, '纸·剪刀', 'GUIDED', '剪刀可能划伤；纸边可能割手。', '坐稳操作，剪刀尖端不对人；不熟悉工具时请带领者协助。', '织愈编辑材料风险提示，未经专业安全认证', NOW(), NOW(), 0),
+(9104, 104, '陶泥', 'LOW', '陶泥粉尘可能刺激呼吸道；塑形工具尖端可能划伤。', '保持桌面湿润通风，不扬尘、不烧制；手部不适时暂停。', '织愈编辑材料风险提示，未经专业安全认证', NOW(), NOW(), 0) AS new
+ON DUPLICATE KEY UPDATE
+  medium      = new.medium,
+  level       = new.level,
+  hazards     = new.hazards,
+  guidance    = new.guidance,
+  source      = new.source,
+  update_time = new.update_time,
+  deleted     = new.deleted;
 
 -- ---------- 步骤（以扎染为例） ----------
 -- 音频死链修复（2026-11-05）：/static/audio/101-*.mp3 仓库无此文件，audio_url 置 NULL；
@@ -107,7 +129,7 @@ ON DUPLICATE KEY UPDATE
   update_time = new.update_time,
   deleted     = new.deleted;
 
--- ---------- 步骤（赣绣小书签 / 剪纸释压团花） ----------
+-- ---------- 步骤（赣绣小书签 / 剪纸释压团花 / 陶艺捏塑杯垫） ----------
 INSERT INTO craft_step (id, project_id, step_no, title, guide, audio_url, license_status, attribution, asset_status, create_time, update_time, deleted) VALUES
 (2001, 102, 1, '准备绣线', '挑选你喜欢的颜色，把线穿进针孔。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
 (2002, 102, 2, '起针',     '从布的反面起针，让线头藏在背面。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
@@ -116,7 +138,11 @@ INSERT INTO craft_step (id, project_id, step_no, title, guide, audio_url, licens
 (3001, 103, 1, '折纸',     '把正方形红纸对折三次，形成一个小三角。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
 (3002, 103, 2, '画稿',     '在折好的纸上画上你想要的图案。',         NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
 (3003, 103, 3, '剪制',     '沿着画线慢慢剪，注意不要剪断连接处。',   NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
-(3004, 103, 4, '展开',     '轻轻展开纸张，看看你的团花。',           NULL, 'none', NULL, NULL, NOW(), NOW(), 0) AS new
+(3004, 103, 4, '展开',     '轻轻展开纸张，看看你的团花。',           NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(4001, 104, 1, '揉泥醒泥', '取一块免烧陶泥，用手掌反复揉压，让泥料变得柔软均匀。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(4002, 104, 2, '压片成形', '把陶泥压成约一厘米厚的圆片，边缘用手指慢慢收圆。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(4003, 104, 3, '压纹修边', '用塑形工具压出浅纹，修掉多余的泥边；不必追求完全对称。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0),
+(4004, 104, 4, '阴干养护', '放在通风处自然阴干，不烧制；完全干透后再使用。', NULL, 'none', NULL, NULL, NOW(), NOW(), 0) AS new
 ON DUPLICATE KEY UPDATE
   project_id  = new.project_id,
   step_no     = new.step_no,
@@ -126,6 +152,36 @@ ON DUPLICATE KEY UPDATE
   license_status = new.license_status,
   attribution = new.attribution,
   asset_status = new.asset_status,
+  update_time = new.update_time,
+  deleted     = new.deleted;
+
+-- ---------- 工具与材料（101–104 演示清单） ----------
+INSERT INTO craft_material (id, project_id, name, qty, create_time, update_time, deleted) VALUES
+(10151, 101, '白色棉方巾', '1 块', NOW(), NOW(), 0),
+(10152, 101, '植物靛蓝染料', '1 份', NOW(), NOW(), 0),
+(10153, 101, '棉线', '1 卷', NOW(), NOW(), 0),
+(10154, 101, '橡皮筋', '若干', NOW(), NOW(), 0),
+(10155, 101, '一次性手套', '1 副', NOW(), NOW(), 0),
+(10156, 101, '围裙', '1 件', NOW(), NOW(), 0),
+(10251, 102, '素色棉布书签', '1 枚', NOW(), NOW(), 0),
+(10252, 102, '绣线', '3 色', NOW(), NOW(), 0),
+(10253, 102, '绣针', '1 枚', NOW(), NOW(), 0),
+(10254, 102, '小绷架', '1 个', NOW(), NOW(), 0),
+(10255, 102, '小剪刀', '1 把', NOW(), NOW(), 0),
+(10351, 103, '正方形红纸', '3 张', NOW(), NOW(), 0),
+(10352, 103, '安全剪刀', '1 把', NOW(), NOW(), 0),
+(10353, 103, '铅笔', '1 支', NOW(), NOW(), 0),
+(10354, 103, '橡皮', '1 块', NOW(), NOW(), 0),
+(10355, 103, '折痕板', '1 块', NOW(), NOW(), 0),
+(10451, 104, '免烧陶泥', '1 份', NOW(), NOW(), 0),
+(10452, 104, '塑形刀', '1 把', NOW(), NOW(), 0),
+(10453, 104, '擀泥杖', '1 根', NOW(), NOW(), 0),
+(10454, 104, '湿布', '1 块', NOW(), NOW(), 0),
+(10455, 104, '垫板', '1 块', NOW(), NOW(), 0) AS new
+ON DUPLICATE KEY UPDATE
+  project_id  = new.project_id,
+  name        = new.name,
+  qty         = new.qty,
   update_time = new.update_time,
   deleted     = new.deleted;
 

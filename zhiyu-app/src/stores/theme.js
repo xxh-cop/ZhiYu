@@ -9,10 +9,10 @@ import { defineStore } from 'pinia'
 const STORAGE_KEY = 'zy-theme'
 
 /** 原生 tabBar 面级值（与 design/tokens.json themes 对齐） */
-const TABBAR_BG = { white: '#FFFFFF', warm: '#FFFDF7' }
-const TABBAR_BORDER = { white: 'white', warm: 'black' }
+const TABBAR_BG = { white: '#FFFFFF', warm: '#FFFFFF' }
+const TABBAR_BORDER = { white: 'black', warm: 'black' }
 /** 导航条面级值（跟 --zy-bg；frontColor 恒黑） */
-const NAV_BG = { white: '#FFFFFF', warm: '#F6F1E7' }
+const NAV_BG = { white: '#F1F4F1', warm: '#F1F4F1' }
 
 export const useThemeStore = defineStore('theme', {
 	state: () => ({
@@ -55,13 +55,17 @@ export const useThemeStore = defineStore('theme', {
 		},
 		/** 原生 tabBar 随主题联动；非 tabBar 页面/不支持平台静默跳过 */
 		applyTabBar() {
+			// #ifndef H5
 			try {
-				uni.setTabBarStyle({
+				const task = uni.setTabBarStyle({
 					backgroundColor: TABBAR_BG[this.theme],
 					borderStyle: TABBAR_BORDER[this.theme],
 					fail: () => {},
 				})
-			} catch (e) { /* H5 无原生 tabBar 时忽略 */ }
+				// uni 的部分平台实现会返回 Promise：显式接住，避免 unhandled rejection
+				if (task && typeof task.catch === 'function') task.catch(() => {})
+			} catch (e) { /* 非 tabBar 页面忽略 */ }
+			// #endif
 			// #ifdef MP
 			// custom tabBar 不吃 setTabBarStyle，直接通知当前页组件换纸色
 			try {

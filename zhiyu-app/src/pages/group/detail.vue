@@ -128,9 +128,9 @@ onLoad(options => {
 <template>
 	<view :class="zyThemeClass" class="growth-page group-page">
 		<view class="group-head">
-			<text class="growth-eyebrow">同行 · 互助</text>
-			<text class="group-title">{{ group ? group.name : '小组空间' }}</text>
-			<text class="group-sub">尊重彼此的节奏，不分享他人的隐私。</text>
+			<text class="growth-eyebrow">COMMON ROOM · 小组空间</text>
+			<text class="group-title">一起，慢慢来</text>
+			<text class="group-sub">不追问，不评判。在这里，按自己的节奏与人同行。</text>
 			<view v-if="group" class="group-meta">
 				<text class="meta-chip">{{ group.member_count }} / {{ group.max_count }} 人</text>
 				<text class="meta-chip">{{ group.myRole }}</text>
@@ -285,38 +285,41 @@ onLoad(options => {
 	border-bottom: 1rpx dashed var(--zy-stitch, #C9BFA9);
 }
 .member-pill {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
-	gap: 8rpx;
-	padding: 6rpx 12rpx 6rpx 6rpx;
-	border-radius: 999rpx;
-	background: var(--zy-bg-sunken, #F4F4F2);
+	gap: 10rpx;
+	padding: 0;
+	border-radius: 0;
+	background: transparent;
 }
 .member-avatar {
-	width: 36rpx;
-	height: 36rpx;
-	border-radius: 50%;
-	background: var(--zy-bg-tint-mint, #E4EFE7);
+	width: 44rpx;
+	height: 44rpx;
+	border-radius: 0;
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	background: transparent;
 	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
-	font-size:var(--zy-text-micro, 22rpx);
-	font-weight: 600;
+	font-family: var(--zy-font-display, "Songti SC", serif);
+	font-size:var(--zy-text-caption, 24rpx);
+	font-weight: 500;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 .member-name {
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #5C5648);
+	color: var(--zy-text, #42524c);
 }
 .member-more {
 	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-text, #5C5648);
+	color: var(--zy-muted, #6e7b75);
 }
 .leader-box {
 	margin-top: 18rpx;
-	padding: 18rpx;
-	border-radius: 16rpx;
-	background: var(--zy-bg-tint-warm, #F3E9CF);
+	padding: 14rpx 0 14rpx 18rpx;
+	border-radius: 0;
+	border-left: 3rpx solid var(--zy-brand-700, #0a403b);
+	background: transparent;
 }
 .leader-title {
 	display: block;
@@ -345,6 +348,7 @@ onLoad(options => {
 .chat-card .growth-card-title {
 	margin-bottom: 6rpx;
 }
+.group-head + .growth-card{border-top:0}
 .group-input {
 	display: block;
 	width: 100%;
@@ -392,4 +396,30 @@ onLoad(options => {
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
 }
+/* ── v9 冷瓷展签收口 ── */
+.group-page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg); }
+.group-head { padding: 0 0 30rpx; border-bottom: 1rpx solid var(--zy-border); margin-bottom: 8rpx; }
+.group-head .growth-eyebrow { letter-spacing: 2px; color: var(--zy-muted); }
+.group-title { margin-top: 14rpx; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.25; color: var(--zy-title); }
+.group-sub { margin-top: 10rpx; color: var(--zy-muted); }
+.group-meta { gap: 0; margin-top: 16rpx; border-top: 0; padding-top: 0; }
+.meta-chip { padding: 0 16rpx; border-radius: 0; background: transparent; border-right: 1rpx solid var(--zy-border); }
+.meta-chip:first-child { padding-left: 0; }
+.meta-chip:last-child { border-right: 0; }
+.group-page .growth-card { padding: 28rpx 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; }
+.group-page .growth-card-title { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
+.group-description { color: var(--zy-text); }
+.member-strip { border-top: 1rpx solid var(--zy-border); border-bottom: 1rpx solid var(--zy-border); gap: 16rpx; }
+.member-pill { padding: 0; border-radius: 0; background: transparent; gap: 10rpx; }
+.member-avatar { width: 40rpx; height: 40rpx; border-radius: 0; background: var(--zy-bg-sunken); color: var(--zy-brand-700); font-family: var(--zy-font-display, serif); font-weight: 500; }
+.member-name { color: var(--zy-text); }
+.leader-box { border-left: 3rpx solid var(--zy-accent, #a64842); border-radius: 0; background: transparent; padding: 14rpx 0 14rpx 18rpx; }
+.leader-title { font-weight: 500; color: var(--zy-accent, #a64842); }
+.manage-row { margin-top: 14rpx; border-top: 1rpx solid var(--zy-border); padding-top: 16rpx; }
+.group-head + .growth-card{border-top:0}
+.group-input { border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; padding: 10rpx 0; }
+.message { border-bottom: 1rpx solid var(--zy-border); }
+.message-author { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title); }
+.message-time { color: var(--zy-muted); }
+.message-body { color: var(--zy-text); }
 </style>

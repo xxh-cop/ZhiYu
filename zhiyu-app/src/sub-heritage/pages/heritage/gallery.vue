@@ -1,6 +1,6 @@
 <template>
 	<view class="heritage-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
-		<SectionHead eyebrow="HERITAGE STUDIES" title="非遗纹样馆" tone="heritage" />
+		<SectionHead eyebrow="HERITAGE STUDIES" title="一针一线，都有来处" tone="heritage" />
 		<text class="heritage-subtitle zy-t-body">{{ catalogCount }} · 来源与练习边界可查。</text>
 
 		<view v-if="loading" class="zy-card heritage-status" role="status" aria-live="polite">
@@ -20,6 +20,7 @@
 					class="heritage-input zy-t-body"
 					aria-label="搜索纹样"
 					placeholder="输入名称、地域或学习观察点"
+					placeholder-style="font-size:24rpx;color:#8a9a93"
 					confirm-type="search"
 				/>
 				<text class="heritage-muted zy-t-caption">可按名称、地域或学习观察点查找。</text>
@@ -253,4 +254,15 @@ onLoad(load)
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 }
+
+/* ── v9 冷瓷展签收口 ── */
+.heritage-search-card { padding: 24rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; }
+.heritage-label { font-size: var(--zy-text-micro, 22rpx); font-weight: 400; letter-spacing: 2px; color: var(--zy-muted); }
+.heritage-input { background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; padding: 12rpx 0; font-size: 26rpx; font-weight: 400; }
+.heritage-choice { min-height: 64rpx; padding: 6rpx 14rpx; border: 0; border-bottom: 2rpx solid transparent; border-radius: 0; background: transparent; color: var(--zy-text); }
+.heritage-choice.is-selected { background: transparent; border-color: transparent; border-bottom-color: var(--zy-brand-700); color: var(--zy-brand-700); }
+.heritage-filters { gap: 24rpx; }
+.heritage-grid { gap: 24rpx; }
+.heritage-count { font-family: var(--zy-font-display, serif); font-weight: 500; }
+.heritage-foot { color: var(--zy-muted); }
 </style>

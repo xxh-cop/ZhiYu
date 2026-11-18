@@ -2,7 +2,8 @@
 	<view :class="zyThemeClass" class="page">
 		<view class="page-head">
 			<view>
-				<text class="page-title">消息通知</text>
+				<text class="page-eyebrow">INBOX · 消息</text>
+				<text class="page-title">慢慢看，都在这里</text>
 				<text class="page-subtitle">审核结果、回复与小组动态，都会在这里等你。</text>
 			</view>
 			<view class="head-actions">
@@ -415,4 +416,30 @@ function goCommunity() {
 .list-end { display: block; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); padding: 28rpx 0; }
 .footnote { display: block; margin-top: 40rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
 button:focus-visible, .filter-chip:focus-visible, .notice-item:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+
+/* ── v9 冷瓷展签收口 ── */
+.page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
+.page-head { padding-bottom: 26rpx; border-bottom: 1rpx solid var(--zy-border); }
+.page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 14rpx; }
+.page-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
+.page-subtitle { color: var(--zy-muted); }
+.read-all-btn { padding: 0; border-radius: 0; background: transparent; color: var(--zy-brand-700); border-bottom: 1rpx solid var(--zy-border); }
+.clear-btn { padding: 0; border-radius: 0; color: var(--zy-muted); border-bottom: 1rpx solid var(--zy-border); }
+.filter-scroll { margin: 22rpx 0; }
+.filters { gap: 28rpx; }
+.filter-chip { margin: 0; padding: 6rpx 0 10rpx; min-height: 0; border: 0; border-bottom: 2rpx solid transparent; border-radius: 0; background: transparent; color: var(--zy-text); }
+.filter-chip.active { background: transparent; border-color: transparent; border-bottom-color: var(--zy-brand-700); color: var(--zy-brand-700); }
+.notice-list { gap: 0; }
+.notice-item { padding: 24rpx 80rpx 24rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; }
+.notice-item.unread { border-left: 3rpx solid var(--zy-care); padding-left: 20rpx; }
+.notice-icon { width: 48rpx; height: 48rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); font-family: var(--zy-font-display, serif); font-weight: 500; }
+.icon-work, .icon-comment, .icon-booking, .icon-group, .icon-care_reminder { background: transparent; color: var(--zy-brand-700); border-color: var(--zy-border); }
+.icon-care_reminder { color: var(--zy-care, #a64842); border-color: var(--zy-care, #a64842); }
+.notice-type { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title); }
+.notice-time { color: var(--zy-muted); font-size: 20rpx; }
+.notice-text { color: var(--zy-text); }
+.unread-dot { top: 24rpx; right: 8rpx; width: 8rpx; height: 8rpx; border-radius: 0; display: none; }
+.notice-del { top: 12rpx; right: 2rpx; min-width: 56rpx; min-height: 56rpx; padding: 0; opacity: .32; font-size: 20rpx; color: var(--zy-muted); }
+.load-more { border-radius: 0; border: 1rpx solid var(--zy-border); background: transparent; }
+.list-end, .footnote { color: var(--zy-muted); }
 </style>

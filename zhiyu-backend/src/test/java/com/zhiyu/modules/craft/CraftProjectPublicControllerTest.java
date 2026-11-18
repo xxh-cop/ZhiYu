@@ -21,6 +21,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,6 +68,7 @@ class CraftProjectPublicControllerTest {
     private CraftMaterialMapper craftMaterialMapper;
 
     private Long studentUserId;
+    private Long inheritorUserId;
     private Long verifiedProfileId;
     private Long publishedProjectId;
     private Long unpublishedProjectId;
@@ -97,6 +99,7 @@ class CraftProjectPublicControllerTest {
         inheritor.setStatus(1);
         inheritor.setCanContact(0);
         userMapper.insert(inheritor);
+        inheritorUserId = inheritor.getId();
 
         InheritorProfile profile = new InheritorProfile();
         profile.setUserId(inheritor.getId());
@@ -203,6 +206,30 @@ class CraftProjectPublicControllerTest {
                 .andExpect(jsonPath("$.data.steps[0].title").value("揉泥"))
                 .andExpect(jsonPath("$.data.materials").isArray())
                 .andExpect(jsonPath("$.data.materials[0].name").value("陶泥"));
+    }
+
+    @Test
+    @DisplayName("项目技法与示范者专长不一致时不返回示范者身份")
+    void testStudent_GetProjectDetail_SkillMismatch_OmitsInheritorIdentity() throws Exception {
+        CraftProject mismatched = new CraftProject();
+        mismatched.setInheritorId(inheritorUserId);
+        mismatched.setTitle("扎染方巾");
+        mismatched.setIntro("扎染入门项目");
+        mismatched.setLevel(2);
+        mismatched.setEstMinutes(45);
+        mismatched.setCategory("扎染");
+        mismatched.setStatus(1);
+        craftProjectMapper.insert(mismatched);
+
+        mockMvc.perform(get("/api/craft/projects/{id}", mismatched.getId())
+                        .header("Authorization", "Bearer " + token(studentUserId, 0)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.title").value("扎染方巾"))
+                .andExpect(jsonPath("$.data.inheritorId").value(nullValue()))
+                .andExpect(jsonPath("$.data.inheritorProfileId").value(nullValue()))
+                .andExpect(jsonPath("$.data.inheritorNickname").value(nullValue()))
+                .andExpect(jsonPath("$.data.inheritorSkill").value(nullValue()));
     }
 
     @Test

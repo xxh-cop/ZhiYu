@@ -1,13 +1,11 @@
 <template>
 	<!--
-		ChatBubble —— 对话气泡（暖纸青玉 v6 · 规格 §2-C3）
-		折角圆角指示说话人（AI 左上小角 / 用户右上小角），无描边、暖墨轻影；
-		流式中由 typing 显示三点呼吸（reduced-motion 下由全局 .motion-reduced 关停动画）。
-		WXSS 合规：仅类选择器；三点延迟用内联 style，不用 :nth-child。
+		ChatBubble —— 对话行（v7 一线 · 2026-11-16）
+		默认仍是轻气泡；dark 用于「玄墨倾听室」：去掉气泡与阴影，消息按排版行阅读。
 	-->
-	<view class="zy-bubble-row" :class="role === 'user' ? 'is-user' : 'is-ai'">
+	<view class="zy-bubble-row" :class="[role === 'user' ? 'is-user' : 'is-ai', dark ? 'is-dark' : '']">
 		<view v-if="role === 'ai'" class="zy-bubble-ava" aria-hidden="true">
-			<XiaotuanPet :size="30" />
+			<XiaotuanPet :size="dark ? 24 : 30" />
 		</view>
 		<view class="zy-bubble-col">
 			<view class="zy-bubble">
@@ -33,6 +31,7 @@ defineProps({
 	time: { type: String, default: '' },
 	typing: Boolean,
 	userInitial: { type: String, default: '同' },
+	dark: Boolean,
 })
 </script>
 
@@ -49,6 +48,18 @@ defineProps({
 .zy-bubble-time { margin-top: 10rpx; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
 .zy-typing-dots { display: flex; gap: 8rpx; align-items: center; padding: 8rpx 4rpx; }
 .zy-typing-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)); animation: zyTypingDots 1400ms var(--zy-ease-in-out, ease-in-out) infinite; }
+
+/* ── 玄墨倾听室：不是气泡，是一行行被看见的话 ── */
+.zy-bubble-row.is-dark { align-items: flex-start; gap: 14rpx; margin-bottom: 44rpx; }
+.zy-bubble-row.is-dark.is-user { align-items: flex-end; }
+.zy-bubble-row.is-dark .zy-bubble-ava { width: 48rpx; height: 48rpx; border-radius: 0; opacity: .78; }
+.zy-bubble-row.is-dark .zy-bubble-ava.is-letter { background: transparent; color: var(--zy-d-text-secondary, #A9BBB2); font-weight: 400; font-size: 22rpx; }
+.zy-bubble-row.is-dark .zy-bubble-col { max-width: 84%; }
+.zy-bubble-row.is-dark .zy-bubble { padding: 0; background: transparent; box-shadow: none; border-radius: 0; font-size: 30rpx; line-height: 1.9; }
+.is-dark.is-ai .zy-bubble { color: var(--zy-d-text, #F1F4F1); border-left: 1rpx solid rgba(143,199,184,.35); padding-left: 22rpx; }
+.is-dark.is-user .zy-bubble { color: var(--zy-d-text-secondary, #A9BBB2); text-align: right; }
+.zy-bubble-row.is-dark .zy-bubble-time { color: rgba(169,187,178,.55); }
+.zy-bubble-row.is-dark .zy-typing-dot { background: var(--zy-brand-300, #8FC7B8); }
 @keyframes zyTypingDots {
 	0%, 100% { opacity: .35; transform: scale(.85); }
 	50% { opacity: 1; transform: scale(1); }

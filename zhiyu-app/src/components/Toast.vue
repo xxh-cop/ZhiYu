@@ -41,8 +41,8 @@ onBeforeUnmount(() => _trackToastMount(-1))
 .toast-item {
 	max-width: 80vw;
 	padding: 16rpx 32rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: rgba(35, 61, 52, 0.92);
+	border-radius: 0;
+	background: rgba(17, 24, 22, 0.94);
 	color: #fff;
 	font-size: var(--zy-font-sm, 24rpx);
 	line-height: 1.6;

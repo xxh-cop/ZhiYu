@@ -45,4 +45,17 @@ function open(item){uni.navigateTo({url:'/pages/starter/prepare?id='+item.id})}
 function resume(s){uni.navigateTo({url:`/pages/craft/session?projectId=${s.projectId}&sessionId=${s.sessionId}`})}
 </script>
 
-<style scoped>.growth-page .filters button.growth-choice{width:auto;flex:1;padding:14rpx 10rpx;margin:0;text-align:center;font-size:var(--zy-text-caption, 24rpx)}.growth-muted{display:block}.filter-label{display:block;margin:28rpx 0 14rpx;font-size:var(--zy-text-caption, 24rpx);font-weight:600}.growth-row{flex-wrap:wrap}.tool-toggle{margin:26rpx 0 0;text-align:left;background:#edf5f2;color:#267a6c;font-size:var(--zy-text-caption, 24rpx);border-radius:14rpx}.featured{border-color:#b9d8cb}.result{text-align:left;width:100%;margin:0;line-height:1.7}.resume-row{display:flex;justify-content:space-between;gap:18rpx;flex-wrap:wrap;text-align:left;padding:20rpx 0;border-bottom:1rpx solid #dfe8e5;background:transparent;font-size:var(--zy-text-caption, 24rpx)}.resume-card{border-left:6rpx solid #dbb370}button::after{border:0}</style>
+<style scoped>
+.growth-page .filters button.growth-choice{width:auto;flex:1;padding:10rpx 10rpx 14rpx;margin:0;text-align:center;font-size:var(--zy-text-caption, 24rpx);border:0;border-bottom:2rpx solid transparent;border-radius:0;background:transparent;color:var(--zy-muted,#6e7b75);box-shadow:none}
+.growth-page .filters button.growth-choice.selected{background:transparent;border-bottom-color:var(--zy-brand-700,#0a403b);color:var(--zy-brand-700,#0a403b);box-shadow:none}
+.growth-muted{display:block}
+.filter-label{display:block;margin:28rpx 0 14rpx;font-size:24rpx;font-weight:500;font-family:var(--zy-font-display,serif);color:var(--zy-title)}
+.growth-row{flex-wrap:wrap}
+.tool-toggle{margin:24rpx 0 0;text-align:left;background:transparent;color:var(--zy-brand-700);font-size:var(--zy-text-caption, 24rpx);border-radius:0;border-bottom:1rpx solid var(--zy-border)}
+.featured{border-color:var(--zy-border)}
+.featured .growth-eyebrow{color:var(--zy-care,#a64842);letter-spacing:2px}
+.result{text-align:left;width:100%;margin:0;line-height:1.7}
+.resume-row{display:flex;justify-content:space-between;gap:18rpx;flex-wrap:wrap;text-align:left;padding:20rpx 0;border-bottom:1rpx solid var(--zy-border);background:transparent;border-radius:0;box-shadow:none;font-size:var(--zy-text-caption, 24rpx)}
+.resume-card{border-top:0;border-left:0}
+button::after{border:0}
+</style>

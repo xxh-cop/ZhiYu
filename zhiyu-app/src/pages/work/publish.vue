@@ -1,5 +1,9 @@
 <template>
 	<view :class="zyThemeClass" class="page">
+		<view class="page-head">
+			<text class="page-eyebrow">PUBLISH · 作品发布</text>
+			<text class="page-title">把这一次创作，留下来</text>
+		</view>
 		<!-- 步骤指示器 -->
 		<view class="step-indicator">
 			<view
@@ -1194,4 +1198,64 @@ button:focus-visible {
 	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	outline-offset: 3px;
 }
+
+/* ── v9 冷瓷展签收口 ── */
+.page { padding: 8rpx 32rpx 140rpx; background: var(--zy-bg, #f1f4f1); }
+.page-head { display: flex; flex-direction: column; gap: 12rpx; padding: 28rpx 0 24rpx; }
+.page-eyebrow { font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
+.page-title { font-family: var(--zy-font-display, serif); font-size: 56rpx; font-weight: 500; line-height: 1.35; color: var(--zy-title, #111816); }
+.nav-bar { padding: 12rpx 0; }
+.nav-back { border-radius: 0; width: 56rpx; height: 56rpx; }
+.nav-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
+.step-indicator { justify-content: flex-start; padding: 8rpx 0 28rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); margin-bottom: 4rpx; }
+.step-dot { width: 42rpx; height: 42rpx; border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
+.step-dot--active { background: var(--zy-brand-600, #0e5b53); border-color: var(--zy-brand-600, #0e5b53); }
+.step-dot--current { box-shadow: none; }
+.step-dot-text { font-family: var(--zy-font-display, serif); color: var(--zy-muted, #6e7b75); }
+.step-dot--active .step-dot-text { color: #fff; }
+.step-line { width: 28rpx; height: 1rpx; background: var(--zy-border, #d3ded8); margin: 0 6rpx; }
+.step-line--active { background: var(--zy-brand-600, #0e5b53); }
+.step-content { padding-bottom: 0; }
+.step-card { background: transparent; border-radius: 0; box-shadow: none; border-top: 0; padding: 28rpx 0; margin-bottom: 0; }
+.step-card-title { font-family: var(--zy-font-display, serif); font-size: 44rpx; font-weight: 500; color: var(--zy-title, #111816); }
+.step-card-sub { color: var(--zy-muted, #6e7b75); margin-bottom: 26rpx; }
+.media-tabs { gap: 0; margin-bottom: 24rpx; }
+.media-tab { border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; margin-right: -1rpx; }
+.media-tab--active { border-color: var(--zy-brand-600, #0e5b53); border-bottom-width: 3rpx; background: transparent; }
+.media-tab-text { color: var(--zy-muted, #6e7b75); }
+.media-tab-text--active { color: var(--zy-brand-700, #0a403b); }
+.image-upload-area { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); }
+.image-upload-area:active { border-color: var(--zy-brand-600, #0e5b53); }
+.image-placeholder-text { color: var(--zy-text, #42524c); }
+.image-placeholder-hint { color: var(--zy-muted, #6e7b75); opacity: 1; }
+.text-only-icon-wrap { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); }
+.text-only-title { font-family: var(--zy-font-display, serif); }
+.text-only-sub { color: var(--zy-muted, #6e7b75); }
+.form-field { margin-bottom: 24rpx; }
+.form-label { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; }
+.form-hint, .char-hint { color: var(--zy-muted, #6e7b75); }
+.radio-group { gap: 0; }
+.radio-item { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); margin-right: -1rpx; }
+.radio-active { border-color: var(--zy-brand-600, #0e5b53); background: transparent; }
+.radio-dot { border-radius: 0; }
+.radio-label { color: var(--zy-text, #42524c); }
+.ai-hint-title { font-family: var(--zy-font-display, serif); }
+.ai-hint-text { color: var(--zy-muted, #6e7b75); }
+.preview-card { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); }
+.preview-cover--placeholder { background: var(--zy-bg-sunken, #e9efeb); }
+.preview-cover-text { color: var(--zy-muted, #6e7b75); }
+.preview-body { padding: 24rpx 20rpx; }
+.preview-title { font-size: 40rpx; color: var(--zy-title); }
+.preview-message { color: var(--zy-text); }
+.preview-tag { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); }
+.preview-tag-text { color: var(--zy-brand-700); }
+.btn-row { gap: 0; border: 1rpx solid var(--zy-border, #d3ded8); }
+.btn-secondary { border-radius: 0; border: 0; border-right: 1rpx solid var(--zy-border, #d3ded8); }
+.btn-primary { border-radius: 0; background: var(--zy-brand-600, #0e5b53); }
+.btn-primary:active { transform: none; }
+.btn-primary--disabled { background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); opacity: 1; }
+.btn-primary--disabled .btn-primary-text { color: var(--zy-muted, #6e7b75); }
+.btn-secondary-text { color: var(--zy-muted, #6e7b75); }
+.success-card { border-radius: 0; background: var(--zy-bg, #f1f4f1); border: 1rpx solid var(--zy-border, #d3ded8); }
+.upload-error { background: transparent; border-radius: 0; border-left: 3rpx solid var(--zy-care); }
 </style>

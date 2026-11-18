@@ -85,7 +85,9 @@ export function createApp() {
 	// uni-h5 不会自动挂载 custom-tab-bar：注入全局宿主，并隐藏原生 tabBar
 	setTimeout(() => {
 		try {
-			uni.hideTabBar({ animation: false })
+			const hideTask = uni.hideTabBar({ animation: false, fail: () => {} })
+			// uni-h5 在 tabBar 尚未挂载时可能返回 rejected Promise；接住，避免每页一条 pageerror
+			if (hideTask && typeof hideTask.catch === 'function') hideTask.catch(() => {})
 			if (!document.getElementById('zy-tabbar-host')) {
 				const host = document.createElement('div')
 				host.id = 'zy-tabbar-host'

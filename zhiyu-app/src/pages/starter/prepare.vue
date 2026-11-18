@@ -1,7 +1,10 @@
 <template>
 	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
- <view v-if="loading" class="growth-card growth-skeleton">正在读取准备清单…</view>
- <view v-else-if="error" class="growth-error">{{error}}<AccessibleButton class="growth-button" @click="load">重试</AccessibleButton></view>
+ <StateBlock v-if="loading" type="loading" title="正在读取准备清单…" />
+ <view v-else-if="error" class="prepare-error">
+  <StateBlock type="error" title="这件练习暂时没准备好" :description="error" action-text="重新读取" @action="load" />
+  <AccessibleButton class="state-back" @click="back">回到手作起点</AccessibleButton>
+ </view>
  <template v-else-if="item">
   <view class="growth-hero"><text class="growth-eyebrow">PREPARE · 先准备，再开始</text><text class="growth-title">{{item.title}}</text><text class="growth-subtitle">约 {{item.minutes}} 分钟 · {{item.steps.length}} 步 · 可随时暂停</text></view>
   <StarterDiagram :kind="item.diagram"/><text class="growth-muted">原创纹样示意，具体操作以步骤文字为准。</text>
@@ -14,7 +17,7 @@
  </template><text class="growth-foot">本系统不能替代专业心理咨询</text>
 </view></template>
 <script setup>
-import{ref}from'vue';import{onLoad}from'@dcloudio/uni-app';import{http}from'../../utils/request';import{useInteraction}from'../../composables/useInteraction';import StarterDiagram from '../../components/StarterDiagram.vue';import AccessibleButton from '../../components/AccessibleButton.vue'
+import{ref}from'vue';import{onLoad}from'@dcloudio/uni-app';import{http}from'../../utils/request';import{useInteraction}from'../../composables/useInteraction';import StarterDiagram from '../../components/StarterDiagram.vue';import AccessibleButton from '../../components/AccessibleButton.vue';import StateBlock from '../../components/StateBlock.vue'
 const{reducedMotion}=useInteraction(),item=ref(null),loading=ref(false),error=ref(''),checked=ref([]);let id=''
 onLoad(q=>{id=q.id;load()})
 async function load(){loading.value=true;error.value='';try{const all=await http.get('/api/craft/starter');item.value=all.find(x=>x.id===id);if(!item.value)error.value='该练习已调整或暂未上架，请返回目录选择其他项目。'}catch(e){error.value=e.message||'准备清单加载失败'}finally{loading.value=false}}
@@ -24,4 +27,4 @@ function back(){uni.navigateBack()}
 function copySource(){uni.setClipboardData({data:item.value.source.url})}
 </script>
 
-<style scoped>.growth-muted{display:block;margin-top:8rpx}.material-row{display:flex;gap:20rpx;padding:24rpx 0;background:transparent;text-align:left;line-height:1.8;border-bottom:1rpx solid #e1e9e5}.check{color:#267b6e;font-size:var(--zy-text-title, 32rpx)}.material-title{font-size:var(--zy-text-body, 28rpx);font-weight:600}.step-preview{padding:22rpx 0;border-bottom:1rpx solid #e1e9e5;font-size:var(--zy-text-body, 28rpx)}.rescue{display:block;color:#8b652d;background:#faf6ed;border-radius:10rpx;padding:14rpx;font-size:var(--zy-text-caption, 24rpx);line-height:1.8;margin-top:12rpx}.safety-card{border-left:6rpx solid #d6b475}button::after{border:0}</style>
+<style scoped>.prepare-error{display:flex;flex-direction:column;align-items:center;padding-top:80rpx}.state-back{background:transparent;border:0;border-bottom:1rpx solid var(--zy-border,#d3ded8);border-radius:0;color:var(--zy-muted,#6e7b75);font-size:var(--zy-text-caption,24rpx);min-height:72rpx;margin-top:6rpx;padding:0 8rpx}.state-back::after{border:0}.growth-muted{display:block;margin-top:8rpx}.material-row{display:flex;gap:20rpx;padding:24rpx 0;background:transparent;text-align:left;line-height:1.8;border-bottom:1rpx solid var(--zy-border,#d3ded8)}.check{color:var(--zy-brand-700,#0a403b);font-size:var(--zy-text-title,32rpx)}.material-title{font-family:var(--zy-font-display,serif);font-size:var(--zy-text-body,28rpx);font-weight:500;color:var(--zy-title,#111816)}.step-preview{padding:22rpx 0;border-bottom:1rpx solid var(--zy-border,#d3ded8);font-size:var(--zy-text-body,28rpx)}.rescue{display:block;color:var(--zy-text,#42524c);background:var(--zy-bg-sunken,#e9efeb);border-left:2rpx solid var(--zy-care,#a64842);border-radius:0;padding:14rpx 16rpx;font-size:var(--zy-text-caption,24rpx);line-height:1.8;margin-top:12rpx}.safety-card{border-left:2rpx solid var(--zy-care,#a64842)}button::after{border:0}</style>

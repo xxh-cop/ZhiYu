@@ -1,18 +1,12 @@
 <template>
 	<view :class="zyThemeClass" class="short-page zy-page-enter">
-		<view class="short-nav">
-			<AccessibleButton class="back-btn" aria-label="返回上一页" @click="leave">‹ 返回</AccessibleButton>
-			<text class="nav-kind">{{ practice ? practiceKindLabel(practice.kind) : '短练习' }}</text>
-		</view>
-
 		<view v-if="loading" class="short-loading">
 			<view class="orb-skeleton zy-skeleton" aria-hidden="true"></view>
 			<text class="loading-text">正在准备短练习…</text>
 		</view>
 
-		<view v-else-if="loadError" class="short-status" role="alert">
-			<text class="status-text">{{ loadError }}</text>
-			<AccessibleButton class="primary-action" @click="load">重试</AccessibleButton>
+		<view v-else-if="loadError" class="short-status">
+			<StateBlock type="error" title="这条短练习没有找到" :description="loadError" action-text="重新读取" @action="load" />
 			<AccessibleButton class="text-action" @click="leave">先回去</AccessibleButton>
 		</view>
 
@@ -107,6 +101,7 @@ import { onLoad, onHide, onUnload } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import ActionSheet from '../../components/ActionSheet.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import StateBlock from '../../components/StateBlock.vue'
 import {
 	createPracticeSession,
 	practiceKindLabel,
@@ -346,66 +341,63 @@ function leave() {
 <style scoped>
 .short-page {
 	min-height: 100vh;
-	padding: 28rpx 32rpx 80rpx;
+	padding: 32rpx 32rpx 80rpx;
 	box-sizing: border-box;
-	background: var(--zy-bg, #ffffff);
-	color: var(--zy-content, #4a5f54);
+	background: var(--zy-bg, #f1f4f1);
+	color: var(--zy-text, #42524c);
 }
-.short-nav { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
-.back-btn { margin: 0; padding: 8rpx 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 999rpx; background: var(--zy-card-bg, #fff); color: var(--zy-content, #4a5f54); font-size:var(--zy-text-micro, 22rpx); line-height: 2; }
-.back-btn::after { border: 0; }
-.nav-kind { font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2rpx; color: var(--zy-sub, #73857b); }
-.short-hero { margin: 36rpx 0 28rpx; }
-.eyebrow { display: block; font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2rpx; color: var(--zy-accent, var(--zy-accent, #7a5c12)); }
-.title { display: block; margin-top: 12rpx; font-family: var(--zy-serif); font-size:var(--zy-text-display, 56rpx); font-weight: 600; line-height: 1.35; color: var(--zy-title, #233d34); }
-.subtitle { display: block; margin-top: 10rpx; font-size:var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-sub, #73857b); }
+.short-hero { margin: 30rpx 0 24rpx; }
+.eyebrow { display: block; font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
+.title { display: block; margin-top: 12rpx; font-family: var(--zy-font-display, serif); font-size:56rpx; font-weight: 500; line-height: 1.35; color: var(--zy-title, #111816); }
+.subtitle { display: block; margin-top: 10rpx; font-size:var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-muted, #6e7b75); }
 .intro-card,
 .player,
-.done-card { padding: 30rpx 28rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 26rpx; background: var(--zy-card-bg, #fff); box-shadow: var(--zy-shadow-sm); }
+.done-card { padding: 26rpx 0; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; box-shadow: none; }
 
 /* 材质带（气息深化·阶段二）：HERITAGE 按纹样族，其余回落针线；纯 CSS 只用令牌 */
-.material-band { display: flex; align-items: center; justify-content: center; min-height: 72rpx; margin-bottom: 22rpx; border-radius: var(--zy-radius-sm); background: var(--zy-bg-tint-warm); }
+.material-band { display: flex; align-items: center; justify-content: center; min-height: 72rpx; margin-bottom: 20rpx; border-radius: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-bottom: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
 .band-motif { position: relative; width: 48rpx; height: 48rpx; }
+.band-stitch .band-motif { width: 168rpx; height: 24rpx; }
 .band-a,
 .band-b { position: absolute; }
 .band-weave .band-a { left: 0; right: 0; top: 16rpx; height: 6rpx; background: var(--zy-brand-600); }
-.band-weave .band-b { top: 0; bottom: 0; left: 21rpx; width: 6rpx; background: var(--zy-gold); }
-.band-stitch .band-a { left: 2rpx; right: 2rpx; top: 23rpx; border-top: 3rpx dashed var(--zy-brand-600); }
-.band-stitch .band-b { left: 20rpx; top: 16rpx; width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--zy-gold); }
-.band-cutout .band-a { top: 2rpx; right: 2rpx; bottom: 2rpx; left: 2rpx; background: var(--zy-care); border-radius: var(--zy-radius-xs); }
+.band-weave .band-b { top: 0; bottom: 0; left: 21rpx; width: 6rpx; background: var(--zy-care, #a64842); }
+.band-stitch .band-a { left: 0; right: 0; top: 11rpx; border-top: 2rpx dashed var(--zy-care, #a64842); }
+.band-stitch .band-b { display: none; }
+.band-cutout .band-a { top: 2rpx; right: 2rpx; bottom: 2rpx; left: 2rpx; background: var(--zy-care, #a64842); }
 .band-cutout .band-b { left: 16rpx; top: 16rpx; width: 16rpx; height: 16rpx; background: var(--zy-card-bg); border-radius: 50%; }
 .band-porcelain .band-a { top: 2rpx; right: 2rpx; bottom: 2rpx; left: 2rpx; border: 4rpx solid var(--zy-brand-600); border-radius: 50%; }
-.band-porcelain .band-b { left: 15rpx; top: 15rpx; width: 18rpx; height: 18rpx; border: 3rpx solid var(--zy-gold); border-radius: 50%; }
+.band-porcelain .band-b { left: 15rpx; top: 15rpx; width: 18rpx; height: 18rpx; border: 3rpx solid var(--zy-care, #a64842); border-radius: 50%; }
 .intro-lead { display: block; font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .step-preview { margin: 22rpx 0; }
-.preview-row { display: flex; gap: 18rpx; padding: 16rpx 0; border-bottom: 1rpx dashed var(--zy-border, #dfe7dc); }
+.preview-row { display: flex; gap: 18rpx; padding: 16rpx 0; border-bottom: 1rpx solid var(--zy-border, #dfe7dc); }
 .preview-row:last-child { border-bottom: 0; }
-.preview-index { flex-shrink: 0; width: 44rpx; height: 44rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-micro, 22rpx); line-height: 44rpx; text-align: center; }
+.preview-index { flex-shrink: 0; width: 44rpx; height: 44rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-micro, 22rpx); line-height: 42rpx; text-align: center; }
 .preview-copy { flex: 1; min-width: 0; }
-.preview-title { display: block; font-size:var(--zy-text-caption, 24rpx); font-weight: 600; color: var(--zy-title, #233d34); }
+.preview-title { display: block; font-family: var(--zy-font-display, serif); font-size:28rpx; font-weight: 500; color: var(--zy-title, #233d34); }
 .preview-cue { display: block; margin-top: 6rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-sub, #73857b); }
 .materials-line { display: flex; gap: 12rpx; flex-wrap: wrap; margin-bottom: 16rpx; font-size:var(--zy-text-micro, 22rpx); }
-.materials-label { color: var(--zy-accent, var(--zy-accent, #7a5c12)); }
+.materials-label { color: var(--zy-care, #a64842); }
 .materials-text { color: var(--zy-content, #4a5f54); }
 .safety-note { display: block; margin-bottom: 22rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-sub, #73857b); }
 .primary-action,
-.secondary-action { min-height: 88rpx; margin-top: 14rpx; border-radius: 999rpx; font-size:var(--zy-text-body, 28rpx); line-height: 2.9; }
-.primary-action { background: var(--zy-brand-700, var(--zy-brand-600, #217e76)); color: #fff; }
+.secondary-action { min-height: 88rpx; margin-top: 14rpx; border-radius: 0; font-size:var(--zy-text-body, 28rpx); line-height: 2.9; }
+.primary-action { background: var(--zy-brand-600, #0e5b53); color: #fff; }
 .primary-action.is-disabled { opacity: 0.55; }
-.secondary-action { border: 1rpx solid var(--zy-brand-700, var(--zy-brand-600, #217e76)); background: transparent; color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.secondary-action { border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; color: var(--zy-brand-700, #0a403b); }
 .primary-action::after,
 .secondary-action::after { border: 0; }
 .text-action { margin-top: 14rpx; background: transparent; color: var(--zy-sub, #73857b); font-size:var(--zy-text-caption, 24rpx); line-height: 2.4; }
 .text-action::after { border: 0; }
 .short-error { display: block; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-care, var(--zy-care, #a64842)); }
-.progress-track { height: 8rpx; overflow: hidden; border-radius: 999rpx; background: var(--zy-bg, #f3f6f4); }
-.progress-fill { height: 100%; border-radius: 999rpx; background: linear-gradient(90deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8))); transition: width 0.4s ease; }
+.progress-track { height: 2rpx; overflow: hidden; border-radius: 0; background: var(--zy-border, #d3ded8); }
+.progress-fill { height: 100%; border-radius: 0; background: var(--zy-brand-600, #0e5b53); transition: width 0.4s ease; }
 .breath-area { display: flex; justify-content: center; padding: 28rpx 0 18rpx; }
-.breath-orb { width: 280rpx; height: 280rpx; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #f2faf4, #dbece1 58%, #c7dfd0); display: flex; align-items: center; justify-content: center; box-shadow: 0 16rpx 50rpx rgba(33,126,118,.16); transition: transform 0.8s ease; }
+.breath-orb { width: 280rpx; height: 280rpx; border-radius: 50%; border: 1rpx solid var(--zy-border, #d3ded8); background: #f7f9f7; display: flex; align-items: center; justify-content: center; box-shadow: none; transition: transform 0.8s ease; }
 .breath-orb.breathing { animation: short-breathe 10s ease-in-out infinite; }
 .orb-text { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
 .step-index { display: block; text-align: center; font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2rpx; color: var(--zy-sub, #73857b); }
-.step-title { display: block; margin-top: 10rpx; text-align: center; font-family: var(--zy-serif); font-size:var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-title, #233d34); }
+.step-title { display: block; margin-top: 10rpx; text-align: center; font-family: var(--zy-font-display, serif); font-size:44rpx; font-weight: 500; color: var(--zy-title, #111816); }
 .step-cue { display: block; margin: 16rpx auto 0; max-width: 600rpx; text-align: center; font-size:var(--zy-text-caption, 24rpx); line-height: 1.9; color: var(--zy-content, #4a5f54); }
 .timer { display: block; margin-top: 18rpx; text-align: center; font-family: var(--zy-sans); font-size:var(--zy-text-title-lg, 40rpx); font-variant-numeric: tabular-nums; color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
 .timer-hint { display: block; margin-top: 6rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-sub, #73857b); }
@@ -413,8 +405,8 @@ function leave() {
 .player-actions .primary-action,
 .player-actions .secondary-action { margin-top: 0; }
 .done-card { text-align: center; padding-top: 44rpx; }
-.done-mark { width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: 50%; background: var(--zy-bg-tint-mint, #eaf5ef); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-title-lg, 40rpx); line-height: 96rpx; }
-.done-title { display: block; font-family: var(--zy-serif); font-size:var(--zy-text-title-lg, 40rpx); color: var(--zy-title, #233d34); }
+.done-mark { width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-title-lg, 40rpx); line-height: 94rpx; }
+.done-title { display: block; font-family: var(--zy-font-display, serif); font-size:40rpx; color: var(--zy-title, #111816); }
 .done-copy { display: block; margin: 14rpx auto 0; max-width: 560rpx; font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .done-meta { display: block; margin: 16rpx 0 10rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-sub, #73857b); }
 .short-loading { display: flex; flex-direction: column; align-items: center; padding: 120rpx 0; gap: 18rpx; }

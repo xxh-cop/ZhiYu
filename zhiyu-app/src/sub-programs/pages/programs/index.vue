@@ -33,13 +33,13 @@ const shareTarget=ref(null),incoming=ref('');const {share}=useContentShare('prog
 function shareProgram(p){shareTarget.value=p;share()}
 function goConversations(){uni.navigateTo({url:'/sub-programs/pages/programs/conversations'})}
 onLoad(q=>{if(/^[1-9]\d{0,18}$/.test(q.id||''))incoming.value=q.id})
-const rows=ref([]),loading=ref(false),busy=ref(''),error=ref(''),filter=ref('ALL'),query=ref(''),expanded=ref('');const names={WORKSHOP:'主题工作坊',COURSE:'系列课程',GUIDANCE:'一对一指导'},status={PENDING:'等待带领者确认',REJECTED:'本次预约未通过',BOOKED:'已预约',CHECKED_IN:'已签到',CANCELLED:'已取消预约'};const filters=[{id:'ALL',text:'全部'},{id:'WORKSHOP',text:'工作坊'},{id:'COURSE',text:'课程'},{id:'GUIDANCE',text:'一对一'},{id:'MINE',text:'我的预约'}];const visible=computed(()=>rows.value.filter(p=>(filter.value==='ALL'||(filter.value==='MINE'?!!p.myStatus:p.kind===filter.value))&&[p.title,p.location].join(' ').toLowerCase().includes(query.value.trim().toLowerCase())).sort((a,b)=>Number(ended(a))-Number(ended(b))||new Date(a.start_time)-new Date(b.start_time)))
+const rows=ref([]),loading=ref(false),busy=ref(''),error=ref(''),filter=ref('OPEN'),query=ref(''),expanded=ref('');const names={WORKSHOP:'主题工作坊',COURSE:'系列课程',GUIDANCE:'一对一指导'},status={PENDING:'等待带领者确认',REJECTED:'本次预约未通过',BOOKED:'已预约',CHECKED_IN:'已签到',CANCELLED:'已取消预约'};const filters=[{id:'OPEN',text:'可报名'},{id:'ALL',text:'全部'},{id:'WORKSHOP',text:'工作坊'},{id:'COURSE',text:'课程'},{id:'GUIDANCE',text:'一对一'},{id:'MINE',text:'我的预约'}];const visible=computed(()=>rows.value.filter(p=>{const open=p.status==='PUBLISHED'&&!ended(p);const matchFilter=filter.value==='ALL'||(filter.value==='OPEN'?open:filter.value==='MINE'?!!p.myStatus:p.kind===filter.value);return matchFilter&&[p.title,p.location].join(' ').toLowerCase().includes(query.value.trim().toLowerCase())}).sort((a,b)=>Number(ended(a))-Number(ended(b))||new Date(a.start_time)-new Date(b.start_time)))
 const upcoming=computed(()=>rows.value.filter(p=>['PENDING','BOOKED'].includes(p.myStatus)&&p.status==='PUBLISHED'&&!ended(p)).sort((a,b)=>a.start_time.localeCompare(b.start_time)))
-const covers={WORKSHOP:'/static/library/clay.jpg',COURSE:'/static/library/yarn.jpg',GUIDANCE:'/static/library/paper.jpg'}
+const covers={WORKSHOP:'/static/blueprint/hero-cloth.jpg',COURSE:'/static/library/yarn.jpg',GUIDANCE:'/static/blueprint/hero-cloth.jpg'}
 function reset(){query.value='';filter.value='ALL'}
-const emptyTitle=computed(()=>query.value?'没有找到匹配的体验':filter.value==='MINE'?'还没有预约记录':'新的体验正在准备中')
-const emptyDescription=computed(()=>query.value?'换个关键词，或清除筛选再试试。':filter.value==='MINE'?'从一场轻松的工作坊开始，为自己留一点时间。':'主办人发布后会出现在这里，稍后再来看看。')
-const emptyActionText=computed(()=>(query.value||filter.value!=='ALL')?'浏览全部体验':'刷新看看')
+const emptyTitle=computed(()=>query.value?'没有找到匹配的体验':filter.value==='MINE'?'还没有预约记录':filter.value==='OPEN'?'暂时没有开放报名的体验':'新的体验正在准备中')
+const emptyDescription=computed(()=>query.value?'换个关键词，或清除筛选再试试。':filter.value==='MINE'?'从一场轻松的工作坊开始，为自己留一点时间。':filter.value==='OPEN'?'可以先查看全部体验，已结束的安排仍保留在「全部」里。':'主办人发布后会出现在这里，稍后再来看看。')
+const emptyActionText=computed(()=>(query.value||filter.value!=='ALL')?'查看全部体验':'刷新看看')
 function onEmptyAction(){if(query.value||filter.value!=='ALL')reset();else load()}
 
 function feedback(p){uni.navigateTo({url:'/sub-programs/pages/programs/feedback?id='+p.id})}

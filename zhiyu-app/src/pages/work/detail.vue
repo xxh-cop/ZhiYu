@@ -1,8 +1,7 @@
 <template>
 	<view :class="zyThemeClass" class="detail-page">
 		<view class="detail-nav">
-			<AccessibleButton class="text-btn" @click="goBack">‹ {{ fromMine ? '返回我的作品' : '返回社区' }}</AccessibleButton>
-			<text>织愈 · 创作故事</text>
+			<text class="detail-nav-kicker">织愈 · 创作故事</text>
 			<AccessibleButton class="text-btn" @click="openFavorites">我的收藏</AccessibleButton>
 		</view>
 
@@ -44,14 +43,18 @@
 						class="work-cover"
 						:src="fullUrl(work.coverUrl)"
 						:alt="'作品封面：' + work.title"
-						mode="aspectFit"
+						mode="aspectFill"
 						@click="previewCover"
 						@error="imageFailed = true"
 					/>
-					<!-- 统一缺图/文字作品兜底：小织态，与错误态同一视觉语言 -->
+					<!-- 统一缺图/文字作品兜底：引用式封面，文字本身成为视觉主体 -->
 					<view v-else class="text-cover">
-						<XiaotuanPet :size="88" face="calm" aria-hidden="true" />
-						<text>{{ work.mediaType === 'text' ? '把日常写成一份小小的创作' : '每一份创作，都值得被看见' }}</text>
+						<text class="text-cover-mark">“</text>
+						<text class="text-cover-quote">{{ coverQuote }}</text>
+						<view class="text-cover-foot">
+							<text class="text-cover-rule"></text>
+							<text class="text-cover-label">创作故事 · {{ work.mediaType === 'text' ? '文字' : '未配图手作' }}</text>
+						</view>
 					</view>
 					<text class="media-label">{{ work.mediaType === 'video' ? '创作影像' : work.mediaType === 'text' ? '文字作品' : '手作留影' }}</text>
 				</view>
@@ -69,9 +72,9 @@
 							<text class="author-note">让创作留下自己的节奏</text>
 						</view>
 						<!-- 装饰性小印章：不表达认证 / 证书含义 -->
-						<image class="author-seal" src="/static/brand/seal-student.svg" mode="aspectFit" aria-hidden="true" alt="" />
+						<view class="author-seal" aria-hidden="true">织</view>
 					</view>
-					<view v-if="work.message" class="story">
+					<view v-if="work.message && (work.mediaType === 'video' || (work.mediaType === 'image' && work.coverUrl))" class="story">
 						<text class="eyebrow">作品故事</text>
 						<text class="story-text" selectable>{{ work.message }}</text>
 					</view>
@@ -244,6 +247,11 @@ const comments = ref([]), commentText = ref(''), commentSendError = ref(''), com
 const commentPage = ref(0), commentTotal = ref(0), failedPage = ref(1), sending = ref(false), removing = ref(''), pendingRemove = ref(null)
 const showShare = ref(false), shareBusy = ref(false), shareLink = ref(''), shareError = ref(''), shareNotice = ref(''), systemShareSupported = ref(false)
 const hasMoreComments = computed(() => commentPage.value * 10 < commentTotal.value)
+const coverQuote = computed(() => {
+	const raw = String(work.value?.message || work.value?.title || '').replace(/\s+/g, ' ').trim()
+	if (!raw) return '把日常写成一份小小的创作。'
+	return raw.length > 56 ? raw.slice(0, 56) + '…' : raw
+})
 
 /* 作者视角：从「我的作品」进入时携带 from=mine&status=0|1|2 */
 const fromMine = ref(false)

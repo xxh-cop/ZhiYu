@@ -1,18 +1,18 @@
 <template>
 	<view :class="zyThemeClass" class="page">
-		<!-- ① 我是谁：身份区 -->
-		<view class="profile-card zy-slide-up">
-			<view class="card-accent" aria-hidden="true" />
-			<view class="profile-body">
-				<AccessibleButton class="avatar-ring" aria-label="修改个人资料" @click="goSettings">
-					<image v-if="avatarFullUrl" class="avatar-img" :src="avatarFullUrl" mode="aspectFill" alt="我的头像" />
+		<!-- ① 我是谁：展签式身份区 -->
+		<view class="page-head zy-slide-up">
+			<text class="page-eyebrow">PERSONAL ARCHIVE · 个人档案</text>
+			<view class="identity-row">
+				<AccessibleButton class="monogram" aria-label="修改个人资料" @click="goSettings">
+					<image v-if="avatarFullUrl && !avatarError" class="avatar-img" :src="avatarFullUrl" mode="aspectFill" alt="我的头像" @error="avatarError = true" />
 					<view v-else class="avatar"><text class="avatar-text">{{ avatarChar }}</text></view>
 				</AccessibleButton>
-				<view class="profile-info">
+				<view class="identity-copy">
 					<text class="profile-name">{{ nickname }}</text>
 					<text class="profile-signature">{{ signature }}</text>
 					<view class="profile-meta">
-						<view v-if="roleLabel" class="role-badge"><text class="role-text">{{ roleLabel }}</text></view>
+						<text v-if="roleLabel" class="role-text">{{ roleLabel }}</text>
 						<text v-if="school" class="school-text">{{ school }}</text>
 					</view>
 				</view>
@@ -30,18 +30,19 @@
 		/>
 
 		<!-- ② 我做过什么：旅程三指标（与首页「连续记录」同源：/api/user/stats） -->
+		<text class="section-eyebrow zy-slide-up zy-stagger" style="--stagger-i: 0">JOURNEY · 旅程</text>
 		<view class="stats-row" role="group" aria-label="我的创作旅程">
-			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 0">
-				<text class="stat-num">{{ stats.daysHere }}</text>
-				<text class="stat-label">来到这里（天）</text>
-			</view>
 			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 1">
-				<text class="stat-num">{{ stats.totalWorks }}</text>
-				<text class="stat-label">作品数</text>
+				<text class="stat-num">{{ stats.daysHere }}</text>
+				<text class="stat-label">来到这里 / 天</text>
 			</view>
 			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 2">
+				<text class="stat-num">{{ stats.totalWorks }}</text>
+				<text class="stat-label">作品 / 件</text>
+			</view>
+			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 3">
 				<text class="stat-num">{{ stats.totalMinutes }}</text>
-				<text class="stat-label">专注时长（分钟）</text>
+				<text class="stat-label">专注 / 分钟</text>
 			</view>
 		</view>
 
@@ -51,7 +52,7 @@
 				<text class="section-title">一路留下的印记</text>
 				<text class="section-note">由你的真实记录生成，不需要额外打卡。</text>
 			</view>
-			<scroll-view scroll-x class="badge-scroll" :show-scrollbar="false">
+			<view class="badge-scroll">
 				<view class="badge-track">
 					<view v-for="badge in badges" :key="badge.key" class="badge-card" :class="{ locked: !badge.earned }">
 						<view class="badge-icon" aria-hidden="true"><text>{{ badge.mark }}</text></view>
@@ -59,7 +60,7 @@
 						<text class="badge-desc">{{ badge.earned ? badge.desc : badge.progress }}</text>
 					</view>
 				</view>
-			</scroll-view>
+			</view>
 		</view>
 
 		<!-- 菜单分区 -->
@@ -74,7 +75,7 @@
 					@click="handleMenu(item)"
 				>
 					<view class="menu-icon-wrap" :class="'tone-' + item.tone" aria-hidden="true">
-						<wd-icon :name="item.icon" size="36rpx" color="#FFFFFF" />
+						<wd-icon :name="item.icon" size="32rpx" color="#0a403b" />
 					</view>
 					<text class="menu-label">{{ item.label }}</text>
 					<wd-icon name="arrow-right" size="32rpx" color="#8fa89c" />
@@ -166,6 +167,7 @@ const roleLabel = computed(() => {
 	return role === null || role === undefined ? '' : ROLE_LABEL[role] || ''
 })
 const avatarChar = computed(() => (nickname.value && nickname.value.charAt(0)) || '织')
+const avatarError = ref(false)
 const avatarFullUrl = computed(() => {
 	const url = userStore.userInfo ? userStore.userInfo.avatarUrl : ''
 	return url ? (url.startsWith('http') ? url : `${API_BASE_URL}${url}`) : ''
@@ -289,152 +291,173 @@ function handleLogout() {
 .page { padding-bottom: calc(112rpx + env(safe-area-inset-bottom)); }
 /* #endif */
 
-/* ── ① 身份区 ── */
-.profile-card {
-	overflow: hidden;
-	border-radius: var(--zy-radius-card, 32rpx);
-	background-color: var(--zy-card-bg, #fff);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
-	margin-bottom: 24rpx;
+/* ── 展签式身份区 ── */
+.page-head {
+	padding: 8rpx 4rpx 36rpx;
+	margin-bottom: 8rpx;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 }
-.card-accent {
-	height: 8rpx;
-	background: linear-gradient(90deg, var(--zy-brand-600, var(--zy-brand-600, #217e76)) 0%, var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)) 100%);
+.page-eyebrow,
+.section-eyebrow {
+	display: block;
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 2px;
+	color: var(--zy-muted, #6e7b75);
+	margin-bottom: 22rpx;
 }
-.profile-body { display: flex; align-items: center; gap: 28rpx; padding: 36rpx 32rpx; }
-.avatar-ring {
-	width: 172rpx;
-	height: 172rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	padding: 6rpx;
-	margin: 0;
-	background: linear-gradient(135deg, var(--zy-brand-600, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
+.identity-row { display: flex; align-items: flex-start; gap: 28rpx; }
+.monogram {
+	width: 132rpx;
+	height: 160rpx;
+	min-height: 160rpx;
 	flex-shrink: 0;
-	line-height: 1;
+	padding: 0;
+	margin: 0;
+	border-radius: 0;
+	background: var(--zy-bg-sunken, #e9efeb);
+	overflow: hidden;
 }
-.avatar-ring::after { border: 0; }
+.monogram::after { border: 0; }
 .avatar, .avatar-img {
 	width: 100%;
 	height: 100%;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 4rpx solid var(--zy-card-bg, #fff);
+	border-radius: 0;
+	border: 0;
 	box-sizing: border-box;
+	display: block;
 }
 .avatar {
-	background: linear-gradient(135deg, var(--zy-brand-600, var(--zy-brand-600, #217e76)) 0%, var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)) 100%);
+	background: var(--zy-bg-sunken, #e9efeb);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
-.avatar-text { font-size:var(--zy-text-display, 56rpx); font-weight: 600; color: #fff; }
-.profile-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
+.avatar-text {
+	font-family: var(--zy-font-display, serif);
+	font-size: 68rpx;
+	font-weight: 500;
+	color: var(--zy-brand-700, #0a403b);
+}
+.identity-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10rpx; }
 .profile-name {
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 600;
-	color: var(--zy-title, #233d34);
+	font-family: var(--zy-font-display, serif);
+	font-size: 64rpx;
+	font-weight: 500;
+	line-height: 1.25;
+	letter-spacing: 1rpx;
+	color: var(--zy-title, #111816);
 	overflow-wrap: anywhere;
 }
-.profile-signature { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); overflow-wrap: anywhere; }
-.profile-meta { display: flex; align-items: center; gap: 16rpx; margin-top: 4rpx; flex-wrap: wrap; }
-.role-badge { padding: 4rpx 16rpx; border-radius: var(--zy-radius-full, 9999rpx); background-color: var(--zy-bg-tint-warm, #f7efd9); }
-.role-text { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-accent, var(--zy-accent, #7a5c12)); }
-.school-text { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); overflow-wrap: anywhere; }
+.profile-signature { font-size: var(--zy-text-body, 28rpx); color: var(--zy-text, #42524c); overflow-wrap: anywhere; }
+.profile-meta { display: flex; align-items: center; gap: 18rpx; flex-wrap: wrap; margin-top: 6rpx; }
+.role-text {
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 1px;
+	color: var(--zy-accent, #8e4a3c);
+}
+.school-text { font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); overflow-wrap: anywhere; }
 
-/* ── ② 旅程三指标 ── */
-.stats-row { display: flex; gap: 16rpx; margin-bottom: 24rpx; }
+/* ── ② 旅程三指标：一根线分三栏，不做卡片 ── */
+.stats-row {
+	display: flex;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	margin-bottom: 40rpx;
+}
 .stat-card {
 	flex: 1;
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	gap: 10rpx;
-	padding: 28rpx 12rpx;
-	border-radius: var(--zy-radius-card, 32rpx);
-	background-color: var(--zy-card-bg, #fff);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
+	align-items: flex-start;
+	gap: 6rpx;
+	padding: 24rpx 20rpx 24rpx 0;
+	background: transparent;
+	border: 0;
 }
+.stat-card + .stat-card { padding-left: 24rpx; border-left: 1rpx solid var(--zy-border, #d3ded8); }
 .stat-num {
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 700;
-	color: var(--zy-title, #233d34);
-	font-family: var(--zy-serif);
+	font-size: 56rpx;
+	font-weight: 500;
+	color: var(--zy-title, #111816);
+	font-family: var(--zy-font-display, serif);
 	line-height: 1;
 	font-variant-numeric: tabular-nums;
 }
-.stat-label { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); text-align: center; line-height: 1.5; }
+.stat-label { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.5; letter-spacing: 1rpx; }
 
-/* ── 徽章横滑 ── */
-.badge-section {
-	margin-bottom: 32rpx;
-	padding: 28rpx;
-	border-radius: var(--zy-radius-card, 32rpx);
-	background-color: var(--zy-card-bg, #fff);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
-}
+/* ── 徽章横滑：展签小卡 ── */
+.badge-section { margin-bottom: 44rpx; }
 .badge-heading { margin-bottom: 20rpx; }
-.section-title { display: block; font-size:var(--zy-text-body-lg, 30rpx); font-weight: 600; color: var(--zy-title, #233d34); }
-.section-note { display: block; margin-top: 8rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); line-height: 1.6; }
-.badge-scroll { white-space: nowrap; }
-.badge-track { display: inline-flex; gap: 16rpx; padding: 4rpx; }
+.section-title {
+	display: block;
+	font-family: var(--zy-font-display, serif);
+	font-size: 40rpx;
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--zy-title, #111816);
+}
+.section-note { display: block; margin-top: 6rpx; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); line-height: 1.7; }
+.badge-scroll { width: 100%; }
+.badge-track { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-left: 1rpx solid var(--zy-border, #d3ded8); }
 .badge-card {
-	display: inline-flex;
+	display: flex;
 	flex-direction: column;
-	align-items: center;
+	align-items: flex-start;
 	gap: 8rpx;
-	width: 180rpx;
-	padding: 24rpx 12rpx;
-	border-radius: var(--zy-radius-md, 24rpx);
-	background: var(--zy-bg-tint-warm, #f7efd9);
+	width: auto;
+	min-width: 0;
+	padding: 20rpx 18rpx 22rpx;
+	border-radius: 0;
+	border: 0;
+	border-right: 1rpx solid var(--zy-border, #d3ded8);
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	background: transparent;
 	box-sizing: border-box;
 	white-space: normal;
-	text-align: center;
+	text-align: left;
 }
-.badge-card.locked { background: var(--zy-bg, #ffffff); }
+.badge-card.locked { background: transparent; }
 .badge-icon {
-	width: 72rpx;
-	height: 72rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
+	width: 56rpx;
+	height: 56rpx;
+	border-radius: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 700;
-	color: var(--zy-gold, #d9a441);
-	background: var(--zy-card-bg, #fff);
-	box-shadow: var(--zy-shadow-xs);
+	font-family: var(--zy-font-display, serif);
+	font-size: 40rpx;
+	font-weight: 500;
+	color: var(--zy-brand-700, #0a403b);
+	background: transparent;
 }
-.badge-card.locked .badge-icon { color: var(--zy-text-secondary, #4a5f54); opacity: .55; }
-.badge-name { font-size:var(--zy-text-caption, 24rpx); font-weight: 600; color: var(--zy-title, #233d34); }
-.badge-card.locked .badge-name { color: var(--zy-text, #4a5f54); }
-.badge-desc { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-accent, var(--zy-accent, #7a5c12)); line-height: 1.5; }
-.badge-card.locked .badge-desc { color: var(--zy-text, #4a5f54); font-variant-numeric: tabular-nums; }
+.badge-card.locked .badge-icon { color: var(--zy-muted, #6e7b75); opacity: .55; }
+.badge-name { font-size: var(--zy-text-caption, 24rpx); font-weight: 500; color: var(--zy-title, #111816); }
+.badge-card.locked .badge-name { color: var(--zy-text, #42524c); }
+.badge-desc { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.55; }
+.badge-card.locked .badge-desc { color: var(--zy-muted, #6e7b75); font-variant-numeric: tabular-nums; }
 
 /* ── 菜单分区 ── */
-.menu-section { margin-bottom: 24rpx; }
+.menu-section { margin-bottom: 36rpx; }
 .menu-section-title {
 	display: block;
-	margin: 0 8rpx 14rpx;
-	font-size:var(--zy-text-caption, 24rpx);
-	font-weight: 600;
-	color: var(--zy-text, #4a5f54);
+	margin: 0 0 12rpx;
+	font-size: var(--zy-text-micro, 22rpx);
+	font-weight: 400;
+	letter-spacing: 2px;
+	color: var(--zy-muted, #6e7b75);
 }
 .menu-list {
 	overflow: hidden;
-	border-radius: var(--zy-radius-card, 32rpx);
-	background-color: var(--zy-card-bg, #fff);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
+	border-radius: 0;
+	background: transparent;
+	border-top: 1rpx solid var(--zy-border, #d3ded8);
 }
 .menu-item {
 	display: flex;
 	align-items: center;
 	gap: 20rpx;
 	width: 100%;
-	padding: 24rpx 32rpx;
+	padding: 24rpx 4rpx;
 	margin: 0;
 	background: transparent;
 	border-radius: 0;
@@ -443,66 +466,71 @@ function handleLogout() {
 	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 .menu-item::after { border: 0; }
-.menu-item:not(:last-child) { border-bottom: 1rpx solid var(--zy-border, #dfe7dc); }
-.menu-item:active { background-color: var(--zy-bg-tint-mint, #e8efe4); }
+.menu-item:not(:last-child) { border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.menu-item:active { background-color: var(--zy-bg-sunken, #e9efeb); }
 .menu-icon-wrap {
-	width: 64rpx;
-	height: 64rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
+	width: 44rpx;
+	height: 44rpx;
+	border-radius: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	background: transparent;
+	border: 1rpx solid var(--zy-border, #d3ded8);
 }
-.menu-icon-wrap.tone-brand { background: var(--zy-brand-600, var(--zy-brand-600, #217e76)); }
-.menu-icon-wrap.tone-brand-light { background: var(--zy-brand-500, var(--zy-brand-500, #2d9b8f)); }
-.menu-icon-wrap.tone-gold { background: var(--zy-accent, var(--zy-accent, #7a5c12)); }
-.menu-icon-wrap.tone-care { background: var(--zy-care, var(--zy-care, #a64842)); }
-.menu-icon-wrap.tone-neutral { background: var(--zy-text, #4a5f54); }
-.menu-label { flex: 1; min-width: 0; font-size:var(--zy-text-body-lg, 30rpx); color: var(--zy-title, #233d34); overflow-wrap: anywhere; }
+.menu-icon-wrap.tone-brand,
+.menu-icon-wrap.tone-brand-light,
+.menu-icon-wrap.tone-gold,
+.menu-icon-wrap.tone-care,
+.menu-icon-wrap.tone-neutral { background: transparent; }
+.menu-icon-wrap :deep(.wd-icon) { color: var(--zy-brand-700, #0a403b) !important; }
+.menu-label { flex: 1; min-width: 0; font-size: var(--zy-text-body-lg, 30rpx); color: var(--zy-title, #111816); overflow-wrap: anywhere; }
 
 /* ── ③ 我的边界 ── */
 .boundary-card {
 	display: flex;
 	flex-direction: column;
-	gap: 20rpx;
-	padding: 28rpx;
-	margin-bottom: 32rpx;
-	border-radius: var(--zy-radius-card, 32rpx);
-	background: linear-gradient(135deg, var(--zy-bg-tint-mint, #e8efe4), var(--zy-brand-50, var(--zy-brand-50, #eaf4f1)));
-	border: 1rpx solid var(--zy-border, #dfe7dc);
+	gap: 18rpx;
+	padding: 24rpx 0 24rpx 24rpx;
+	margin: 0 0 36rpx;
+	border-left: 4rpx solid var(--zy-care, #a64842);
+	background: transparent;
 }
 .boundary-copy { min-width: 0; }
-.boundary-desc { display: block; margin-top: 10rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); line-height: 1.8; }
+.boundary-desc { display: block; margin-top: 8rpx; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); line-height: 1.8; }
 .boundary-btn {
 	min-height: 44px;
 	margin: 0;
-	padding: 16rpx 32rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
-	color: #fff;
-	font-size:var(--zy-text-caption, 24rpx);
+	padding: 12rpx 24rpx;
+	border-radius: 0;
+	background: transparent;
+	border: 1rpx solid var(--zy-brand-700, #0a403b);
+	color: var(--zy-brand-700, #0a403b);
+	font-size: var(--zy-text-caption, 24rpx);
 	line-height: 1.5;
+	align-self: flex-start;
 }
 .boundary-btn::after { border: 0; }
 
 /* ── 退出登录 ── */
 .logout-btn {
 	width: 100%;
-	height: 88rpx;
+	height: 80rpx;
 	margin: 0;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 1rpx solid rgba(166, 72, 66, 0.35);
+	border-radius: 0;
+	border: 0;
 	background: transparent;
-	color: var(--zy-care, var(--zy-care, #a64842));
-	font-size:var(--zy-text-body-lg, 30rpx);
-	line-height: 88rpx;
-	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+	color: var(--zy-muted, #6e7b75);
+	font-size: var(--zy-text-caption, 24rpx);
+	line-height: 80rpx;
+	letter-spacing: 1px;
 }
 .logout-btn::after { border: 0; }
-.logout-btn:active { background-color: rgba(166, 72, 66, 0.06); }
+.logout-btn:active { color: var(--zy-care, #a64842); }
 
-.footnote { display: block; margin-top: 48rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); text-align: center; }
+.footnote { display: block; margin-top: 32rpx; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); text-align: center; }
+
 
 button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
 </style>

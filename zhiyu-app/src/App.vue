@@ -21,7 +21,18 @@ page {
    仅影响未单独指定 placeholder-style 的输入框（内联 placeholder-style 优先）。 */
 .uni-input-placeholder,
 .uni-textarea-placeholder {
-	color: var(--zy-text, #4a5f54);
+	color: #8a9a93 !important;
+	font-size: 24rpx !important;
+	font-weight: 400 !important;
+	letter-spacing: 0.4rpx;
+}
+
+input::placeholder,
+textarea::placeholder {
+	color: #8a9a93 !important;
+	font-size: 24rpx !important;
+	font-weight: 400 !important;
+	letter-spacing: 0.4rpx;
 }
 
 /* ── 页面进入动效 ── */
@@ -35,10 +46,10 @@ page {
 
 /* ── 骨架屏 shimmer ── */
 .zy-skeleton {
-	background: linear-gradient(90deg, #EFE8DA 25%, #F6F1E7 50%, #EFE8DA 75%);
+	background: linear-gradient(90deg, #e5eae6 25%, #f3f6f3 50%, #e5eae6 75%);
 	background-size: 200% 100%;
 	animation: shimmer 1.5s ease-in-out infinite;
-	border-radius: var(--zy-radius-sm, 12rpx);
+	border-radius: 0;
 }
 @keyframes shimmer {
 	0% { background-position: 200% 0; }

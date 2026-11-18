@@ -2,7 +2,9 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部标题 -->
 		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="page-title">非遗传承人</text>
+			<text class="page-eyebrow">HERITAGE KEEPERS · 非遗传承人</text>
+			<text class="page-title">手艺背后，是人</text>
+			<text class="page-subtitle">从一个人，认识一种材料。</text>
 		</view>
 
 		<!-- 手艺人的故事 -->
@@ -71,7 +73,7 @@
 		<!-- 空状态 -->
 		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="status-box">
 			<view class="empty-icon-wrap">
-				<ZyIcon name="search" :size="56" color="#A79B87" class="empty-emoji" />
+				<ZyIcon name="search" :size="56" color="#6E7B75" class="empty-emoji" />
 			</view>
 			<text class="empty-text">暂无传承人</text>
 		</view>
@@ -98,7 +100,8 @@
 				@open="goDetail(item)"
 			>
 				<template #cover>
-					<view class="inheritor-cover">
+					<view class="inheritor-cover" :class="{ 'has-texture': !!inheritorCover(item) }">
+						<image v-if="inheritorCover(item)" class="cover-texture" :src="inheritorCover(item)" mode="aspectFill" aria-hidden="true" />
 						<view class="avatar-ring">
 							<view class="card-avatar" :style="avatarStyle(item)">
 								<text v-if="!item.avatarUrl" class="avatar-letter">{{ firstLetter(item.nickname) }}</text>
@@ -247,7 +250,21 @@ function avatarStyle(item) {
 		return `background-image: url(${item.avatarUrl}); background-size: cover; background-position: center;`
 		// #endif
 	}
-	return 'background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));'
+	return 'background: var(--zy-bg, #f1f4f1);'
+}
+
+/* 用已有非遗素材给示范者卡片一层材料语境；没有素材时保持冷瓷底，不生成新图 */
+const INHERITOR_COVERS = [
+	{ test: /扎染|蓝染|染/, src: '/static/covers/zharan.jpg' },
+	{ test: /剪纸|剪/, src: '/static/covers/jianzhi.jpg' },
+	{ test: /陶|瓷|釉/, src: '/static/blueprint/hero-glaze.jpg' },
+	{ test: /竹|编|藤/, src: '/static/blueprint/hero-bamboo.jpg' },
+	{ test: /绣|织|布|线/, src: '/static/heritage/texture/stitch.jpg' },
+]
+function inheritorCover(item) {
+	const text = `${(item && item.skill) || ''}`
+	const hit = INHERITOR_COVERS.find((entry) => entry.test.test(text))
+	return hit ? hit.src : ''
 }
 
 function goDetail(item) {
@@ -394,8 +411,9 @@ loadStories()
 .empty-icon-wrap {
 	width: 120rpx;
 	height: 120rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	border-radius: 0;
+	background-color: transparent;
+	border: 1rpx solid var(--zy-border, #d3ded8);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -547,12 +565,46 @@ loadStories()
 .story-skeleton { height: 260rpx; border-radius: 20rpx; }
 .story-error { padding: 22rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-card-bg, #fff); font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-content, #4a5f54); }
 .story-scroll { width: 100%; white-space: nowrap; }
-.story-cell { display: inline-block; width: 320rpx; margin-right: 16rpx; vertical-align: top; white-space: normal; }
+.story-cell { display: inline-block; width: 320rpx; margin-right: 20rpx; vertical-align: top; white-space: normal; }
 .story-cell:last-child { margin-right: 0; }
-.story-card { height: 100%; }
+.story-card { height: 100%; border: 1rpx solid var(--zy-border, #d3ded8); }
+.story-card :deep(.heritage-card-cover) { background: var(--zy-bg-sunken, #e9efeb); border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.story-card :deep(.heritage-card-title) { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; line-height: 1.45; }
+.story-card :deep(.heritage-card-tag) { border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
 .story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-content, #4a5f54); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .story-link { display: block; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
 .story-boundary { display: block; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-text, #4a5f54); }
+
+/* ── v9 冷瓷展签覆盖 ── */
+.page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg, #f1f4f1); }
+.header { padding-bottom: 30rpx; margin-bottom: 30rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.page-eyebrow { display: block; margin-bottom: 18rpx; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
+.page-title { display: block; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; color: var(--zy-title, #111816); }
+.page-subtitle { display: block; margin-top: 10rpx; font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-muted, #6e7b75); }
+.search-input-wrap { border-radius: 0; padding: 14rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.search-input-wrap.is-focused { border-color: var(--zy-brand-600, #0e5b53); }
+.search-btn { color: var(--zy-brand-700, #0a403b); padding-left: 24rpx; border-left: 1rpx solid var(--zy-border, #d3ded8); }
+.story-eyebrow { font-size: 36rpx; font-weight: 500; }
+.story-note { color: var(--zy-muted, #6e7b75); }
+.story-link { color: var(--zy-brand-700, #0a403b); }
+.story-boundary { color: var(--zy-muted, #6e7b75); }
+.card-list { gap: 28rpx; }
+.inheritor-card { border-radius: 0; }
+.inheritor-card:active { transform: none; }
+.inheritor-cover { position: relative; height: 180rpx; display: flex; align-items: flex-end; justify-content: flex-start; padding: 20rpx 24rpx; box-sizing: border-box; overflow: hidden; background: var(--zy-bg, #f1f4f1); border-left: 3rpx solid var(--zy-care, #a64842); }
+.inheritor-cover.has-texture { border-left: 0; }
+.inheritor-cover.has-texture::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,64,59,.78) 0%, rgba(10,64,59,.18) 70%); }
+.cover-texture { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.inheritor-card :deep(.heritage-card-cover) { height: 180rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.inheritor-card :deep(.heritage-card-title) { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
+.inheritor-card :deep(.heritage-card-tag) { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); }
+.avatar-ring { position: relative; z-index: 2; width: 84rpx; height: 84rpx; border-radius: 0; padding: 0; background: transparent; }
+.card-avatar { width: 84rpx; height: 84rpx; border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); overflow: hidden; }
+.avatar-letter { font-family: var(--zy-font-display, serif); font-size: 36rpx; font-weight: 500; color: var(--zy-brand-700, #0a403b); }
+.verified-badge { color: var(--zy-muted, #6e7b75); }
+.verified-text { color: var(--zy-muted, #6e7b75); }
+.project-count-text { color: var(--zy-muted, #6e7b75); }
+.footnote { color: var(--zy-muted, #6e7b75); }
 @media (prefers-reduced-motion: reduce) {
   .story-card { transition: none; }
 }

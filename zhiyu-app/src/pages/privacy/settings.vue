@@ -2,7 +2,7 @@
 	<view :class="zyThemeClass" class="privacy-page">
     <view :aria-hidden="!!dialogMode">
       <view class="privacy-hero">
-        <view><text class="hero-label">账号与隐私</text><text class="hero-title">你的记录，由你做主</text><text class="hero-description">查看授权、保存副本，再决定如何管理自己的账号。</text></view>
+        <view><text class="hero-label">ACCOUNT & PRIVACY · 账号与隐私</text><text class="hero-title">你的记录，由你做主</text><text class="hero-description">查看授权、保存副本，再决定如何管理自己的账号。</text></view>
         <view class="hero-pet" role="img" aria-label="小织陪你管理个人记录"><XiaotuanPet :size="76" face="care" aria-hidden="true" /></view>
       </view>
       <view v-if="statusLoading" class="status-banner" role="status">正在核对最新授权状态…</view>
@@ -142,6 +142,35 @@ button{margin:0;font-size:14px;border-radius:10px;padding:10px 16px}.text-button
 .authorization-note{margin-top:20px;padding:16px;background:var(--zy-bg-sunken, #f4f4f2);border-radius:12px;color:#4a5f54;font-size:12px;line-height:1.8}.authorization-note text{display:block}.authorization-note text:first-child{color:#233d34;font-weight:600;margin-bottom:4px}.account-card{display:flex;align-items:center;justify-content:space-between;gap:28px;margin-top:24px}.account-card>view{max-width:800px}.danger-button{flex-shrink:0;background:#fff;color:var(--zy-care,var(--zy-care, #a64842));border:1px solid #d8b8b2}.danger-solid{background:var(--zy-care,var(--zy-care, #a64842));color:#fff}.footnote{display:block;font-size:12px;line-height:1.8;color:#4a5f54;text-align:center;margin-top:28px}.status-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;background:#e8efe4;border-radius:12px;font-size:14px;line-height:1.8;margin-bottom:20px}.error-banner{background:#f7ecea;color:var(--zy-care,var(--zy-care, #a64842))}
 .dialog-description{display:block;font-size:14px;line-height:1.9;color:#4a5f54}.confirmation-field{margin-top:20px}.field-label{display:block;font-size:14px;margin-bottom:10px}.confirmation-input{min-height:48px;box-sizing:border-box;padding:10px 14px;border:1px solid #b7c9bd;border-radius:10px;font-size:16px;width:100%;color:#233d34}.dialog-actions{display:flex;gap:12px;margin-top:24px}.dialog-actions button{flex:1}.dialog-error{display:block;color:var(--zy-care,var(--zy-care, #a64842));font-size:14px;line-height:1.8;margin-top:16px}
 button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
+
+/* ── v9 冷瓷展签收口 ── */
+.privacy-page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); color: var(--zy-text); }
+.privacy-hero { padding-bottom: 28rpx; margin-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
+.hero-label { font-size: 12px; letter-spacing: 2px; color: var(--zy-muted); }
+.hero-title { font-family: var(--zy-font-display, serif); font-weight: 500; font-size: 64rpx; line-height: 1.3; color: var(--zy-title); }
+.hero-description { color: var(--zy-muted); }
+.card { padding: 28rpx 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; }
+.section-label { color: var(--zy-muted); letter-spacing: 2px; }
+.section-title { font-family: var(--zy-font-display, serif); font-weight: 500; font-size: 40rpx; color: var(--zy-title); }
+.permission-title { font-family: var(--zy-font-display, serif); font-weight: 500; font-size: 32rpx; color: var(--zy-title); }
+.body-text { color: var(--zy-text); }
+.status-tag { border-radius: 0; border: 1rpx solid var(--zy-border); background: transparent; padding: 4px 10px; }
+.status-tag.enabled { background: transparent; border-color: var(--zy-brand-600); color: var(--zy-brand-700); }
+button { border-radius: 0; }
+.secondary-button { background: transparent; border: 1rpx solid var(--zy-border); }
+.primary-button { background: var(--zy-brand-600); }
+.contact-button { background: transparent; border: 1rpx solid var(--zy-border); }
+.contact-button.enabled { background: var(--zy-brand-600); border-color: var(--zy-brand-600); }
+.help-text { color: var(--zy-accent); }
+.authorization-note { padding: 16rpx 0 16rpx 18rpx; border-left: 2rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-muted); }
+.authorization-note text:first-child { color: var(--zy-title); font-weight: 500; }
+.account-card { margin-top: 12rpx; padding-top: 28rpx; border-top: 1rpx solid var(--zy-border); }
+.danger-button { background: transparent; border: 1rpx solid var(--zy-care); }
+.footnote { color: var(--zy-muted); }
+.status-banner { border-radius: 0; background: var(--zy-bg-sunken); border-left: 2rpx solid var(--zy-border); }
+.error-banner { background: var(--zy-bg-tint-care); border-left-color: var(--zy-care); }
+.confirmation-input { border-radius: 0; border: 0; border-bottom: 1rpx solid var(--zy-border); background: transparent; }
 @media(max-width:900px){.privacy-grid{grid-template-columns:1fr}.account-card{align-items:flex-start;flex-direction:column}.account-card button{width:100%}}
-@media(max-width:600px){.privacy-page{padding:20px 16px 44px}.privacy-hero{gap:12px;margin-bottom:20px}.hero-title{font-size:25px}.hero-description{font-size:13px}.privacy-hero image{width:72px;height:100px}.card{padding:22px 18px}.section-title{font-size:20px}.dialog-actions{flex-wrap:wrap}.dialog-actions button{min-width:100px}}
+@media(max-width:600px){.privacy-page{padding:20px 16px 44px}.privacy-hero{gap:12px;margin-bottom:20px}.hero-title{font-size:25px}.hero-description{font-size:13px}.privacy-hero image{width:72px;height:100px}.card{padding:22px 0}.section-title{font-size:20px}.dialog-actions{flex-wrap:wrap}.dialog-actions button{min-width:100px}}
+.privacy-grid > .card:first-child { border-top: 0; }
 </style>

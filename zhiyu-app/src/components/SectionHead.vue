@@ -23,9 +23,9 @@ defineProps({
 </script>
 
 <style scoped>
-.zy-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16rpx; margin-bottom: 28rpx; }
+.zy-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16rpx; margin-bottom: 24rpx; }
 .zy-section-main { min-width: 0; }
-.zy-section-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 4rpx; color: var(--zy-text, #5c5648); margin-bottom: 10rpx; }
-.zy-section-eyebrow.is-heritage { color: var(--zy-accent, var(--zy-accent, #7a5c12)); }
-.zy-section-title { display: block; font-size: var(--zy-text-title, 32rpx); font-weight: 600; line-height: 1.5; letter-spacing: 0.5rpx; color: var(--zy-title, #33302a); }
+.zy-section-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2rpx; color: var(--zy-muted, #6e7b75); margin-bottom: 8rpx; }
+.zy-section-eyebrow.is-heritage { color: var(--zy-muted, #6e7b75); }
+.zy-section-title { display: block; font-family: var(--zy-font-display, serif); font-size: var(--zy-text-display, 56rpx); font-weight: 500; line-height: 1.3; letter-spacing: 0.5rpx; color: var(--zy-title, #111816); }
 </style>

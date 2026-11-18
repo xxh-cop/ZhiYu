@@ -74,8 +74,8 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 .skeleton-stack { width: 100%; display: flex; flex-direction: column; gap: 20rpx; }
 .skeleton-bar {
 	height: 32rpx;
-	border-radius: var(--zy-radius-sm, 12rpx);
-	background: linear-gradient(90deg, var(--zy-bg-tint-mint, #e8efe4) 25%, var(--zy-brand-50, var(--zy-brand-50, #eaf4f1)) 50%, var(--zy-bg-tint-mint, #e8efe4) 75%);
+	border-radius: 0;
+	background: linear-gradient(90deg, var(--zy-bg-sunken, #eef1ee) 25%, var(--zy-border, #d3ded8) 50%, var(--zy-bg-sunken, #eef1ee) 75%);
 	background-size: 200% 100%;
 	animation: zy-shimmer 1.6s var(--zy-ease-linear, linear) infinite;
 }
@@ -86,16 +86,17 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 }
 
 .state-title {
+	font-family: var(--zy-font-display, serif);
 	font-size: var(--zy-font-md, 32rpx);
-	font-weight: 600;
-	color: var(--zy-title, #233d34);
+	font-weight: 500;
+	color: var(--zy-title, #111816);
 	line-height: 1.5;
 	overflow-wrap: anywhere;
 }
-.loading-title { font-weight: 400; color: var(--zy-text, #4a5f54); font-size: var(--zy-font-sm, 24rpx); }
+.loading-title { font-weight: 400; color: var(--zy-muted, #6e7b75); font-size: var(--zy-font-sm, 24rpx); }
 .state-description {
 	font-size: var(--zy-font-sm, 24rpx);
-	color: var(--zy-text-secondary, #4a5f54);
+	color: var(--zy-muted, #6e7b75);
 	line-height: 1.7;
 	overflow-wrap: anywhere;
 }
@@ -103,15 +104,16 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 	min-height: 44px;
 	margin: 8rpx 0 0;
 	padding: 16rpx 44rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	border-radius: 0;
+	background: var(--zy-brand-600, #0e5b53);
 	color: #fff;
 	font-size: var(--zy-font-base, 28rpx);
 	line-height: 1.5;
 }
 .state-action.secondary {
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	background: transparent;
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	color: var(--zy-brand-700, #0a403b);
 }
 .state-action::after { border: 0; }
 .state-action.is-disabled { opacity: .55; }

@@ -19,4 +19,25 @@ function time(n){return Math.floor(n/60)+':'+String(Math.floor(n%60)).padStart(2
 
 <style scoped>.music-page{max-width:850px}.credits-button{background:transparent;color:var(--zy-brand-700);font-size:var(--zy-text-micro, 22rpx);margin:0;padding:0}.listening-card{background:var(--zy-bg-tint-mint);border:1rpx solid var(--zy-border);border-radius:32rpx;padding:36rpx 30rpx;text-align:center;margin:30rpx 0}.record{height:260rpx;width:260rpx;margin:0 auto 25rpx;border-radius:50%;background:repeating-radial-gradient(circle,#244a3e 0,#244a3e 5rpx,#2e5548 6rpx,#2e5548 8rpx);display:grid;place-items:center;box-shadow:0 15rpx 35rpx #1f493328}.record-center{border-radius:50%;background:#f6f4e9;width:120rpx;height:120rpx;display:grid;place-items:center;overflow:hidden}.record.playing{animation:spin 25s linear infinite}.record.reduced{animation:none}.now-label{display:block;font-size:var(--zy-text-micro, 22rpx);color:var(--zy-brand-700);letter-spacing:3rpx}.track-title{display:block;font-size:var(--zy-text-title-lg, 40rpx);font-weight:600;margin:12rpx 0}.track-credit{font-size:var(--zy-text-micro, 22rpx);color:var(--zy-content)}.seek-row{display:flex;align-items:center;font-size:var(--zy-text-micro, 22rpx);color:var(--zy-content);margin:22rpx 0}.seek-row slider{flex:1}.player-controls{display:flex;justify-content:center;gap:22rpx;align-items:center}.player-controls button{margin:0;width:75rpx;background:var(--zy-card-bg);border-radius:50%;color:var(--zy-brand-700);font-size:var(--zy-text-title-lg, 40rpx)}.player-controls .play-button{width:240rpx;border-radius:99rpx;background:var(--zy-brand-700);color:white;font-size:var(--zy-text-body, 28rpx);padding:8rpx 0}.setting-row,.section-heading{display:flex;justify-content:space-between;align-items:center}.timer-options{display:flex;gap:12rpx;margin:24rpx 0 30rpx}.timer-options button{flex:1;font-size:var(--zy-text-caption, 24rpx);margin:0;background:var(--zy-bg);color:var(--zy-content);border-radius:12rpx}.timer-options .selected{background:var(--zy-brand-700);color:white}.section-heading{margin:34rpx 0 18rpx}.track-row{display:flex;gap:24rpx;align-items:center;text-align:left;background:var(--zy-card-bg);border:1rpx solid var(--zy-border);border-radius:22rpx;margin:14rpx 0;padding:22rpx;width:100%;font-size:var(--zy-text-caption, 24rpx);color:var(--zy-brand-700)}.track-row.selected{border-color:var(--zy-brand-700)}.track-info{flex:1;color:var(--zy-title)}.track-info text{display:block}.track-symbol{background:var(--zy-bg-tint-warm);font-size:var(--zy-text-title-lg, 40rpx);padding:10rpx 24rpx;border-radius:16rpx}button::after{border:0}@keyframes spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.record.playing{animation:none}}</style>
 
-<style scoped>.growth-header{display:flex;justify-content:space-between;align-items:center;gap:20rpx}.growth-header .growth-eyebrow{margin:0}.credits-button{flex-shrink:0}</style>
+<style scoped>.growth-header{display:flex;justify-content:space-between;align-items:center;gap:20rpx}.growth-header .growth-eyebrow{margin:0}.credits-button{flex-shrink:0}
+
+/* ── v9 冷瓷展签收口 ── */
+.music-page { padding: 36rpx 32rpx 120rpx; }
+.music-page .growth-title { font-size: 56rpx; }
+.listening-card { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-bottom: 1rpx solid var(--zy-border); border-radius: 0; padding: 32rpx 0; margin: 32rpx 0; }
+.record { box-shadow: none; height: 240rpx; width: 240rpx; }
+.record-center { border-radius: 50%; background: #f1f4f1; }
+.now-label { color: var(--zy-brand-700); }
+.track-title { font-family: var(--zy-font-display, serif); font-size: 48rpx; font-weight: 500; }
+.track-credit { color: var(--zy-muted); }
+.player-controls button { width: 76rpx; background: transparent; border: 1rpx solid var(--zy-border); border-radius: 0; color: var(--zy-brand-700); }
+.player-controls .play-button { width: 260rpx; border-radius: 0; background: var(--zy-brand-600); border-color: var(--zy-brand-600); color: #fff; }
+.timer-options button { background: transparent; border: 1rpx solid var(--zy-border); border-radius: 0; }
+.timer-options .selected { background: var(--zy-brand-600); border-color: var(--zy-brand-600); }
+.track-row { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; padding: 20rpx 0; }
+.track-row.selected { border-color: var(--zy-border); }
+.track-symbol { background: var(--zy-bg-sunken); border-radius: 0; color: var(--zy-brand-700); }
+.section-heading { border-bottom: 1rpx solid var(--zy-border); padding-bottom: 12rpx; }
+.section-heading .growth-card-title { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
+.timer-options button{border:0;border-bottom:2rpx solid transparent;border-radius:0;background:transparent;color:var(--zy-muted,#6e7b75);padding:8rpx 10rpx}.timer-options .selected{background:transparent;color:var(--zy-brand-700,#0a403b);border-bottom-color:var(--zy-brand-700,#0a403b)}
+</style>

@@ -78,16 +78,19 @@ const userStore = useUserStore()
 const toast = useToast()
 const checking = ref(true)
 const saving = ref(false)
+const preview = ref(false)
 
 function goHome() {
 	uni.reLaunch({ url: '/pages/home/index' })
 }
 
-onLoad(async () => {
+onLoad(async (options) => {
+	// 设计预览：仅用于截图/评审，不改变正常用户的首次引导流程
+	preview.value = !!(options && options.preview === '1')
 	if (userStore.privacyAgreed === null) {
 		await userStore.fetchPrivacyStatus()
 	}
-	if (userStore.privacyAgreed === 1) {
+	if (userStore.privacyAgreed === 1 && !preview.value) {
 		goHome()
 		return
 	}
@@ -122,8 +125,8 @@ function decline() {
 <style scoped>
 .onboarding-page {
 	min-height: 100vh;
-	background: #FFFFFF;
-	color: var(--zy-title, #33302A);
+	background: var(--zy-bg, #f7f8f6);
+	color: var(--zy-title, #111816);
 }
 .checking {
 	min-height: 60vh;
@@ -131,7 +134,7 @@ function decline() {
 	align-items: center;
 	justify-content: center;
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #5C5648);
+	color: var(--zy-text, #4a5f54);
 }
 .onboarding-scroll {
 	height: calc(100vh - 220rpx);
@@ -151,7 +154,7 @@ function decline() {
 .brand-logo {
 	width: 52rpx;
 	height: 52rpx;
-	border-radius: 14rpx;
+	border-radius: 0;
 }
 .brand-name {
 	font-size:var(--zy-text-title, 32rpx);
@@ -186,17 +189,17 @@ function decline() {
 	margin-top: 18rpx;
 	font-size:var(--zy-text-body-lg, 30rpx);
 	line-height: 1.85;
-	color: var(--zy-text, #5C5648);
+	color: var(--zy-text, #4a5f54);
 }
 .things {
-	border-top: 1rpx solid var(--zy-border, #E4DCCB);
+	border-top: 1rpx solid var(--zy-border, #d3ded8);
 }
 .thing {
 	display: flex;
 	align-items: flex-start;
 	gap: 24rpx;
 	padding: 26rpx 0;
-	border-bottom: 1rpx solid var(--zy-border, #E4DCCB);
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 }
 .thing-mark {
 	flex: 0 0 auto;
@@ -219,13 +222,14 @@ function decline() {
 	margin-top: 6rpx;
 	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
-	color: var(--zy-text, #5C5648);
+	color: var(--zy-text, #4a5f54);
 }
 .privacy-card {
 	margin-top: 30rpx;
 	padding: 28rpx;
-	border-radius: 24rpx;
-	background: var(--zy-bg-tint-mint, #E4EFE7);
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	border-radius: 0;
+	background: transparent;
 }
 .privacy-title {
 	display: block;
@@ -237,7 +241,7 @@ function decline() {
 	display: block;
 	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.8;
-	color: var(--zy-text, #5C5648);
+	color: var(--zy-text, #4a5f54);
 }
 .policy-link {
 	margin: 8rpx 0 0;
@@ -251,7 +255,7 @@ function decline() {
 	margin-top: 28rpx;
 	font-size:var(--zy-text-micro, 22rpx);
 	line-height: 1.8;
-	color: var(--zy-text, #5C5648);
+	color: var(--zy-text, #4a5f54);
 }
 .onboarding-actions {
 	position: fixed;
@@ -263,7 +267,7 @@ function decline() {
 	flex-direction: column;
 	gap: 8rpx;
 	padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom));
-	background: rgba(255, 255, 255, 0.97);
-	border-top: 1rpx solid var(--zy-border, #E4DCCB);
+	background: rgba(247, 248, 246, 0.97);
+	border-top: 1rpx solid var(--zy-border, #d3ded8);
 }
 </style>

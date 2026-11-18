@@ -2,9 +2,12 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部标题区 -->
 		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="page-title">为你推荐</text>
-			<view v-if="moodTag" class="mood-badge">
-				<text class="mood-text">{{ moodTag }}</text>
+			<text class="page-eyebrow">RECOMMENDATIONS · 疗愈推荐</text>
+			<view class="header-row">
+				<text class="page-title">为你推荐</text>
+				<view v-if="moodTag" class="mood-badge">
+					<text class="mood-text">{{ moodTag }}</text>
+				</view>
 			</view>
 		</view>
 
@@ -64,7 +67,7 @@
 			>
 				<!-- 封面图（cover slot 保留现有渐变/占位） -->
 				<template #cover>
-					<view class="card-cover" :style="coverStyle(item.coverUrl)">
+					<view class="card-cover" :style="coverStyle(item.coverUrl, familyFor(item.category))">
 						<view class="level-badge">
 							<text class="level-text">{{ levelLabel(item.level) }}</text>
 						</view>
@@ -171,13 +174,21 @@ function familyFor(category) {
 	return 'weave'
 }
 
-function coverStyle(coverUrl) {
+const FAMILY_COVER = {
+	cutout: '/static/covers/papercut-window.jpg',
+	stitch: '/static/blueprint/hero-cloth.jpg',
+	weave: '/static/blueprint/hero-bamboo.jpg',
+	porcelain: '/static/heritage/texture/porcelain.jpg',
+}
+
+function coverStyle(coverUrl, family) {
 	// #ifdef H5
 	if (coverUrl) {
 		return `background-image: url(${coverUrl}); background-size: cover; background-position: center;`
 	}
 	// #endif
-	return 'background: linear-gradient(135deg, #217e76, var(--zy-brand-300, #5bc4a8));'
+	const fallback = FAMILY_COVER[family] || '/static/blueprint/hero-cloth.jpg'
+	return `background-image: url(${fallback}); background-size: cover; background-position: center;`
 }
 
 function goSession(item) {
@@ -447,4 +458,34 @@ function dismiss(item) {
 	outline-offset: 2px;
 }
 button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
+
+/* ── v9 冷瓷展签收口 ── */
+.page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg); }
+.header { display: block; padding-bottom: 28rpx; margin-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
+.page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 18rpx; }
+.header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16rpx; }
+.page-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
+.mood-badge { padding: 0; border-radius: 0; background: transparent; border-bottom: 2rpx solid var(--zy-accent); }
+.mood-text { color: var(--zy-accent); font-size: var(--zy-text-caption, 24rpx); }
+.reason-card { padding: 24rpx 0 24rpx 24rpx; border-radius: 0; background: transparent; border: 0; border-left: 4rpx solid var(--zy-care); box-shadow: none; }
+.reason-quote { display: none; }
+.reason-icon-wrap { width: 40rpx; height: 40rpx; border-radius: 0; background: transparent; }
+.reason-label { color: var(--zy-care); letter-spacing: 1rpx; }
+.reason-text { font-family: var(--zy-font-display, serif); font-size: 32rpx; line-height: 1.9; color: var(--zy-title); }
+.refresh-btn { padding: 8rpx 0; }
+.refresh-text { color: var(--zy-brand-700); }
+.skeleton-card { border-radius: 0; border: 1rpx solid var(--zy-border); }
+.skeleton-cover { height: 220rpx; }
+.card-list { gap: 28rpx; }
+.craft-card { border-radius: 0; }
+.craft-card:active { transform: none; }
+.card-cover { padding: 0; }
+.level-badge { padding: 6rpx 12rpx; border-radius: 0; background: var(--zy-brand-700); }
+.level-text { letter-spacing: 1rpx; }
+.card-tags { gap: 10rpx; }
+.tag-badge { padding: 2rpx 8rpx; border-radius: 0; border: 1rpx solid var(--zy-border); background: transparent; }
+.tag-text { color: var(--zy-muted); }
+.card-dismiss { margin-top: 8rpx; }
+.dismiss-btn { border-radius: 0; padding: 4rpx 0; }
+.footnote { color: var(--zy-muted); }
 </style>

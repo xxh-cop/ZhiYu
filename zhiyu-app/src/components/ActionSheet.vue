@@ -180,7 +180,7 @@ onBeforeUnmount(release)
 	text-align: left;
 }
 .sheet-action::after { border: 0; }
-.sheet-action.tone-default { background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-title, #233d34); }
+.sheet-action.tone-default { background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-title, #111816); }
 .sheet-action.tone-primary { background: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); color: #fff; }
 .sheet-action.tone-danger { background: transparent; border: 1rpx solid var(--zy-care, var(--zy-care, #a64842)); color: var(--zy-care, var(--zy-care, #a64842)); }
 .sheet-action.disabled { opacity: .5; }
@@ -192,7 +192,7 @@ onBeforeUnmount(release)
 	min-height: 44px;
 	margin: 20rpx 0 0;
 	padding: 20rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
+	border-radius: 0;
 	background: var(--zy-bg, #ffffff);
 	color: var(--zy-text-secondary, #4a5f54);
 	font-size: var(--zy-font-base, 28rpx);

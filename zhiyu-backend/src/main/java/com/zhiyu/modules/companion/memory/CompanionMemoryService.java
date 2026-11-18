@@ -72,7 +72,7 @@ public class CompanionMemoryService {
             KEY_MATERIAL, "偏好材料",
             KEY_FAMILY, "偏好纹样族");
     private static final String DISCLAIMER =
-            "小织记忆默认关闭，只保存你明确选择的练习偏好和不想聊的话题；不保存对话原文、情绪细节或高危信息；半年后自动忘记，可随时删除。";
+            "记忆只在你主动开启后生效，只保存你明确选择的练习偏好和不想聊的话题；不保存对话原文、情绪细节或高危信息；半年后自动忘记，可随时删除。";
     public static final String PROFILE_NOTE =
             "「我注意到的」由你的手作和便签记录即时算出，只含次数和时段，不含便签内容；关闭记忆后不再使用。";
 

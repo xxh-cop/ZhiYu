@@ -145,11 +145,18 @@ public class CraftProjectPublicServiceImpl implements CraftProjectPublicService 
         vo.setSteps(stepVOs);
         vo.setMaterials(materialVOs);
 
-        if (inheritorUser != null) {
+        boolean inheritorMatchesProject = project.getCategory() != null
+                && profile != null
+                && profile.getVerified() != null
+                && profile.getVerified() == 1
+                && project.getCategory().trim().equalsIgnoreCase(
+                        profile.getSkill() == null ? "" : profile.getSkill().trim());
+
+        if (inheritorUser != null && inheritorMatchesProject) {
             vo.setInheritorId(inheritorUser.getId());
             vo.setInheritorNickname(inheritorUser.getNickname());
         }
-        if (profile != null) {
+        if (profile != null && inheritorMatchesProject) {
             vo.setInheritorSkill(profile.getSkill());
             vo.setInheritorProfileId(profile.getId());
         }

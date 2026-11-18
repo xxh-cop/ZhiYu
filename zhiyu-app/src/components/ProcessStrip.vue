@@ -39,21 +39,23 @@ defineProps({
 	align-items: flex-start;
 	gap: 8rpx;
 	padding: var(--zy-space-sm);
-	border: 2rpx solid var(--zy-card-line);
-	border-radius: var(--zy-radius-md);
-	background: var(--zy-card-bg);
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	border-radius: 0;
+	background: transparent;
 }
 .process-step.is-current {
-	background: var(--zy-bg-tint-warm);
-	border-color: var(--zy-gold);
+	background: transparent;
+	border-color: var(--zy-brand-700, #0a403b);
+	border-left: 2rpx solid var(--zy-care, #a64842);
 }
 .process-step.is-done {
-	background: var(--zy-bg-tint-mint);
+	background: transparent;
 }
 .process-index {
+	font-family: var(--zy-font-display, serif);
 	font-size: var(--zy-text-title);
-	font-weight: 600;
-	color: var(--zy-accent);
+	font-weight: 500;
+	color: var(--zy-care, #a64842);
 	line-height: 1;
 }
 .process-text {
@@ -85,22 +87,22 @@ defineProps({
 	bottom: 0;
 	left: 24rpx;
 	width: 8rpx;
-	background: var(--zy-gold);
+	background: var(--zy-care, #a64842);
 }
 /* 针线：走向虚线 */
 .motif-stitch .motif-a {
 	left: 4rpx;
 	right: 4rpx;
 	top: 26rpx;
-	border-top: 4rpx dashed var(--zy-brand-600);
+	border-top: 3rpx dashed var(--zy-brand-600);
 }
 .motif-stitch .motif-b {
 	left: 24rpx;
 	top: 18rpx;
 	width: 8rpx;
 	height: 8rpx;
-	border-radius: 50%;
-	background: var(--zy-gold);
+	border-radius: 0;
+	background: var(--zy-care, #a64842);
 }
 /* 剪刻：负空间 */
 .motif-cutout .motif-a {
@@ -133,7 +135,7 @@ defineProps({
 	top: 18rpx;
 	width: 20rpx;
 	height: 20rpx;
-	border: 3rpx solid var(--zy-gold);
+	border: 3rpx solid var(--zy-care, #a64842);
 	border-radius: 50%;
 }
 </style>

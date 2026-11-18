@@ -1,0 +1,1291 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>织愈 · 一线之间｜非遗艺术疗愈体验蓝图</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230C1412'/%3E%3Cpath d='M6 26C12 10 20 22 26 6' stroke='%23C4402F' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --canvas:#F1F4F1; --surface:#FFFFFF; --ink:#111816; --ink-2:#42524C; --muted:#6E7B75;
+  --brand:#0E5B53; --brand-deep:#0A403B; --celadon:#8FC7B8; --celadon-pale:#DCEAE3;
+  --cinnabar:#C4402F; --indigo:#24395B; --gold:#C8A45C; --line:#D3DED8; --line-dark:#2A3A35;
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --max:1080px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit}
+::selection{background:var(--cinnabar);color:#fff}
+:focus-visible{outline:2px solid var(--cinnabar);outline-offset:3px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(241,244,241,.93);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1440px;margin:0 auto;padding:14px 48px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{font-family:var(--serif);font-weight:700;font-size:19px;letter-spacing:.04em;white-space:nowrap}
+.brand i{display:inline-block;width:18px;height:18px;border:1px solid var(--cinnabar);border-radius:50%;vertical-align:-4px;margin-right:10px;position:relative}
+.brand i::after{content:"";position:absolute;inset:4px;border-top:1px solid var(--cinnabar);transform:rotate(-28deg)}
+.topmeta{font-size:12px;color:var(--muted);letter-spacing:.08em;text-align:right;line-height:1.5}
+.topmeta b{color:var(--ink);font-weight:500}
+
+/* 布局 */
+.shell{max-width:1440px;margin:0 auto;padding:0 48px;display:grid;grid-template-columns:190px minmax(0,var(--max));gap:56px;justify-content:center}
+.rail{position:sticky;top:88px;align-self:start;padding:48px 0 0;max-height:calc(100vh - 110px);overflow:auto}
+.rail nav{display:flex;flex-direction:column;gap:2px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:8px;padding:7px 0;font-size:12px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent;transition:color .2s,border-color .2s}
+.rail a span{font-family:var(--serif);font-size:12px;color:#9AA8A1}
+.rail a:hover,.rail a.active{color:var(--ink);border-bottom-color:var(--line)}
+.rail a.active span{color:var(--cinnabar)}
+.rail .rail-note{margin-top:24px;font-size:11px;line-height:1.7;color:#8A9992}
+.main{min-width:0;padding-bottom:80px}
+section{padding:88px 28px;border-bottom:1px solid var(--line);scroll-margin-top:84px}
+section:last-of-type{border-bottom:0}
+
+/* 封面 */
+.cover{min-height:calc(100vh - 62px);display:grid;grid-template-columns:1.04fr .96fr;background:#0C1412;color:#F3F6F3;overflow:hidden}
+.cover-copy{padding:64px 56px 52px;display:flex;flex-direction:column;justify-content:space-between;min-height:100%}
+.cover-brand{font-family:var(--serif);font-size:16px;letter-spacing:.18em;color:#B9CEC6}
+.cover h1{font-family:var(--serif);font-weight:700;font-size:clamp(44px,5.8vw,86px);line-height:1.08;letter-spacing:-.03em;margin:42px 0 28px;max-width:12em}
+.cover h1 em{font-style:normal;color:var(--celadon)}
+.cover-sub{font-size:15px;line-height:1.9;color:#B9CEC6;max-width:28em}
+.cover-meta{margin-top:40px;display:flex;flex-wrap:wrap;gap:18px 28px;font-size:11px;letter-spacing:.06em;color:#8FAFA5}
+.cover-meta b{display:block;color:#F3F6F3;font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:.02em;margin-top:4px}
+.cover-media{position:relative;min-height:100%;background:#0C1412}
+.cover-media img{width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.88) contrast(1.06)}
+.cover-media::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,20,18,.55),transparent 34%,rgba(12,20,18,.18))}
+.cover-note{position:absolute;left:24px;bottom:20px;z-index:2;font-size:10px;color:#C9D8D2;letter-spacing:.08em;background:rgba(12,20,18,.55);padding:6px 8px;border:1px solid rgba(201,216,210,.22)}
+.cover-thread{position:absolute;left:-1px;top:12%;z-index:3;width:2px;height:64%;background:linear-gradient(180deg,transparent,var(--cinnabar) 18%,var(--cinnabar) 82%,transparent)}
+.cover-thread::before,.cover-thread::after{content:"";position:absolute;left:-3px;width:8px;height:8px;border:1px solid var(--cinnabar);border-radius:50%;background:#0C1412}
+.cover-thread::before{top:16%}.cover-thread::after{bottom:14%}
+
+/* 通用文字 */
+.kicker{font-size:11px;letter-spacing:.16em;color:var(--cinnabar);margin:0 0 18px}
+h2{font-family:var(--serif);font-weight:700;font-size:clamp(32px,4.2vw,54px);line-height:1.18;letter-spacing:-.02em;margin:0 0 20px}
+h3{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.4;margin:0 0 10px}
+h4{font-size:14px;font-weight:500;margin:0 0 8px;letter-spacing:.02em}
+.lede{font-size:18px;line-height:1.9;color:var(--ink-2);max-width:45em;margin:0 0 12px}
+.small{font-size:12px;line-height:1.8;color:var(--muted)}
+.mono{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;font-size:12px;letter-spacing:.02em}
+.serif{font-family:var(--serif)}
+.hr{border:0;border-top:1px solid var(--line);margin:32px 0}
+.section-head{display:grid;grid-template-columns:64px 1fr;gap:20px;align-items:start;margin-bottom:42px}
+.section-no{font-family:var(--serif);font-size:18px;color:var(--cinnabar);padding-top:8px;letter-spacing:.04em}
+
+/* 摘要 */
+.verdicts{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink);margin-top:48px}
+.verdict{padding:26px 26px 10px 0;border-right:1px solid var(--line)}
+.verdict:last-child{border-right:0;padding-right:0}
+.verdict .vn{font-family:var(--serif);font-size:14px;color:var(--cinnabar);margin-bottom:14px}
+.verdict h3{font-size:26px}
+.verdict p{font-size:14px;line-height:1.9;color:var(--ink-2);margin:0}
+.decisions{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+.decision{border-top:1px solid var(--ink);padding-top:16px}
+.decision b{display:block;font-family:var(--serif);font-size:20px;margin-bottom:6px}
+.decision p{font-size:13px;line-height:1.8;color:var(--ink-2);margin:0}
+
+/* 数据 */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--line);margin:36px 0 0}
+.stat{padding:20px 16px 16px 0;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-family:var(--serif);font-size:46px;line-height:1;font-weight:700}
+.stat span{display:block;font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.04em}
+
+/* 图集 */
+.audit-gallery{background:#0C1412;padding:26px;margin:34px 0 10px;border:1px solid #22322D}
+.sheet{margin:0 0 22px}
+.sheet:last-child{margin-bottom:0}
+.sheet img{width:100%;border:1px solid #2A3A35}
+.sheet figcaption{display:flex;justify-content:space-between;gap:16px;font-size:11px;color:#9FB5AC;margin-top:8px;letter-spacing:.04em}
+.sheet a{color:#DCEAE3;text-decoration:none;border-bottom:1px solid #536F66;white-space:nowrap}
+
+/* 表格 */
+.table-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:28px 0 12px}
+.filter{border:0;background:none;padding:5px 10px;font:inherit;font-size:12px;color:var(--muted);cursor:pointer;border-bottom:1px solid transparent}
+.filter.active{color:var(--ink);border-bottom-color:var(--cinnabar)}
+.search{flex:1;min-width:160px;border:0;border-bottom:1px solid var(--line);background:transparent;padding:6px 2px;font:inherit;font-size:12px;color:var(--ink)}
+.search::placeholder{color:#9AA8A1}
+.table-wrap{overflow-x:auto;border-top:1px solid var(--ink)}
+table{border-collapse:collapse;width:100%;table-layout:fixed}
+th,td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left;font-size:12px;line-height:1.65}
+th{font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.05em}
+td.page{font-weight:500;color:var(--ink)}
+td.action{color:var(--ink-2)}
+td.sev{font-family:var(--serif);font-weight:700;font-size:13px;white-space:nowrap}
+.p0{color:var(--cinnabar)} .p1{color:#8A6A1F} .p2{color:var(--muted)}
+.audit-table col:nth-child(1){width:42px}.audit-table col:nth-child(2){width:120px}.audit-table col:nth-child(3){width:56px}.audit-table col:nth-child(4){width:22%}.audit-table col:nth-child(5){width:auto}
+.table-count{font-size:11px;color:var(--muted);margin:10px 0 0}
+
+/* 证据 */
+.question{font-family:var(--serif);font-size:clamp(30px,4.4vw,52px);line-height:1.35;letter-spacing:-.01em;margin:0 0 26px;max-width:22em}
+.question em{font-style:normal;color:var(--cinnabar)}
+.answer{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--ink);margin:34px 0 46px}
+.layer{padding:22px 24px 6px 0;border-right:1px solid var(--line)}
+.layer:last-child{border-right:0;padding-right:0}
+.layer .tag{display:inline-block;font-size:10px;letter-spacing:.1em;color:var(--cinnabar);margin-bottom:12px}
+.layer h3{font-size:19px;margin-bottom:8px}
+.layer p{font-size:13px;line-height:1.85;color:var(--ink-2);margin:0}
+.layer b{color:var(--ink);font-weight:500}
+.evidence-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px}
+.ev{border-top:1px solid var(--ink);padding:18px 0 22px}
+.ev .ev-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.ev .ev-top span{font-size:10px;color:var(--cinnabar);letter-spacing:.08em;white-space:nowrap}
+.ev h3{font-size:17px;line-height:1.5;margin:0 0 8px;max-width:26em}
+.ev p{font-size:13px;line-height:1.8;color:var(--ink-2);margin:0 0 8px}
+.ev a{font-size:11px;color:var(--brand);text-decoration:none;border-bottom:1px solid var(--celadon)}
+.boundary{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:40px;border-top:1px solid var(--ink)}
+.boundary-col{padding-top:16px}
+.boundary-col h3{font-size:18px}
+.boundary-col ul{margin:0;padding-left:18px;font-size:13px;line-height:1.9;color:var(--ink-2)}
+.boundary-col.no h3{color:var(--cinnabar)}
+.insight{margin:38px 0 0;padding:26px 0 6px;border-top:1px solid var(--ink);display:grid;grid-template-columns:120px 1fr;gap:24px}
+.insight b{font-family:var(--serif);font-size:15px;color:var(--cinnabar)}
+.insight p{font-family:var(--serif);font-size:24px;line-height:1.6;margin:0;max-width:30em}
+
+/* 诊断 */
+.dna{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin:36px 0 0}
+.dna-col{border-top:1px solid var(--ink);padding-top:16px}
+.dna-col .label{font-size:10px;letter-spacing:.12em;color:var(--muted);margin-bottom:14px}
+.dna-col.old .label{color:#8A6A1F}.dna-col.new .label{color:var(--cinnabar)}
+.swatches{display:flex;margin:0 0 22px;border:1px solid var(--line)}
+.swatches div{flex:1;height:62px;position:relative}
+.swatches span{position:absolute;left:6px;bottom:5px;font-size:9px;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px}
+.dna-col h3{font-size:22px;margin-bottom:8px}
+.dna-col p{font-size:13px;line-height:1.85;color:var(--ink-2);margin:0 0 12px}
+.dna-col img{width:100%;height:210px;object-fit:cover;object-position:top;border:1px solid var(--line);margin-top:6px}
+.dna-list{font-size:12px;line-height:1.9;color:var(--ink-2);margin:10px 0 0;padding-left:16px}
+.five{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:34px 0 0}
+.five div{border-top:1px solid var(--line);padding-top:12px}
+.five b{display:block;font-family:var(--serif);font-size:18px;margin-bottom:4px}
+.five p{font-size:11px;line-height:1.7;color:var(--muted);margin:0}
+
+/* 视觉系统 */
+.manifesto{font-family:var(--serif);font-size:clamp(28px,4.4vw,50px);line-height:1.5;margin:0 0 24px;max-width:20em}
+.manifesto em{font-style:normal;color:var(--cinnabar)}
+.three-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--ink);margin:36px 0}
+.mode{padding:18px 22px 16px 0;border-right:1px solid var(--line)}
+.mode:last-child{border-right:0;padding-right:0}
+.mode .m-dot{width:100%;height:52px;margin-bottom:12px}
+.mode b{display:block;font-family:var(--serif);font-size:19px;margin-bottom:4px}
+.mode p{font-size:12px;line-height:1.8;color:var(--ink-2);margin:0}
+.palette{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border:1px solid var(--line);margin:34px 0 10px}
+.pal{height:118px;position:relative;padding:8px}
+.pal span{position:absolute;left:8px;bottom:8px;font-size:9px;color:#fff;background:rgba(0,0,0,.42);padding:2px 4px}
+.pal b{position:absolute;left:8px;top:8px;font-size:9px;color:#fff;background:rgba(0,0,0,.42);padding:2px 4px;font-weight:500}
+.palette-note{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;font-size:11px;line-height:1.7;color:var(--muted)}
+.palette-note b{color:var(--ink);font-weight:500}
+.type-specimen{border-top:1px solid var(--ink);padding-top:22px;margin:40px 0 0}
+.type-display{font-family:var(--serif);font-size:clamp(38px,6vw,72px);line-height:1.16;letter-spacing:-.02em;margin:0 0 14px;max-width:15em}
+.type-row{display:grid;grid-template-columns:90px 1fr;gap:18px;border-top:1px solid var(--line);padding:12px 0;align-items:baseline}
+.type-row span{font-size:10px;color:var(--muted);letter-spacing:.06em}
+.type-row p{margin:0;font-size:15px;line-height:1.8;color:var(--ink-2)}
+.type-row .t11{font-size:11px;letter-spacing:.04em;color:var(--muted)}
+.type-row .t24{font-family:var(--serif);font-size:24px;line-height:1.4;color:var(--ink)}
+.type-row .t32{font-family:var(--serif);font-size:32px;line-height:1.35;color:var(--ink)}
+.components{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:40px 0 0}
+.spec-card{border-top:1px solid var(--ink);padding-top:16px}
+.spec-card h3{font-size:17px;margin-bottom:10px}
+.label-card{border-top:1px solid var(--ink);padding:12px 0 0;max-width:300px}
+.label-card .lc-top{font-size:10px;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
+.label-card h4{font-family:var(--serif);font-size:24px;font-weight:600;margin:8px 0 4px;line-height:1.3}
+.label-card p{font-size:12px;color:var(--ink-2);line-height:1.7;margin:0}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border:1px solid transparent;font-size:13px;text-decoration:none;letter-spacing:.02em}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.ghost{border-color:var(--ink);color:var(--ink);background:transparent}
+.btn.danger{background:var(--cinnabar);color:#fff}
+.btn.text{border:0;border-bottom:1px solid var(--cinnabar);padding:0 2px;min-height:32px;color:var(--ink)}
+.icon-row{display:flex;gap:18px;margin:14px 0 0;flex-wrap:wrap}
+.icon-row figure{margin:0;text-align:center;font-size:10px;color:var(--muted)}
+.icon-row svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:1.5;display:block;margin:0 auto 4px}
+.dodont{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:36px;border-top:1px solid var(--ink)}
+.dodont div{padding-top:14px}
+.dodont h3{font-size:17px}
+.dodont ul{margin:0;padding-left:18px;font-size:12px;line-height:1.9;color:var(--ink-2)}
+.dodont .no h3{color:var(--cinnabar)}
+
+/* 概念稿 */
+.phones{display:flex;gap:22px;overflow-x:auto;padding:10px 0 22px;scroll-snap-type:x mandatory}
+.phone{position:relative;flex:1 1 0;min-width:0;max-width:390px;aspect-ratio:390/844;height:auto;border:9px solid #0A0F0D;border-radius:46px;overflow:hidden;background:#000;box-shadow:0 26px 60px rgba(17,24,22,.24);scroll-snap-align:start}
+.screen{position:absolute;inset:0;overflow:hidden;font-family:var(--sans);background:var(--canvas);color:var(--ink)}
+.status{position:absolute;top:0;left:0;right:0;height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:10px;letter-spacing:.08em;z-index:10}
+.p1 .status{color:#EDF5F0}.p2 .status,.p3 .status{color:var(--ink-2)}
+.p1{background:#0C1412;color:#F3F6F3}
+.p1 .hero{position:absolute;inset:0 0 38% 0}
+.p1 .hero img{width:100%;height:100%;object-fit:cover;filter:saturate(.9) contrast(1.05)}
+.p1 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,20,18,.15),rgba(12,20,18,.92))}
+.p1 .top{position:absolute;top:54px;left:22px;right:22px;display:flex;justify-content:space-between;align-items:center;z-index:3;font-family:var(--serif);font-size:13px;letter-spacing:.06em}
+.p1 .top span{font-family:var(--sans);font-size:10px;color:#AFC7BE;letter-spacing:.1em}
+.p1 .hero-copy{position:absolute;left:22px;right:22px;bottom:44%;z-index:4}
+.p1 .hero-copy .lab{font-size:10px;color:var(--celadon);letter-spacing:.14em;margin-bottom:10px}
+.p1 .hero-copy h3{font-family:var(--serif);font-size:36px;line-height:1.25;font-weight:600;margin:0 0 10px;color:#F5F8F4;letter-spacing:-.02em}
+.p1 .hero-copy p{font-size:12px;line-height:1.7;color:#B9CEC6;margin:0;max-width:19em}
+.p1 .sheet{position:absolute;left:0;right:0;bottom:0;height:38%;background:#0E1714;border-top:1px solid #33443F;padding:20px 22px 64px;z-index:5}
+.p1 .sheet .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:1px solid #2A3A35;padding-bottom:10px}
+.p1 .sheet .row b{font-family:var(--serif);font-size:18px;font-weight:600}
+.p1 .sheet .row span{font-size:10px;color:#8FAFA5}
+.p1 .sheet .meta{display:flex;gap:14px;font-size:10px;color:#8FAFA5;margin:10px 0 14px}
+.p1 .cta{display:flex;align-items:center;justify-content:space-between;background:var(--cinnabar);color:#fff;text-decoration:none;padding:14px 16px;font-size:13px}
+.p1 .cta span{font-size:18px}
+.p1 .nav{position:absolute;left:0;right:0;bottom:0;height:54px;display:flex;align-items:center;justify-content:space-around;background:#0A100E;border-top:1px solid #22322D;z-index:6}
+.p1 .nav b{font-size:10px;font-weight:400;color:#7D928A;display:flex;flex-direction:column;align-items:center;gap:4px}
+.p1 .nav b.on{color:#F3F6F3}
+.p1 .nav b.on::after{content:"";width:14px;height:1px;background:var(--cinnabar)}
+.p1 .nav i{width:16px;height:16px;border:1px solid currentColor;display:block}
+
+.p2 .cover-img{position:absolute;inset:0 0 54% 0}
+.p2 .cover-img img{width:100%;height:100%;object-fit:cover}
+.p2 .cover-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,20,18,.12),rgba(241,244,241,.9))}
+.p2 .top{position:absolute;top:52px;left:20px;right:20px;z-index:4;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#F3F6F3}
+.p2 .back{width:32px;height:32px;border:1px solid rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;font-size:16px}
+.p2 .cover-title{position:absolute;left:22px;right:22px;top:47%;z-index:4}
+.p2 .cover-title .lab{font-size:10px;letter-spacing:.12em;color:var(--brand);margin-bottom:8px}
+.p2 .cover-title h3{font-family:var(--serif);font-size:30px;line-height:1.25;margin:0;color:var(--ink)}
+.p2 .body{position:absolute;left:22px;right:22px;top:62%;bottom:76px}
+.p2 .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;border-top:1px solid var(--ink);padding-top:10px;font-size:10px;color:var(--muted)}
+.p2 .meta-grid b{display:block;color:var(--ink);font-family:var(--serif);font-size:13px;font-weight:600;margin-top:2px}
+.p2 .quote{border-left:2px solid var(--cinnabar);padding-left:12px;margin:8px 0 6px}
+.p2 .quote p{font-family:var(--serif);font-size:13.5px;line-height:1.5;margin:0 0 3px}
+.p2 .quote span{font-size:8.5px;color:var(--muted)}
+.p2 .safe{font-size:9.5px;line-height:1.4;color:var(--ink-2);border-top:1px solid var(--line);padding-top:4px;margin-top:4px}
+.p2 .cta{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;background:var(--brand);color:#fff;padding:16px 22px 20px;font-size:13px}
+.p2 .cta span{font-size:18px}
+.p2 .cta small{display:block;font-size:9px;color:#B9D8CF;letter-spacing:.04em}
+
+.p3{background:#0E5B53;color:#F4F8F4}
+.p3 .status{color:#D7E9E3}
+.p3 .top{position:absolute;top:54px;left:22px;right:22px;z-index:4;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.1em;color:#D7E9E3}
+.p3 .glaze{position:absolute;inset:0 0 50% 0}
+.p3 .glaze img{width:100%;height:100%;object-fit:cover;filter:saturate(.9)}
+.p3 .glaze::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,91,83,.1),rgba(14,91,83,.92))}
+.p3 .title{position:absolute;left:22px;right:22px;top:31%;z-index:4}
+.p3 .title .lab{font-size:9px;letter-spacing:.14em;color:#B7DCD2;margin-bottom:8px}
+.p3 .title h3{font-family:var(--serif);font-size:30px;line-height:1.3;margin:0;color:#F4F8F4}
+.p3 .archive{position:absolute;left:0;right:0;bottom:0;height:50%;background:#0B4340;padding:16px 22px 0;border-top:1px solid #4E8F86}
+.p3 .archive .ar-top{display:flex;justify-content:space-between;font-size:9px;color:#A9CDC4;letter-spacing:.08em}
+.p3 .pattern{height:92px;margin:10px 0;border:1px solid #6AA79D;position:relative;background:#0E5B53;overflow:hidden}
+.p3 .pattern svg{width:100%;height:100%;display:block}
+.p3 .meta{display:flex;justify-content:space-between;font-size:9px;color:#C7E1D9;border-top:1px solid #4E8F86;padding-top:8px}
+.p3 .actions{display:flex;gap:8px;margin-top:10px}
+.p3 .actions a{flex:1;text-align:center;padding:9px 6px;font-size:10px;text-decoration:none;border:1px solid #8FC7B8;color:#F4F8F4}
+.p3 .actions a:last-child{background:#8FC7B8;color:#0B4340;border-color:#8FC7B8}
+.p3 .nav{position:absolute;left:0;right:0;bottom:0;height:54px;display:flex;align-items:center;justify-content:space-around;background:#093734;border-top:1px solid #2F6C65;z-index:6}
+.p3 .nav b{font-size:10px;font-weight:400;color:#9FC4BB;display:flex;flex-direction:column;align-items:center;gap:4px}
+.p3 .nav b.on{color:#F4F8F4}
+.p3 .nav b.on::after{content:"";width:14px;height:1px;background:#C4402F}
+.nav svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.4}
+.concept-note{display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--muted);margin:0 0 8px}
+.concept-note b{color:var(--ink);font-weight:500}
+
+/* 页面改造 */
+.cases{display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px;margin-top:36px}
+.case{display:grid;grid-template-columns:132px 1fr;gap:16px;border-top:1px solid var(--ink);padding:16px 0 22px}
+.case img{width:132px;height:240px;object-fit:cover;object-position:top;border:1px solid var(--line)}
+.case .case-no{font-size:10px;color:var(--cinnabar);letter-spacing:.08em}
+.case h3{font-size:18px;margin:2px 0 6px}
+.case p{font-size:11.5px;line-height:1.75;color:var(--ink-2);margin:0}
+.case ul{margin:0;padding-left:15px;font-size:11.5px;line-height:1.75;color:var(--ink-2)}
+.case .after{display:inline-block;margin-top:6px;font-size:10px;color:var(--brand);border-bottom:1px solid var(--celadon)}
+.page-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px;margin-top:20px}
+.pa{border-top:1px solid var(--ink);padding:16px 0 20px}
+.pa span{font-size:10px;color:var(--cinnabar);letter-spacing:.08em}
+.pa h3{font-family:var(--serif);font-size:19px;margin:4px 0 8px;line-height:1.45}
+.pa ul{margin:0;padding-left:15px;font-size:12px;line-height:1.8;color:var(--ink-2)}
+
+/* 内容与AI */
+.matrix{width:100%;border-collapse:collapse;margin-top:30px;table-layout:fixed}
+.matrix th,.matrix td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:11.5px;line-height:1.65;text-align:left;vertical-align:top}
+.matrix th{color:var(--muted);font-weight:500;font-size:10px;letter-spacing:.04em}
+.matrix col:nth-child(1){width:18%}.matrix col:nth-child(2){width:22%}.matrix col:nth-child(3){width:26%}.matrix col:nth-child(4){width:18%}.matrix col:nth-child(5){width:16%}
+.ritual{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--ink);margin:36px 0 0}
+.ritual div{padding:18px 22px 8px 0;border-right:1px solid var(--line)}
+.ritual div:last-child{border-right:0}
+.ritual .r-no{font-family:var(--serif);color:var(--cinnabar);font-size:13px;margin-bottom:8px}
+.ritual h3{font-size:19px}
+.ritual p{font-size:12px;line-height:1.8;color:var(--ink-2);margin:0}
+.ai-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px;margin-top:34px}
+.ai-item{border-top:1px solid var(--ink);padding:16px 0}
+.ai-item h3{font-size:18px}
+.ai-item p{font-size:12px;line-height:1.8;color:var(--ink-2);margin:0}
+.ai-item .ai-label{font-size:10px;color:var(--cinnabar);letter-spacing:.08em;margin-bottom:6px}
+.guardrail{background:#0C1412;color:#F3F6F3;padding:28px 30px;margin-top:36px}
+.guardrail h3{color:#F3F6F3;font-size:20px}
+.guardrail p{font-size:12px;line-height:1.85;color:#B9CEC6;margin:0 0 10px}
+.guardrail ul{margin:0;padding-left:18px;font-size:12px;line-height:1.9;color:#B9CEC6}
+.guardrail b{color:#F3F6F3}
+
+/* 路线图 */
+.roadmap{margin-top:36px}
+.phase{display:grid;grid-template-columns:92px 1fr 240px;gap:22px;border-top:1px solid var(--ink);padding:20px 0 24px;align-items:start}
+.phase .when{font-family:var(--serif);font-size:15px;color:var(--cinnabar);line-height:1.5}
+.phase h3{font-size:20px;margin:0 0 6px}
+.phase p{font-size:12px;line-height:1.8;color:var(--ink-2);margin:0}
+.phase ul{margin:0;padding-left:15px;font-size:11.5px;line-height:1.8;color:var(--ink-2)}
+.phase .out{font-size:11px;color:var(--muted);line-height:1.8;border-left:1px solid var(--line);padding-left:14px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--ink);margin-top:34px}
+.metric{padding:16px 24px 8px 0;border-right:1px solid var(--line)}
+.metric:last-child{border-right:0}
+.metric b{display:block;font-family:var(--serif);font-size:17px;margin-bottom:4px}
+.metric p{font-size:11px;line-height:1.7;color:var(--muted);margin:0}
+.risks{width:100%;border-collapse:collapse;margin-top:30px;table-layout:fixed}
+.risks th,.risks td{padding:9px 8px;border-bottom:1px solid var(--line);font-size:11.5px;line-height:1.65;vertical-align:top;text-align:left}
+.risks th{color:var(--muted);font-weight:500;font-size:10px}
+.risks col:nth-child(1){width:24%}.risks col:nth-child(2){width:38%}.risks col:nth-child(3){width:38%}
+
+/* 附录 */
+.sources{display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px;margin-top:28px}
+.source{border-top:1px solid var(--line);padding:10px 0;font-size:11px;line-height:1.7;color:var(--ink-2)}
+.source b{display:block;color:var(--ink);font-weight:500;font-size:12px;margin-bottom:2px}
+.source a{color:var(--brand);text-decoration:none;border-bottom:1px solid var(--celadon);word-break:break-all}
+.footnote{font-size:11px;line-height:1.8;color:var(--muted);margin-top:26px}
+footer{max-width:1440px;margin:0 auto;padding:28px 48px 40px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;font-size:10px;color:var(--muted);letter-spacing:.04em}
+
+@media (max-width:1180px){
+  .shell{grid-template-columns:1fr;padding:0 36px;gap:0}
+  .rail{display:none}
+  .cover{grid-template-columns:1fr;min-height:auto}
+  .cover-copy{order:2;padding:44px 36px 52px}
+  .cover-media{order:1;height:52vh;min-height:420px}
+  .cover-copy h1{font-size:clamp(42px,9vw,68px);margin:24px 0 18px}
+  .topbar-inner{padding:12px 24px}
+  .topmeta{display:none}
+  .section-head{grid-template-columns:48px 1fr;gap:12px}
+  .phones{overflow-x:auto}
+  .phones .phone{flex:0 0 330px;max-width:330px}
+  .verdicts,.decisions,.answer,.three-modes,.ritual{grid-template-columns:1fr}
+  .verdict,.decision,.layer,.mode,.ritual div{border-right:0;border-bottom:1px solid var(--line);padding:18px 0}
+  .verdict:last-child,.layer:last-child,.mode:last-child,.ritual div:last-child{border-bottom:0}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat{border-bottom:1px solid var(--line)}
+  .evidence-grid,.dna,.components,.dodont,.cases,.ai-grid,.sources{grid-template-columns:1fr}
+  .palette{grid-template-columns:repeat(3,1fr)}
+  .five{grid-template-columns:repeat(2,1fr)}
+  .phase{grid-template-columns:1fr;gap:8px}
+  .phase .out{border-left:0;border-top:1px solid var(--line);padding:8px 0 0}
+  .metrics{grid-template-columns:1fr}
+  .metric{border-right:0;border-bottom:1px solid var(--line);padding:12px 0}
+  .case{grid-template-columns:112px 1fr}
+  .case img{width:112px;height:204px}
+  .phones{padding-left:0}
+  footer{padding:24px;flex-direction:column}
+}
+@media (max-width:560px){
+  .shell{padding:0 20px}
+  section{padding:64px 0}
+  .cover-media{height:44vh;min-height:340px}
+  .cover-copy{padding:32px 20px 40px}
+  .cover-meta{gap:12px 18px}
+  .audit-gallery{padding:12px}
+  .phones .phone{flex-basis:330px;width:330px;height:714px}
+  .matrix-wide{min-width:760px}
+  .risks-wide{min-width:620px}
+  .audit-table{min-width:760px}
+  .table-wrap::before{content:"左右滑动查看完整表格 →";display:block;font-size:10px;color:var(--muted);padding:6px 0 4px;letter-spacing:.04em}
+  .p1 .hero-copy h3{font-size:30px}
+  .p2 .cover-title h3{font-size:28px}
+  .p3 .title h3{font-size:25px}
+  .case{grid-template-columns:1fr}
+  .case img{width:100%;height:260px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation:none!important;transition:none!important}
+}
+@media print{
+  .topbar,.rail,.phones,.table-tools{display:none}
+  body{background:#fff}
+  .shell{display:block;padding:0}
+  section{break-inside:avoid-page;padding:28px 0}
+  .cover{min-height:auto;background:#fff;color:#111;grid-template-columns:1fr}
+  .cover-media{display:none}
+  .cover-copy{padding:20px}
+  .cover h1{color:#111;font-size:40px}
+  .cover h1 em{color:#111}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><i></i>织愈 · 一线之间</div>
+    <div class="topmeta"><b>非遗艺术疗愈体验蓝图</b><br>2026.11 / v7.0 / 56 页体检</div>
+  </div>
+</header>
+
+<!-- ===== 封面 ===== -->
+<section class="cover" id="cover" style="padding:0;border-bottom:0">
+  <div class="cover-copy">
+    <div class="cover-brand">织愈 / ZHIYU / 2026</div>
+    <div>
+      <h1>把非遗，<br>做成<em>一间会呼吸</em>的美术馆。</h1>
+      <p class="cover-sub">从暖米色养生工具，到冷瓷白、墨绿与一根朱砂线的当代工艺现场。一次关于 56 个页面、22 个手作与 18 件作品的体检，以及一条 12 周的改造路线。</p>
+      <div class="cover-meta">
+        <div>范围<b>学生端 56 页</b></div>
+        <div>样本<b>真实后端 / 390×844</b></div>
+        <div>结论<b>非遗缺席，不是配色问题</b></div>
+      </div>
+    </div>
+    <div class="small" style="color:#7F9A91;max-width:24em">本蓝图中的“疗愈”一律指非医疗的支持性体验，不构成诊断、治疗或危机替代。</div>
+  </div>
+  <div class="cover-media">
+    <div class="cover-thread" aria-hidden="true"></div>
+    <img src="assets/hero-cloth.jpg" alt="冷白色手织夏布、朱砂绣线与银针的概念摄影">
+    <div class="cover-note">视觉概念图 / AI 生成 / 非成品摄影</div>
+  </div>
+</section>
+
+<div class="shell">
+<aside class="rail" aria-label="目录">
+  <nav>
+    <a href="#summary"><span>00</span>摘要与判断</a>
+    <a href="#audit"><span>01</span>56 页体检</a>
+    <a href="#evidence"><span>02</span>非遗能不能疗愈</a>
+    <a href="#diagnosis"><span>03</span>为什么看起来旧</a>
+    <a href="#system"><span>04</span>一线视觉系统</a>
+    <a href="#pages"><span>05</span>页面改造</a>
+    <a href="#content"><span>06</span>内容与智能</a>
+    <a href="#roadmap"><span>07</span>12 周路线</a>
+    <a href="#appendix"><span>08</span>来源与边界</a>
+  </nav>
+  <p class="rail-note">这不是一份“换配色”的方案。<br>它要删掉一半模块，补上真实手艺，<br>并把“疗愈”从口号改成可验证的体验。</p>
+</aside>
+
+<main class="main">
+
+
+
+<!-- ===== 摘要 ===== -->
+<section id="summary">
+  <div class="section-head">
+    <div class="section-no">00</div>
+    <div>
+      <p class="kicker">先给结论</p>
+      <h2>问题不在“不够美”，<br>在于主语不是非遗。</h2>
+      <p class="lede">我把 56 个页面逐页截了下来。最完整的视觉资产是纹样馆，最缺的却是手作本身：22 个手作只有 4 个有封面、0 个有视频；18 件作品只有 9 件有图、16 件匿名；传承人故事明确写着“合成教学叙事”。用户当然会觉得“不像非遗艺术疗愈”——因为页面里确实没有手艺。</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b>56</b><span>学生端页面（含子包）</span></div>
+    <div class="stat"><b>22</b><span>手作项目，其中 16 个上架</span></div>
+    <div class="stat"><b>4</b><span>有封面的手作，占 18%</span></div>
+    <div class="stat"><b>0</b><span>手作视频</span></div>
+  </div>
+
+  <div class="verdicts">
+    <div class="verdict">
+      <div class="vn">01 / 非遗是标签</div>
+      <h3>看得见口号，<br>看不见手。</h3>
+      <p>推荐卡是绿色空块，详情页是灰渐变占位，作品墙是“纯文字作品”。非遗被做成了米黄卡片上的一行说明，而不是能被看见、被摸到、被学会的动作。</p>
+    </div>
+    <div class="verdict">
+      <div class="vn">02 / 土黄是症状</div>
+      <h3>暖纸底把所有<br>材料压成旧纸。</h3>
+      <p>暖纸 #F6F1E7、暖金 #D9A441、纸纹与米白卡片叠在一起，靛蓝会发灰、青瓷会发黄、朱砂会发褐。绿色又被当成万能油漆：按钮、图标、开关、标签、悬浮球全是一个绿。</p>
+    </div>
+    <div class="verdict">
+      <div class="vn">03 / 疗愈是机制</div>
+      <h3>不是“非遗”<br>本身在疗愈。</h3>
+      <p>证据支持的是“手作 + 文化叙事 + 社群交流”的组合，而不是一个非遗标签。当前 PHQ-9/GAD-7 与“疗愈”话术同时出现，是最危险的错位。</p>
+    </div>
+  </div>
+
+  <div class="decisions">
+    <div class="decision"><b>换底</b><p>冷瓷白 #F1F4F1 + 墨 #111816；朱砂只做“一根线”；暖色只从材料本身来，不再给全站加暖黄滤镜。</p></div>
+    <div class="decision"><b>换叙事</b><p>一页只讲一件事。每个手作必须有真图、真传承人、真安全标注、真出处；没有就下架，不用空块和合成故事顶上。</p></div>
+    <div class="decision"><b>换智能</b><p>小织从“客服”变成“策展人”：选一件、陪一段、记住一点；AI 生成你的纹样指纹，而不是多说两句鸡汤。</p></div>
+  </div>
+</section>
+
+<!-- ===== 体检 ===== -->
+<section id="audit">
+  <div class="section-head">
+    <div class="section-no">01</div>
+    <div>
+      <p class="kicker">56 页体检</p>
+      <h2>不是细节脏，<br>是整栋房子没有主墙。</h2>
+      <p class="lede">下面 5 张图集覆盖全部 56 个页面：真实后端、演示账号、iPhone 尺寸、逐页首屏。它们暴露的不是个别页面的圆角或字号，而是同一套“卡片 + 绿色 + 卡通”的模板被复制到了所有场景。</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b>22</b><span>手作项目 / 仅 16 个上架</span></div>
+    <div class="stat"><b>4</b><span>有封面的手作 / 0 个有视频</span></div>
+    <div class="stat"><b>18</b><span>社区作品 / 仅 9 件有图</span></div>
+    <div class="stat"><b>0</b><span>本地 covers 目录文件</span></div>
+  </div>
+
+  <div class="audit-gallery">
+    <figure class="sheet"><img loading="lazy" src="assets/audit/sheet-1.png" alt="第 1–12 页体检拼图"><figcaption><span>01–12 / 首页到疗愈推荐</span><a href="assets/audit/sheet-1.png" target="_blank">查看原图</a></figcaption></figure>
+    <figure class="sheet"><img loading="lazy" src="assets/audit/sheet-2.png" alt="第 13–24 页体检拼图"><figcaption><span>13–24 / 详情到我的作品</span><a href="assets/audit/sheet-2.png" target="_blank">查看原图</a></figcaption></figure>
+    <figure class="sheet"><img loading="lazy" src="assets/audit/sheet-3.png" alt="第 25–36 页体检拼图"><figcaption><span>25–36 / 收藏到非遗问答</span><a href="assets/audit/sheet-3.png" target="_blank">查看原图</a></figcaption></figure>
+    <figure class="sheet"><img loading="lazy" src="assets/audit/sheet-4.png" alt="第 37–48 页体检拼图"><figcaption><span>37–48 / 传承人到登录</span><a href="assets/audit/sheet-4.png" target="_blank">查看原图</a></figcaption></figure>
+    <figure class="sheet"><img loading="lazy" src="assets/audit/sheet-5.png" alt="第 49–56 页体检拼图"><figcaption><span>49–56 / 注册到体验反馈</span><a href="assets/audit/sheet-5.png" target="_blank">查看原图</a></figcaption></figure>
+  </div>
+
+  <h3 class="serif" style="font-size:26px;margin:54px 0 6px">十个最值得先动的页面</h3>
+  <p class="small" style="margin-bottom:24px">不是“最丑”的十个，而是最影响信任、理解与第一眼气质的十个。</p>
+
+  <div class="cases" id="top-cases">
+    <div class="case">
+      <img loading="lazy" src="assets/audit/home-full.png" alt="首页截图">
+      <div><div class="case-no">01 / 首页</div><h3>八个模块抢一个主语</h3><p>问候、情绪、手作、纹样、声音、数据、推荐、快捷入口全在首屏，手作与非遗被切成一行行小卡。用户不知道先看哪里，也不知道“这是一间工艺美术馆”。</p><ul><li>删掉数据行、情绪行、快捷入口</li><li>只留“今日一器 / 小织一句话 / 继续上次”</li><li>首屏 60% 交给一张真材料大图</li></ul><span class="after">改造：全屏“今日一器”</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/start-full.png" alt="手作入口截图">
+      <div><div class="case-no">02 / 手作入口</div><h3>“手作”标签下没有手作</h3><p>首屏先问几分钟、心情、呼吸练习；真正的手作入口被压到第二屏。它像一个冥想 App 的工具箱，而不是一张工作台。</p><ul><li>首屏只放一件手作 + 一个 3 分钟版本</li><li>呼吸、音乐移到“缓一缓”次级入口</li><li>取消悬浮大绿球，底部只留五个文字入口</li></ul><span class="after">改造：一张工作台，不是工具箱</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/work-list-top.png" alt="作品社区截图">
+      <div><div class="case-no">03 / 作品社区</div><h3>社区没有作品</h3><p>首屏两件都是“纯文字作品”，配“演示同学”。18 件作品里只有 9 件有图，16 件匿名。一个以“非遗艺术”为卖点的社区，第一眼却没有一张手作图。</p><ul><li>发布必须带封面；无图作品不进社区</li><li>改成展览墙：4:5 大图 + 作者一句话</li><li>“点赞”改“驻足”，评论区改“留言簿”</li></ul><span class="after">改造：展览墙</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/craft-recommend-top.png" alt="疗愈推荐截图">
+      <div><div class="case-no">04 / 疗愈推荐</div><h3>绿色空块 + 模板文案</h3><p>三张推荐卡是纯绿色渐变块，标题“折扇小景 / 适合做的练习”语义空转；封面文件缺失，组件用渐变兜底。用户看到的不是非遗，是未完成的组件库。</p><ul><li>封面缺失不允许上架</li><li>推荐理由写到具体动作与材料</li><li>一屏只推荐一件，给“为什么是它”</li></ul><span class="after">改造：一屏一件，有图有据</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/assessment-full.png" alt="自我了解截图">
+      <div><div class="case-no">05 / 自我了解</div><h3>把临床量表放进疗愈 App</h3><p>页面直接露出 PHQ-9、GAD-7 与题数。即使写了“不用于诊断”，这两个名字本身就会让用户以为自己正在被筛查。对一个非医疗产品，这是不该越过的线。</p><ul><li>主流程删除 PHQ-9 / GAD-7</li><li>改成五维“身心状态”自查，不打分</li><li>临床量表只进独立科研模块，需知情同意与专业人员</li></ul><span class="after">改造：状态自查，不是诊断</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/inheritor-list-top.png" alt="传承人列表截图">
+      <div><div class="case-no">06 / 非遗传承人</div><h3>测试数据 + 合成故事 + 横向溢出</h3><p>“测试”账号 0 个项目混在列表里；故事卡右侧被裁；页面明确标注“合成教学叙事·非真实访谈”。当用户来找真实的手艺人，这里给的是模板。</p><ul><li>生产环境清掉测试账号</li><li>没有真实访谈就不进“传承人”主路径</li><li>横向卡片改单列，禁止溢出</li></ul><span class="after">改造：真实驻馆艺术家</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/crisis-top.png" alt="心理援助截图">
+      <div><div class="case-no">07 / 心理援助</div><h3>最紧急的按钮是土黄色</h3><p>校内热线的主按钮是橄榄褐/土黄，下面全国热线是绿色。紧急场景里，颜色语义完全反过来：最该被看见的动作最不显眼。</p><ul><li>危机页只保留一个主行动：拨打电话</li><li>主按钮用朱砂，不用土黄/橄榄</li><li>“AI 不能急救”放在按钮下方，不藏在卡片里</li></ul><span class="after">改造：一个动作，最高对比</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/profile-full.png" alt="我的页面截图">
+      <div><div class="case-no">08 / 我的</div><h3>头像空、成就被裁、图标像糖果</h3><p>头像是一个纯色圆；“半日闲 40/300”被容器裁掉；作品、收藏、倾听、便签用四种不同颜色的圆图标。它像一个未配置完成的个人中心。</p><ul><li>头像用纹样指纹或姓氏印章，不用空圆</li><li>成就改“作品档案”，不做进度条</li><li>图标统一 1.5px 线稿，语义色只三种</li></ul><span class="after">改造：作品档案，不是游戏面板</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/heritage-gallery-top.png" alt="纹样馆截图">
+      <div><div class="case-no">09 / 纹样馆</div><h3>全站唯一对的方向，被藏在子包</h3><p>真实的织物底图、手绘针法、编号与标签，已经有“档案”的气质。但它不在主路径上，首页只用一张米黄卡片指向它。</p><ul><li>升为一级入口“纹样”</li><li>加暗色观展模式、双指放大、针法动画</li><li>每片纹样给来源、结构、用途与练习</li></ul><span class="after">改造：纹样档案馆</span></div>
+    </div>
+    <div class="case">
+      <img loading="lazy" src="assets/audit/chat-top.png" alt="情绪倾听截图">
+      <div><div class="case-no">10 / 情绪倾听</div><h3>像客服，不像倾听室</h3><p>大头像、绿气泡、快捷胶囊，和售前客服同一套语言。用户在这里要的是安静，不是被引导着继续点按钮。</p><ul><li>玄墨底色 + 一束光，不要整屏绿</li><li>消息改成排版行，不做气泡</li><li>小织缩到 24px 线稿，记忆用一行“我记得…”</li></ul><span class="after">改造：倾听室</span></div>
+    </div>
+  </div>
+
+  <h3 class="serif" style="font-size:26px;margin:56px 0 6px">全部 56 页：问题与动作</h3>
+  <p class="small">按严重度筛选。<b>P0</b> 失真/阻断/安全；<b>P1</b> 系统性视觉；<b>P2</b> 打磨。</p>
+  <div class="table-tools">
+    <button class="filter active" data-f="all">全部</button>
+    <button class="filter" data-f="P0">P0</button>
+    <button class="filter" data-f="P1">P1</button>
+    <button class="filter" data-f="P2">P2</button>
+    <input class="search" id="auditSearch" type="search" placeholder="搜索页面或问题">
+  </div>
+  <div class="table-wrap">
+    <table class="audit-table">
+      <colgroup><col><col><col><col><col></colgroup>
+      <thead><tr><th>#</th><th>页面</th><th>级别</th><th>问题</th><th>改造动作</th></tr></thead>
+      <tbody id="auditBody"></tbody>
+    </table>
+  </div>
+  <p class="table-count" id="auditCount"></p>
+</section>
+
+<!-- ===== 证据 ===== -->
+<section id="evidence">
+  <div class="section-head">
+    <div class="section-no">02</div>
+    <div>
+      <p class="kicker">先回答那个不客气的问题</p>
+      <h2>非遗艺术，<br>真能达到“疗愈”吗？</h2>
+      <p class="lede">能，但不是以现在这个方式。更准确地说：<b>手作、材料、叙事与社群</b>的组合，有证据支持它对情绪与联结产生积极作用；“非遗”三个字本身，不产生任何疗效。</p>
+    </div>
+  </div>
+
+  <div class="answer">
+    <div class="layer">
+      <span class="tag">第一层 / 临床治疗</span>
+      <h3>不能宣称。</h3>
+      <p>艺术治疗是受过训练的专业，需要评估、诊断、伦理与督导。2026 年教育部才把“艺术治疗”正式列入本科专业目录，中央美院为首个布点院校。一个学生端产品，不能越过这条线。</p>
+    </div>
+    <div class="layer">
+      <span class="tag">第二层 / 支持性疗愈</span>
+      <h3>有证据，但不大。</h3>
+      <p>艺术治疗对抑郁症状有中等效果，对焦虑的证据弱且不显著；手作/纺织研究多为自报与质性研究，能改善情绪、目的感与联结，但长期效果与机制仍未被严格证明。</p>
+    </div>
+    <div class="layer">
+      <span class="tag">第三层 / 文化体验</span>
+      <h3>机制成立。</h3>
+      <p>真正起作用的不是“非遗”标签，而是五个条件：<b>专注、触觉、节律、胜任、意义与连接</b>。非遗的价值，是它天然携带材料、动作、纹样与代际故事，能把五个条件同时装进一次创作。</p>
+    </div>
+  </div>
+
+  <div class="evidence-grid">
+    <div class="ev">
+      <div class="ev-top"><h3>WHO：艺术能预防疾病、促进健康、辅助管理</h3><span>2019 / 3000+ 研究</span></div>
+      <p>WHO 欧洲区卫生证据网络综述梳理了 3000 多项研究，认为艺术在健康促进、疾病预防与照护中具有重要作用；但研究设计从个案、横断面到 RCT 差异极大，不能简单等同于“治疗有效”。</p>
+      <a href="https://iris.who.int/items/ba079951-0beb-4b7f-a1c5-a75cc66c283e" target="_blank">WHO / What is the evidence on the role of the arts</a>
+    </div>
+    <div class="ev">
+      <div class="ev-top"><h3>艺术治疗 meta：抑郁有效，焦虑证据弱</h3><span>2026 / 14 项研究 / 861 人</span></div>
+      <p>艺术治疗对抑郁症状的合并效应为 SMD −0.69（95% CI −1.04 至 −0.35），对焦虑的效应小且不显著；研究异质性高、部分试验存在偏倚风险。它支持“有帮助”，不支持“包治”。</p>
+      <a href="https://onlinelibrary.wiley.com/doi/10.1111/jpm.70127" target="_blank">Qiao et al. / Journal of Psychiatric and Mental Health Nursing</a>
+    </div>
+    <div class="ev">
+      <div class="ev-top"><h3>针线手作：25 项研究，四个共同主题</h3><span>2024 / scoping review</span></div>
+      <p>缝、织、钩、绣、拼布被归纳出四个主题：心理福祉；社交联结与归属；目的感、成就与满足；自我身份、家庭、文化与传承。多数为自报与质性证据，不是临床 RCT。</p>
+      <a href="https://pubmed.ncbi.nlm.nih.gov/39008815/" target="_blank">Healing Stitches / PubMed 39008815</a>
+    </div>
+    <div class="ev">
+      <div class="ev-top"><h3>手作干预：19 项研究多有改善，但只有 1 项追踪了后续</h3><span>2025 / systematic review</span></div>
+      <p>陶艺、刺绣、编织、纸艺、木工等干预后，情绪与生活满意度都有改善；但 19 项研究里只有 1 项检查了数周后的维持效果。它说明“当下有用”，不足以说明“长期治病”。</p>
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11830576/" target="_blank">The effects of crafts-based interventions / PMC</a>
+    </div>
+    <div class="ev">
+      <div class="ev-top"><h3>壮绣八周：动作 + 故事 + 群体，三者一起发生</h3><span>2026 / 80 人 / 55–65 岁</span></div>
+      <p>广西壮绣项目每周一次、每次约两小时，持续八周；每次同时包含上手刺绣、文化故事与群体交流。心理福祉有改善，但 12 周随访效果减弱；研究无法拆分到底是哪一部分起了作用——这恰恰说明三者都不能少。</p>
+      <a href="https://www.frontiersin.org/journals/public-health/articles/10.3389/fpubh.2026.1945265/full" target="_blank">Frontiers in Public Health / Zhuang embroidery</a>
+    </div>
+    <div class="ev">
+      <div class="ev-top"><h3>真迹 vs 复制品：看原作，皮质醇降得更多</h3><span>2025 / 50 人 /  preprint</span></div>
+      <p>在考陶尔德美术馆看原作，20 分钟后唾液皮质醇平均下降 22%；在实验室看同幅高清复制品，只下降 8%。IL-6 与 TNF-α 在原作组下降约 30% 与 28%，复制品组无变化。<b>注意：这是预印本、样本小、未同行评审</b>，但方向足够清楚：材料的“真”会进入身体。</p>
+      <a href="https://courtauld.ac.uk/news-blogs/2025/first-of-its-kind-study-proves-positive-impact-of-art-on-the-body/" target="_blank">Courtauld / King’s College London</a>
+    </div>
+  </div>
+
+  <div class="insight">
+    <b>关键洞察</b>
+    <p>“非遗”不是疗效成分。把手作拿掉、只留纹样符号，疗愈不成立；把手作留下、把非遗去掉，手作仍可能有用。所以非遗必须是<b>材料、动作与叙事</b>，不能只是壁纸。</p>
+  </div>
+
+  <div class="boundary">
+    <div class="boundary-col yes">
+      <h3>可以说</h3>
+      <ul>
+        <li>“这一次创作，可能帮你从情绪里退一步。”</li>
+        <li>“手作与艺术参与，有研究支持其对放松、专注与联结的积极作用。”</li>
+        <li>“这里是一个非医疗的创作与陪伴空间。”</li>
+        <li>“如果你正在经历难以承受的时刻，请使用危机支持渠道。”</li>
+      </ul>
+    </div>
+    <div class="boundary-col no">
+      <h3>不能说</h3>
+      <ul>
+        <li>“治疗抑郁 / 焦虑 / 失眠。”</li>
+        <li>“替代心理咨询或药物。”</li>
+        <li>“根据你的作品判断你的心理状态。”</li>
+        <li>“非遗大师亲授”（除非有可核验的授权与身份）。</li>
+        <li>“保证你会好起来。”</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="serif" style="font-size:24px;margin:48px 0 12px">那现在的产品，为什么没有疗愈感？</h3>
+  <div class="five">
+    <div><b>没有真材料</b><p>22 个手作 4 个封面、0 个视频；首页用一张折纸“品类参考图”。用户看到的是插画与渐变，不是纤维、竹丝、釉面。</p></div>
+    <div><b>没有真故事</b><p>传承人页明确写“合成教学叙事·非真实访谈”，列表里还有 0 项目的“测试”账号。意义与身份这一层，直接漏了。</p></div>
+    <div><b>没有真社群</b><p>18 件作品、16 件匿名、9 件有图。没有作品墙，也没有“一起做”的现场；社交联结这一层没有发生。</p></div>
+    <div><b>没有剂量设计</b><p>首屏是 1/3/5/15 分钟呼吸，手作被压到第二屏。真正的 15–40 分钟创作流程，被拆成了步骤卡。</p></div>
+    <div><b>越过了边界</b><p>PHQ-9 与 GAD-7 直接出现在“自我了解”，再配上“疗愈”叙事。这是把临床量表当成了情绪测试。</p></div>
+  </div>
+</section>
+
+<!-- ===== 诊断 ===== -->
+<section id="diagnosis">
+  <div class="section-head">
+    <div class="section-no">03</div>
+    <div>
+      <p class="kicker">视觉尸检</p>
+      <h2>为什么它看起来“旧”？<br>不是因为绿色，<br>是因为所有东西都一样重。</h2>
+      <p class="lede">现在的设计并不是没有体系，而是体系用错了地方：暖纸底、暖金、纸纹、米白卡片把全部材料压成同一种“旧纸色”；绿色被当成万能油漆；卡片把所有内容切成同样大小；卡通小织把“陪伴”变成了“可爱”。</p>
+    </div>
+  </div>
+
+  <div class="dna">
+    <div class="dna-col old">
+      <div class="label">旧 DNA / 青玉案 · 暖纸青玉 v6</div>
+      <div class="swatches">
+        <div style="background:#F6F1E7"><span>#F6F1E7</span></div>
+        <div style="background:#FFFDF7"><span>#FFFDF7</span></div>
+        <div style="background:#D9A441"><span>#D9A441</span></div>
+        <div style="background:#217E76"><span>#217E76</span></div>
+        <div style="background:#7A5C12"><span>#7A5C12</span></div>
+        <div style="background:#E4DCCB"><span>#E4DCCB</span></div>
+      </div>
+      <h3>暖纸 + 暖金 + 米白卡</h3>
+      <p>单看每个色都不丑。问题在于它们被当成“全站底色”：靛蓝放上去发灰，青瓷放上去发黄，朱砂放上去发褐。所有手作最后都变成同一种“旧纸滤镜”。</p>
+      <ul class="dna-list">
+        <li>暖纸底占满全站，材料色失真</li>
+        <li>暖金 #D9A441 当强调色，像茶包装</li>
+        <li>危机页临时写死 #7A5C12 橄榄褐按钮</li>
+        <li>16–24px 圆角 + 灰色柔影，所有模块同权</li>
+        <li><code>--zy-serif</code> 实际等于系统无衬线</li>
+      </ul>
+      <img loading="lazy" src="assets/audit/home-full.png" alt="旧首页长图，米黄卡片与绿色按钮">
+      <p class="small" style="margin-top:8px">旧首页上半段：米黄纹样卡、绿色胶囊、卡通小织在同一屏争夺注意力。</p>
+    </div>
+    <div class="dna-col new">
+      <div class="label">新 DNA / 一线 · 瓷面与布面</div>
+      <div class="swatches">
+        <div style="background:#F1F4F1"><span>#F1F4F1</span></div>
+        <div style="background:#111816"><span>#111816</span></div>
+        <div style="background:#0E5B53"><span>#0E5B53</span></div>
+        <div style="background:#8FC7B8"><span>#8FC7B8</span></div>
+        <div style="background:#C4402F"><span>#C4402F</span></div>
+        <div style="background:#C8A45C"><span>#C8A45C</span></div>
+      </div>
+      <h3>冷瓷白 + 墨 + 一根朱砂线</h3>
+      <p>把底色退回“无色的瓷面”，让材料自己发声。朱砂只做一根线——它是缝线、是进度、是记忆的连接，也是全站唯一允许大面积出现的暖色。</p>
+      <ul class="dna-list">
+        <li>冷瓷白做底，材料色不再被染黄</li>
+        <li>墨绿黑承担深度，替代灰色柔影</li>
+        <li>朱砂只出现在线、动作与警示</li>
+        <li>暖金只做金缮细线，不做大面积</li>
+        <li>宋体做标题，黑体做正文，恢复字阶</li>
+      </ul>
+      <img loading="lazy" src="assets/hero-cloth.jpg" alt="冷白夏布、朱砂线与银针">
+      <p class="small" style="margin-top:8px">新基调：冷白布面、朱砂线、墨色背景。材料的“真”本身，就是视觉冲击。</p>
+    </div>
+  </div>
+
+  <div class="five">
+    <div><b>色彩失焦</b><p>暖底让所有材料偏黄，用户无法分辨夏布、竹篾、青瓷、宣纸的差别；非遗的“物质性”被抹平。</p></div>
+    <div><b>语义崩塌</b><p>同一个 #217E76 同时表示主按钮、成功、信息、装饰、标签、悬浮球。颜色越多，越没有信息。</p></div>
+    <div><b>层级坍塌</b><p>卡片、圆角、阴影把标题、正文、数据、按钮压成同一层。用户只能“扫”，不能“读”。</p></div>
+    <div><b>形象错位</b><p>大头卡通小织出现在首页、空态、音乐、认证页。它让产品更像儿童手作盒，而不是当代工艺现场。</p></div>
+    <div><b>字体失声</b><p>标题 18–20px、正文 12–13px、全部系统黑体；<code>--zy-serif</code> 被别名成 sans，编辑感从未真正发生。</p></div>
+  </div>
+
+  <div class="insight">
+    <b>不是审美品味</b>
+    <p>“土黄”不是某一个色号的问题，是<b>全局暖滤镜 + 万能绿 + 同权卡片</b>三件事叠加的结果。只换一个绿色，下一页还是会旧。</p>
+  </div>
+</section>
+
+<!-- ===== 视觉系统 ===== -->
+<section id="system">
+  <div class="section-head">
+    <div class="section-no">04</div>
+    <div>
+      <p class="kicker">新视觉系统</p>
+      <h2>瓷面是底，布面是图，<br>线是命。</h2>
+      <p class="lede">“一线”不是装饰，是结构。它来自缝纫的动作，也来自江西的两张材料名片：景德镇的瓷、夏布绣的布。界面上所有重要关系——进度、记忆、连接、警示——都由同一根线承担。</p>
+    </div>
+  </div>
+
+  <p class="manifesto">把一根线放大到一米宽，<br>它就是一幅<em>抽象画</em>。</p>
+
+  <div class="three-modes">
+    <div class="mode">
+      <div class="m-dot" style="background:#F1F4F1;border:1px solid #D3DED8"></div>
+      <b>月白 / 日间</b>
+      <p>发现、阅读、展签、社区。冷瓷白底，墨字，窑青主按钮。像白天走进美术馆，光从侧面来。</p>
+    </div>
+    <div class="mode">
+      <div class="m-dot" style="background:#0E5B53"></div>
+      <b>窑青 / 手作</b>
+      <p>创作、纹样、材料、课程。深青底，影青线，材料图占 70%。像把手伸进釉缸与竹篾之间。</p>
+    </div>
+    <div class="mode">
+      <div class="m-dot" style="background:#0C1412"></div>
+      <b>玄墨 / 夜</b>
+      <p>倾听、音乐、呼吸、危机。近黑底，一束光，朱砂线。不是“暗黑模式”，是夜里的一盏灯。</p>
+    </div>
+  </div>
+
+  <div class="palette">
+    <div class="pal" style="background:#F1F4F1"><b>瓷白</b><span>#F1F4F1</span></div>
+    <div class="pal" style="background:#111816"><b>墨</b><span>#111816</span></div>
+    <div class="pal" style="background:#0E5B53"><b>窑青</b><span>#0E5B53</span></div>
+    <div class="pal" style="background:#8FC7B8"><b>影青</b><span>#8FC7B8</span></div>
+    <div class="pal" style="background:#C4402F"><b>朱砂</b><span>#C4402F</span></div>
+    <div class="pal" style="background:#24395B"><b>靛蓝</b><span>#24395B</span></div>
+    <div class="pal" style="background:#C8A45C"><b>哑金</b><span>#C8A45C</span></div>
+  </div>
+  <div class="palette-note">
+    <div><b>瓷白</b> 全站底色。替代 #F6F1E7，去掉暖黄滤镜。</div>
+    <div><b>墨</b> 标题与正文主色。替代 #33302A/#5C5648 的暖灰。</div>
+    <div><b>窑青</b> 主按钮、链接、进度。比 #217E76 更深，压得住大图。</div>
+    <div><b>影青</b> 次级信息、线条、暗底上的文字。不是装饰色。</div>
+    <div><b>朱砂</b> 只做“一根线”、主行动、紧急。全站唯一高饱和暖色。</div>
+    <div><b>靛蓝</b> 材料/工艺专属强调。扎染、蓝印花布、夜间的第二层。</div>
+    <div><b>哑金</b> 只做金缮细线与修复隐喻，不做大面积填充。</div>
+    <div><b>烟灰</b> #6E7B75，辅助文本；不用于正文长段落。</div>
+  </div>
+
+  <div class="type-specimen">
+    <p class="type-display">把今天，<br>绣进一寸光里。</p>
+    <div class="type-row"><span>Display / 56–72</span><p class="serif" style="font-size:28px;color:var(--ink)">瑞昌竹编 · 起底</p></div>
+    <div class="type-row"><span>Title / 32–44</span><p class="t32">一根竹篾压在另一根上面，秩序从最简单的交错开始。</p></div>
+    <div class="type-row"><span>Body / 16</span><p style="font-size:16px">手作不是“做出一件东西”，而是把注意力从脑子里放回手上。你只需要看下一步。</p></div>
+    <div class="type-row"><span>Caption / 11</span><p class="t11">夏布绣 / 12 分钟 / 入门 / 材料包在家</p></div>
+  </div>
+
+  <div class="components">
+    <div class="spec-card">
+      <h3>“展签”替代卡片</h3>
+      <p class="small" style="margin-bottom:14px">没有阴影、没有大圆角。一条顶线、一个编号、一个标题、三行元信息。像美术馆墙上的标签，信息清楚，气质安静。</p>
+      <div class="label-card">
+        <div class="lc-top"><span>手作档案 / 004</span><span>瑞昌竹编</span></div>
+        <h4>把第一根竹篾，压下去。</h4>
+        <p>18 分钟 / 入门 / 竹篾 6 根<br>动作：挑、压、收边</p>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>按钮与图标</h3>
+      <p class="small" style="margin-bottom:8px">主按钮窑青实心；次按钮是文字 + 缝线；紧急用朱砂。图标统一 1.5px 线稿，语义色只三种。</p>
+      <div class="btn-row"><a class="btn primary" href="#pages">开始这一针</a><a class="btn ghost" href="#pages">先看 30 秒</a><a class="btn danger" href="#pages">需要人现在陪我</a><a class="btn text" href="#pages">换一件</a></div>
+      <div class="icon-row">
+        <figure><svg viewBox="0 0 24 24"><path d="M4 18c5-12 11 0 16-10"/><circle cx="4" cy="18" r="1.5"/></svg>线迹</figure>
+        <figure><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h16"/></svg>目录</figure>
+        <figure><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/><path d="M4 10h16M10 4v16"/></svg>纹样</figure>
+        <figure><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>经纬</figure>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>图像规则</h3>
+      <ul class="dna-list">
+        <li>3:4 竖图，1200×1600，WebP，首屏 lazy</li>
+        <li>主体必须真实：纤维、竹丝、釉面、手部、工具</li>
+        <li>每张图给来源与授权；概念图明确标注 AI</li>
+        <li>禁止米黄渐变、矢量祥云、卡通灯笼、无信息插画</li>
+        <li>空态不用小织大图，用一句具体动作 + 一张材料局部</li>
+      </ul>
+    </div>
+    <div class="spec-card">
+      <h3>小织的新位置</h3>
+      <p class="small">保留小织，但把它从“主角”降为“标记”：24–40px 的织结线稿，只出现在对话头像、记忆提示、空态的一角。它不再站在首页正中央，也不再代替真实作品。</p>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:12px">
+        <svg width="42" height="42" viewBox="0 0 42 42" aria-label="小织织结线稿"><path d="M8 30c6-16 12-20 16-14 4 6-2 12-6 10-5-2 2-10 12-8 6 1 8 8 4 14" fill="none" stroke="#0E5B53" stroke-width="1.6"/><circle cx="8" cy="30" r="2.2" fill="#C4402F"/></svg>
+        <span class="small">一根线打一个结，就是一个“我在这里”。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dodont">
+    <div class="yes">
+      <h3>要</h3>
+      <ul>
+        <li>大图、大字、长留白；一屏只讲一件事</li>
+        <li>用材料色做小面积强调，底色保持无色</li>
+        <li>让“线”承担进度、记忆与连接</li>
+        <li>用真实工序照片，哪怕不完美</li>
+        <li>动效慢、少、可关；尊重 reduced motion</li>
+        <li>每页都有明确的“下一步”</li>
+      </ul>
+    </div>
+    <div class="no">
+      <h3>不要</h3>
+      <ul>
+        <li>暖米色全局铺底、暖金大面积填充</li>
+        <li>绿色同时表示五种语义</li>
+        <li>16–24px 圆角 + 灰色柔影的卡片汤</li>
+        <li>卡通小织站在每个空态与首屏</li>
+        <li>用“非遗”插画代替真实手艺</li>
+        <li>把临床量表当情绪测试</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="serif" style="font-size:22px;margin:40px 0 10px">落地令牌</h3>
+  <pre style="background:#0C1412;color:#DCEAE3;padding:18px 20px;overflow:auto;font-size:11px;line-height:1.8;border-left:2px solid #C4402F"><code>/* theme v7 · 一线 */
+--zy-canvas: #F1F4F1;
+--zy-surface: #FFFFFF;
+--zy-ink: #111816;
+--zy-ink-2: #42524C;
+--zy-muted: #6E7B75;
+--zy-brand: #0E5B53;
+--zy-brand-deep: #0A403B;
+--zy-celadon: #8FC7B8;
+--zy-cinnabar: #C4402F;
+--zy-indigo: #24395B;
+--zy-gold: #C8A45C;
+--zy-line: #D3DED8;
+--zy-radius: 0;       /* 展签/图片 */
+--zy-radius-control: 4px;
+--zy-shadow: none;    /* 用边界与明度，不用柔影 */
+--zy-serif: "Noto Serif SC","Songti SC","STSong",serif;
+--zy-sans: "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;</code></pre>
+  <p class="footnote">迁移时不要保留 <code>.zy-theme-warm</code> 作为默认；它只能作为历史页面的临时兼容层，并在 4 周内删除。</p>
+</section>
+
+<!-- ===== 页面改造 ===== -->
+<section id="pages">
+  <div class="section-head">
+    <div class="section-no">05</div>
+    <div>
+      <p class="kicker">页面改造</p>
+      <h2>先做三个“能记住”的页面，<br>再谈全站。</h2>
+      <p class="lede">不要平均用力。首页、项目详情、纹样档案，是用户判断“这是不是一间美术馆”的三个瞬间。先把它们做到能截图传播，再把同一套语言复制到其余页面。</p>
+    </div>
+  </div>
+
+  <div class="concept-note"><b>概念稿 / 只定视觉方向，不是已实现页面</b><span>横向滑动查看</span></div>
+  <div class="phones">
+    <div class="phone p1">
+      <div class="screen">
+        <div class="hero"><img src="assets/hero-cloth.jpg" alt="夏布与朱砂线"></div>
+        <div class="status"><span>9:41</span><span>5G</span></div>
+        <div class="top"><span>织愈</span><span>SUNDAY · 11.15</span></div>
+        <div class="hero-copy">
+          <div class="lab">夏布绣 · 第 03 天</div>
+          <h3>把今天，<br>绣进一寸光里。</h3>
+          <p>12 分钟，一针一线。不用做完，先开始。</p>
+        </div>
+        <div class="sheet">
+          <div class="row"><b>今天的手作</b><span>夏布绣 · 起针</span></div>
+          <div class="meta"><span>12 分钟</span><span>入门</span><span>材料包在家</span></div>
+          <a class="cta" href="#content">进入今日的展间 <span>→</span></a>
+        </div>
+        <div class="nav"><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>首页</b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>纹样</b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c5-12 11 0 16-10M4 18h.01"/></svg>手作</b><b><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14"/><path d="M4 15l5-5 4 4 3-3 4 4"/></svg>社区</b><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20c1-5 4-7 7-7s6 2 7 7"/></svg>我的</b></div>
+      </div>
+    </div>
+
+    <div class="phone p2">
+      <div class="screen">
+        <div class="cover-img"><img src="assets/hero-bamboo.jpg" alt="瑞昌竹编局部"></div>
+        <div class="status"><span>9:41</span><span>5G</span></div>
+        <div class="top"><span class="back">‹</span><span>瑞昌竹编</span></div>
+        <div class="cover-title"><div class="lab">技艺 / 挑压收边</div><h3>把第一根竹篾，<br>压下去。</h3></div>
+        <div class="body">
+          <div class="meta-grid">
+            <div>时长<b>18 分钟</b></div><div>难度<b>入门</b></div>
+            <div>材料<b>竹篾 6 根</b></div><div>动作<b>挑 / 压 / 收</b></div>
+          </div>
+          <div class="quote"><p>“一压一挑，秩序从交错开始。”</p><span>口述 / 传承人待核验 · 教学示例</span></div>
+          <div class="safe">安全：竹篾较硬，附护指；12 岁以下需陪同。</div>
+        </div>
+        <div class="cta"><div>开始这一针<small>约 18 分钟 · 可暂停</small></div><span>→</span></div>
+      </div>
+    </div>
+
+    <div class="phone p3">
+      <div class="screen">
+        <div class="glaze"><img src="assets/hero-glaze.jpg" alt="影青釉与金缮线"></div>
+        <div class="status"><span>9:41</span><span>5G</span></div>
+        <div class="top"><span>织愈 / 纹样</span><span>赣南 · 夏布绣</span></div>
+        <div class="title"><div class="lab">水波纹 / 二上二下</div><h3>纹样不是装饰，<br>是一套活的语法。</h3></div>
+        <div class="archive">
+          <div class="ar-top"><span>结构 / 二上二下</span><span>来源 / 赣南</span></div>
+          <div class="pattern">
+            <svg viewBox="0 0 100 60" aria-hidden="true">
+              <g stroke="#8FC7B8" stroke-width="1" opacity=".55">
+                <path d="M0 10h100M0 20h100M0 30h100M0 40h100M0 50h100"/>
+                <path d="M10 0v60M20 0v60M30 0v60M40 0v60M50 0v60M60 0v60M70 0v60M80 0v60M90 0v60"/>
+              </g>
+              <path d="M0 50 C18 34 30 44 42 30 C54 16 62 34 74 22 C86 10 94 16 100 12" stroke="#C4402F" stroke-width="2" fill="none"/>
+              <circle cx="42" cy="30" r="2.2" fill="#C4402F"/>
+            </svg>
+          </div>
+          <div class="meta"><span>用途 / 衣缘</span><span>授权 / 教学使用</span></div>
+          <div class="actions"><a href="#content">放大看针脚</a><a href="#content">放进我的作品</a></div>
+        </div>
+        <div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>首页</b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>纹样</b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c5-12 11 0 16-10M4 18h.01"/></svg>手作</b><b><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14"/><path d="M4 15l5-5 4 4 3-3 4 4"/></svg>社区</b><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20c1-5 4-7 7-7s6 2 7 7"/></svg>我的</b></div>
+      </div>
+    </div>
+  </div>
+  <p class="footnote">三张概念稿用的是 AI 生成的材质概念图，不是成品摄影；真实上线必须替换为授权的手作微距与工序影像。</p>
+
+  <h3 class="serif" style="font-size:25px;margin:56px 0 8px">十个页面，十条手术线</h3>
+  <div class="page-actions">
+    <div class="pa"><span>01 / 首页</span><h3>从“工具箱”变成“今日一器”</h3><ul><li>删掉数据行、情绪行、快捷入口、重复手作入口</li><li>首屏一张真材料大图 + 一句今日文案 + 一个动作</li><li>小织只留一行记忆提示，不再占视觉中心</li><li>底部取消中心悬浮球，五个文字入口</li></ul></div>
+    <div class="pa"><span>02 / 手作入口</span><h3>先给一件，不给十件</h3><ul><li>首屏只推荐一件，给“为什么是它”</li><li>3 / 15 / 30 分钟做成三个真实版本，不是三个胶囊</li><li>呼吸、音乐、绘色下沉到“缓一缓”</li><li>“继续上次”用一根线的进度，不用卡片</li></ul></div>
+    <div class="pa"><span>03 / 项目详情</span><h3>像展签，不像商品页</h3><ul><li>3:4 封面占 45%，标题压在图上</li><li>传承人必须有姓名、技艺、授权与出处</li><li>安全未标注 → 禁止上架、禁止开始</li><li>“这一针的来历”讲纹样与工序，不讲空泛疗愈</li></ul></div>
+    <div class="pa"><span>04 / 创作引导</span><h3>全屏工作室，不是步骤卡</h3><ul><li>一根线横跨屏幕，表示总进度</li><li>一屏只给一个动作 + 一句指令</li><li>震动反馈落在“穿过/压住/收边”</li><li>退出不弹道德审判，自动保存到“未完成”</li></ul></div>
+    <div class="pa"><span>05 / 作品社区</span><h3>展览墙，不是信息流</h3><ul><li>4:5 大图 + 作者一句话 + 材料/时长</li><li>发布必须带封面；无图不进社区</li><li>“驻足”替代点赞，留言簿替代评论区</li><li>同纹样作品自动成组，形成“同一张纹样，不同的手”</li></ul></div>
+    <div class="pa"><span>06 / 情绪倾听</span><h3>玄墨倾听室</h3><ul><li>深墨底 + 一束侧光，不要整屏绿</li><li>消息用排版行，不用左右气泡</li><li>小织缩到 24px 线稿，记忆用一行“我记得…”</li><li>危机入口常驻底部，文案明确“AI 不能急救”</li></ul></div>
+    <div class="pa"><span>07 / 自我了解</span><h3>状态自查，不是临床筛查</h3><ul><li>删除 PHQ-9 / GAD-7 与题数</li><li>五维：睡眠 / 精力 / 情绪 / 专注 / 联结，用视觉刻度</li><li>不打总分、不给标签、不做诊断</li><li>高风险答案直接进危机支持，不进入“分析”</li></ul></div>
+    <div class="pa"><span>08 / 传承人</span><h3>驻馆艺术家，不是列表</h3><ul><li>只收真实、可核验的传承人/工坊</li><li>一位一页：工序短片、手部特写、口述、作品</li><li>没有访谈就不进主路径，教学示例单独标注</li><li>横向卡片改单列，杜绝右侧裁切</li></ul></div>
+    <div class="pa"><span>09 / 纹样馆</span><h3>升为一级“纹样”</h3><ul><li>月白/窑青双模式，像看展一样看纹样</li><li>双指放大到针脚，配结构线与针法动画</li><li>每片纹样：来源 / 结构 / 用途 / 授权</li><li>“放进我的作品”生成可编辑色卡</li></ul></div>
+    <div class="pa"><span>10 / 我的与成长</span><h3>作品档案，不是游戏面板</h3><ul><li>头像用纹样指纹或姓氏印章，不留空圆</li><li>作品数、专注时长改“创作档案”</li><li>成就改“第一件 / 第 10 件 / 第一次合作”</li><li>修掉成就文字溢出与四色糖果图标</li></ul></div>
+  </div>
+
+  <div class="insight">
+    <b>先删后加</b>
+    <p>这版不需要新增 20 个页面。先删掉首页一半模块、删掉临床量表、删掉空块推荐、删掉合成故事，再把省下来的空间还给一张真实的材料图。</p>
+  </div>
+</section>
+
+<!-- ===== 内容与智能 ===== -->
+<section id="content">
+  <div class="section-head">
+    <div class="section-no">06</div>
+    <div>
+      <p class="kicker">内容与智能</p>
+      <h2>不是所有非遗都适合<br>被做成“一次手作”。</h2>
+      <p class="lede">把品类分成三层：可在家完成的、需要材料包的、只适合鉴赏的。每一层对应不同的动作、风险与内容形态。不要为了凑 SKU，把漆器、缂丝这类高门槛工艺硬塞进 15 分钟流程。</p>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+<table class="matrix matrix-wide">
+    <colgroup><col><col><col><col><col></colgroup>
+    <thead><tr><th>品类</th><th>一次动作</th><th>疗愈机制</th><th>上线形态</th><th>风险 / 边界</th></tr></thead>
+    <tbody>
+      <tr><td><b>夏布绣 / 赣绣</b><br><span class="small">江西 · 核心</span></td><td>穿针、起针、平针、收线</td><td>注意力锚定、触觉、节律、胜任感、地方身份</td><td>3 分钟“一针” / 15 分钟“一小段” / 40 分钟“一件”</td><td>针尖；附护指与收纳；不承诺疗效</td></tr>
+      <tr><td><b>瑞昌竹编</b><br><span class="small">江西 · 核心</span></td><td>挑、压、收边、起底</td><td>节律、空间秩序、手部力量、成就感</td><td>3 分钟“起底” / 18 分钟“小垫” / 40 分钟“小篮”</td><td>竹刺与手部劳损；附护指、限时</td></tr>
+      <tr><td><b>景德镇捏塑 / 青瓷</b><br><span class="small">江西 · 核心</span></td><td>揉、捏、盘、修坯</td><td>触觉落地、感官唤醒、掌控感、材料隐喻</td><td>3 分钟“揉一块泥” / 20 分钟“小器” / 45 分钟“修坯”</td><td>粉尘/过敏；家用免烧泥；烧制不线上</td></tr>
+      <tr><td><b>瑞昌剪纸</b><br><span class="small">江西 · 核心</span></td><td>折、剪、镂、展开</td><td>对称秩序、专注、惊喜、释放</td><td>3 分钟“一刀” / 12 分钟“小纹” / 30 分钟“窗花”</td><td>剪刀风险；提供预刻/手撕版本</td></tr>
+      <tr><td><b>扎染</b><br><span class="small">扩展</span></td><td>捆扎、浸染、氧化、拆线</td><td>不可预测、感官、等待、惊喜</td><td>20–45 分钟材料包；线下工作坊</td><td>染料、手套、通风；不宣称“排毒”</td></tr>
+      <tr><td><b>绳编 / 中国结</b><br><span class="small">扩展</span></td><td>绕、穿、抽、收</td><td>重复节律、口袋便携、完成感</td><td>10–30 分钟；通勤/宿舍</td><td>低风险；注意绳材过敏</td></tr>
+      <tr><td><b>木版拓印</b><br><span class="small">扩展</span></td><td>上墨、覆纸、压印、揭起</td><td>即时反馈、触觉、版与纸的关系</td><td>10–20 分钟材料包</td><td>油墨误食/过敏；用无毒水性墨</td></tr>
+      <tr><td><b>香囊</b><br><span class="small">扩展</span></td><td>配香、装袋、缝口</td><td>嗅觉记忆、安抚、赠予</td><td>15–30 分钟材料包</td><td>孕期/哮喘/过敏筛查；非药用</td></tr>
+      <tr><td><b>漆器 / 缂丝 / 云锦 / 银饰</b><br><span class="small">鉴赏</span></td><td>看不做：慢看、放大、听工序</td><td>审美沉浸、敬畏、文化连接</td><td>3–8 分钟“慢看” / 大师短片 / 纹样档案</td><td>不提供家用制作；避免工艺简化</td></tr>
+    </tbody>
+  </table>
+</div>
+
+  <div class="ritual">
+    <div><div class="r-no">01 / 入境 60–90 秒</div><h3>先看材料，不急着做</h3><p>一张微距、一句来历、一次呼吸。让注意力从脑子落到手上。给一个“今天想留下什么”的意图，不给 KPI。</p></div>
+    <div><div class="r-no">02 / 在手 15–40 分钟</div><h3>一屏一个动作</h3><p>3–5 步，每步一句话；一根线表示总进度；在“穿、压、收”处给震动；随时可暂停，退出不审判。</p></div>
+    <div><div class="r-no">03 / 留痕 3 分钟</div><h3>把过程留下来</h3><p>拍一张过程图，写一句话，生成一枚纹样指纹。可保存、可分享、可不分享。没有分数，没有“疗愈指数”。</p></div>
+  </div>
+
+  <h3 class="serif" style="font-size:24px;margin:48px 0 6px">小织 2.0：少说话，会看事</h3>
+  <p class="small" style="max-width:44em">当前的 AI 是一个“什么都答”的聊天框。新的智能应该是“在正确的时候，给一件正确的事”，并且能看见用户做出来的东西。</p>
+  <div class="ai-grid">
+    <div class="ai-item"><div class="ai-label">01 / 选</div><h3>今日一器</h3><p>根据时间、状态、记忆与材料库存，只选一件；用一句话说明“为什么是它”。每天最多一次主动提示，夜间静默。</p></div>
+    <div class="ai-item"><div class="ai-label">02 / 看</div><h3>看作品，不评分</h3><p>用户拍下过程/成品，AI 给“一个观察 + 一个建议”：“这一针的走向很稳；边缘留白可以再松一点。”不诊断、不贴标签、不说“你真棒”。</p></div>
+    <div class="ai-item"><div class="ai-label">03 / 生成</div><h3>纹样指纹</h3><p>把今天的心情、声音或名字，转成一块只属于你的纹样；语法来自真实针法/织法，不是随机贴图。它成为头像、作品封面与“我今天来过”的证据。</p></div>
+    <div class="ai-item"><div class="ai-label">04 / 记</div><h3>记得，但不越界</h3><p>记忆只用于语气与推荐，不用于推断隐私；每条可查看、可修改、可删除；“小织记得的”永远有一键忘记。</p></div>
+    <div class="ai-item"><div class="ai-label">05 / 查</div><h3>纹样辞典，不是客服</h3><p>每个回答带图、带出处、带传承人链接；不确定就说不确定。文化解释必须可核验，不能编造历史与师承。</p></div>
+    <div class="ai-item"><div class="ai-label">06 / 听</div><h3>环境声，不是背景音乐</h3><p>织机、剪刀、雨、釉面出窑的细微声；默认静音，用户手势后播放；每段声音有来源与授权。</p></div>
+  </div>
+
+  <div class="guardrail">
+    <h3>智能的边界，比智能本身更重要</h3>
+    <p>小织可以做策展、陪伴、反馈与记忆，但不做诊断、不做治疗、不替代危机干预。</p>
+    <ul>
+      <li><b>危机识别：</b>自伤/绝望/暴力信号 → 立即给危机支持页，停止“疗愈”话术。</li>
+      <li><b>非医疗：</b>不出现“治疗、诊断、康复、处方、疗效”等词；不根据作品判断心理状态。</li>
+      <li><b>真实性：</b>不编造传承人、师承、年代、工艺来源；AI 生成图必须标注。</li>
+      <li><b>隐私：</b>记忆加密、可删除、可导出；不做敏感推断，不把对话用于训练。</li>
+      <li><b>审计：</b>所有 AI 输出过内容安全与人工抽检，落审计日志。</li>
+    </ul>
+  </div>
+
+  <h3 class="serif" style="font-size:22px;margin:42px 0 8px">内容模型：把“非遗”写进字段，而不是文案</h3>
+  <table class="matrix">
+    <colgroup><col style="width:26%"><col style="width:74%"></colgroup>
+    <thead><tr><th>对象</th><th>必须有的字段</th></tr></thead>
+    <tbody>
+      <tr><td><b>craft_project</b></td><td>technique / pattern_ids / master_id / safety_level / safety_note / evidence_refs / cover_asset_id / video_asset_id / duration_variants / ritual_steps</td></tr>
+      <tr><td><b>master</b></td><td>verified / region / craft / consent / bio / film_asset_id / quote_source</td></tr>
+      <tr><td><b>pattern</b></td><td>source / structure / usage / license / zoom_asset / stitch_animation</td></tr>
+      <tr><td><b>work</b></td><td>cover_asset_id（必填）/ process_photos / artist_statement / pattern_id / duration / anonymous</td></tr>
+      <tr><td><b>asset</b></td><td>type / source / license / credit / alt_text / width / height</td></tr>
+    </tbody>
+  </table>
+  <p class="footnote">没有这些字段，页面就只能靠插画、渐变和文案撑；有了这些字段，视觉与 AI 才有真实的输入。</p>
+</section>
+
+<!-- ===== 路线图 ===== -->
+<section id="roadmap">
+  <div class="section-head">
+    <div class="section-no">07</div>
+    <div>
+      <p class="kicker">12 周路线</p>
+      <h2>先止血，再换骨，<br>最后才长血肉。</h2>
+      <p class="lede">不要在旧地基上继续贴皮肤。前两周只做“让产品不再失真”的事；第三到六周换掉首页、详情、社区、纹样、倾听五个主场景；六周之后才做 AI 与线下。</p>
+    </div>
+  </div>
+
+  <div class="roadmap">
+    <div class="phase">
+      <div class="when">0–2 周<br>止血</div>
+      <div><h3>让页面先不说谎</h3><p>不换设计系统，只清掉会破坏信任的东西。</p><ul><li>主流程删除 PHQ-9/GAD-7；高风险答案转危机支持</li><li>安全未标注的手作禁止上架/开始；“赣绣王老师”类无出处信息下线</li><li>清理“测试”账号、演示作品、合成故事出主路径</li><li>修 56 页里的 P0：详情 404、横向溢出、头像空圆、成就裁切、土黄危机按钮</li><li>封面缺失：要么补真图，要么用“文字展签”兜底，禁止绿色空块</li></ul></div>
+      <div class="out">交付：P0 修复清单<br>+ 内容真实性审计<br>+ 危机页改版</div>
+    </div>
+    <div class="phase">
+      <div class="when">2–6 周<br>换骨</div>
+      <div><h3>五个主场景，先像一间美术馆</h3><p>上线“一线”令牌与组件，只改五个页面，不铺全站。</p><ul><li>首页“今日一器”、项目详情“展签”、创作“工作室”</li><li>社区“展览墙”、纹样“档案馆”、倾听“玄墨室”</li><li>4 个核心品类 × 3 个时长 = 12 个真实流程</li><li>100 张授权微距/工序图，0 张米黄插画</li><li>底部导航去中心球；全站图标收口</li></ul></div>
+      <div class="out">交付：H5 Beta<br>+ 12 个可用流程<br>+ 新组件库</div>
+    </div>
+    <div class="phase">
+      <div class="when">6–12 周<br>长血肉</div>
+      <div><h3>让小织真的“看见”</h3><p>AI 不再只是聊天，而是策展、看作品、生成纹样。</p><ul><li>作品照片的多模态反馈：一个观察 + 一个建议</li><li>纹样指纹：心情/声音 → 可复用图案</li><li>纹样辞典：每条答案带图、出处、传承人</li><li>小组“一起做”：同一张纹样，不同的手</li><li>无障碍、弱网、图片加载、真机验收</li></ul></div>
+      <div class="out">交付：公开 Beta<br>+ AI 功能灰度<br>+ 体验指标</div>
+    </div>
+    <div class="phase">
+      <div class="when">12 周+<br>成为现场</div>
+      <div><h3>把线上体验带回线下</h3><p>校园工作坊、材料包、传承人驻馆、展览。</p><ul><li>与江西本地传承人/工坊签授权与分成</li><li>每月一场“同一张纹样”共创展</li><li>材料包与课程预约形成复购</li><li>与心理学院做非临床的体验研究（需伦理审查）</li></ul></div>
+      <div class="out">交付：线下活动<br>+ 材料包<br>+ 研究合作</div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><b>首次完成率</b><p>开始 → 完成一件，目标 ≥ 55%</p></div>
+    <div class="metric"><b>7 日回访</b><p>完成一次后 7 天内再回来，目标 ≥ 30%</p></div>
+    <div class="metric"><b>作品发布率</b><p>完成 → 发布，目标 ≥ 25%</p></div>
+    <div class="metric"><b>专注时长</b><p>单次中位数 ≥ 18 分钟</p></div>
+    <div class="metric"><b>情绪前后</b><p>1–5 自评，不作为疗效证据</p></div>
+    <div class="metric"><b>真实内容</b><p>100% 上架手作有封面/安全/出处</p></div>
+  </div>
+
+  <h3 class="serif" style="font-size:22px;margin:44px 0 8px">风险与对策</h3>
+  <div class="table-wrap">
+<table class="risks risks-wide">
+    <colgroup><col><col><col></colgroup>
+    <thead><tr><th>风险</th><th>表现</th><th>对策</th></tr></thead>
+    <tbody>
+      <tr><td>非遗真实性</td><td>合成故事、无出处“大师”、测试账号混入</td><td>传承人认证与授权书；内容审核；教学示例单独分区；无来源不上架</td></tr>
+      <tr><td>工艺安全</td><td>竹刺、剪刀、染料、粉尘、过敏</td><td>安全分级；护具；替代材料；年龄/孕期/哮喘提示；线下工作坊保险</td></tr>
+      <tr><td>临床越界</td><td>PHQ/GAD、疗愈承诺、AI 诊断</td><td>删量表；文案审查；危机流程；AI 禁止诊断；心理顾问复核</td></tr>
+      <tr><td>AI 幻觉</td><td>编造历史、师承、工艺细节</td><td>RAG 引用；不确定就拒答；人工抽检；审计日志</td></tr>
+      <tr><td>隐私</td><td>记忆、对话、作品图被误用</td><td>加密、可删除、可导出；不训练；最小化收集</td></tr>
+      <tr><td>成本</td><td>真实摄影、视频、材料包成本高</td><td>先做 4 个核心品类；与本地工坊共建；资产复用；分期拍摄</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- ===== 附录 ===== -->
+<section id="appendix">
+  <div class="section-head">
+    <div class="section-no">08</div>
+    <div>
+      <p class="kicker">附录</p>
+      <h2>来源、边界与<br>这份蓝图没做的事。</h2>
+      <p class="lede">所有数据与结论都尽量给出处。做不到的地方也写清楚，避免把“概念图”当成“已实现”，把“自报改善”当成“临床疗效”。</p>
+    </div>
+  </div>
+
+  <h3 class="serif" style="font-size:22px;margin:0 0 8px">资料与来源</h3>
+  <div class="sources">
+    <div class="source"><b>WHO · 艺术与健康 scoping review（2019）</b>3000+ 研究，艺术在健康促进、疾病预防与管理中的作用。<br><a href="https://iris.who.int/items/ba079951-0beb-4b7f-a1c5-a75cc66c283e" target="_blank">iris.who.int/items/ba079951…</a></div>
+    <div class="source"><b>Qiao et al. · 艺术治疗抑郁 meta（2026）</b>14 项研究、861 人；抑郁 SMD −0.69；焦虑不显著；异质性高。<br><a href="https://onlinelibrary.wiley.com/doi/10.1111/jpm.70127" target="_blank">onlinelibrary.wiley.com/doi/10.1111/jpm.70127</a></div>
+    <div class="source"><b>Healing Stitches · 针线手作 scoping review（2024）</b>25 项研究；四个主题：福祉、联结、目的/成就、身份/文化/传承。<br><a href="https://pubmed.ncbi.nlm.nih.gov/39008815/" target="_blank">pubmed.ncbi.nlm.nih.gov/39008815</a></div>
+    <div class="source"><b>Crafts-based interventions · 系统综述（2025）</b>19 项研究；情绪与生活满意度改善；仅 1 项追踪后续。<br><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11830576/" target="_blank">pmc.ncbi.nlm.nih.gov/articles/PMC11830576</a></div>
+    <div class="source"><b>Zhuang embroidery · 壮绣八周项目（2026）</b>80 人、55–65 岁；动作+故事+群体；12 周随访减弱；无法拆分成分。<br><a href="https://www.frontiersin.org/journals/public-health/articles/10.3389/fpubh.2026.1945265/full" target="_blank">frontiersin.org/journals/public-health/…/1945265</a></div>
+    <div class="source"><b>Courtauld / KCL · 原作 vs 复制品（2025）</b>50 人；皮质醇 −22% vs −8%；IL-6/TNF-α 约 −30%/−28%；预印本、样本小。<br><a href="https://courtauld.ac.uk/news-blogs/2025/first-of-its-kind-study-proves-positive-impact-of-art-on-the-body/" target="_blank">courtauld.ac.uk/news-blogs/2025/…</a></div>
+    <div class="source"><b>新华网 · 艺术治疗“入编”本科目录（2026）</b>艺术治疗面向症状/临床；艺术疗愈面向健康人群/社区与美术馆。<br><a href="https://app.xinhuanet.com/news/article.html?articleId=2026060197021ade3c6a4c1780a49fcadb40a6ac" target="_blank">app.xinhuanet.com/…articleId=2026060197021ade…</a></div>
+    <div class="source"><b>中央美术学院 · 艺术治疗本科获批（2026）</b>首个布点院校；从校内探索进入系统化培养。<br><a href="https://www.cafa.edu.cn/st/2026/90133567.htm" target="_blank">cafa.edu.cn/st/2026/90133567.htm</a></div>
+    <div class="source"><b>新华网 · 年轻人把非遗过成日常（2026）</b>抖音 2025 年非遗视频播放 7499 亿次、日均直播 6.5 万场、非遗商品年销 65 亿单；00 后创作者 +95%。<br><a href="https://www.news.cn/fashion/20260609/86cc99c6db884e6c80afc5b5f7679641/c.html" target="_blank">news.cn/fashion/20260609/…</a></div>
+    <div class="source"><b>中国非物质文化遗产传播蓝皮书 2026</b>抖音非遗短视频 8065 亿次；日均直播 7.9 万场；龙泉青瓷单条 5.1 亿。<br><a href="http://www.hh.gov.cn/info/55371/1293512.htm" target="_blank">hh.gov.cn/info/55371/1293512.htm</a></div>
+    <div class="source"><b>天玺 · 巴黎 2027 春夏（2026）</b>苏绣、宋锦、缂丝、云锦与当代礼服剪裁；说明非遗可以进入高定，而不是只做“古风”。<br><a href="https://www.jiemian.com/article/15158254.html" target="_blank">jiemian.com/article/15158254.html</a></div>
+    <div class="source"><b>中法时装周 · 非遗与科技（2026）</b>苏绣、香云纱、绒花与科技面料同台；26 件作品、9 个品牌/机构。<br><a href="https://m.tnc.com.cn/info/c-060002-d-3762008.html" target="_blank">m.tnc.com.cn/info/c-060002-d-3762008.html</a></div>
+  </div>
+
+  <h3 class="serif" style="font-size:22px;margin:40px 0 8px">数据口径</h3>
+  <ul class="dna-list">
+    <li>页面：56 个学生端路由（含子包），2026-11-15 本地 H5，真实后端 + student01。</li>
+    <li>手作：22 个未删除项目，16 个 status=1，4 个有 cover_url，0 个有 video_url。</li>
+    <li>作品：18 件未删除，9 件有 cover_url，0 个 video_url，16 件 anonymous。</li>
+    <li>页面问题分级为编辑判断，不是自动检测；截图见 assets/audit。</li>
+  </ul>
+
+  <h3 class="serif" style="font-size:22px;margin:40px 0 8px">图像与素材</h3>
+  <ul class="dna-list">
+    <li>概念图：AI 生成（Seedream 5.5），仅用于方向示意，不是成品摄影。</li>
+    <li>页面截图：项目本地 H5 真实截图；不含真实用户隐私数据（演示账号）。</li>
+    <li>材料图：项目 <code>static/library</code> 中 yarn/clay/paper；仅作气质参考。</li>
+    <li>正式上线需重新拍摄/授权：4 个核心品类 × 3 个时长 × 至少 3 张（材料、手部、成品）。</li>
+  </ul>
+
+  <h3 class="serif" style="font-size:22px;margin:40px 0 8px">这份蓝图没做的事</h3>
+  <ul class="dna-list">
+    <li>没有改任何业务代码；这是方向与验收标准，不是已实现版本。</li>
+    <li>没有做真机测试、真实模型人设评测、真实用户访谈。</li>
+    <li>没有拍正式素材；三张概念图不能替代授权摄影。</li>
+    <li>没有给出完整 UI 稿；三个概念稿只定“光、色、字、图”的关系。</li>
+    <li>没有把“疗愈”写成疗效；所有相关表述都限定在非医疗支持性体验。</li>
+  </ul>
+
+  <div class="insight">
+    <b>如果只做一件事</b>
+    <p>先把“自我了解”里的 PHQ-9 / GAD-7 拿掉，再把首页的绿色空块换成一张真实材料图。前者决定产品是否越界，后者决定用户是否相信你真的懂非遗。</p>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <div>织愈 · 一线之间 / 非遗艺术疗愈体验蓝图 / 2026.11</div>
+  <div>非医疗支持性体验 · 不构成诊断或治疗建议</div>
+</footer>
+
+<script>
+const AUDIT = [
+  [1,'首页','P1','模块堆叠、重复入口、无主视觉、小织过大','删到三个模块；首屏交给“今日一器”'],
+  [2,'作品社区','P0','无图、演示数据、纯文字卡片','发布强制封面；改展览墙；清演示数据'],
+  [3,'手作入口','P1','定位漂移、卡片化、米黄底','首屏一件手作；呼吸/音乐下沉'],
+  [4,'互助小组','P1','列表密集、标签过小、空态薄弱','改“工作台”卡片；显示正在做的手作'],
+  [5,'我的','P1','头像空、成就溢出、图标色乱','纹样头像；成就改档案；统一图标'],
+  [6,'情绪倾听','P1','客服化、绿气泡、小织过大','玄墨倾听室；排版行；24px 线稿'],
+  [7,'心情便签','P1','重复卡片、脸谱稚拙、字阶平','真实记录优先；重画脸谱；拉开字阶'],
+  [8,'记录心情','P1','表单占满首屏、脸谱像表情包','先写后选；脸谱改线条情绪'],
+  [9,'倾听记录','P1','纯文本、无时间线、空态','做“陪伴时间线”；关键句摘录'],
+  [10,'小织记得的','P1','卡片堆、开关像设置页','保留 IA；改成“陪伴档案”单页'],
+  [11,'个人设置','P2','表单、图标常规','统一设置行；减少彩色圆图标'],
+  [12,'疗愈推荐','P0','封面缺失、绿色空块、模板文案','无封面不上架；一屏一件'],
+  [13,'项目详情','P0','灰渐变占位、传承人无出处、安全未标注仍可开始','补真图/视频；安全未完成禁止开始'],
+  [14,'创作引导','P1','步骤卡、无工作室感、路径弱','全屏工作室；一根线进度'],
+  [15,'创作后的片刻','P1','米黄表单、缺少作品留痕','改成“留痕”页；照片+一句话'],
+  [16,'手作起点','P1','选项过多、图标杂、字阶平','只留一个入口；今日只做一件'],
+  [17,'准备清单','P1','材料/安全信息薄、空态','材料清单+安全卡+替代方案'],
+  [18,'材料探索','P1','色块、红点、无图、米黄','材料微距图；触感/来源/安全'],
+  [19,'材料包','P1','无图、警示块、信息密集','开箱视觉；分步清单；一键补料'],
+  [20,'自由绘色','P1','低对比、字阶平、纹样被压平','暗色画布；纹样放大；保存色卡'],
+  [21,'临摹辅助','P1','控件像调试工具、低对比','相机叠线做成“描红台”'],
+  [22,'作品详情','P0','占位插画、演示作品、AI 套话','真实作品图；作者的话；同纹样'],
+  [23,'发布作品','P1','表单、图标、缺少仪式感','“挂上墙”三步；封面必填'],
+  [24,'我的作品','P1','米黄、空态占半屏、卡片弱','作品网格；空态给第一个动作'],
+  [25,'我的收藏','P1','只有插画、无收藏理由','收藏即“展签”；显示为什么收'],
+  [26,'展示说明','P1','小织、长文、缺少图示','图示化规则；三步说明'],
+  [27,'创建小组','P1','绿色圆图标过大、表单普通','改“开一张工作台”；封面可选纹样'],
+  [28,'小组空间','P1','动态列表、缺少共同创作','共同作品墙；下一次一起做'],
+  [29,'成长旅程','P1','卡片切碎、字阶平','保留标题；改时间轴+作品档案'],
+  [30,'自我了解','P0','PHQ-9/GAD-7 临床量表、风险','删除量表；五维自查；科研隔离'],
+  [31,'正念片刻','P1','通用冥想球、绿色、无品牌','保留呼吸；加材料意象与声音'],
+  [32,'短练习','P1','空态、小织、内容薄','3 个真实短练习；无插画空态'],
+  [33,'音乐放松','P1','大绿圆、无封面、无声音资产','声音档案馆；织机/雨/剪刀环境声'],
+  [34,'素材来源','P2','排版像附录','做成“声音出处”卡片'],
+  [35,'非遗问答','P1','客服化、卡片、无出处','纹样辞典；每条答案带图与来源'],
+  [36,'非遗传承人','P0','横向溢出、测试数据、合成故事','真实驻馆艺术家；清测试；单列'],
+  [37,'传承人主页','P0','参数错误、资源不存在无兜底','补 404 兜底；真实作品与工序'],
+  [38,'手艺人的故事','P0','合成叙事、空态','真实访谈/口述；标注授权'],
+  [39,'隐私政策','P1','米黄提示块、长文','正文排版；目录；最后更新'],
+  [40,'隐私设置','P2','表单、图标普通','分组+解释；危险操作二次确认'],
+  [41,'我的媒体','P1','空态无引导','空态给“第一张作品图”'],
+  [42,'心理援助','P1','土黄主按钮、卡片堆、语义色冲突','一个主行动；朱砂；号码可复制'],
+  [43,'校内支持','P1','卡片、彩色图标、像通讯录','地图/时段/预约入口'],
+  [44,'校园身份','P1','米黄、小织、表单','证件上传引导；进度与隐私'],
+  [45,'消息通知','P1','卡片、字阶平、无分组','按“审核/小组/关怀”分组'],
+  [46,'首次引导','P1','与登录同构、米黄、小织','一图一句一动作；选第一件手作'],
+  [47,'登录','P1','表单卡+卡通、缺少第一眼','用材料图做门；登录即进入工作台'],
+  [48,'找回密码','P1','小织、表单、无差别','简化步骤；明确成功态'],
+  [49,'注册','P1','米黄、小织、与登录同构','注册后选“第一件想做的”'],
+  [50,'纹样馆','P1','米黄底、字阶平、藏在子包','升为一级；暗色观展；放大针脚'],
+  [51,'纹样详情','P0','参数错误无兜底、出处缺失','补 404；来源/结构/用途/练习'],
+  [52,'非遗配色台','P1','空态、路径、概念未完成','做成“色卡工作台”；保存与复用'],
+  [53,'活动与预约','P1','卡片、字阶平、绿色','海报日历；地点/名额/候补'],
+  [54,'预约交流','P1','空聊天、字阶平','预约前问答模板；主理人介绍'],
+  [55,'我的课程','P0','课程详情打不开','修路由；课程卡+进度'],
+  [56,'体验反馈','P0','反馈表单打不开','修路由；三问微反馈']
+]
+const body = document.getElementById('auditBody')
+let filter = 'all', kw = ''
+function renderAudit(){
+  const rows = AUDIT.filter(r => (filter==='all'||r[2]===filter) && (!kw || (r[1]+r[3]+r[4]).includes(kw)))
+  body.innerHTML = rows.map(r => `<tr><td>${String(r[0]).padStart(2,'0')}</td><td class="page">${r[1]}</td><td class="sev ${r[2].toLowerCase()}">${r[2]}</td><td>${r[3]}</td><td class="action">${r[4]}</td></tr>`).join('')
+  document.getElementById('auditCount').textContent = `显示 ${rows.length} / ${AUDIT.length} 页`
+}
+document.querySelectorAll('.filter').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'))
+  b.classList.add('active'); filter=b.dataset.f; renderAudit()
+}))
+document.getElementById('auditSearch').addEventListener('input',e=>{kw=e.target.value.trim();renderAudit()})
+renderAudit()
+
+// 目录高亮
+const links = [...document.querySelectorAll('.rail a')]
+const secs = links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean)
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{ if(en.isIntersecting){ links.forEach(l=>l.classList.toggle('active', l.getAttribute('href')==='#'+en.target.id)) } })
+},{rootMargin:'-20% 0px -70% 0px'})
+secs.forEach(s=>io.observe(s))
+</script>
+</body>
+</html>

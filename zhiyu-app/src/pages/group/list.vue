@@ -2,8 +2,14 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部品牌区 -->
 		<view class="brand-header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="brand-title">互助小组</text>
-			<text class="brand-subtitle">找到同行的伙伴</text>
+			<text class="brand-eyebrow">COMMON ROOM · 互助小组</text>
+			<view class="brand-head-row">
+				<view class="brand-copy">
+					<text class="brand-title">找到同行的伙伴</text>
+					<text class="brand-subtitle">不必独自完成，也不用急着变好。</text>
+				</view>
+				<AccessibleButton class="create-btn" aria-label="创建小组" @click="goCreate">发起小组</AccessibleButton>
+			</view>
 		</view>
 
 		<!-- 首屏加载骨架 -->
@@ -28,8 +34,8 @@
 				:style="{ '--stagger-i': idx + 1 }"
 			>
 				<view class="card-main">
-					<!-- 左侧圆形图标 -->
-					<view class="group-icon" :style="iconGradient(group.name)">
+					<!-- 左侧方形字块 -->
+					<view class="group-icon">
 						<text class="group-icon-text">{{ group.name ? group.name.charAt(0) : '小' }}</text>
 					</view>
 					<!-- 中间信息 -->
@@ -70,11 +76,6 @@
 			</view>
 		</view>
 
-		<!-- 悬浮创建按钮 -->
-		<view class="fab" role="button" tabindex="0" aria-label="创建小组" @click="goCreate" @keydown.enter.prevent="goCreate" @keydown.space.prevent="goCreate">
-			<wd-icon name="add" size="44rpx" color="#FFFFFF" />
-		</view>
-
 		<!-- 底部免责声明 -->
 		<text class="footnote">本系统不能替代专业心理咨询</text>
 
@@ -98,20 +99,6 @@ const errorMsg = ref('')
 const groups = ref([])
 const joiningId = ref(null)
 function openGroup(group){uni.navigateTo({url:'/pages/group/detail?id='+group.id})}
-
-const GRADIENTS = [
-	'linear-gradient(135deg, #217e76, #5bc4a8)',
-	'linear-gradient(135deg, #8a6d1f, #FFD08A)',
-	'linear-gradient(135deg, #a64842, #d4736a)',
-	'linear-gradient(135deg, #5bc4a8, #8adcc6)',
-	'linear-gradient(135deg, #FF9B6B, #FFC499)',
-]
-
-function iconGradient(name) {
-	if (!name) return GRADIENTS[0]
-	const hash = name.charCodeAt(0) % GRADIENTS.length
-	return GRADIENTS[hash]
-}
 
 onShow(() => {
 	loadData()
@@ -155,9 +142,9 @@ function goCreate() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 140rpx;
+	padding: 36rpx 32rpx 140rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #ffffff);
+	background-color: var(--zy-bg, #f1f4f1);
 }
 /* #ifdef MP */
 /* 小程序 custom tabBar 不占页面视口，页面自留底部空间（含安全区） */
@@ -166,23 +153,48 @@ function goCreate() {
 
 /* ── 品牌区 ── */
 .brand-header {
-	margin-bottom: 32rpx;
+	padding-bottom: 36rpx;
+	margin-bottom: 8rpx;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 }
-
+.brand-eyebrow {
+	display: block;
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 2px;
+	color: var(--zy-muted, #6e7b75);
+	margin-bottom: 22rpx;
+}
+.brand-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24rpx; }
+.brand-copy { min-width: 0; }
 .brand-title {
-	font-family: var(--zy-serif);
-	font-size:var(--zy-text-title-lg, 40rpx);
+	font-family: var(--zy-font-display, serif);
+	font-size: 64rpx;
 	font-weight: 500;
-	color: var(--zy-title, #233d34);
+	line-height: 1.2;
+	color: var(--zy-title, #111816);
 	display: block;
 }
-
 .brand-subtitle {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-aid, #4a5f54);
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-muted, #6e7b75);
 	display: block;
-	margin-top: 8rpx;
+	margin-top: 10rpx;
+	line-height: 1.7;
 }
+.create-btn {
+	flex-shrink: 0;
+	min-height: 72rpx;
+	margin: 0;
+	padding: 0 24rpx;
+	border: 1rpx solid var(--zy-brand-700, #0a403b);
+	border-radius: 0;
+	background: transparent;
+	color: var(--zy-brand-700, #0a403b);
+	font-size: var(--zy-text-caption, 24rpx);
+	line-height: 72rpx;
+	letter-spacing: 1rpx;
+}
+.create-btn::after { border: 0; }
 
 /* ── 骨架屏 ── */
 .skeleton-card {
@@ -243,10 +255,10 @@ function goCreate() {
 
 .empty-btn {
 	margin-top: 16rpx;
-	padding: 16rpx 48rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
-	box-shadow: var(--zy-shadow-md);
+	padding: 16rpx 40rpx;
+	border-radius: 0;
+	background: var(--zy-brand-600, #0e5b53);
+	box-shadow: none;
 }
 
 .empty-btn-text {
@@ -274,21 +286,23 @@ function goCreate() {
 .card-list {
 	display: flex;
 	flex-direction: column;
-	gap: 20rpx;
+	gap: 0;
+	border-top: 0;
 }
 
 .group-card {
-	padding: 24rpx 28rpx;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
-	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+	padding: 28rpx 0;
+	border-radius: 0;
+	background-color: transparent;
+	border: 0;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	box-shadow: none;
+	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .group-card:active {
-	transform: translateY(-2rpx);
-	box-shadow: var(--zy-shadow-md);
+	background-color: var(--zy-bg-sunken, #e9efeb);
+	box-shadow: none;
 }
 
 .card-main {
@@ -297,21 +311,24 @@ function goCreate() {
 	gap: 20rpx;
 }
 
-/* ── 左侧圆形图标 ── */
+/* ── 左侧方形字块 ── */
 .group-icon {
-	width: 72rpx;
-	height: 72rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
+	width: 84rpx;
+	height: 84rpx;
+	border-radius: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	background: var(--zy-card-bg, #fff);
 }
 
 .group-icon-text {
-	font-size:var(--zy-text-title, 32rpx);
-	font-weight: 600;
-	color: #FFFFFF;
+	font-family: var(--zy-font-display, serif);
+	font-size: 38rpx;
+	font-weight: 500;
+	color: var(--zy-brand-700, #0a403b);
 }
 
 /* ── 中间信息 ── */
@@ -327,29 +344,31 @@ function goCreate() {
 }
 
 .group-name {
-	font-size:var(--zy-text-body-lg, 30rpx);
+	font-family: var(--zy-font-display, serif);
+	font-size: 38rpx;
 	font-weight: 500;
-	color: var(--zy-title, #233d34);
+	color: var(--zy-title, #111816);
 	line-height: 1.4;
 }
 
 .role-badge {
-	padding: 4rpx 16rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-warm, #f5edde);
+	padding: 2rpx 8rpx;
+	border-radius: 0;
+	border: 1rpx solid var(--zy-accent, #8e4a3c);
+	background-color: transparent;
 }
 
 .role-text {
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-warning, var(--zy-accent, #7a5c12));
+	font-size: var(--zy-text-micro, 22rpx);
+	color: var(--zy-accent, #8e4a3c);
 }
 
 .group-desc {
 	display: block;
 	margin-top: 8rpx;
-	font-size:var(--zy-text-caption, 24rpx);
-	line-height: 1.5;
-	color: var(--zy-content, #4a5f54);
+	font-size: var(--zy-text-caption, 24rpx);
+	line-height: 1.6;
+	color: var(--zy-muted, #6e7b75);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -359,25 +378,26 @@ function goCreate() {
 	display: flex;
 	align-items: center;
 	gap: 8rpx;
-	margin-top: 8rpx;
+	margin-top: 10rpx;
 }
 
 .member-text {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-aid, #4a5f54);
+	font-size: var(--zy-text-micro, 22rpx);
+	color: var(--zy-muted, #6e7b75);
+	letter-spacing: 1rpx;
 }
 
 /* ── 右侧按钮 ── */
 .join-btn {
-	padding: 12rpx 32rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	padding: 10rpx 22rpx;
+	border-radius: 0;
+	border: 1rpx solid var(--zy-brand-700, #0a403b);
+	background: transparent;
 	flex-shrink: 0;
-	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .join-btn:active {
-	transform: scale(0.96);
+	opacity: .7;
 }
 
 .join-btn--loading {
@@ -385,62 +405,43 @@ function goCreate() {
 }
 
 .join-btn-text {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: #FFFFFF;
-	font-weight: 500;
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-brand-700, #0a403b);
+	font-weight: 400;
 }
 
 .joined-tag {
-	padding: 12rpx 24rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #ffffff);
+	padding: 10rpx 22rpx;
+	border-radius: 0;
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	background-color: transparent;
 	flex-shrink: 0;
 }
 
 .joined-text {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-aid, #4a5f54);
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-muted, #6e7b75);
 }
 
 .full-tag {
-	padding: 12rpx 24rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg, #ffffff);
+	padding: 10rpx 22rpx;
+	border-radius: 0;
+	background-color: transparent;
 	opacity: 0.6;
 	flex-shrink: 0;
 }
 
 .full-text {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-aid, #4a5f54);
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-muted, #6e7b75);
 }
 
-/* ── 悬浮创建按钮 ── */
-.fab {
-	position: fixed;
-	right: 40rpx;
-	bottom: 160rpx;
-	width: 100rpx;
-	height: 100rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	box-shadow: var(--zy-shadow-lg);
-	z-index: 100;
-	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
-}
-
-.fab:active {
-	transform: scale(0.92);
-}
-
+/* ── 底部说明 ── */
 .footnote {
 	display: block;
 	margin-top: 48rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-aid, #4a5f54);
+	font-size: var(--zy-text-micro, 22rpx);
+	color: var(--zy-muted, #6e7b75);
 	text-align: center;
 }
 </style>
@@ -449,8 +450,8 @@ function goCreate() {
 .empty-btn:focus-visible,
 .joined-tag:focus-visible,
 .join-btn:focus-visible,
-.fab:focus-visible {
-	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76));
+.create-btn:focus-visible {
+	outline: 3px solid var(--zy-brand-600, #0e5b53);
 	outline-offset: 3px;
 }
 .group-error-row {
@@ -460,23 +461,32 @@ function goCreate() {
 	gap: 12rpx;
 	margin-bottom: 20rpx;
 	padding: 24rpx;
-	border: 1rpx dashed var(--zy-border, #dfe7dc);
-	border-radius: var(--zy-radius-md, 24rpx);
-	background: var(--zy-card-bg, #fff);
-	color: var(--zy-content, #4a5f54);
-	font-size:var(--zy-text-caption, 24rpx);
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	border-radius: 0;
+	background: transparent;
+	color: var(--zy-text, #42524c);
+	font-size: var(--zy-text-caption, 24rpx);
 	line-height: 1.7;
 	text-align: center;
 }
 .group-error-row button {
 	min-height: 72rpx;
 	padding: 0 26rpx;
-	border: 1rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
-	font-size:var(--zy-text-caption, 24rpx);
+	border: 1rpx solid var(--zy-brand-600, #0e5b53);
+	border-radius: 0;
+	background: transparent;
+	color: var(--zy-brand-700, #0a403b);
+	font-size: var(--zy-text-caption, 24rpx);
 	line-height: 2.6;
 }
 .group-error-row button::after { border: 0; }
+
+/* ── v9 列表收口：标题、角色与进入动作 ── */
+.name-row { flex-wrap: wrap; align-items: flex-start; }
+.group-name { flex: 1 1 100%; min-width: 0; }
+.role-badge { flex-shrink: 0; white-space: nowrap; padding: 2rpx 8rpx; margin-top: 6rpx; align-self: flex-start; }
+.joined-tag { border: 0; padding: 6rpx 0; background: transparent; color: var(--zy-muted, #6e7b75); }
+.joined-text { color: var(--zy-brand-700, #0a403b); }
+.join-btn { border: 0; border-bottom: 1rpx solid var(--zy-brand-700, #0a403b); padding: 4rpx 0; }
+.full-tag { border: 0; padding: 4rpx 0; color: var(--zy-muted, #6e7b75); }
 </style>

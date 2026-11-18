@@ -2,14 +2,14 @@
  * 微信小程序自定义 tabBar（原生组件）。
  * 必须输出为 custom-tab-bar/index.{js,json,wxml,wxss}：uni-app 只把该目录原样拷贝，
  * 不会编译其中的 .vue，故此处不复用 src/components/ZyTabBar.vue（H5 专用）。
- * 与 src/utils/tabbar.js 的 TAB_ITEMS 保持一致；颜色/字号与 ZyTabBar.vue 对齐。
+ * 与 src/utils/tabbar.js 的 TAB_ITEMS 保持一致；v7 为五个纯文字入口，无中央悬浮球。
  */
 const TAB_ITEMS = [
-	{ path: '/pages/home/index', text: '首页', icon: '/static/tabbar/home-normal.png', activeIcon: '/static/tabbar/home-active.png' },
-	{ path: '/pages/work/list', text: '社区', icon: '/static/tabbar/community-normal.png', activeIcon: '/static/tabbar/community-active.png' },
-	{ path: '/pages/start/index', text: '手作', center: true, icon: '/static/tabbar/start-normal.png', activeIcon: '/static/tabbar/start-active.png' },
-	{ path: '/pages/group/list', text: '小组', icon: '/static/tabbar/group-normal.png', activeIcon: '/static/tabbar/group-active.png' },
-	{ path: '/pages/profile/index', text: '我的', icon: '/static/tabbar/profile-normal.png', activeIcon: '/static/tabbar/profile-active.png' },
+	{ path: '/pages/home/index', text: '首页' },
+	{ path: '/pages/work/list', text: '社区' },
+	{ path: '/pages/start/index', text: '手作' },
+	{ path: '/pages/group/list', text: '小组' },
+	{ path: '/pages/profile/index', text: '我的' },
 ]
 
 function normalizeRoute(route) {
@@ -22,7 +22,6 @@ Component({
 	data: {
 		items: TAB_ITEMS,
 		active: '',
-		warm: false,
 	},
 	lifetimes: {
 		attached() {
@@ -43,7 +42,7 @@ Component({
 		},
 	},
 	methods: {
-		/** 同步选中项与主题；主题切换时由 stores/theme.js 直接调用 */
+		/** 同步选中项；主题切换时由 stores/theme.js 直接调用 */
 		syncState() {
 			let active = ''
 			try {
@@ -53,14 +52,8 @@ Component({
 			} catch (e) {
 				active = ''
 			}
-			let warm = false
-			try {
-				warm = wx.getStorageSync('zy-theme') === 'warm'
-			} catch (e) {
-				warm = false
-			}
-			if (active !== this.data.active || warm !== this.data.warm) {
-				this.setData({ active: active, warm: warm })
+			if (active !== this.data.active) {
+				this.setData({ active })
 			}
 		},
 		onTap(event) {
@@ -72,14 +65,6 @@ Component({
 					wx.reLaunch({ url: path })
 				},
 			})
-		},
-		onCenterTap(event) {
-			try {
-				wx.vibrateShort({ type: 'light' })
-			} catch (e) {
-				/* 部分基础库不支持轻震动 */
-			}
-			this.onTap(event)
 		},
 	},
 })

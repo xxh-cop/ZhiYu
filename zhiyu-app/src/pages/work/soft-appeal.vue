@@ -1,11 +1,5 @@
 <template>
 	<view :class="zyThemeClass" class="appeal-page">
-		<view class="appeal-nav">
-			<AccessibleButton class="text-btn" @click="goBack">‹ 返回</AccessibleButton>
-			<text>织愈 · 展示说明</text>
-			<text class="nav-placeholder" aria-hidden="true" />
-		</view>
-
 		<StateBlock v-if="loading" type="loading" title="正在整理这条内容…" />
 
 		<StateBlock

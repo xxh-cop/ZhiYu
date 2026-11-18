@@ -337,8 +337,9 @@ onLoad((query) => {
 	display: inline-block;
 	margin-top: 14rpx;
 	padding: 4rpx 12rpx;
-	border-radius: var(--zy-radius-chip);
-	background: var(--zy-bg-tint-mint);
+	border: 1rpx solid var(--zy-border);
+	border-radius: 0;
+	background: transparent;
 	color: var(--zy-brand-700);
 	font-size: var(--zy-text-caption);
 }
@@ -349,9 +350,10 @@ onLoad((query) => {
 	height: 620rpx;
 	margin: 20rpx 0 10rpx;
 	overflow: hidden;
-	border: 2rpx solid var(--zy-card-line);
-	border-radius: var(--zy-radius-feature);
-	box-shadow: var(--zy-shadow-card);
+	background: var(--zy-bg, #f7f8f6);
+	border: 1rpx solid var(--zy-border);
+	border-radius: 0;
+	box-shadow: none;
 }
 .heritage-detail-texture {
 	position: absolute;
@@ -361,7 +363,7 @@ onLoad((query) => {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	opacity: 0.45;
+	opacity: 0.36;
 }
 .heritage-detail-texture-note {
 	position: absolute;
@@ -370,7 +372,8 @@ onLoad((query) => {
 	padding: 2rpx 10rpx;
 	color: var(--zy-text);
 	background: var(--zy-card-bg);
-	border-radius: var(--zy-radius-chip);
+	border: 1rpx solid var(--zy-border);
+	border-radius: 0;
 	opacity: 0.82;
 }
 .heritage-process-bar {
@@ -416,8 +419,8 @@ onLoad((query) => {
 .heritage-ref-img {
 	width: 100%;
 	height: 220rpx;
-	border: 2rpx solid var(--zy-card-line);
-	border-radius: var(--zy-radius-control);
+	border: 1rpx solid var(--zy-border);
+	border-radius: 0;
 }
 /* 只有一张实物参考时不做横向图廊：铺满卡片宽度。
    否则单卡片 300rpx 只占约四成宽，右侧大片空白会被误读为“滑不动/卡住”。 */

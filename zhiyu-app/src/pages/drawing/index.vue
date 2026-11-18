@@ -1,7 +1,7 @@
 <template>
 	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
   <view class="growth-hero"><text class="growth-eyebrow">SLOW COLOR · 自由绘色</text><text class="growth-title">把想象，慢慢画出来</text><text class="growth-subtitle">选择纹样，轻点上色。AI 可以搭配几何结构，不会解读你的心理。</text></view>
-  <view class="growth-card"><text class="growth-card-title">原创纹样资源</text><view class="growth-row"><AccessibleButton v-for="c in ['全部','花叶','几何']" :key="c" :aria-pressed="patternCategory===c" @click="patternCategory=c">{{c}}</AccessibleButton></view><view class="pattern-library"><AccessibleButton v-for="p in filteredPatterns" :key="p.id" :disabled="busy" @click="usePattern(p)"><text>{{p.name}}</text><text class="growth-muted">{{p.category}} · {{p.level}} · {{p.petals*p.rings+1}} 块</text></AccessibleButton></view><text class="growth-muted">项目原创几何构图，可自由使用；不标注为真实非遗文物复刻。</text></view>
+  <view class="growth-card"><text class="growth-card-title">原创纹样资源</text><view class="growth-row"><AccessibleButton v-for="c in ['全部','花叶','几何']" :key="c" :class="['filter-tab',{chosen:patternCategory===c}]" :aria-pressed="patternCategory===c" @click="patternCategory=c">{{c}}</AccessibleButton></view><view class="pattern-library"><AccessibleButton v-for="p in filteredPatterns" :key="p.id" :disabled="busy" @click="usePattern(p)"><text class="pattern-name">{{p.name}}</text><text class="pattern-meta">{{p.category}} · {{p.level}} · {{p.petals*p.rings+1}} 块</text></AccessibleButton></view><text class="growth-muted">项目原创几何构图，可自由使用；不标注为真实非遗文物复刻。</text></view>
   <view class="growth-card">
    <view class="growth-row"><AccessibleButton v-for="m in motifs" :key="m.id" :class="['pattern-chip',{chosen:plan.motif===m.id}]" :disabled="busy" @click="switchPattern(m.id)">{{m.name}}</AccessibleButton></view>
    <canvas canvas-id="mandala" id="mandala" :style="{width:size+'px',height:size+'px'}" @touchstart="paint"/>
@@ -59,6 +59,25 @@ onReady(()=>{ctx=uni.createCanvasContext('mandala',instance.proxy);draw()});onUn
 </script>
 
 <style scoped>
-.pattern-library{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12rpx;margin:24rpx 0}.pattern-library button{text-align:left;background:var(--zy-bg-sunken, #f4f4f2);border:1px solid #dfe7dc;border-radius:16rpx;padding:20rpx;font-size:var(--zy-text-body, 28rpx);width:100%}.pattern-library text{display:block;line-height:1.8}
-.palette{display:flex;justify-content:center;gap:20rpx;margin:28rpx 0}.swatch{width:52rpx;height:52rpx;min-height:0;margin:0;padding:0;border-radius:50%;border:2rpx solid #bbc9c4;box-sizing:border-box}.chosen{outline:3rpx solid var(--zy-brand-700, #1a645e);outline-offset:4rpx}.growth-row{gap:10rpx}.growth-row .growth-button{flex:1;font-size:var(--zy-text-caption, 24rpx);padding:0 10rpx}.pattern-chip{flex:1;background:var(--zy-bg-tint-mint,#edf5f3);font-size:var(--zy-text-caption, 24rpx);line-height:2.8;color:var(--zy-brand-700, #1a645e);border-radius:14rpx}.reset-link{background:transparent;font-size:var(--zy-text-caption, 24rpx);color:#637b74;margin:16rpx 0;padding:0}.reset-link::after,.swatch::after{border:0}.growth-card:first-of-type{padding:16rpx}canvas{margin:20rpx auto;touch-action:none}.growth-notice{display:block;margin-top:20rpx;padding:18rpx;background:var(--zy-bg-tint-mint,#edf5f3);border-radius:14rpx;font-size:var(--zy-text-caption, 24rpx);line-height:1.7}
+.filter-tab { flex: 1; background: transparent; border: 0; border-bottom: 2rpx solid transparent; border-radius: 0; padding: 0; margin: 0; min-height: 72rpx; font-size: 26rpx; line-height: 72rpx; color: var(--zy-muted, #6e7b75); outline: none; }
+.filter-tab.chosen { color: var(--zy-brand-700, #0a403b); border-bottom-color: var(--zy-brand-700, #0a403b); background: transparent; outline: none; }
+.pattern-library { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28rpx; row-gap: 0; margin: 18rpx 0; }
+.pattern-library button { display: block; text-align: left; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; padding: 18rpx 0; font-size: var(--zy-text-body, 28rpx); width: 100%; margin: 0; outline: none; }
+.pattern-name { display: block; font-family: var(--zy-font-display, serif); font-size: 30rpx; line-height: 1.35; color: var(--zy-title, #111816); white-space: nowrap; }
+.pattern-meta { display: block; margin-top: 8rpx; font-size: 20rpx; line-height: 1.5; color: var(--zy-muted, #6e7b75); }
+
+.palette { display: flex; justify-content: center; gap: 20rpx; margin: 24rpx 0; }
+.swatch { width: 48rpx; height: 48rpx; min-height: 0; margin: 0; padding: 0; border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); box-sizing: border-box; }
+.swatch.chosen { outline: 2rpx solid var(--zy-brand-700, #0a403b); outline-offset: 4rpx; }
+.growth-row { gap: 10rpx; }
+.growth-row .growth-button { flex: 1; font-size: var(--zy-text-caption, 24rpx); padding: 0 10rpx; }
+.pattern-chip { flex: 1; background: transparent; font-size: var(--zy-text-caption, 24rpx); line-height: 2.4; color: var(--zy-muted, #6e7b75); border-radius: 0; border: 0; border-bottom: 2rpx solid transparent; margin: 0; padding: 4rpx 0; outline: none; }
+.pattern-chip.chosen { color: var(--zy-brand-700, #0a403b); border-bottom-color: var(--zy-brand-700, #0a403b); background: transparent; outline: none; }
+.reset-link { background: transparent; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); margin: 16rpx 0; padding: 0; }
+.reset-link::after, .swatch::after { border: 0; }
+.growth-card:first-of-type { padding: 20rpx 0; }
+canvas { margin: 20rpx auto; touch-action: none; }
+.growth-notice { display: block; margin-top: 20rpx; padding: 16rpx 0 16rpx 18rpx; background: transparent; border-left: 2rpx solid var(--zy-border, #d3ded8); border-radius: 0; font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; }
+
+.filter-tab:focus-visible,.pattern-library button:focus-visible,.pattern-chip:focus-visible{outline:3px solid var(--zy-brand-600,#0e5b53);outline-offset:3px}
 </style>

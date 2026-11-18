@@ -16,4 +16,9 @@ function call(){uni.makePhoneCall({phoneNumber:campus.center.phone,fail:()=>toas
 function goCrisis(){uni.navigateTo({url:'/pages/crisis/index'})}
 </script>
 
-<style scoped>.growth-muted{display:block;margin-top:8rpx;overflow-wrap:anywhere}.phone{display:block;font-size:var(--zy-text-title-lg, 40rpx);font-weight:600;letter-spacing:2rpx;margin:24rpx 0;color:var(--zy-brand-700,var(--zy-brand-600, #217e76))}</style>
+<style scoped>
+.growth-muted{display:block;margin-top:8rpx;overflow-wrap:anywhere}
+.growth-title{font-size:56rpx;line-height:1.3}
+.phone{display:block;font-family:var(--zy-font-display,serif);font-size:44rpx;font-weight:500;letter-spacing:1rpx;margin:20rpx 0;color:var(--zy-title,#111816)}
+.growth-card .growth-button.secondary{background:transparent;border:0;border-bottom:1rpx solid var(--zy-border,#d3ded8);border-radius:0;text-align:left;color:var(--zy-brand-700,#0a403b);padding:14rpx 0;margin-top:0;line-height:2.4}
+</style>

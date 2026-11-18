@@ -1,7 +1,7 @@
 <template>
-	<view :class="zyThemeClass" class="growth-page zy-page-enter">
+	<view :class="zyThemeClass" class="growth-page memory-page zy-page-enter">
 		<view class="growth-hero">
-			<text class="growth-eyebrow">陪伴档案</text>
+			<text class="growth-eyebrow">MEMORY / 陪伴档案</text>
 			<text class="growth-title">我记得什么，你说了算。</text>
 			<text class="growth-subtitle">你告诉我的，和我注意到的。都能看、能改、能删。</text>
 		</view>
@@ -12,16 +12,23 @@
 		<view v-if="error" class="growth-error" role="alert">{{ error }}</view>
 
 		<view class="growth-card">
-			<text class="growth-card-title">记忆开关</text>
+			<view class="card-head">
+				<text class="growth-card-title">记忆开关</text>
+				<text class="memory-status">{{ enabled ? '已开启' : '已关闭' }}</text>
+			</view>
 			<text class="growth-muted">{{ disclaimer }}</text>
 			<view class="growth-row">
-				<AccessibleButton class="growth-button" :class="{ secondary: !enabled }" :disabled="saving" @click="toggle">
+				<AccessibleButton class="growth-button memory-switch" :class="{ secondary: !enabled }" :disabled="saving" @click="toggle">
 					{{ enabled ? '关闭小织记忆' : '开启小织记忆' }}
 				</AccessibleButton>
 			</view>
-			<view class="consent" role="checkbox" :aria-checked="consent" tabindex="0" @click="consent = !consent" @keydown.enter.prevent="consent = !consent" @keydown.space.prevent="consent = !consent">
+			<view v-if="enabled" class="consent consent-on">
+				<text class="consent-box is-on">✓</text>
+				<text>已开启。小织只会使用你明确选择的偏好与话题；关掉后，下一句起就不再引用。</text>
+			</view>
+			<view v-else class="consent" role="checkbox" :aria-checked="consent" tabindex="0" @click="consent = !consent" @keydown.enter.prevent="consent = !consent" @keydown.space.prevent="consent = !consent">
 				<text class="consent-box">{{ consent ? '✓' : '' }}</text>
-				<text>我已阅读授权说明，知道小织会记住我填写的偏好和话题，并用手作/便签记录算出「我注意到的」。授权版本 memory-v2。</text>
+				<text>我已读过上面的说明：小织会记住我填写的偏好与话题，也会从手作和便签里看出「我注意到的」。</text>
 			</view>
 		</view>
 
@@ -199,4 +206,39 @@ onShow(load)
 .derived-label { display: block; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-text, #5c5648); }
 .derived-value { display: block; font-size: var(--zy-text-title, 32rpx); font-weight: 600; color: var(--zy-title, #33302a); margin-top: 6rpx; }
 .derived-source { display: block; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); margin-top: 6rpx; }
+
+/* ── v7 展签收口：冷瓷白、墨绿、发丝线、零圆角 ── */
+.memory-page { padding: 22rpx 36rpx 96rpx; background: var(--zy-bg); }
+.memory-page .growth-hero { padding: 20rpx 0 30rpx; }
+.memory-page .growth-eyebrow { color: var(--zy-muted); font-size: 20rpx; letter-spacing: 3rpx; margin-bottom: 14rpx; }
+.memory-page .growth-title { color: var(--zy-title); font-family: var(--zy-serif); font-size: 56rpx; font-weight: 500; line-height: 1.4; letter-spacing: 1rpx; }
+.memory-page .growth-subtitle { color: var(--zy-muted); font-size: 22rpx; line-height: 1.8; margin-top: 12rpx; }
+.memory-page .growth-hero + .growth-card { border-top: 0; }
+.memory-page .growth-card { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; padding: 30rpx 0 32rpx; margin: 0; }
+.memory-page .growth-card-title { color: var(--zy-title); font-family: var(--zy-serif); font-size: 34rpx; font-weight: 500; letter-spacing: 1rpx; margin-bottom: 12rpx; }
+.memory-page .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16rpx; }
+.memory-page .card-head .growth-card-title { margin-bottom: 12rpx; }
+.memory-page .memory-status { color: var(--zy-brand-700); font-size: 20rpx; letter-spacing: 2rpx; }
+.memory-page .growth-muted { color: var(--zy-muted); font-size: 22rpx; line-height: 1.8; }
+.memory-page .field-label { color: var(--zy-title); font-size: 22rpx; font-weight: 500; letter-spacing: 1rpx; margin-top: 24rpx; margin-bottom: 4rpx; }
+.memory-page .consent { color: var(--zy-muted); font-size: 21rpx; line-height: 1.8; margin-top: 18rpx; }
+.memory-page .consent-on { color: var(--zy-brand-700); }
+.memory-page .consent-box { width: 28rpx; height: 28rpx; border: 1rpx solid var(--zy-border); border-radius: 0; line-height: 26rpx; color: var(--zy-care); font-size: 20rpx; }
+.memory-page .consent-box.is-on { border-color: var(--zy-brand-600); color: var(--zy-brand-700); }
+.memory-page .growth-input { height: 76rpx; min-height: 76rpx; padding: 0 4rpx; margin: 10rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-title); font-size: 24rpx; }
+.memory-page .growth-choice { padding: 18rpx 0; margin: 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-text); font-size: 24rpx; }
+.memory-page .growth-choice.selected { border-bottom-color: var(--zy-brand-600); background: transparent; color: var(--zy-brand-700); }
+.memory-page .growth-button { margin-top: 20rpx; padding: 0 24rpx; min-height: 72rpx; border-radius: 0; background: var(--zy-brand-700); color: #fff; font-size: 24rpx; line-height: 72rpx; }
+.memory-page .growth-button.memory-switch { display: inline-flex; width: auto; align-self: flex-start; min-height: 64rpx; margin-top: 16rpx; background: transparent; border: 1rpx solid var(--zy-brand-700); color: var(--zy-brand-700); font-size: 22rpx; line-height: 64rpx; }
+.memory-page .growth-button.secondary { background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); }
+.memory-page .growth-button.danger { background: transparent; border: 1rpx solid rgba(166,72,66,.42); color: var(--zy-care); }
+.memory-page .growth-button.is-disabled { opacity: 1; background: transparent; border-color: var(--zy-border); color: var(--zy-muted); }
+.memory-page .growth-error { background: transparent; border-left: 2rpx solid var(--zy-care); border-radius: 0; color: var(--zy-care); padding: 10rpx 0 10rpx 16rpx; }
+.memory-page .topic-tag { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); font-size: 21rpx; padding: 6rpx 10rpx 6rpx 14rpx; }
+.memory-page .derived-item { border-top: 1rpx solid var(--zy-border); padding: 20rpx 0; }
+.memory-page .derived-label { color: var(--zy-muted); font-size: 20rpx; letter-spacing: 1rpx; }
+.memory-page .derived-value { color: var(--zy-title); font-family: var(--zy-serif); font-size: 30rpx; font-weight: 500; }
+.memory-page .derived-source { color: var(--zy-muted); font-size: 20rpx; }
+.memory-page .growth-foot { color: var(--zy-muted); font-size: 20rpx; line-height: 1.8; margin-top: 34rpx; }
+.memory-page button:active { transform: none; }
 </style>

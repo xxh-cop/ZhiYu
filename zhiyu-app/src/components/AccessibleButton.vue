@@ -48,24 +48,25 @@ button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1
 button.is-disabled{opacity:.55;cursor:not-allowed}
 
 /* ── 暖纸青玉 v6 变体（规格 docs/ui-upgrade-student-spec-20261108.md §2-C1） ── */
-.zy-btn{border-radius:var(--zy-radius-full,9999rpx);font-weight:500}
-.zy-btn--lg{min-height:96rpx;padding:0 48rpx;font-size:var(--zy-text-title, 32rpx)}
-.zy-btn--md{min-height:88rpx;padding:0 40rpx;font-size:var(--zy-text-body, 28rpx)}
-.zy-btn--sm{min-height:64rpx;padding:0 28rpx;font-size:var(--zy-text-caption, 24rpx)}
-.zy-btn--icon{width:72rpx;height:72rpx;min-width:72rpx;min-height:72rpx;padding:0;border-radius:50%}
+.zy-btn{border-radius:var(--zy-radius-control, 0);font-weight:500}
+.zy-btn--lg{min-height:88rpx;padding:0 40rpx;font-size:var(--zy-text-body-lg,30rpx);letter-spacing:1rpx}
+.zy-btn--md{min-height:80rpx;padding:0 32rpx;font-size:var(--zy-text-body,28rpx)}
+.zy-btn--sm{min-height:56rpx;padding:0 20rpx;font-size:var(--zy-text-caption,24rpx)}
+.zy-btn--mini{min-height:48rpx;padding:0 12rpx;font-size:var(--zy-text-caption,24rpx);line-height:1.8}
+.zy-btn--icon{width:72rpx;height:72rpx;min-width:72rpx;min-height:72rpx;padding:0;border-radius:0}
 
 .zy-btn--primary{background:var(--zy-brand-600,var(--zy-brand-700, #1a645e));color:#FFFFFF;box-shadow:var(--zy-shadow-cta)}
-.zy-btn--secondary{background:var(--zy-bg-tint-mint,#e4efe7);color:var(--zy-brand-700,var(--zy-brand-700, #1a645e))}
+.zy-btn--secondary{background:transparent;border:1rpx solid var(--zy-border,#D3DED8);color:var(--zy-brand-700,var(--zy-brand-700, #1a645e))}
 .zy-btn--ghost{background:transparent;color:var(--zy-brand-700,var(--zy-brand-700, #1a645e))}
-.zy-btn--danger{background:#F7ECEA;color:var(--zy-care,var(--zy-care, #a64842))}
+.zy-btn--danger{background:transparent;border:1rpx solid rgba(166,72,66,.42);color:var(--zy-care,var(--zy-care, #a64842))}
 .zy-btn--care{background:var(--zy-care,var(--zy-care, #a64842));color:#FFFFFF}
 
-.zy-btn:active{transform:scale(.97);transition:transform var(--zy-duration-instant,100ms) var(--zy-ease-out,ease-out)}
+.zy-btn:active{transform:none;transition:opacity var(--zy-duration-instant,100ms) var(--zy-ease-out,ease-out)}
 .zy-btn--primary:active{background:var(--zy-brand-700,var(--zy-brand-700, #1a645e))}
-.zy-btn--secondary:active{background:var(--zy-brand-100,var(--zy-brand-100, #c9e4dd))}
+.zy-btn--secondary:active{background:var(--zy-bg-tint-mint,#E7F0EB)}
 .zy-btn--ghost:active{background:var(--zy-brand-50,var(--zy-brand-50, #eaf4f1))}
-.zy-btn--danger:active{background:#F1E0DC}
+.zy-btn--danger:active{background:#F5E7E3}
 .zy-btn--care:active{background:#8F3A35}
-.zy-btn.is-disabled{opacity:1;background:#EDE7DA;color:#8A8378;box-shadow:none}
+.zy-btn.is-disabled{opacity:1;background:#E4ECE8;color:#6E7B75;border:1rpx solid #D3DED8;box-shadow:none}
 .zy-btn.is-loading{opacity:1}
 </style>

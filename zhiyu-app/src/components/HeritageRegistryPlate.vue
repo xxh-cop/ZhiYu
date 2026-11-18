@@ -25,13 +25,13 @@ defineProps({
 	align-items: center;
 	gap: var(--zy-space-md);
 	padding: var(--zy-space-sm) 0 var(--zy-space-sm) var(--zy-space-md);
-	border-left: 2rpx dashed var(--zy-stitch);
+	border-left: 2rpx solid var(--zy-care, #a64842);
 }
 .registry-code {
 	flex-shrink: 0;
 	font-size: var(--zy-text-title-lg);
-	font-weight: 600;
-	color: var(--zy-accent);
+	font-weight: 500;
+	color: var(--zy-care, #a64842);
 	letter-spacing: 1rpx;
 }
 .registry-meta {

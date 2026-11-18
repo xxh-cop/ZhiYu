@@ -2,6 +2,7 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 日期区 -->
 		<view class="date-section zy-slide-up zy-stagger" style="--stagger-i: 0">
+			<text class="page-eyebrow">MOOD NOTE · 记录心情</text>
 			<text class="date-big">{{ todayStr }}</text>
 			<text class="date-week">{{ weekDay }}</text>
 		</view>
@@ -22,9 +23,10 @@
 						@keydown.enter.prevent="selectMood(m)"
 						@keydown.space.prevent="selectMood(m)"
 					>
-						<view v-if="selectedMood === m.label" class="mood-ring"></view>
-						<MoodFace :kind="m.kind" :label="m.label" :selected="selectedMood === m.label" />
-						<text class="mood-label">{{ m.label }}</text>
+					<view class="mood-seal-wrap" aria-hidden="true">
+						<text class="mood-seal">{{ m.char }}</text>
+					</view>
+					<text class="mood-label">{{ m.label }}</text>
 					</view>
 				</view>
 			</scroll-view>
@@ -33,7 +35,7 @@
 		<!-- 内容输入卡片 -->
 		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="textarea-card">
-				<FormField label="此刻的心情" required :error="errors.content" :maxlength="500" :count="content.length">
+				<FormField label="写下此刻" required :error="errors.content" :maxlength="500" :count="content.length">
 					<template #default="{ id, ariaDescribedby, ariaInvalid }">
 						<textarea
 							:id="id"
@@ -42,7 +44,7 @@
 							:aria-describedby="ariaDescribedby"
 							:aria-invalid="ariaInvalid"
 							placeholder="写下此刻的心情..."
-							placeholder-style="color: var(--zy-text, #4a5f54);"
+							placeholder-style="color: #8a9a93; font-size: 24rpx;"
 							:maxlength="500"
 							:auto-height="true"
 							:show-confirm-bar="false"
@@ -88,17 +90,16 @@ import { http } from '../../utils/request'
 import ActionSheet from '../../components/ActionSheet.vue'
 import FormField from '../../components/FormField.vue'
 import Toast from '../../components/Toast.vue'
-import MoodFace from '../../components/MoodFace.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
 
 const moods = [
-	{ kind: 0, label: '开心' },
-	{ kind: 1, label: '平静' },
-	{ kind: 2, label: '一般' },
-	{ kind: 3, label: '有点累' },
-	{ kind: 4, label: '不太好' },
+	{ kind: 0, label: '开心', char: '喜' },
+	{ kind: 1, label: '平静', char: '静' },
+	{ kind: 2, label: '一般', char: '平' },
+	{ kind: 3, label: '有点累', char: '倦' },
+	{ kind: 4, label: '不太好', char: '低' },
 ]
 
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
@@ -210,28 +211,38 @@ async function confirmDelete() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 120rpx;
+	padding: 36rpx 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #ffffff);
+	background-color: var(--zy-bg, #f1f4f1);
 }
 
 /* ── 日期区 ── */
 .date-section {
 	margin-bottom: 32rpx;
+	padding-bottom: 24rpx;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+}
+
+.page-eyebrow {
+	display: block;
+	margin-bottom: 10rpx;
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 2px;
+	color: var(--zy-muted, #6e7b75);
 }
 
 .date-big {
-	font-size:var(--zy-text-display, 56rpx);
-	font-weight: 700;
-	color: var(--zy-title, #233d34);
-	font-family: var(--zy-serif);
+	font-size:56rpx;
+	font-weight: 500;
+	color: var(--zy-title, #111816);
+	font-family: var(--zy-font-display, serif);
 	display: block;
 	line-height: 1.2;
 }
 
 .date-week {
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #4a5f54);
+	color: var(--zy-muted, #6e7b75);
 	display: block;
 	margin-top: 4rpx;
 }
@@ -257,9 +268,10 @@ async function confirmDelete() {
 }
 
 .mood-track {
-	display: inline-flex;
-	gap: 20rpx;
-	padding-right: 32rpx;
+	display: flex;
+	width: 100%;
+	gap: 0;
+	padding-right: 0;
 }
 
 .mood-item {
@@ -267,33 +279,50 @@ async function confirmDelete() {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: flex-start;
 	gap: 8rpx;
-	padding: 24rpx 28rpx;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 2rpx solid var(--zy-border, #dfe7dc);
-	flex-shrink: 0;
+	padding: 20rpx 2rpx;
+	flex: 1;
+	width: auto;
+	min-width: 0;
+	border-radius: 0;
+	background-color: transparent;
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	border-left: 0;
+	flex-shrink: 1;
 	transition: all var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
 }
+.mood-item:first-child { border-left: 1rpx solid var(--zy-border, #d3ded8); }
 
 .mood-ring {
-	position: absolute;
-	inset: -2rpx;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	border: 3rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
-	pointer-events: none;
+	display: none;
+}
+
+.mood-seal-wrap {
+	width: 72rpx;
+	height: 72rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.mood-seal {
+	font-family: var(--zy-font-display, "Songti SC", "STSong", "Noto Serif CJK SC", serif);
+	font-size: 54rpx;
+	line-height: 1;
+	color: var(--zy-title, #111816);
 }
 
 .mood-item--active {
-	border-color: transparent;
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-	transform: scale(1.05);
-	box-shadow: var(--zy-shadow-sm);
+	border-color: var(--zy-brand-600, #0e5b53);
+	background-color: transparent;
+	box-shadow: inset 0 -3rpx 0 var(--zy-brand-600, #0e5b53);
+	transform: none;
+	box-shadow: inset 0 -3rpx 0 var(--zy-brand-600, #0e5b53);
 }
 
-.mood-emoji {
-	font-size:var(--zy-text-display, 56rpx);
-	line-height: 1;
+.mood-item--active .mood-seal {
+	color: var(--zy-brand-700, #0a403b);
 }
 
 .mood-label {
@@ -308,19 +337,21 @@ async function confirmDelete() {
 
 /* ── 内容输入卡片 ── */
 .textarea-card {
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border-radius: var(--zy-radius-lg, 32rpx);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	padding: 28rpx;
-	box-shadow: var(--zy-shadow-sm);
+	background-color: transparent;
+	border-radius: 0;
+	border: 0;
+	border-top: 1rpx solid var(--zy-border, #d3ded8);
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	padding: 24rpx 0;
+	box-shadow: none;
 }
 
 .note-textarea {
 	width: 100%;
 	min-height: 200rpx;
 	font-size:var(--zy-text-body, 28rpx);
-	line-height: 1.7;
-	color: var(--zy-title, #233d34);
+	line-height: 1.8;
+	color: var(--zy-title, #111816);
 	background-color: transparent;
 	border: none;
 }
@@ -343,17 +374,17 @@ async function confirmDelete() {
 
 .save-btn {
 	height: 88rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	border-radius: 0;
+	background: var(--zy-brand-600, #0e5b53);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-	box-shadow: var(--zy-shadow-md);
+	box-shadow: none;
 }
 
 .save-btn:active {
-	transform: scale(0.97);
+	transform: none;
 }
 
 .save-btn:focus-visible,
@@ -374,9 +405,10 @@ async function confirmDelete() {
 }
 
 .delete-btn {
-	height: 80rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	border: 1rpx solid var(--zy-care, var(--zy-care, #a64842));
+	height: 72rpx;
+	border-radius: 0;
+	border: 0;
+	border-top: 1rpx solid var(--zy-border, #d3ded8);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -397,7 +429,7 @@ async function confirmDelete() {
 	display: block;
 	margin-top: 48rpx;
 	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-text, #4a5f54);
+	color: var(--zy-muted, #6e7b75);
 	text-align: center;
 }
 </style>

@@ -1,14 +1,9 @@
 <template>
 	<view :class="zyThemeClass" class="kits-page zy-page-enter">
-		<view class="kits-nav">
-			<AccessibleButton class="back-btn" aria-label="返回材料探索" @click="leave">‹ 返回</AccessibleButton>
-			<text class="nav-label">工作坊材料包</text>
-		</view>
-
 		<view class="kits-hero">
 			<text class="eyebrow">WORKSHOP MATERIAL KITS</text>
 			<text class="title">把材料先准备好</text>
-			<text class="subtitle">对应 3 个团体工作坊模板的准备清单。数量按实际人数调整，工具与安全事项由带领者现场确认。</text>
+			<text class="subtitle">对应 3 个团体工作坊模板的准备清单；不含采购链接与价格。数量按实际人数调整，工具与安全事项由带领者现场确认。</text>
 		</view>
 
 		<view v-if="loading" class="loading-card" aria-busy="true">
@@ -24,8 +19,6 @@
 		</view>
 
 		<template v-else>
-			<text v-if="disclaimer" class="catalog-note">{{ disclaimer }}</text>
-
 			<view class="kit-list">
 				<HeritageCard
 					v-for="(kit, idx) in kits"
@@ -95,7 +88,6 @@ import AccessibleButton from '../../components/AccessibleButton.vue'
 import HeritageCard from '../../components/HeritageCard.vue'
 
 const kits = ref([])
-const disclaimer = ref('')
 const loading = ref(true)
 const errorMsg = ref('')
 const expanded = ref('')
@@ -118,7 +110,6 @@ async function load() {
 	try {
 		const data = await request({ url: '/api/growth/material-kits' })
 		kits.value = data?.kits || []
-		disclaimer.value = data?.disclaimer || ''
 		expanded.value = kits.value[0]?.id || ''
 	} catch (e) {
 		kits.value = []
@@ -188,6 +179,38 @@ function leave() {
 .text-action { margin-top: 10rpx; background: transparent; color: var(--zy-text, #4a5f54); font-size:var(--zy-text-micro, 22rpx); line-height: 2.4; }
 .text-action::after { border: 0; }
 .page-disclaimer { display: block; margin-top: 32rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
+/* ── v9 冷瓷展签收口 ── */
+.kits-page { padding: 32rpx 32rpx 120rpx; background: var(--zy-bg); }
+.kits-nav { padding-bottom: 22rpx; }
+.back-btn { padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--zy-muted); font-size: 22rpx; line-height: 1.8; display: inline-flex; align-items: center; gap: 4rpx; min-height: 64rpx; }
+.back-btn::after { border: 0; }
+.nav-label { font-size: 22rpx; letter-spacing: 1px; color: var(--zy-muted); }
+.kits-hero { margin: 10rpx 0 28rpx; padding-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
+.eyebrow { color: var(--zy-muted); letter-spacing: 2px; }
+.title { font-family: var(--zy-font-display, serif); font-size: 56rpx; font-weight: 500; line-height: 1.3; color: var(--zy-title); }
+.subtitle { font-size: 26rpx; color: var(--zy-muted); line-height: 1.8; }
+.catalog-note { padding: 18rpx 0 18rpx 20rpx; border-left: 2rpx solid var(--zy-brand-700); border-radius: 0; background: transparent; color: var(--zy-text); font-size: 22rpx; line-height: 1.8; }
+.kit-list { gap: 0; }
+.kit-body { padding: 0; }
+.block { margin-top: 30rpx; }
+.block-label { font-family: var(--zy-font-display, serif); font-size: 28rpx; font-weight: 500; letter-spacing: 1px; color: var(--zy-brand-700); margin-bottom: 10rpx; }
+.item-row { padding: 16rpx 0; border-bottom: 1rpx solid var(--zy-border); }
+.item-name { font-size: 26rpx; color: var(--zy-title); }
+.item-note { font-size: 22rpx; color: var(--zy-muted); line-height: 1.7; }
+.item-qty { font-size: 22rpx; color: var(--zy-brand-700); }
+.bullet { font-size: 22rpx; line-height: 1.9; color: var(--zy-text); }
+.step-num { width: 36rpx; height: 36rpx; border-radius: 0; border: 1rpx solid var(--zy-border); background: transparent; color: var(--zy-brand-700); line-height: 36rpx; font-size: 20rpx; }
+.step-text { font-size: 22rpx; color: var(--zy-text); }
+.safety-block { padding: 16rpx 0 16rpx 18rpx; border-radius: 0; background: transparent; border-left: 2rpx solid var(--zy-care); }
+.safety-label, .safety-bullet { color: var(--zy-care); }
+.digital-card { margin-top: 24rpx; padding: 18rpx 0; border: 0; border-top: 1rpx solid var(--zy-border); border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; }
+.digital-label { color: var(--zy-muted); font-size: 22rpx; }
+.digital-text { color: var(--zy-text); font-size: 22rpx; }
+.source-note { color: var(--zy-muted); font-size: 20rpx; }
+.loading-card, .status-card { margin-top: 30rpx; padding: 28rpx 0; border: 0; border-top: 1rpx solid var(--zy-border); border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; }
+.primary-action { border-radius: 0; background: var(--zy-brand-700); min-height: 80rpx; }
+.text-action { color: var(--zy-muted); }
+.page-disclaimer { color: var(--zy-muted); }
 @media (max-width: 360px) {
 	.kits-page { padding-left: 24rpx; padding-right: 24rpx; }
 	.title { font-size:var(--zy-text-title-lg, 40rpx); }

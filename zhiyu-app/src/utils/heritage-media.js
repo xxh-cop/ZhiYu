@@ -6,10 +6,10 @@
  */
 
 const TEXTURES = {
-	cutout: '/static/heritage/texture/cutout.jpg',
+	cutout: '/static/heritage/texture/cold-linen.jpg',
 	porcelain: '/static/heritage/texture/porcelain.jpg',
-	stitch: '/static/heritage/texture/stitch.jpg',
-	weave: '/static/heritage/texture/weave.jpg',
+	stitch: '/static/heritage/texture/cold-linen.jpg',
+	weave: '/static/blueprint/hero-bamboo.jpg',
 }
 
 export function textureFor(family) {

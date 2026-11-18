@@ -1,8 +1,15 @@
 <template>
 	<view :class="zyThemeClass" class="page zy-page-enter">
-		<!-- 悬浮新建按钮 -->
-		<view class="fab" role="button" tabindex="0" aria-label="新建心情便签" @click="goCreate" @keydown.enter.prevent="goCreate" @keydown.space.prevent="goCreate">
-			<wd-icon name="add" size="44rpx" color="#FFFFFF" />
+		<!-- 展签页头 -->
+		<view class="page-head zy-page-enter">
+			<text class="page-eyebrow">MOOD NOTES · 此刻</text>
+			<view class="page-head-row">
+				<view class="page-head-copy">
+					<text class="page-title">写下此刻</text>
+					<text class="page-subtitle">不必解释，也不必写好。只留一句话给自己。</text>
+				</view>
+				<AccessibleButton class="create-btn" aria-label="新建心情便签" @click="goCreate">写一张</AccessibleButton>
+			</view>
 		</view>
 
 		<!-- 加载状态 -->
@@ -43,23 +50,20 @@
 				@longpress="onLongPress(item)"
 			>
 				<view class="card-main">
-					<!-- 左侧心情脸谱（CSS 绘制，替代 emoji） -->
-					<view class="mood-circle" :style="moodGradient(item.mood)">
-						<MoodFace :kind="moodKind(item.mood)" :label="moodLabel(item.mood) || '未标注心情'" :size="52" flat :show-label="false" />
+					<!-- 左侧心情字印：冷瓷展签式单字，替代彩色脸谱 -->
+					<view class="mood-circle" aria-hidden="true">
+						<text class="mood-mark">{{ moodMark(item.mood) }}</text>
 					</view>
 					<!-- 中间内容 -->
 					<view class="card-center">
 						<text class="note-excerpt">{{ item.excerpt || '（无内容）' }}</text>
-						<text class="note-date">{{ formatDate(item.noteDate) }}</text>
+						<view class="note-meta">
+							<text class="note-date">{{ formatDate(item.noteDate) }}</text>
+							<text v-if="item.mood" class="mood-tag-text">{{ moodLabel(item.mood) }}</text>
+						</view>
 					</view>
 					<!-- 右侧箭头 -->
-					<wd-icon name="arrow-right" size="28rpx" color="#C9BFA9" />
-				</view>
-				<!-- 底部心情标签 -->
-				<view v-if="item.mood" class="mood-tag-row">
-					<view class="mood-tag">
-						<text class="mood-tag-text">{{ moodLabel(item.mood) }}</text>
-					</view>
+					<wd-icon name="arrow-right" size="24rpx" color="#6e7b75" />
 				</view>
 			</view>
 
@@ -99,15 +103,10 @@ import { http } from '../../utils/request'
 import StateBlock from '../../components/StateBlock.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
-import MoodFace from '../../components/MoodFace.vue'
+import AccessibleButton from '../../components/AccessibleButton.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
-
-const MOOD_KIND = {
-	'开心': 0, '平静': 1, '一般': 2, '有点累': 3, '不太好': 4,
-	'happy': 0, 'calm': 1, 'neutral': 2, 'tired': 3, 'down': 4,
-}
 
 /* 后端 mood 存英文枚举 key，展示一律映射为中文（MOOD_MAP 已兼容中文 key，二者并存时以中文为准） */
 const MOOD_LABELS = {
@@ -118,17 +117,12 @@ const MOOD_LABELS = {
 	'down': '不太好',
 }
 
-const MOOD_GRADIENTS = {
-	'开心': 'linear-gradient(135deg, var(--zy-accent, #8a6d1f), #FFD08A)',
-	'平静': 'linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8))',
-	'一般': 'linear-gradient(135deg, #A79B87, var(--zy-text, #5c5648))',
-	'有点累': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), var(--zy-brand-200, #8adcc6))',
-	'不太好': 'linear-gradient(135deg, var(--zy-care, #a64842), #d4736a)',
-	'happy': 'linear-gradient(135deg, var(--zy-accent, #8a6d1f), #FFD08A)',
-	'calm': 'linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8))',
-	'neutral': 'linear-gradient(135deg, #A79B87, var(--zy-text, #5c5648))',
-	'tired': 'linear-gradient(135deg, var(--zy-brand-300, #5bc4a8), var(--zy-brand-200, #8adcc6))',
-	'down': 'linear-gradient(135deg, var(--zy-care, #a64842), #d4736a)',
+const MOOD_MARK = {
+	'happy': '喜', '开心': '喜',
+	'calm': '静', '平静': '静',
+	'neutral': '平', '一般': '平',
+	'tired': '倦', '有点累': '倦',
+	'down': '低', '不太好': '低'
 }
 
 const loading = ref(false)
@@ -189,17 +183,13 @@ async function loadMore() {
 	}
 }
 
-function moodKind(mood) {
-	return MOOD_KIND[mood] ?? 1
-}
-
 function moodLabel(mood) {
 	if (!mood) return ''
 	return MOOD_LABELS[mood] || mood
 }
-
-function moodGradient(mood) {
-	return MOOD_GRADIENTS[mood] || 'linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8))'
+function moodMark(mood) {
+	if (!mood) return '记'
+	return MOOD_MARK[mood] || '记'
 }
 
 function formatDate(dateStr) {
@@ -255,35 +245,59 @@ async function confirmDelete() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 120rpx;
+	padding: 36rpx 32rpx 120rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #ffffff);
+	background-color: var(--zy-bg, #f1f4f1);
 }
 
-/* ── 悬浮按钮 ── */
-.fab {
-	position: fixed;
-	right: 40rpx;
-	bottom: 160rpx;
-	width: 100rpx;
-	height: 100rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, #5bc4a8));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	box-shadow: var(--zy-shadow-lg);
-	z-index: 100;
-	transition: transform var(--zy-duration-base, 200ms) var(--zy-ease-out, ease-out);
+/* ── 展签页头 ── */
+.page-head {
+	padding-bottom: 32rpx;
+	margin-bottom: 8rpx;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 }
-
-.fab:active {
-	transform: scale(0.92);
+.page-eyebrow {
+	display: block;
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 2px;
+	color: var(--zy-muted, #6e7b75);
+	margin-bottom: 20rpx;
 }
+.page-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24rpx; }
+.page-head-copy { min-width: 0; }
+.page-title {
+	display: block;
+	font-family: var(--zy-font-display, serif);
+	font-size: 64rpx;
+	font-weight: 500;
+	line-height: 1.2;
+	color: var(--zy-title, #111816);
+}
+.page-subtitle {
+	display: block;
+	margin-top: 10rpx;
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-muted, #6e7b75);
+}
+.create-btn {
+	flex-shrink: 0;
+	min-height: 72rpx;
+	margin: 0;
+	padding: 0 24rpx;
+	border: 1rpx solid var(--zy-brand-700, #0a403b);
+	border-radius: 0;
+	background: transparent;
+	color: var(--zy-brand-700, #0a403b);
+	font-size: var(--zy-text-caption, 24rpx);
+	line-height: 72rpx;
+	letter-spacing: 1rpx;
+}
+.create-btn::after { border: 0; }
 
-.fab:focus-visible,
-.note-card:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #1a645e);
+/* ── 焦点 ── */
+.note-card:focus-visible,
+.create-btn:focus-visible {
+	outline: 3px solid var(--zy-brand-700, #0a403b);
 	outline-offset: 3px;
 }
 
@@ -344,10 +358,10 @@ async function confirmDelete() {
 
 .empty-btn {
 	margin-top: 16rpx;
-	padding: 16rpx 48rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, #217e76)));
-	box-shadow: var(--zy-shadow-md);
+	padding: 16rpx 40rpx;
+	border-radius: 0;
+	background: var(--zy-brand-600, #0e5b53);
+	box-shadow: none;
 }
 
 .empty-btn-text {
@@ -371,46 +385,53 @@ async function confirmDelete() {
 	color: var(--zy-care, var(--zy-care, #a64842));
 }
 
-/* ── 卡片列表 ── */
+/* ── 便签列表：时间轴式行 ── */
 .card-list {
 	display: flex;
 	flex-direction: column;
-	gap: 20rpx;
+	gap: 0;
+	border-top: 1rpx solid var(--zy-border, #d3ded8);
 }
 
 .note-card {
-	padding: 24rpx 28rpx;
-	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	box-shadow: var(--zy-shadow-sm);
-	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out), box-shadow var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
+	padding: 28rpx 0;
+	border-radius: 0;
+	background-color: transparent;
+	border: 0;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	box-shadow: none;
+	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
 
 .note-card:active {
-	transform: translateY(-2rpx);
-	box-shadow: var(--zy-shadow-md);
+	background-color: var(--zy-bg-sunken, #e9efeb);
+	box-shadow: none;
 }
 
 .card-main {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 20rpx;
 }
 
-/* ── 心情圆形底 ── */
+/* ── 心情方形底 ── */
 .mood-circle {
 	width: 72rpx;
 	height: 72rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
+	border-radius: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	background: transparent;
+	overflow: hidden;
 }
-
-.mood-emoji {
-	font-size:var(--zy-text-title-lg, 40rpx);
+.mood-mark {
+	font-family: var(--zy-font-display, "Songti SC", serif);
+	font-size: 34rpx;
+	font-weight: 500;
+	color: var(--zy-brand-700, #0a403b);
 	line-height: 1;
 }
 
@@ -420,44 +441,37 @@ async function confirmDelete() {
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 6rpx;
+	gap: 10rpx;
 }
 
 .note-excerpt {
 	display: -webkit-box;
-	font-size:var(--zy-text-body, 28rpx);
+	font-family: var(--zy-font-display, serif);
+	font-size: 34rpx;
 	line-height: 1.6;
-	color: var(--zy-content, #5c5648);
+	color: var(--zy-title, #111816);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 }
 
-.note-date {
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-text, #5c5648);
+.note-meta {
+	display: flex;
+	align-items: center;
+	gap: 14rpx;
+	font-size: var(--zy-text-micro, 22rpx);
+	color: var(--zy-muted, #6e7b75);
 }
 
-/* ── 底部心情标签 ── */
-.mood-tag-row {
-	margin-top: 16rpx;
-	padding-top: 16rpx;
-	margin-bottom: 8rpx;
-	border-top: 1rpx solid var(--zy-border, #dfe7dc);
-}
+.note-date { color: var(--zy-muted, #6e7b75); font-variant-numeric: tabular-nums; }
 
-.mood-tag {
-	display: inline-flex;
-	padding: 4rpx 16rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
-}
-
+/* ── 心情标签：不再用胶囊 ── */
 .mood-tag-text {
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-brand-700, #1a645e));
-	font-weight: 500;
+	padding-left: 14rpx;
+	border-left: 1rpx solid var(--zy-border, #d3ded8);
+	color: var(--zy-accent, #8e4a3c);
+	font-size: var(--zy-text-micro, 22rpx);
 }
 
 /* ── 底部 ── */

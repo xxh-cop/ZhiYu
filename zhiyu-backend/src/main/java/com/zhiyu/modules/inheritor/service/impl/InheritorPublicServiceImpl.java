@@ -8,6 +8,8 @@ import com.zhiyu.common.exception.BusinessException;
 import com.zhiyu.common.result.ResultCode;
 import com.zhiyu.modules.auth.entity.User;
 import com.zhiyu.modules.auth.mapper.UserMapper;
+import com.zhiyu.modules.craft.entity.CraftProject;
+import com.zhiyu.modules.craft.mapper.CraftProjectMapper;
 import com.zhiyu.modules.inheritor.entity.InheritorProfile;
 import com.zhiyu.modules.inheritor.mapper.InheritorProfileMapper;
 import com.zhiyu.modules.inheritor.service.InheritorPublicService;
@@ -38,6 +40,7 @@ public class InheritorPublicServiceImpl implements InheritorPublicService {
     private final InheritorProfileMapper inheritorProfileMapper;
     private final UserMapper userMapper;
     private final WorkMapper workMapper;
+    private final CraftProjectMapper craftProjectMapper;
 
     @Override
     public PageVO<InheritorPublicItemVO> listInheritors(int page, int pageSize, String keyword) {
@@ -85,6 +88,18 @@ public class InheritorPublicServiceImpl implements InheritorPublicService {
         Map<Long, User> userMap = userMapper.selectBatchIds(userIds).stream()
                 .collect(Collectors.toMap(User::getId, u -> u));
 
+        // 已上架项目数：craft_project.inheritor_id 指向 user.id（不是 profile.id）
+        Map<Long, Long> projectCounts = Collections.emptyMap();
+        if (!userIds.isEmpty()) {
+            projectCounts = craftProjectMapper.selectList(
+                            new LambdaQueryWrapper<CraftProject>()
+                                    .in(CraftProject::getInheritorId, userIds)
+                                    .eq(CraftProject::getStatus, 1)
+                                    .select(CraftProject::getInheritorId))
+                    .stream()
+                    .collect(Collectors.groupingBy(CraftProject::getInheritorId, Collectors.counting()));
+        }
+
         // 4. 组装 VO
         List<InheritorPublicItemVO> items = new ArrayList<>(profiles.size());
         for (InheritorProfile p : profiles) {
@@ -95,6 +110,7 @@ public class InheritorPublicServiceImpl implements InheritorPublicService {
             vo.setSkill(p.getSkill());
             vo.setHonor(p.getHonor());
             vo.setIntro(p.getIntro());
+            vo.setProjectCount(projectCounts.getOrDefault(p.getUserId(), 0L).intValue());
             if (u != null) {
                 vo.setNickname(u.getNickname());
                 vo.setAvatarUrl(u.getAvatarUrl());

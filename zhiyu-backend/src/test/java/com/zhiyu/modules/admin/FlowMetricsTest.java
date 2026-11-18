@@ -14,8 +14,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,15 +202,20 @@ class FlowMetricsTest {
     @DisplayName("同口径：分母=step_leave 之和，占比=flow/active；无事件会话不进分布；人×周中位数")
     void sameRulerAndDistribution() {
         project(P_NORMAL, 1, null, null, null, null);
+        // 固定落在「上一个完整 ISO 周」内，避免跨周导致 personWeeks 随运行日期漂移
+        LocalDate weekMonday = LocalDate.now()
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
+        LocalDateTime dayOne = weekMonday.plusDays(1).atTime(10, 0);
+        LocalDateTime dayTwo = weekMonday.plusDays(2).atTime(10, 0);
         // 会话一：两条 step_leave 600+400=1000s，flow 250 → ratio 0.25
-        session(960220L, P_NORMAL, 3, now.minusDays(2), now.minusDays(2).plusSeconds(1100), 250);
-        stepLeave(960320L, 960220L, P_NORMAL, 1, now.minusDays(2).plusSeconds(600), 1, 600);
-        stepLeave(960321L, 960220L, P_NORMAL, 2, now.minusDays(2).plusSeconds(1000), 2, 400);
+        session(960220L, P_NORMAL, 3, dayOne, dayOne.plusSeconds(1100), 250);
+        stepLeave(960320L, 960220L, P_NORMAL, 1, dayOne.plusSeconds(600), 1, 600);
+        stepLeave(960321L, 960220L, P_NORMAL, 2, dayOne.plusSeconds(1000), 2, 400);
         // 会话二：同一人同一周，活跃 500s，flow 50 → ratio 0.1；人×周中位数 = (0.25+0.1)/2 = 0.175
-        session(960221L, P_NORMAL, 3, now.minusDays(1), now.minusDays(1).plusSeconds(520), 50);
-        stepLeave(960322L, 960221L, P_NORMAL, 1, now.minusDays(1).plusSeconds(500), 1, 500);
+        session(960221L, P_NORMAL, 3, dayTwo, dayTwo.plusSeconds(520), 50);
+        stepLeave(960322L, 960221L, P_NORMAL, 1, dayTwo.plusSeconds(500), 1, 500);
         // 会话三：完成但无事件 → excludedNoEvents，不进分布
-        session(960222L, P_NORMAL, 3, now.minusDays(1), now.minusDays(1).plusSeconds(300), 30);
+        session(960222L, P_NORMAL, 3, dayTwo.plusHours(2), dayTwo.plusHours(2).plusSeconds(300), 30);
         // 会话四：进行中 → inProgress，不进分布
         session(960223L, P_NORMAL, 1, now.minusHours(1), null, 0);
 

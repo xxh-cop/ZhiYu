@@ -1,29 +1,16 @@
-<view class="zy-tabbar {{warm ? 'zy-tabbar--warm' : ''}}">
-	<view class="zy-tabbar-bar"></view>
+<view class="zy-tabbar">
 	<view class="zy-tabbar-row">
-		<block wx:for="{{items}}" wx:key="path">
-			<view
-				wx:if="{{!item.center}}"
-				class="zy-tab-item {{active === item.path ? 'is-active' : ''}}"
-				data-path="{{item.path}}"
-				bindtap="onTap"
-			>
-				<image class="zy-tab-icon" src="{{active === item.path ? item.activeIcon : item.icon}}" mode="aspectFit" />
-				<text class="zy-tab-text">{{item.text}}</text>
-				<view class="zy-tab-dot"></view>
-			</view>
-			<view wx:else class="zy-tab-center">
-				<view
-					class="zy-center-btn {{active === item.path ? 'is-active' : ''}}"
-					data-path="{{item.path}}"
-					bindtap="onCenterTap"
-					aria-role="button"
-					aria-label="手作"
-				>
-					<text class="zy-center-plus">＋</text>
-				</view>
-				<text class="zy-center-label">手作</text>
-			</view>
-		</block>
+		<view
+			wx:for="{{items}}"
+			wx:key="path"
+			class="zy-tab-item {{active === item.path ? 'is-active' : ''}}"
+			data-path="{{item.path}}"
+			bindtap="onTap"
+			aria-role="tab"
+			aria-label="{{item.text}}"
+		>
+			<view class="zy-tab-mark"></view>
+			<text class="zy-tab-text">{{item.text}}</text>
+		</view>
 	</view>
 </view>

@@ -2,7 +2,8 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 页面标题 -->
 		<view class="page-header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="page-title">个人设置</text>
+			<text class="page-eyebrow">SETTINGS · 个人设置</text>
+			<text class="page-title">把自己，安顿好</text>
 			<text class="page-subtitle">管理你的资料与账号安全</text>
 		</view>
 		<view v-if="loadError" class="settings-error" role="alert">
@@ -14,17 +15,21 @@
 		<view class="avatar-section zy-slide-up zy-stagger" style="--stagger-i: 1">
 			<view class="avatar-ring" role="button" tabindex="0" aria-label="更换头像" @click="chooseAvatar" @keydown.enter.prevent="chooseAvatar" @keydown.space.prevent="chooseAvatar">
 				<image
-					v-if="form.avatarUrl"
+					v-if="form.avatarUrl && !avatarError"
 					class="avatar-img"
 					:src="avatarFullUrl"
 					mode="aspectFill"
 					alt="当前头像"
+					@error="avatarError = true"
 				/>
 				<view v-else class="avatar-placeholder">
 					<text class="avatar-placeholder-text">{{ avatarChar }}</text>
 				</view>
 			</view>
-			<text class="avatar-hint">点击更换头像</text>
+			<view class="avatar-copy">
+				<text class="avatar-title">头像</text>
+				<text class="avatar-hint">点击更换头像</text>
+			</view>
 		</view>
 
 		<!-- 卡片 1：基本资料 -->
@@ -336,6 +341,7 @@ const form = ref({
 	intro: '',
 	avatarUrl: '',
 })
+const avatarError = ref(false)
 
 const pwdForm = ref({
 	oldPassword: '',
@@ -876,5 +882,36 @@ async function handleChangePassword() {
 .theme-swatch-warm { background: #F6F1E7; }
 .theme-option-name { font-size: var(--zy-text-body); font-weight: 600; color: var(--zy-title); }
 .theme-option.is-selected .theme-option-name { color: var(--zy-brand-700); }
-.theme-option-desc { font-size: var(--zy-text-micro); color: var(--zy-text); }
+/* ── v9 冷瓷展签覆盖（不改表单结构，只收口视觉） ── */
+.page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg, #f1f4f1); }
+.page-header { padding-bottom: 32rpx; margin-bottom: 8rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); margin-bottom: 18rpx; }
+.page-title { display: block; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; color: var(--zy-title, #111816); }
+.page-subtitle { display: block; margin-top: 10rpx; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); line-height: 1.7; }
+.avatar-section { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 24rpx; padding: 32rpx 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.avatar-copy { display: flex; flex-direction: column; gap: 8rpx; min-width: 0; }
+.avatar-title { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; color: var(--zy-title, #111816); }
+.avatar-ring { width: 104rpx; height: 104rpx; border-radius: 0; padding: 0; margin: 0; background: var(--zy-bg-sunken, #e9efeb); overflow: hidden; flex-shrink: 0; }
+.avatar-ring::after { border: 0; }
+.avatar-img, .avatar-placeholder { width: 100%; height: 100%; border-radius: 0; border: 0; }
+.avatar-placeholder { display: flex; align-items: center; justify-content: center; background: var(--zy-bg-sunken, #e9efeb); }
+.avatar-placeholder-text { font-family: var(--zy-font-display, serif); font-size: 48rpx; color: var(--zy-brand-700, #0a403b); }
+.avatar-hint { font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); }
+.section-card { margin-top: 0; padding: 36rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; box-shadow: none; }
+.card-head { display: flex; align-items: center; gap: 14rpx; margin-bottom: 20rpx; }
+.card-icon-wrap, .card-icon-security, .card-icon-memory { width: 40rpx; height: 40rpx; border-radius: 0; background: transparent !important; border: 1rpx solid var(--zy-border, #d3ded8); }
+.card-icon-wrap :deep(.wd-icon) { color: var(--zy-brand-700, #0a403b) !important; }
+.section-heading { font-family: var(--zy-font-display, serif); font-size: 36rpx; font-weight: 500; color: var(--zy-title, #111816); }
+.form-input, .form-textarea { background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; padding: 12rpx 0; height: 88rpx; box-sizing: border-box; }
+.form-input:focus, .form-input.is-focused, .form-textarea:focus, .form-textarea.is-focused { border-bottom-color: var(--zy-brand-600, #0e5b53); background: transparent; }
+.form-textarea { min-height: 140rpx !important; padding-top: 16rpx; line-height: 1.8; }
+.form-label, .form-readonly-text { color: var(--zy-text, #42524c); }
+.btn-primary, .btn-primary--accent { width: 100%; height: 88rpx; border-radius: 0; background: var(--zy-brand-600, #0e5b53); margin-top: 28rpx; }
+.btn-primary-text { font-size: var(--zy-text-body, 28rpx); letter-spacing: 1rpx; }
+.nudge-toggle { border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
+.nudge-toggle.is-off { border-color: var(--zy-border, #d3ded8); color: var(--zy-muted, #6e7b75); }
+.theme-option { border-radius: 0; border-width: 1rpx; padding: 16rpx; }
+.theme-swatch { border-radius: 0; border-width: 1rpx; }
+.theme-option-name { font-weight: 500; }
+.footnote { color: var(--zy-muted, #6e7b75); }
 </style>

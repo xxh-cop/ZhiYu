@@ -1,6 +1,6 @@
 <template>
 	<view class="mindful-page" :class="[{sleeping:sleepMode}, zyThemeClass]">
-    <view class="mindful-header"><text class="eyebrow">留一点时间给自己</text><text class="title">正念片刻</text><text class="subtitle">跟随自己的节奏，轻轻地呼吸。</text></view>
+    <view class="mindful-header"><text class="eyebrow">MINDFUL PAUSE · 留一点时间给自己</text><text class="title">把呼吸，放慢一点</text><text class="subtitle">跟随自己的节奏，轻轻地呼吸。</text></view>
     <view class="practice-card">
       <view class="duration-row"><AccessibleButton v-for="value in [1, 3, 5]" :key="value" :class="{ selected: minutes === value }" :aria-pressed="minutes === value" :disabled="running || elapsed > 0" @click="minutes = value">{{ value }} 分钟</AccessibleButton></view>
       <view class="orb-area"><view class="orb" :class="{ expanding: running && inhale }" :style="{ transitionDuration: running ? (inhale ? '4s' : '6s') : '0.3s' }"><text class="phase" role="status" aria-live="polite">{{ completed ? '练习完成' : running ? inhale ? '轻轻吸气' : '缓缓呼气' : elapsed ? '休息一下' : '准备好了' }}</text><text class="phase-detail">{{ running ? inhale ? '4 秒 · 慢慢展开' : '6 秒 · 放松下来' : '不必用力，保持舒适' }}</text></view></view>
@@ -113,39 +113,42 @@ onUnload(pause)
 .mindful-page {
 	min-height: 100vh;
 	box-sizing: border-box;
-	padding: 48rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
-	background: linear-gradient(170deg, var(--zy-bg-tint-mint, #e8efe4) 0%, var(--zy-bg, #ffffff) 42%);
-	color: var(--zy-content, #4a5f54);
+	padding: 36rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
+	background: var(--zy-bg, #f1f4f1);
+	color: var(--zy-text, #42524c);
 }
-.mindful-header { text-align: center; margin-bottom: 40rpx; }
+.mindful-header { text-align: center; margin-bottom: 32rpx; padding-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
 .eyebrow,.title,.subtitle,.time,.caption,.safety-note,.disclaimer { display: block; }
-.eyebrow { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-micro, 22rpx); letter-spacing: 4rpx; }
-.title { font-family: var(--zy-serif); font-size:var(--zy-text-display, 56rpx); margin: 16rpx 0; font-weight: 600; color: var(--zy-title, #233d34); }
-.subtitle { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); }
+.eyebrow { color: var(--zy-muted, #6e7b75); font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2px; }
+.title { font-family: var(--zy-font-display, serif); font-size:56rpx; margin: 14rpx 0; font-weight: 500; color: var(--zy-title, #111816); }
+.subtitle { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); }
 
 .practice-card {
-	padding: 36rpx 32rpx;
-	border-radius: var(--zy-radius-card, 32rpx);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	background: var(--zy-card-bg, #ffffff);
-	box-shadow: var(--zy-shadow-sm, 0 4rpx 16rpx rgba(35, 61, 52, 0.04));
+	padding: 28rpx 0;
+	border-radius: 0;
+	border: 0;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	background: transparent;
+	box-shadow: none;
 	text-align: center;
 }
-.duration-row { display: flex; gap: 16rpx; }
+.duration-row { display: flex; gap: 0; }
 .duration-row button {
 	flex: 1;
 	font-size:var(--zy-text-caption, 24rpx);
 	background: transparent;
-	color: var(--zy-text, #4a5f54);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: 16rpx;
+	color: var(--zy-muted, #6e7b75);
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	border-radius: 0;
 	padding: 0;
+	margin-right: -1rpx;
 }
 .duration-row .selected {
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	border-color: var(--zy-brand-600, var(--zy-brand-600, #217e76));
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
-	font-weight: 600;
+	background: transparent;
+	border-color: var(--zy-brand-600, #0e5b53);
+	border-bottom-width: 3rpx;
+	color: var(--zy-brand-700, #0a403b);
+	font-weight: 500;
 }
 .duration-row button.is-disabled { opacity: .7; }
 
@@ -155,9 +158,9 @@ button::after { border: 0; }
 	width: 270rpx;
 	height: 270rpx;
 	border-radius: 50%;
-	border: 2rpx solid var(--zy-brand-300, var(--zy-brand-300, #5bc4a8));
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
-	box-shadow: 0 0 0 22rpx rgba(33, 126, 118, 0.10), 0 0 0 44rpx rgba(33, 126, 118, 0.06);
+	border: 2rpx solid var(--zy-brand-600, #0e5b53);
+	background: var(--zy-brand-600, #0e5b53);
+	box-shadow: 0 0 0 1rpx var(--zy-border, #d3ded8), 0 0 0 42rpx rgba(14, 91, 83, 0.06);
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -166,19 +169,19 @@ button::after { border: 0; }
 	transition: transform ease-in-out;
 }
 .orb.expanding { transform: scale(1.12); }
-.phase { font-size:var(--zy-text-title, 32rpx); color: #ffffff; }
+.phase { font-family: var(--zy-font-display, serif); font-size:var(--zy-text-title, 32rpx); color: #ffffff; }
 .phase-detail { font-size:var(--zy-text-micro, 22rpx); color: rgba(255, 255, 255, 0.85); }
-.time { font-size:var(--zy-text-display, 56rpx); font-variant-numeric: tabular-nums; color: var(--zy-title, #233d34); }
-.caption { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); margin: 8rpx 0 32rpx; }
+.time { font-family: var(--zy-font-display, serif); font-size: 72rpx; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--zy-title, #111816); }
+.caption { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); margin: 8rpx 0 32rpx; }
 .primary-action {
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, #0e5b53);
 	color: #ffffff;
 	font-size:var(--zy-text-body-lg, 30rpx);
-	border-radius: var(--zy-radius-full, 9999rpx);
-	font-weight: 600;
-	box-shadow: var(--zy-shadow-md, 0 8rpx 24rpx rgba(33, 126, 118, 0.18));
+	border-radius: 0;
+	font-weight: 500;
+	box-shadow: none;
 }
-.text-action { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); background: transparent; font-size:var(--zy-text-caption, 24rpx); margin-top: 12rpx; }
+.text-action { color: var(--zy-brand-700, #0a403b); background: transparent; font-size:var(--zy-text-caption, 24rpx); margin-top: 12rpx; }
 
 .sound-card {
 	display: flex;
@@ -186,28 +189,31 @@ button::after { border: 0; }
 	gap: 16rpx;
 	justify-content: space-between;
 	margin: 24rpx 0;
-	padding: 24rpx;
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: 24rpx;
-	background: var(--zy-card-bg, #ffffff);
+	padding: 22rpx 0;
+	border: 0;
+	border-top: 1rpx solid var(--zy-border, #d3ded8);
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	border-radius: 0;
+	background: transparent;
 }
 .sound-title,.sound-description { display: block; }
-.sound-title { font-size:var(--zy-text-body, 28rpx); color: var(--zy-title, #233d34); }
-.sound-description { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); margin-top: 8rpx; }
+.sound-title { font-family: var(--zy-font-display, serif); font-size:var(--zy-text-body, 28rpx); color: var(--zy-title, #111816); }
+.sound-description { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); margin-top: 8rpx; }
 .sound-toggle {
 	flex-shrink: 0;
 	margin: 0;
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	background: transparent;
+	color: var(--zy-brand-700, #0a403b);
 	font-size:var(--zy-text-caption, 24rpx);
-	border-radius: 12rpx;
+	border-radius: 0;
+	border: 1rpx solid var(--zy-border, #d3ded8);
 }
 .other-actions { display: flex; gap: 16rpx; margin-top: 24rpx; }
-.other-actions button { background: transparent; color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-caption, 24rpx); padding: 0 8rpx; }
-.safety-note,.disclaimer { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); line-height: 1.8; text-align: center; margin-top: 24rpx; }
+.other-actions button { background: transparent; color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-caption, 24rpx); padding: 0 8rpx; }
+.safety-note,.disclaimer { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.8; text-align: center; margin-top: 24rpx; }
 
 /* 睡前安顿卡 + 夜间安静模式：暗色保留，统一为令牌墨绿 */
-.sleep-card { padding: 28rpx; margin-top: 24rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 24rpx; line-height: 1.8; background: var(--zy-card-bg, #ffffff); }
+.sleep-card { padding: 24rpx 0; margin-top: 24rpx; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; line-height: 1.8; background: transparent; }
 .sleeping { background: var(--zy-title, #233d34) !important; }
 .sleeping .mindful-header,.sleeping .other-actions { display: none; }
 .sleeping .practice-card { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); box-shadow: none; }
@@ -225,6 +231,9 @@ button::after { border: 0; }
 .sleeping .safety-note,.sleeping .disclaimer { color: rgba(232, 239, 228, 0.7); }
 /* 子组件根元素受父级 scoped 影响：感官落地卡在夜间模式同样压暗 */
 .sleeping .sensory { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
+.sleeping .sensory .kicker { color: rgba(232, 239, 228, 0.6); }
+.sleeping .sensory .number { color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .sensory .stage { border-left-color: rgba(232, 239, 228, 0.5); }
 .sleeping .sensory .heading,.sleeping .sensory .prompt { color: var(--zy-bg-tint-mint, #e8efe4); }
 .sleeping .sensory .intro { color: rgba(232, 239, 228, 0.75); }
 .sleeping .sensory .actions button { background: rgba(91, 196, 168, 0.2); color: var(--zy-bg-tint-mint, #e8efe4); }

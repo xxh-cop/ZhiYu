@@ -23,14 +23,14 @@ defineProps({
 	align-items: center;
 	justify-content: center;
 	padding: 6rpx 10rpx;
-	border: 2rpx solid var(--zy-gold);
-	border-radius: var(--zy-radius-xs);
+	border: 1rpx solid var(--zy-care, #a64842);
+	border-radius: 0;
 	background: transparent;
-	transform: rotate(-2deg);
+	transform: rotate(-1deg);
 }
 .region-seal-text {
-	color: var(--zy-accent);
-	font-weight: 600;
+	color: var(--zy-care, #a64842);
+	font-weight: 500;
 	letter-spacing: 2rpx;
 	line-height: 1.2;
 }

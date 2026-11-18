@@ -363,7 +363,10 @@ const currentStepData = computed(() => {
 	return { ...raw, audioUrl }
 })
 
-onLoad(query=>{route=query||{};initialize().then(loadTeaching)})
+onLoad(query=>{route=query||{}
+ // 兼容详情页/分享卡片携带的 ?id= 参数，避免“缺少项目参数”导致整页不可用
+ if(!route.projectId && route.id)route={...route,projectId:route.id}
+ initialize().then(loadTeaching)})
 async function initialize(){
  if(disposed)return
  pageLoading.value=true;loadError.value='';stopHeartbeatTimer();craftStore.reset();totalDwellSeconds=0;resumed.value=false;exportSessionId=null;resetStuckGuide()
@@ -1485,4 +1488,29 @@ function handleBackHome() {
 	color: var(--zy-content, #4a5f54);
 }
 button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
+
+/* ── v9 冷瓷展签收口 ── */
+.page { background: var(--zy-bg, #f1f4f1); }
+.topbar { background: var(--zy-bg, #f1f4f1); border-color: var(--zy-border, #d3ded8); }
+.topbar-eyebrow { letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
+.topbar-title { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title, #111816); }
+.step-dot { width: 10rpx; height: 10rpx; border-radius: 0; }
+.step-dot.done { background: var(--zy-brand-300); }
+.step-dot.current { width: 26rpx; border-radius: 0; background: var(--zy-brand-600); }
+.step-count { color: var(--zy-muted, #6e7b75); }
+.more-btn { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); }
+.banner-readonly { background: transparent; border-left: 3rpx solid var(--zy-accent); }
+.pet-bubble { background: transparent; border: 0; border-left: 2rpx solid var(--zy-brand-600); border-radius: 0; padding: 12rpx 0 12rpx 18rpx; box-shadow: none; }
+.pet-bubble-text { color: var(--zy-text, #42524c); }
+.step-card { background: transparent; border-radius: 0; border-left: 3rpx solid var(--zy-brand-600); padding: 24rpx 0 24rpx 24rpx; box-shadow: none; }
+.step-stitch { display: none; }
+.step-kicker { color: var(--zy-muted); letter-spacing: 2px; }
+.step-title { font-size: 48rpx; font-weight: 500; color: var(--zy-title); }
+.step-guide { color: var(--zy-text); }
+.action-area { background: var(--zy-bg); border-color: var(--zy-border); }
+.session-tip, .safe-tip, .footnote { color: var(--zy-muted); }
+.footnote { background: var(--zy-bg); }
+.primary-btn { border-radius: 0; background: var(--zy-brand-600); }
+.success-card { background: var(--zy-bg); border: 1rpx solid var(--zy-border); border-radius: 0; }
+.success-title { font-family: var(--zy-font-display, serif); color: var(--zy-title); }
 </style>

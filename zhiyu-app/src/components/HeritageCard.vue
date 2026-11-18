@@ -113,25 +113,26 @@ function onOpen() {
 	overflow: hidden;
 	text-align: left;
 	line-height: 1.5;
-	background: var(--zy-card-bg);
-	border: 2rpx solid var(--zy-card-line);
-	border-radius: var(--zy-radius-card);
-	box-shadow: var(--zy-shadow-card);
+	background: transparent;
+	border: 0;
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	border-radius: 0;
+	box-shadow: none;
 }
 .heritage-card-cover {
 	position: relative;
 	height: 260rpx;
-	background: var(--zy-bg-tint-mint);
-	border-bottom: 2rpx dashed var(--zy-stitch);
+	background: var(--zy-bg-sunken, #e6eae6);
+	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 }
 /* 泛型卡无 pattern 且未提供 cover slot 时，封面退为一条材质带 */
 .heritage-card-cover--material {
-	height: 132rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: var(--zy-bg-tint-warm);
+	height: 3rpx;
+	display: block;
+	background: var(--zy-brand-700, #0a403b);
+	opacity: 0.55;
 }
+.heritage-card-material { display: none; }
 .heritage-card-texture {
 	position: absolute;
 	top: 0;
@@ -140,7 +141,7 @@ function onOpen() {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	opacity: 0.5;
+	opacity: 0.38;
 }
 .heritage-card-art {
 	position: relative;
@@ -153,11 +154,12 @@ function onOpen() {
 	z-index: 2;
 	top: 12rpx;
 	right: 12rpx;
-	background: var(--zy-card-bg);
+	background: transparent;
+	border: 1rpx solid var(--zy-border, #d3ded8);
 }
 .heritage-card-copy {
 	display: block;
-	padding: 20rpx 22rpx 24rpx;
+	padding: 18rpx 0 22rpx;
 }
 .heritage-card-title-row {
 	display: flex;
@@ -166,31 +168,33 @@ function onOpen() {
 	gap: 10rpx;
 }
 .heritage-card-title {
-	font-size: var(--zy-text-title);
-	font-weight: 600;
-	color: var(--zy-title);
+	font-family: var(--zy-font-display, "Songti SC", serif);
+	font-size: 32rpx;
+	font-weight: 500;
+	color: var(--zy-title, #111816);
 }
 .heritage-card-tag {
 	flex-shrink: 0;
-	font-size: var(--zy-text-micro);
-	color: var(--zy-brand-700);
-	background: var(--zy-bg-tint-mint);
-	border-radius: var(--zy-radius-chip);
+	font-size: var(--zy-text-micro, 22rpx);
+	color: var(--zy-brand-700, #0a403b);
+	background: transparent;
+	border: 1rpx solid var(--zy-border, #d3ded8);
+	border-radius: 0;
 	padding: 2rpx 8rpx;
 }
 .heritage-card-meta,
 .heritage-card-note {
 	display: block;
-	font-size: var(--zy-text-caption);
-	color: var(--zy-text);
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-muted, #6e7b75);
 	margin-top: 8rpx;
 }
 .heritage-card-note {
-	font-size: var(--zy-text-micro);
+	font-size: var(--zy-text-micro, 22rpx);
 }
 .heritage-card-footer {
 	display: block;
-	padding: 0 22rpx 22rpx;
+	padding: 0 0 22rpx;
 }
 
 /* ── 材质带四族（与 ProcessStrip 同一工艺逻辑，纯 CSS） ── */

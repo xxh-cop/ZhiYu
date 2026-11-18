@@ -1,44 +1,147 @@
 <template>
-	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]"><view class="growth-hero assess-hero"><view class="hero-copy"><text class="growth-eyebrow">SELF CHECK · 自我了解</text><text class="growth-title">给感受一个表达的空间</text><text class="growth-subtitle">自评只能帮助整理近期感受，不用于诊断。遇到困扰时，可以直接寻求专业支持。</text></view><XiaotuanPet :size="76" face="care" class="hero-pet" aria-hidden="true"/></view>
-<view v-if="error" class="growth-error" role="alert">{{error}}<AccessibleButton v-if="!scales.length" class="growth-button secondary" @click="load">重新加载</AccessibleButton></view><view v-if="loading" class="growth-card" aria-busy="true"><view class="growth-skeleton"/><view class="growth-skeleton short"/><text class="growth-muted">正在加载…</text></view>
-<template v-if="!active"><view v-for="s in scales" :key="s.id" class="growth-card scale-card"><view class="scale-badge" aria-hidden="true"><text class="scale-badge-text">{{s.questions.length}} 题</text></view><view class="scale-copy"><text class="growth-card-title">{{s.title}}</text><text class="growth-muted">回顾{{s.period}} · 可保存进度</text></view><AccessibleButton class="growth-button scale-action" @click="select(s)">开始 / 继续</AccessibleButton></view><view class="growth-card"><text class="growth-muted">PSS-10、PANAS、GSES 将在中文版本及使用授权核验完成后开放。</text></view></template>
-<template v-else-if="!result"><view class="growth-card"><text class="growth-card-title">{{active.title}}</text><text class="growth-muted">{{active.attribution}}</text><text class="growth-muted source" role="button" tabindex="0" @click="copySource" @keydown.enter.prevent="copySource" @keydown.space.prevent="copySource">查看来源：点此复制原量表链接</text><checkbox-group @change="consent=$event.detail.value.length>0"><label class="growth-consent"><checkbox value="yes" :checked="consent" color="#217e76"/>我了解自评的局限，同意加密保存本次答案与结果；出现安全信号时按平台关怀流程处理。可在成长旅程清除记录。</label></checkbox-group></view>
-<view v-if="consent" class="growth-card"><view class="growth-row growth-spread"><text class="growth-tag">{{index+1}} / {{active.questions.length}}</text><text class="growth-muted">{{active.period}}</text></view><view class="growth-progress" role="progressbar" :aria-valuenow="answered" :aria-valuemax="answers.length" aria-label="作答进度"><view class="growth-progress-fill" :style="{width:(answered/answers.length*100)+'%'}"/></view><text class="growth-muted">已回答 {{answered}} / {{answers.length}} 题</text><view :key="index" class="question-step"><text class="question">{{active.questions[index]}}</text><AccessibleButton v-for="(o,i) in active.options" :aria-pressed="answers[index]===i" :disabled="busy" :key="i" :class="['growth-choice',{selected:answers[index]===i}]" @click="choose(i)">{{o}}</AccessibleButton></view><view class="growth-row"><AccessibleButton class="growth-button secondary" :disabled="index===0||busy" @click="index--">上一题</AccessibleButton><AccessibleButton v-if="index<answers.length-1" class="growth-button" :disabled="answers[index]<0||busy" @click="index++">下一题</AccessibleButton><AccessibleButton v-else class="growth-button" :disabled="answers.includes(-1)||busy" @click="submit(false)">查看结果</AccessibleButton></view><AccessibleButton class="growth-button secondary" :disabled="busy" @click="submit(true)">保存进度，稍后继续</AccessibleButton></view><AccessibleButton class="growth-button secondary" :disabled="busy" @click="leave">返回量表列表</AccessibleButton></template>
-<view v-else class="growth-card"><text class="growth-card-title">本次记录 · {{result.score}} 分</text><text class="growth-muted">参考分数区间：{{result.interval}}。{{result.message}}</text><text class="growth-subtitle">单次分数不能判断心理疾病，也不代表你的价值。若困扰持续或影响生活，请寻求专业支持。</text><AccessibleButton class="growth-button" @click="journey">查看我的成长旅程</AccessibleButton><AccessibleButton class="growth-button secondary" @click="active=null;result=null">完成</AccessibleButton></view><view class="support-card"><text class="support-text">如果此刻有些撑不住，可以直接找到支持渠道。</text><AccessibleButton class="support-link" @click="help">我需要支持 →</AccessibleButton></view><text class="growth-foot">本系统不能替代专业心理咨询</text><ActionSheet :open="pendingLeave" title="返回列表" description="未保存的作答将丢失。可先选择保存进度。" :actions="[{key:'confirm',label:'放弃并返回',tone:'danger'}]" cancel-text="继续作答" @select="confirmLeave" @close="pendingLeave=false"/><Toast/></view></template>
-<script setup>
-import {useInteraction} from '../../composables/useInteraction'
-import ActionSheet from '../../components/ActionSheet.vue'
-import Toast from '../../components/Toast.vue'
-import AccessibleButton from '../../components/AccessibleButton.vue'
-import XiaotuanPet from '../../components/XiaotuanPet.vue'
-import {useToast} from '../../composables/useToast'
-const {reducedMotion}=useInteraction()
-const toast=useToast()
+	<view class="check-page">
+		<view class="check-top">
+			<AccessibleButton class="back-btn" aria-label="返回上一页" @click="goBack">←</AccessibleButton>
+			<text class="top-index">自我了解 / SELF-CHECK</text>
+		</view>
 
-import {ref,computed} from 'vue';import {onLoad} from '@dcloudio/uni-app';import {request} from '../../utils/request'
-const scales=ref([]),active=ref(null),answers=ref([]),index=ref(0),consent=ref(false),busy=ref(false),loading=ref(false),error=ref(''),result=ref(null);let requested='';let drafts=[]
-const answered=computed(()=>answers.value.filter(n=>n>=0).length)
-async function load(){loading.value=true;error.value='';try{scales.value=await request({url:'/api/growth/scales'});const j=await request({url:'/api/growth/journey'});drafts=j.records.filter(r=>r.kind==='DRAFT');if(requested){const s=scales.value.find(s=>s.id===requested);if(s)select(s);requested=''}}catch(e){error.value=e.message}finally{loading.value=false}}
-function select(s){active.value=s;const d=drafts.find(d=>d.scale===s.id&&d.version===s.version&&d.answers?.length===s.questions.length);answers.value=d?[...d.answers]:s.questions.map(()=>-1);index.value=Math.max(0,answers.value.indexOf(-1));consent.value=false;result.value=null;error.value=''}
-function choose(i){if(busy.value)return;answers.value[index.value]=i;if(active.value.id==='PHQ9'&&index.value===8&&i>0){help();submit(true,true)}}
-async function submit(draft,crisis=false){if(busy.value||!consent.value)return;busy.value=true;error.value='';try{const r=await request({url:'/api/growth/assessment',method:'POST',data:{scale:active.value.id,version:active.value.version,answers:answers.value,consent:true,draft}});if(r.crisis&&!crisis){help();return}if(!draft)result.value=r;else if(!crisis){toast.success('进度已保存');active.value=null;await load()}}catch(e){error.value=e.message}finally{busy.value=false}}
-const pendingLeave=ref(false)
-function leave(){pendingLeave.value=true}
-function confirmLeave(){pendingLeave.value=false;active.value=null}
-function copySource(){uni.setClipboardData({data:active.value.source})}function help(){uni.navigateTo({url:'/pages/crisis/index'})}function journey(){uni.navigateTo({url:'/pages/journey/index'})}onLoad(o=>{requested=o.scale||'';load()})
-</script><style scoped>
-.source:focus-visible{outline:3px solid var(--zy-primary,var(--zy-brand-600, #217e76));outline-offset:3px}
-</style><style scoped>
-/* AZ 精修（2026-11-05）：hero 补小织、量表卡加徽章层次、支持入口改温和关怀卡。结构/流程不动。 */
-.assess-hero{display:flex;align-items:center;gap:16rpx}.hero-copy{flex:1;min-width:0}.hero-pet{flex-shrink:0}
-.scale-card{display:flex;align-items:center;gap:22rpx}
-.scale-badge{flex-shrink:0;width:84rpx;height:84rpx;border-radius:24rpx;background:var(--zy-bg-tint-mint,#e8efe4);display:flex;align-items:center;justify-content:center}
-.scale-badge-text{font-size:var(--zy-text-caption, 24rpx);font-weight:600;color:var(--zy-brand-700,var(--zy-brand-700, #1a645e))}
-.scale-copy{flex:1;min-width:0}
-.scale-action{flex-shrink:0;margin:0}
-.question{display:block;font-size:var(--zy-text-title, 32rpx);line-height:1.8;margin:36rpx 0}.source{display:block;color:var(--zy-brand-700, #1a645e);margin-top:20rpx}.growth-row button{flex:1}
-.source:focus-visible{outline:3px solid var(--zy-primary,var(--zy-brand-600, #217e76));outline-offset:3px}
-.support-card{display:flex;align-items:center;justify-content:space-between;gap:16rpx;margin-top:32rpx;padding:24rpx 28rpx;background:var(--zy-card-bg,#ffffff);border:1rpx solid var(--zy-border,#dfe7dc);border-radius:22rpx}
-.support-text{font-size:var(--zy-text-caption, 24rpx);line-height:1.7;color:var(--zy-text,#4a5f54)}
-.support-link{flex-shrink:0;margin:0;padding:8rpx 20rpx;background:transparent;color:var(--zy-brand-700,var(--zy-brand-700, #1a645e));font-size:var(--zy-text-caption, 24rpx)}
+		<view class="check-head">
+			<view class="head-rule" aria-hidden="true"></view>
+			<text class="check-title zy-t-serif">不给自己打分，<br/>只看看此刻。</text>
+			<text class="check-sub">五个维度，把模糊的感受放回身体里。</text>
+			<text class="check-sub check-sub-second">不是量表，不诊断，也不打分。</text>
+			<text class="scale-hint">每一行五格，从「很少」到「很多」；没有标准答案。</text>
+		</view>
+
+		<view class="dim-list">
+			<view v-for="(d, i) in DIMENSIONS" :key="d.key" class="dim-row">
+				<text class="dim-index">{{ String(i + 1).padStart(2, '0') }}</text>
+				<view class="dim-main">
+					<view class="dim-copy">
+						<text class="dim-name">{{ d.name }}</text>
+						<text class="dim-q">{{ d.question }}</text>
+					</view>
+					<view class="dim-scale" role="group" :aria-label="d.name + '状态'">
+						<button
+							v-for="n in 5"
+							:key="n"
+							class="dim-dot"
+							:class="{ 'is-on': values[d.key] >= n, 'is-selected': values[d.key] === n }"
+							:aria-label="d.name + '：' + LABELS[n - 1]"
+							:aria-pressed="values[d.key] === n"
+							@click="setValue(d.key, n)"
+						><text class="dim-dot-num">{{ n }}</text></button>
+					</view>
+					<text class="dim-value">{{ values[d.key] ? LABELS[values[d.key] - 1] : '未选' }}</text>
+				</view>
+			</view>
+		</view>
+
+		<view v-if="complete" class="summary">
+			<view class="summary-line" aria-hidden="true"></view>
+			<text class="summary-kicker">这一刻的状态</text>
+			<text class="summary-text zy-t-serif">{{ summary }}</text>
+			<text class="summary-note">这只是一次自我整理，不是评分或诊断。若困扰持续或影响生活，请联系专业支持。</text>
+		</view>
+
+		<view class="check-actions">
+			<AccessibleButton class="save-btn" variant="primary" :disabled="!complete" @click="saveLocal">记下这一刻</AccessibleButton>
+			<AccessibleButton class="journey-link" variant="ghost" @click="goJourney">看看我的成长旅程 →</AccessibleButton>
+		</view>
+
+		<view class="support-card">
+			<text class="support-text">如果此刻有些撑不住，可以直接找到支持渠道。</text>
+			<AccessibleButton class="support-link" variant="ghost" @click="goCrisis">我需要支持 →</AccessibleButton>
+		</view>
+
+		<text class="check-foot">本系统不能替代专业心理咨询</text>
+		<Toast />
+	</view>
+</template>
+
+<script setup>
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import Toast from '../../components/Toast.vue'
+import { computed, reactive } from 'vue'
+import { useToast } from '../../composables/useToast'
+
+const toast = useToast()
+
+/* 非临床五维：只做状态整理，不评分、不诊断、不生成风险等级 */
+const DIMENSIONS = [
+	{ key: 'sleep', name: '睡眠', question: '昨夜，睡得安稳吗？' },
+	{ key: 'energy', name: '精力', question: '今天，身体有多少力气？' },
+	{ key: 'focus', name: '专注', question: '能把注意力放回一件事上吗？' },
+	{ key: 'connection', name: '联结', question: '今天，和人有真实的连接吗？' },
+	{ key: 'calm', name: '平静', question: '此刻，心里有多少安静？' }
+]
+const LABELS = ['很少', '较少', '一般', '较多', '很多']
+const values = reactive({ sleep: 0, energy: 0, focus: 0, connection: 0, calm: 0 })
+const complete = computed(() => DIMENSIONS.every(d => values[d.key] > 0))
+const summary = computed(() => {
+	const parts = DIMENSIONS.map(d => `${d.name}${values[d.key] <= 2 ? '偏少' : values[d.key] >= 4 ? '偏多' : '在中间'}`)
+	return `你标记了：${parts.join('，')}。没有好坏，只是今天的样子。`
+})
+
+function setValue(key, n) { values[key] = n }
+function goBack() { uni.navigateBack({ fail: () => uni.switchTab({ url: '/pages/home/index' }) }) }
+function goJourney() { uni.navigateTo({ url: '/pages/journey/index' }) }
+function goCrisis() { uni.navigateTo({ url: '/pages/crisis/index' }) }
+function saveLocal() {
+	if (!complete.value) return
+	try {
+		uni.setStorageSync('zy-five-check', { at: new Date().toISOString(), values: { ...values } })
+		toast.success('已记下，只保存在这台设备')
+	} catch (e) {
+		toast.care('这台设备暂时无法保存')
+	}
+}
+</script>
+
+<style scoped>
+.check-page { min-height: 100vh; padding: 0 36rpx 64rpx; box-sizing: border-box; background: var(--zy-bg); padding-top: env(safe-area-inset-top, 0px); }
+.check-top { display: flex; align-items: center; gap: 18rpx; padding-top: 24rpx; }
+.back-btn { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; padding: 0; margin: 0; background: transparent; border: 1rpx solid var(--zy-border); border-radius: 0; color: var(--zy-title); font-size: 28rpx; }
+.top-index { color: var(--zy-muted); font-size: 20rpx; letter-spacing: 3rpx; }
+
+.check-head { padding-top: 44rpx; }
+.head-rule { width: 44rpx; height: 2rpx; background: var(--zy-care); }
+.check-title { display: block; margin-top: 24rpx; font-size: 64rpx; line-height: 1.34; font-weight: 500; letter-spacing: 2rpx; color: var(--zy-title); }
+.check-sub { display: block; margin-top: 22rpx; max-width: 92%; color: var(--zy-muted); font-size: 24rpx; line-height: 1.9; }
+.check-sub-second { margin-top: 4rpx; }
+.scale-hint { display: block; margin-top: 20rpx; color: var(--zy-muted); font-size: 20rpx; line-height: 1.7; }
+
+.dim-list { margin-top: 48rpx; border-top: 1rpx solid var(--zy-border); }
+.dim-row { display: flex; gap: 16rpx; padding: 26rpx 0 22rpx; border-bottom: 1rpx solid var(--zy-border); }
+.dim-index { width: 44rpx; flex-shrink: 0; padding-top: 4rpx; color: var(--zy-muted); font-family: var(--zy-serif); font-size: 20rpx; }
+.dim-main { flex: 1; min-width: 0; }
+.dim-copy { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12rpx; }
+.dim-name { color: var(--zy-title); font-family: var(--zy-font-display, "Songti SC", serif); font-size: 32rpx; font-weight: 500; letter-spacing: 1rpx; }
+.dim-q { color: var(--zy-muted); font-size: 21rpx; }
+.dim-scale { display: flex; gap: 0; margin-top: 16rpx; align-items: center; }
+.dim-dot { width: 88rpx; height: 80rpx; min-width: 88rpx; min-height: 80rpx; padding: 0; margin: 0 -1rpx 0 0; border: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; display: flex; align-items: center; justify-content: center; }
+.dim-dot::after { border: 0; }
+.dim-dot-num { font-size: 26rpx; color: var(--zy-muted); line-height: 1; }
+.dim-dot.is-on { border-color: var(--zy-brand-600); background: transparent; }
+.dim-dot.is-on .dim-dot-num { color: var(--zy-brand-700); }
+.dim-dot.is-selected { background: var(--zy-brand-600); border-color: var(--zy-brand-600); }
+.dim-dot.is-selected .dim-dot-num { color: #ffffff; }
+.dim-value { display: block; margin-top: 8rpx; color: var(--zy-muted); font-size: 20rpx; }
+.dim-dot:focus-visible { outline: 2px solid var(--zy-brand-700); outline-offset: 2px; }
+
+.summary { margin-top: 48rpx; padding-left: 20rpx; border-left: 2rpx solid var(--zy-care); }
+.summary-line { display: none; }
+.summary-kicker { display: block; color: var(--zy-muted); font-size: 20rpx; letter-spacing: 3rpx; }
+.summary-text { display: block; margin-top: 14rpx; color: var(--zy-title); font-size: 38rpx; line-height: 1.9; }
+.summary-note { display: block; margin-top: 16rpx; color: var(--zy-muted); font-size: 21rpx; line-height: 1.8; }
+
+.check-actions { margin-top: 44rpx; display: flex; flex-direction: column; gap: 18rpx; }
+.save-btn { width: 100%; }
+.journey-link { margin: 0; padding: 0; align-self: flex-start; color: var(--zy-brand-700); font-size: 22rpx; }
+
+.support-card { margin-top: 52rpx; padding-top: 24rpx; border-top: 1rpx solid var(--zy-border); display: flex; align-items: center; justify-content: space-between; gap: 18rpx; }
+.support-text { flex: 1; min-width: 0; color: var(--zy-text); font-size: 22rpx; line-height: 1.8; }
+.support-link { margin: 0; padding: 0; flex-shrink: 0; color: var(--zy-care); font-size: 22rpx; background: transparent; border: 0; min-height: 44rpx; }
+.support-link::after { border: 0; }
+.check-foot { display: block; margin-top: 42rpx; color: var(--zy-muted); font-size: 20rpx; text-align: center; }
 </style>

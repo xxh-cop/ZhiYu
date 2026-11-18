@@ -29,7 +29,7 @@
 
 ### 1.2 小织人设 `zhiyu-backend/src/main/resources/prompts/companion.st`
 
-整体重写为「手作社里愿意听人说话的学姐」：
+整体重写为「织愈手作社里愿意听人说话的学姐」：
 - 先接一个具体细节，不复述情绪词；不总结、不替用户下结论。
 - 每次 1–2 句、尽量 ≤40 字；一次最多一个问题；可以只回「嗯，我在。」。
 - 黑名单：我懂你 / 你已经很棒了 / 一切都会好起来 / 慢慢来 / 想开点 / 你的感受很重要，以及「首先/其次/总之」。
@@ -81,15 +81,22 @@
 | 后端针对性测试 | `mvn test "-Dtest=CompanionMemoryServiceTest,CompanionMemoryControllerTest,CompanionOrchestratorTest,AdaptivePracticeServiceTest,EmotionControllerViaCommanderTest"` 通过，34 个用例全绿（BUILD SUCCESS） |
 | 新增单测 | 回避话题加密存储、上限与换行校验；注入 ≤3 条且不含低落天数；派生 key 不可删除 |
 | H5 构建 | `VITE_API_BASE_URL=http://localhost:8080 pnpm build:h5` 通过 |
-| 微信小程序构建 | `VITE_API_BASE_URL=http://localhost:8080 pnpm build:mp-weixin` 通过 |
+| 后端全量测试 | `mvn test` 通过：1043 个用例，0 失败 / 0 错误 / 1 跳过（BUILD SUCCESS） |
+| 微信小程序构建 | `VITE_API_BASE_URL=http://localhost:8080 pnpm build:mp-weixin` 通过（最终代码复验） |
 | 样式审计 | `pnpm check:tokens` 通过 |
+| 真实 MySQL 集成冒烟 | `CompanionMemoryRealDbIT`（dev 配置 + 事务回滚）1 个用例通过：密文可解回原文、4 项派生来自真实 SQL、注入 ≤3 条、派生 key 拒绝删除、整份删除关闭记忆 |
+| HTTP 端到端冒烟 | 启动真实后端（MySQL + Redis），注册/登录/隐私授权/开关/保存/密文落库/派生/单删/全删全部通过，测试用户已清理 |
 | H5 截图 | `output/playwright/{home,chat,memory,notes,onboarding}.png`，Playwright 渲染并逐张查看 |
 
 截图脚本 `.ai-tmp/screenshot-ui.js`：使用本机 Chromium（1223），只拦截 `http://localhost:8080/api/**`，记忆/便签/用户接口为 mock 数据，登录态为本地演示 token；不连接真实后端、不写数据库。启动方式：`pnpm dev:h5` 后 `node .ai-tmp/screenshot-ui.js`。
 
+真实环境冒烟脚本：
+- `CompanionMemoryRealDbIT`：`$env:RUN_REAL_DB_IT='true'; $env:ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET='true'; mvn test "-Dtest=CompanionMemoryRealDbIT"`（事务回滚，不留数据）。
+- `.ai-tmp/smoke-memory.mjs`：先以 dev 配置启动后端，再 `node .ai-tmp/smoke-memory.mjs`；创建 `smoke_*` 临时用户并在 finally 中清理。
+
 ## 5. 未验收 / 边界
 
-- 真实模型的人设效果、真实 MySQL/Redis、真机小程序均未验收；派生统计使用 MySQL `DATE_SUB/HOUR/CURDATE` 语法，仅经 mock 单测。
+- 真实模型的人设效果、真机小程序尚未验收；派生统计已在真实 MySQL 验证（见第 4 节）。
 - 自动样式收口改了 87 个文件，只抽查了首页/对话/记忆/便签/引导页，未逐页视觉回归。
 - 18 处纯文字加载、39 处 `zy-t-*` 旧类、68 处图标色保持现状。
 - 本任务未执行任何 `git add/commit/push`。

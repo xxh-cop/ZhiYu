@@ -31,4 +31,7 @@ public class InheritorPublicItemVO {
 
     /** 头像 URL（user.avatar_url） */
     private String avatarUrl;
+
+    /** 已上架手作项目数（craft_project.status=1 AND deleted=0） */
+    private Integer projectCount;
 }

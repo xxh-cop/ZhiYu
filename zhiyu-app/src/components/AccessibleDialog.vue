@@ -1,6 +1,6 @@
 <template>
-  <view v-if="open" class="dialog-mask" @click="dismiss">
-    <view ref="panel" class="dialog-panel" role="dialog" aria-modal="true" :aria-label="title" tabindex="-1" @click.stop>
+  <view v-if="open" class="dialog-mask" :class="{ 'is-dark': dark }" @click="dismiss">
+    <view ref="panel" class="dialog-panel" :class="{ 'is-dark': dark }" role="dialog" aria-modal="true" :aria-label="title" tabindex="-1" @click.stop>
       <text class="dialog-title">{{ title }}</text>
       <slot />
     </view>
@@ -9,7 +9,7 @@
 
 <script setup>
 import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
-const props = defineProps({ open: Boolean, busy: Boolean, title: { type: String, required: true } })
+const props = defineProps({ open: Boolean, busy: Boolean, dark: Boolean, title: { type: String, required: true } })
 const emit = defineEmits(['close'])
 const panel = ref(null)
 function dismiss() { if (!props.busy) emit('close') }
@@ -66,6 +66,9 @@ onBeforeUnmount(release)
 <style scoped>
 .dialog-mask{position:fixed;inset:0;z-index:9999;background:rgba(23,43,35,.5);padding:24px 16px;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
 .dialog-panel{box-sizing:border-box;width:100%;max-width:520px;max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border:1px solid #dfe7dc;border-radius:20px;padding:28px;color:#233d34;box-shadow:0 24px 80px rgba(23,43,35,.18)}
+.dialog-panel.is-dark{background:#0F1C19;border:1px solid rgba(241,244,241,.22);border-radius:0;color:#F1F4F1;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.dialog-panel.is-dark .dialog-title{color:#F1F4F1}
+.dialog-mask.is-dark{background:rgba(4,10,9,.72)}
 .dialog-title{display:block;font-size:21px;font-weight:600;line-height:1.5;margin-bottom:16px}
 @media(max-width:480px){.dialog-panel{padding:24px 20px}}
 </style>

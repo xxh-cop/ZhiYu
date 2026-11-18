@@ -276,16 +276,43 @@ public class CraftRecommendServiceImpl implements CraftRecommendService {
         }
 
         String tagList = matchedTags.isEmpty()
-                ? (project.getTherapyTags() != null ? project.getTherapyTags() : "手作")
+                ? (project.getTherapyTags() != null ? project.getTherapyTags().trim() : "")
                 : String.join("、", matchedTags);
 
-        String reason = project.getTitle() + " 适合做 " + tagList + " 的练习";
+        String reason;
+        if (tagList.isEmpty()) {
+            // 项目未维护 therapy_tags 时，不输出「适合做  的练习」的空洞句式
+            reason = fallbackReason(project);
+        } else {
+            reason = "适合做" + tagList + "的练习";
+        }
         // 不超过 50 字
         if (reason.length() > 50) {
             reason = reason.substring(0, 50);
         }
         return reason;
     }
+
+    /**
+     * 无标签时按材料给出一句具体的节奏描述，避免空模板。
+     */
+    private String fallbackReason(CraftProject project) {
+        String category = project.getCategory() == null ? "" : project.getCategory();
+        if (category.contains("纸") || category.contains("剪")) {
+            return "适合在折、压、展开之间，把呼吸放慢";
+        }
+        if (category.contains("编") || category.contains("线") || category.contains("织")) {
+            return "适合用重复的绕线，安放注意力";
+        }
+        if (category.contains("陶") || category.contains("瓷")) {
+            return "适合在掌心的重量里，回到当下";
+        }
+        if (category.contains("绣") || category.contains("布")) {
+            return "适合在一针一线里，把心绪收拢";
+        }
+        return "适合在重复的手作节奏里，慢慢安定";
+    }
+
 
     /**
      * 打分中间对象。

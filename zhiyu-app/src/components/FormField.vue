@@ -50,9 +50,10 @@ const showCounter = computed(() => props.maxlength > 0)
 	display: flex;
 	align-items: baseline;
 	gap: 8rpx;
-	font-size: var(--zy-font-base, 28rpx);
-	font-weight: 600;
-	color: var(--zy-title, #233d34);
+	font-family: var(--zy-font-display, "Songti SC", serif);
+	font-size: var(--zy-font-base, 30rpx);
+	font-weight: 500;
+	color: var(--zy-title, #111816);
 }
 .field-required { color: var(--zy-care, var(--zy-care, #a64842)); }
 .field-optional { font-size: var(--zy-font-xs, 20rpx); font-weight: 400; color: var(--zy-text-secondary, #4a5f54); }

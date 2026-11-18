@@ -2,11 +2,9 @@
 	<view :class="zyThemeClass" class="page">
 		<!-- 顶部品牌区 -->
 		<view class="hero zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<view class="hero-icon-wrap">
-				<wd-icon name="usergroup" size="48rpx" color="#FFFFFF" />
-			</view>
-			<text class="hero-title">创建互助小组</text>
-			<text class="hero-sub">找到志同道合的伙伴，一起成长</text>
+			<text class="hero-eyebrow">NEW CIRCLE · 创建小组</text>
+			<text class="hero-title">给相遇，起个名字</text>
+			<text class="hero-sub">不用很大，能坐下说话就好。</text>
 		</view>
 
 		<!-- 表单卡片 -->
@@ -42,6 +40,7 @@
 							v-model="form.description"
 							placeholder="简单介绍一下这个小组"
 							:maxlength="200"
+							:rows="3"
 							no-border
 							custom-class="form-textarea-el"
 							@input="errors.description = ''"
@@ -330,4 +329,29 @@ button:focus-visible,
 	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
 	outline-offset: 3px;
 }
+
+/* ── v9 冷瓷展签收口 ── */
+.page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
+.hero { align-items: flex-start; padding: 0 0 30rpx; border-bottom: 1rpx solid var(--zy-border); margin-bottom: 8rpx; }
+.hero-eyebrow { display: block; margin-bottom: 20rpx; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); }
+.hero-head { display: flex; align-items: flex-start; gap: 18rpx; }
+.hero-icon-wrap { width: 56rpx; height: 56rpx; border-radius: 0; background: var(--zy-brand-700); box-shadow: none; margin-bottom: 0; flex-shrink: 0; }
+.hero-copy { display: flex; flex-direction: column; gap: 8rpx; }
+.hero-title { font-size: 56rpx; font-weight: 500; line-height: 1.3; }
+.hero-sub { margin-top: 14rpx; color: var(--zy-muted); }
+.form-card { background: transparent; border-radius: 0; box-shadow: none; padding: 28rpx 0 8rpx; margin-bottom: 20rpx; border-top: 0; }
+.form { gap: 32rpx; }
+.form-label { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; }
+.form-hint, .char-hint { color: var(--zy-muted); }
+.btn-primary { border-radius: 0; background: var(--zy-brand-600); }
+.btn-primary:active { transform: none; }
+.btn-primary--disabled { background: transparent; border: 1rpx solid var(--zy-border); opacity: 1; }
+.btn-primary--disabled .btn-primary-text { color: var(--zy-muted); }
+.btn-secondary { border-radius: 0; }
+.btn-secondary-text { color: var(--zy-muted); }
+.footnote { color: var(--zy-muted); }
+.form-card :deep(input), .form-card :deep(textarea) { background: transparent !important; }
+.form-card :deep(.wd-textarea), .form-card :deep(.wd-input) { border-radius: 0 !important; border-bottom: 1rpx solid var(--zy-border) !important; background: transparent !important; }
+.form-card :deep(.wd-textarea__value), .form-card :deep(.wd-textarea__inner) { background: transparent !important; border: 0 !important; }
+.form-card :deep(.wd-textarea__count) { background: transparent !important; color: var(--zy-muted) !important; }
 </style>
