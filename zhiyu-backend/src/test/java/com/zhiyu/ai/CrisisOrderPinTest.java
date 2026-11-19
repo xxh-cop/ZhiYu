@@ -68,6 +68,8 @@ class CrisisOrderPinTest {
         HighRiskLexicon lexicon = new HighRiskLexicon();
         org.springframework.test.util.ReflectionTestUtils.setField(lexicon, "lexiconResource",
                 new org.springframework.core.io.ClassPathResource("lexicon/high-risk.txt"));
+        org.springframework.test.util.ReflectionTestUtils.setField(lexicon, "benignResource",
+                new org.springframework.core.io.ClassPathResource("lexicon/high-risk-benign.txt"));
         lexicon.init();
         careReminder = mock(CareReminderService.class);
         realFilter = new KeywordContentSafetyFilter(lexicon, careReminder,

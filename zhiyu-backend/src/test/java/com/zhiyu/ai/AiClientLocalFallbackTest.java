@@ -265,6 +265,8 @@ class AiClientLocalFallbackTest {
         var lexicon = new com.zhiyu.ai.safety.HighRiskLexicon();
         org.springframework.test.util.ReflectionTestUtils.setField(lexicon, "lexiconResource",
                 new org.springframework.core.io.ClassPathResource("lexicon/high-risk.txt"));
+        org.springframework.test.util.ReflectionTestUtils.setField(lexicon, "benignResource",
+                new org.springframework.core.io.ClassPathResource("lexicon/high-risk-benign.txt"));
         lexicon.init();
         var careReminder = mock(com.zhiyu.modules.audit.service.CareReminderService.class);
         var realFilter = new com.zhiyu.ai.safety.KeywordContentSafetyFilter(lexicon, careReminder,

@@ -135,6 +135,63 @@ class KeywordContentSafetyFilterTest {
         assertEquals(1, count, "应有一条 scene='recommend' 的审计记录");
     }
 
+    // ── 2026-11-19：终局告别 / 求助形态补齐（词库 + 良性复合词中性化） ──
+
+    @Test
+    @DisplayName("2026-11-19：终局告别 → BLOCK + care_reminder 2 档")
+    void farewellBlocksWithLevel2() {
+        SafetyResult result = safetyFilter.checkInput(5210L, 930L, "chat", "永别了，这个世界");
+
+        assertEquals(SafetyAction.BLOCK, result.getAction());
+        Long lv = jdbcTemplate.queryForObject(
+                "SELECT risk_level FROM care_reminder WHERE user_id=5210", Long.class);
+        assertEquals(2L, lv, "终局告别应为 2 档高危");
+    }
+
+    @Test
+    @DisplayName("2026-11-19：求助表达 → BLOCK + care_reminder 1 档")
+    void cryForHelpBlocksWithLevel1() {
+        SafetyResult result = safetyFilter.checkInput(5211L, 931L, "chat", "谁能救救我");
+
+        assertEquals(SafetyAction.BLOCK, result.getAction());
+        Long lv = jdbcTemplate.queryForObject(
+                "SELECT risk_level FROM care_reminder WHERE user_id=5211", Long.class);
+        assertEquals(1L, lv, "求助表达应为 1 档关注");
+    }
+
+    @Test
+    @DisplayName("2026-11-19：良性告别 / 求救语境 → PASS，不写 care_reminder")
+    void benignFarewellAndCryPass() {
+        SafetyResult farewell = safetyFilter.checkInput(5212L, 932L, "chat", "周五的告别演出很感人");
+        assertEquals(SafetyAction.PASS, farewell.getAction());
+
+        SafetyResult cry = safetyFilter.checkInput(5213L, 933L, "chat", "科普讲座介绍了求救信号的几种发送方式");
+        assertEquals(SafetyAction.PASS, cry.getAction());
+
+        SafetyResult drill = safetyFilter.checkInput(5216L, 936L, "chat", "消防演练中，大家练习如何发出求救信号");
+        assertEquals(SafetyAction.PASS, drill.getAction());
+
+        long careCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM care_reminder WHERE user_id IN (5212,5213,5216)", Long.class);
+        assertEquals(0L, careCount, "良性语境不得触发关怀提醒");
+    }
+
+    @Test
+    @DisplayName("2026-11-19 复核：真实「求救信号」命中 1 档；「和焦虑永别」只到 1 档不进 2 档")
+    void realHelpSignalAndRecoveryFarewellStayLow() {
+        SafetyResult help = safetyFilter.checkInput(5214L, 934L, "chat", "这是我的求救信号");
+        assertEquals(SafetyAction.BLOCK, help.getAction());
+        Long helpLevel = jdbcTemplate.queryForObject(
+                "SELECT risk_level FROM care_reminder WHERE user_id=5214", Long.class);
+        assertEquals(1L, helpLevel, "真实求救信号必须命中且为 1 档");
+
+        SafetyResult recovery = safetyFilter.checkInput(5215L, 935L, "chat", "我想和焦虑永别，重新开始");
+        assertEquals(SafetyAction.BLOCK, recovery.getAction());
+        Long recoveryLevel = jdbcTemplate.queryForObject(
+                "SELECT risk_level FROM care_reminder WHERE user_id=5215", Long.class);
+        assertEquals(1L, recoveryLevel, "康复叙事不得进入 2 档");
+    }
+
     // ── AU1（2026-11-04）：CARE_RISK 三档对齐 ──
 
     @Test
