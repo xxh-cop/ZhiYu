@@ -14,6 +14,11 @@
  *        该类由该组件根节点透传注入——透传注入。
  *   否则报错。
  *
+ * 判定实现（2026-11-19 修订）：先把模板 class/:class/v-bind:class 属性值切成「类名 token 集合」，
+ * 再判断集合里是否同时含前置类与 is-* 类。旧实现对 is-* 要求「紧贴引号」，会漏掉
+ * `'a is-focused'`、`` `a ${x}` ``、`['a', cond ? 'is-focused' : '']` 等多类名/拼接写法，
+ * 造成「模板明明有动态绑定却判成无承载节点」的误报；按 token 切分后与书写形式无关。
+ *
  * 只查 KNOWN_IS_CLASSES 清单内的 is-* 类，不泛化到所有 class，避免 scoped 传递/动态 class 误报。
  * 纯样式文件（无模板）在 SKIP_STYLE_FILES 登记后跳过。
  *
@@ -70,32 +75,26 @@ function extractPairs(styleText) {
 
 function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-// 模板里某节点是否「同时承载 preCls（若非空）与 isCls 注入」。
-// 实现：找出所有含 preCls 的 class 承载位置（静态 class 属性），再看该节点是否注入 isCls。
-// 为降低复杂度，采用两阶段：
-//   1) 若模板有任何 isCls 字面量注入点（:class 对象键/数组项/静态 class），
-//      且（preCls 为空 或 模板任意 class 属性含 preCls），视为本地注入通过。
-//      —— 这允许「同一节点 :class 对象里同时写 X 与 is-x」以及「X 静态 + is-x 动态」。
-//   2) 否则若 preCls 出现在某个注入组件的 class 上，视为透传注入通过。
-function templateHasLocalInjection(template, preCls, isCls) {
-  const t = template.replace(/\s+/g, ' ');
-  const escIs = escapeRe(isCls);
-  // isCls 字面量注入点三种写法
-  const hasIs =
-    new RegExp(`['"]${escIs}['"]\\s*:`).test(t) || // 对象键 'is-x':
-    new RegExp(`:class\\s*=\\s*"[^"]*['"]${escIs}['"]`).test(t) || // :class="[...'is-x'...]"
-    new RegExp(`:class\\s*=\\s*'[^']*['"]${escIs}['"]`).test(t) ||
-    new RegExp(`\\bclass\\s*=\\s*"[^"]*\\b${escIs}\\b`).test(t) || // 静态 class="..is-x.."
-    new RegExp(`\\bclass\\s*=\\s*'[^']*\\b${escIs}\\b`).test(t);
-  if (!hasIs) return false;
-  if (!preCls) return true; // 裸 .is-x：有注入即可（基座自身情形）
-  // preCls 需在模板某 class 属性出现（静态或绑定字面量）
-  const escPre = escapeRe(preCls);
-  return (
-    new RegExp(`\\bclass\\s*=\\s*"[^"]*\\b${escPre}\\b`).test(t) ||
-    new RegExp(`\\bclass\\s*=\\s*'[^']*\\b${escPre}\\b`).test(t) ||
-    new RegExp(`['"]${escPre}['"]`).test(t) // 绑定对象/数组里的 'X'
-  );
+// 收集脚本段与模板中所有 class / :class / v-bind:class 属性值里的类名 token。
+// 覆盖静态 class、绑定对象键、数组项、三元、字符串拼接、模板字符串等写法。
+function extractClassTokens(text) {
+  const tokens = new Set();
+  const attrRe = /(?::class|v-bind:class|\bclass)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+  let m;
+  while ((m = attrRe.exec(text)) !== null) {
+    const value = m[1] !== undefined ? m[1] : m[2];
+    for (const tok of value.match(/[A-Za-z_][\w-]*/g) || []) tokens.add(tok);
+  }
+  return tokens;
+}
+
+// 模板里某节点是否承载 isCls（以及非空时的 preCls）。
+// 用 token 集合判定：is 类与前置类只要都作为类名出现在 class 属性里即通过；
+// 前置类为空（裸 .is-x）时只要有 is 类注入即可。
+function templateHasLocalInjection(tokens, preCls, isCls) {
+  if (!tokens.has(isCls)) return false;
+  if (!preCls) return true;
+  return tokens.has(preCls);
 }
 
 // 模板是否使用了会注入 isCls 的共享组件（如 AccessibleButton）。
@@ -137,6 +136,7 @@ for (const file of vueFiles) {
   const templateText = text.slice(0, styleIdx);
   const pairs = extractPairs(styleText);
   if (!pairs.length) continue;
+  const classTokens = extractClassTokens(templateText);
   const seen = new Set();
   for (const { preCls, preIsElement, isCls } of pairs) {
     // is 类挂元素选择器（如 button.is-x）时，按「无自定义前置类」处理（走透传判定）
@@ -144,7 +144,7 @@ for (const file of vueFiles) {
     const key = effectivePre + '|' + isCls;
     if (seen.has(key)) continue;
     seen.add(key);
-    if (templateHasLocalInjection(templateText, effectivePre, isCls)) continue;
+    if (templateHasLocalInjection(classTokens, effectivePre, isCls)) continue;
     if (templateHasTransitiveInjection(templateText, effectivePre, isCls)) continue;
     failures.push({ file: path.relative(srcRoot, file), sel: (effectivePre ? '.' + effectivePre : '') + '.' + isCls });
   }

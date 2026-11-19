@@ -70,6 +70,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # UI 闸口（源码级）：不依赖构建产物，放在构建前，失败即挡住后续步骤。
+      # check:tokens 默认只报告、恒 exit 0；--strict 只对 emoji/字符图标与冷灰值报错（当前均为 0），
+      # 这样它在 CI 里能真正变红，又不会把「未收口统计」这类展示指标误当失败。
+      - name: UI gates (source)
+        run: |
+          npm run check:isclass
+          npm run check:contrast
+          npm run check:tokens -- --strict
+          npm run check:heritage
+
       - name: Run app unit tests
         run: node --test tests/*.test.mjs
 
@@ -78,6 +88,14 @@ jobs:
 
       - name: Build WeChat mini program
         run: npm run build:mp-weixin
+
+      # UI 闸口（产物级）：check:wxss / check:elements 扫描 dist/build/mp-weixin，
+      # 必须在小程序构建之后。check:wxss 命中 `*` 通配选择器会 exit 1（发布阻断）；
+      # check:elements 按设计恒 exit 0（warn 级，只打印小程序端不存在的元素选择器清单）。
+      - name: UI gates (mp-weixin artifact)
+        run: |
+          npm run check:wxss
+          npm run check:elements
 
   admin:
     name: admin (pnpm typecheck)

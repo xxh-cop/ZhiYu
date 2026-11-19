@@ -343,6 +343,15 @@ page {
 	--zy-shadow-md: none;
 	--zy-shadow-lg: none;
 	--zy-shadow-xl: none;
+
+	/* 别名与空态插画令牌（随主题换肤） */
+	--zy-card: #ffffff;
+	--zy-art-line: #0e5b53;
+	--zy-art-paper: #ffffff;
+	--zy-art-ground: #e9efeb;
+	--zy-art-soft: #dcece5;
+	--zy-art-thread: #8fc7b8;
+	--zy-art-cinnabar: #a64842;
 }
 
 /* 旧暖纸主题保留 class 兼容，但面级值全部并入冷瓷白，防止历史 storage 把页面拉回暖黄 */
@@ -367,4 +376,94 @@ page {
 html.zy-theme-warm .uni-tabbar { background-color: #ffffff !important; }
 html.zy-theme-warm .uni-tabbar-border { background-color: #d3ded8 !important; }
 html.zy-theme-warm .uni-page-head { background-color: #f1f4f1 !important; }
+/* #endif */
+
+/**
+ * ── 玄墨主题（全局深色，2026-11-18 P5）────────────────────
+ * 与倾听室同源：墨绿黑底 + 瓷白字 + 浅青行动色 + 浅朱砂一线。
+ * 只覆盖面级/字色/线色令牌；字阶、圆角、间距与云白完全共用。
+ * 挂载方式与暖纸一致：页面根 view .zy-theme-dark；H5 同步挂 html。
+ * 品牌填充色保持中绿（白字对比达标），文字/链接用浅青；
+ * 组件级例外（主按钮文字、tab 选中色等）见 App.vue 全局深色规则。
+ */
+.zy-theme-dark {
+	--zy-bg: #0b1513;
+	--zy-card-bg: #111e1a;
+	--zy-card: #111e1a;
+	--zy-card-line: rgba(241, 244, 241, 0.14);
+	--zy-line-soft: rgba(241, 244, 241, 0.14);
+	--zy-bg-sunken: #0e1a17;
+	--zy-bg-warm: #111e1a;
+	--zy-title: #f1f4f1;
+	--zy-text: #c3d2ca;
+	--zy-content: #c3d2ca;
+	--zy-muted: #a9bbb2;
+	--zy-aid: #a9bbb2;
+	--zy-border: rgba(241, 244, 241, 0.22);
+	--zy-stitch: #3a4f47;
+	--zy-faint: #8fa39a;
+
+	/* 品牌：填充保持中绿（白字 ≥4.5:1），文字/链接/次按钮用浅青 */
+	--zy-brand-50: #142622;
+	--zy-brand-100: #1b332d;
+	--zy-brand-200: #2f7e72;
+	--zy-brand-300: #8fc7b8;
+	--zy-brand-500: #6fb3a2;
+	--zy-brand-600: #2c776c;
+	--zy-brand-700: #8fc7b8;
+	--zy-brand-900: #dcece5;
+	--zy-primary: #8fc7b8;
+	--zy-primary-light: #8fc7b8;
+
+	/* 语义：深底上提亮一档 */
+	--zy-care: #d4736a;
+	--zy-danger: #d4736a;
+	--zy-success: #6fbf9a;
+	--zy-warning: #c98a7a;
+	--zy-warning-text: #c98a7a;
+	--zy-accent: #c98a7a;
+	--zy-gold: #c8a45c;
+
+	/* tint 语义底：深底同族 */
+	--zy-bg-tint-mint: #142622;
+	--zy-bg-tint-warm: #241d18;
+	--zy-bg-tint-care: #2a1a17;
+
+	/* wot-design-uni 深底 */
+	--wot-color-theme: #8fc7b8;
+	--wot-color-bg: #0b1513;
+	--wot-color-border: rgba(241, 244, 241, 0.22);
+	--wot-color-border-light: rgba(241, 244, 241, 0.14);
+	--wot-color-title: #f1f4f1;
+	--wot-color-content: #c3d2ca;
+	--wot-color-secondary: #a9bbb2;
+	--wot-color-aid: #a9bbb2;
+	--wot-color-tip: #8fa39a;
+	--wot-color-success: #6fbf9a;
+	--wot-color-warning: #c98a7a;
+	--wot-color-danger: #d4736a;
+	--wot-color-info: #a9bbb2;
+
+	/* 空态插画令牌 */
+	--zy-art-line: #8fc7b8;
+	--zy-art-paper: #16241f;
+	--zy-art-ground: #142019;
+	--zy-art-soft: #2a3b34;
+	--zy-art-thread: #8fc7b8;
+	--zy-art-cinnabar: #d4736a;
+
+	background-color: var(--zy-bg);
+	background-image: none;
+	min-height: 100vh;
+}
+
+/* H5：body 级 tabbar / 导航条随玄墨换肤（内联样式需 !important） */
+/* #ifdef H5 */
+html.zy-theme-dark, html.zy-theme-dark body, html.zy-theme-dark uni-page-body, html.zy-theme-dark uni-page-wrapper { background-color: #0b1513 !important; }
+html.zy-theme-dark .uni-tabbar { background-color: #111e1a !important; }
+html.zy-theme-dark .uni-tabbar-border { background-color: rgba(241, 244, 241, 0.22) !important; }
+html.zy-theme-dark .uni-page-head { background-color: #0b1513 !important; }
+html.zy-theme-dark .uni-page-head__title { color: #f1f4f1 !important; }
+html.zy-theme-dark .uni-page-head-btn { color: #f1f4f1 !important; }
+html.zy-theme-dark .uni-page-head-btn svg path { fill: #f1f4f1 !important; }
 /* #endif */
