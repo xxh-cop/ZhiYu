@@ -77,6 +77,11 @@ zhiyu:
         dimensions: 2048
     rag:
       vector-store-path: ${ZHIYU_RAG_STORE_PATH:./rag-store.json}
+      # 重排后注入模型的向量条数与每条正文上限；0 表示不截断完整切片。
+      final-top-k: ${RAG_FINAL_TOP_K:5}
+      excerpt-max-chars: ${RAG_EXCERPT_MAX_CHARS:0}
+      # 引用来源上限，默认 final-top-k(5) + 图谱 MAX_HITS(6)。
+      source-limit: ${RAG_SOURCE_LIMIT:11}
     # 成本估算费率：只用于运营页展示，实际以供应商账单为准；0 表示未配置。
     cost:
       input-per-million: ${AI_INPUT_COST_PER_MILLION:0}

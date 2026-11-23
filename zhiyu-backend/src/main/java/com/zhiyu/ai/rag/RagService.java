@@ -14,6 +14,7 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.io.Resource;
@@ -59,7 +60,8 @@ public class RagService {
     private static final int CHUNK_OVERLAP = 64;
     private static final int MIN_CHUNK_LENGTH_TO_EMBED = 5;
     private static final int MAX_CHUNKS = 10000;
-    private static final int TOP_K = 3;
+    private static final int DEFAULT_FINAL_TOP_K = 5;
+    private static final int DEFAULT_EXCERPT_MAX_CHARS = 0;
     private static final double SIMILARITY_THRESHOLD = 0.3;
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -67,22 +69,38 @@ public class RagService {
     private final EmbeddingModel embeddingModel;
     private final String embeddingModelName;
     private final Path vectorStorePath;
+    private final int finalTopK;
+    private final int excerptMaxChars;
     private volatile Set<String> activeSourceIds = Set.of();
     private volatile String corpusVersion = "uninitialized";
 
+    /** 测试用便捷构造：默认 5 条、完整切片。 */
+    public RagService(VectorStore vectorStore,
+                      EmbeddingModel embeddingModel,
+                      String configuredModelName,
+                      String vectorStorePath) {
+        this(vectorStore, embeddingModel, configuredModelName, vectorStorePath,
+                DEFAULT_FINAL_TOP_K, DEFAULT_EXCERPT_MAX_CHARS);
+    }
+
+    @Autowired
     public RagService(VectorStore vectorStore,
                       EmbeddingModel embeddingModel,
                       @Value("${zhiyu.ai.doubao.embedding.model:unknown}") String configuredModelName,
-                      @Value("${zhiyu.ai.rag.vector-store-path:./rag-store.json}") String vectorStorePath) {
+                      @Value("${zhiyu.ai.rag.vector-store-path:./rag-store.json}") String vectorStorePath,
+                      @Value("${zhiyu.ai.rag.final-top-k:5}") int finalTopK,
+                      @Value("${zhiyu.ai.rag.excerpt-max-chars:0}") int excerptMaxChars) {
         this.vectorStore = vectorStore;
         this.embeddingModel = embeddingModel;
         this.embeddingModelName = embeddingModel instanceof DoubaoEmbeddingModel doubao
                 ? doubao.modelName() : configuredModelName;
         this.vectorStorePath = Path.of(vectorStorePath).toAbsolutePath().normalize();
+        this.finalTopK = Math.max(3, Math.min(8, finalTopK));
+        this.excerptMaxChars = Math.max(0, excerptMaxChars);
     }
 
     /** Local lexical rerank over the vector shortlist; no extra model or external data transfer. */
-    static List<Document> rerank(String question, List<Document> candidates) {
+    List<Document> rerank(String question, List<Document> candidates) {
         Set<String> terms = new HashSet<>();
         String normalized = question.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
         for (int i = 0; i + 1 < normalized.length(); i++) terms.add(normalized.substring(i, i + 2));
@@ -96,7 +114,7 @@ public class RagService {
         }).reversed());
         return ranked.stream()
                 .filter(document -> document.getText() != null && !document.getText().isBlank())
-                .limit(TOP_K)
+                .limit(finalTopK)
                 .toList();
     }
 
@@ -164,8 +182,12 @@ public class RagService {
                 if (!seen.add(id)) continue;
                 hits.add(new VectorHit(id,
                         Objects.toString(document.getMetadata().get("source"), sourceId + ".md"),
-                        text.substring(0, Math.min(80, text.length())), sourceId, corpusVersion));
+                        excerpt(text), sourceId, corpusVersion));
             }
+            int contextChars = hits.stream().mapToInt(hit -> hit.excerpt().length()).sum();
+            log.info("RAG 向量注入: {} 条, 正文 {} 字 (final-top-k={}, excerpt-max-chars={})",
+                    hits.size(), contextChars, finalTopK,
+                    excerptMaxChars == 0 ? "full" : excerptMaxChars);
             return hits;
         } catch (Exception e) {
             log.warn("RAG 向量检索不可用，返回空候选: {}", e.getMessage());
@@ -358,6 +380,12 @@ public class RagService {
             log.warn("无法读取 Embedding 维度，本次跳过维度校验: {}", e.getMessage());
             return 0;
         }
+    }
+
+    private String excerpt(String text) {
+        if (excerptMaxChars <= 0 || text.length() <= excerptMaxChars) return text;
+        if (excerptMaxChars == 1) return "…";
+        return text.substring(0, excerptMaxChars - 1) + "…";
     }
 
     private Path versionPath() {

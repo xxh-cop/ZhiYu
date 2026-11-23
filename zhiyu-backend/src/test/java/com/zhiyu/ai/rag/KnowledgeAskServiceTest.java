@@ -84,6 +84,23 @@ class KnowledgeAskServiceTest {
     }
 
     @Test
+    void sourceLimitCanExceedSixAndIsConfigurable() {
+        when(graph.search("材料")).thenReturn(List.of(sourceHit()));
+        when(rag.retrieve("材料")).thenReturn(java.util.stream.IntStream.range(0, 8)
+                .mapToObj(i -> new RagService.VectorHit("v" + i, "doc" + i + ".md",
+                        "材料说明" + i, "doc" + i, "v1"))
+                .toList());
+        when(ai.knowledgeAnswerResultReviewed(anyString(), any(Supplier.class)))
+                .thenReturn(new AiClient.KnowledgeResult("生成回答", true, false));
+
+        var serviceWithLimit = new KnowledgeAskService(graph, rag, ai,
+                "资料：{context}\n问题：{question}", 8);
+        var result = serviceWithLimit.ask("材料");
+
+        assertEquals(8, result.getSources().size());
+    }
+
+    @Test
     void noHitsReturnsNoneWithoutModelCall() {
         when(graph.search("不存在")).thenReturn(List.of());
         when(rag.retrieve("不存在")).thenReturn(List.of());

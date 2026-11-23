@@ -15,7 +15,10 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.embedding.EmbeddingResponseMetadata;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -87,6 +90,53 @@ class RagServiceTest {
         when(store.similaritySearch(any(SearchRequest.class))).thenThrow(new RuntimeException("offline"));
         RagService service = new RagService(store, validModel(), "test-model", "target/rag-test.json");
         assertTrue(service.retrieve("竹编").isEmpty());
+    }
+
+    @Test
+    void retrieveInjectsFullChunkByDefault() {
+        VectorStore store = mock(VectorStore.class);
+        String fullText = "扎染与蜡染的区别：扎染靠捆扎防染，蜡染靠蜡防染。" + "补充说明".repeat(30);
+        when(store.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
+                new Document(fullText, Map.of("source", "compare-zaran-batik.md", "sourceId", "compare-zaran-batik"))));
+        RagService service = new RagService(store, validModel(), "test-model",
+                "target/rag-test.json", 5, 0);
+        ReflectionTestUtils.setField(service, "activeSourceIds", Set.of("compare-zaran-batik"));
+        ReflectionTestUtils.setField(service, "corpusVersion", "v-test");
+
+        var hits = service.retrieve("扎染和蜡染有什么区别");
+        assertEquals(fullText, hits.get(0).excerpt());
+    }
+
+    @Test
+    void excerptMaxCharsTruncatesOnlyWhenConfigured() {
+        VectorStore store = mock(VectorStore.class);
+        String fullText = "选型".repeat(100);
+        when(store.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
+                new Document(fullText, Map.of("source", "select-embroidery-hoop.md", "sourceId", "select-embroidery-hoop"))));
+        RagService service = new RagService(store, validModel(), "test-model",
+                "target/rag-test.json", 5, 50);
+        ReflectionTestUtils.setField(service, "activeSourceIds", Set.of("select-embroidery-hoop"));
+        ReflectionTestUtils.setField(service, "corpusVersion", "v-test");
+
+        String excerpt = service.retrieve("绣绷该怎么选").get(0).excerpt();
+        assertEquals(50, excerpt.length());
+        assertTrue(excerpt.endsWith("…"));
+    }
+
+    @Test
+    void finalTopKIsConfigurableAndDefaultsToFive() {
+        VectorStore store = mock(VectorStore.class);
+        List<Document> eight = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            eight.add(new Document("第" + i + "条工艺说明", Map.of("source", "doc" + i + ".md", "sourceId", "doc" + i)));
+        }
+        when(store.similaritySearch(any(SearchRequest.class))).thenReturn(eight);
+        RagService service = new RagService(store, validModel(), "test-model", "target/rag-test.json");
+        ReflectionTestUtils.setField(service, "activeSourceIds",
+                Set.of("doc0", "doc1", "doc2", "doc3", "doc4", "doc5", "doc6", "doc7"));
+        ReflectionTestUtils.setField(service, "corpusVersion", "v-test");
+
+        assertEquals(5, service.retrieve("工艺").size());
     }
 
     @Test
@@ -270,6 +320,29 @@ class RagServiceTest {
 
         assertTrue(logged("校验未通过"), logs.list.toString());
         assertTrue(RagService.inspectStore(path, 8).usable());
+    }
+
+    @Test
+    void corpusCoverageAndChunkCountAreInTargetRange() throws Exception {
+        Resource[] resources = new PathMatchingResourcePatternResolver()
+                .getResources("classpath:rag/crafts/*.md");
+        assertTrue(resources.length >= 30 && resources.length <= 50,
+                "扩语料后应在 30–50 篇，实际 " + resources.length);
+        List<Document> docs = new ArrayList<>();
+        int totalChars = 0;
+        for (Resource resource : resources) {
+            String content = new String(resource.getInputStream().readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            assertTrue(content.length() >= 600 && content.length() <= 1200,
+                    resource.getFilename() + " 长度为 " + content.length());
+            totalChars += content.length();
+            docs.add(new Document(content, Map.of("source", resource.getFilename())));
+        }
+        List<Document> chunks = new TokenTextSplitter(512, 64, 5, 10000, true).apply(docs);
+        System.out.println("RAG corpus files=" + resources.length + ", chars=" + totalChars
+                + ", chunks=" + chunks.size());
+        assertTrue(chunks.size() >= 80 && chunks.size() <= 200,
+                "切片数应在 80–200，实际 " + chunks.size());
     }
 
     @Test

@@ -5,7 +5,9 @@ import com.zhiyu.ai.rag.graph.GraphHit;
 import com.zhiyu.ai.rag.graph.HeritageGraphIndex;
 import com.zhiyu.ai.rag.vo.RagAnswerVO;
 import com.zhiyu.ai.rag.vo.RagSourceVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
@@ -31,15 +33,27 @@ public class KnowledgeAskService {
     private final RagService ragService;
     private final AiClient aiClient;
     private final String promptTemplate;
+    private final int sourceLimit;
 
+    /** 测试用便捷构造：默认来源上限 11（5 条向量 + 6 条图谱）。 */
     public KnowledgeAskService(HeritageGraphIndex graphIndex,
                                @Nullable RagService ragService,
                                AiClient aiClient,
-                               @Qualifier("ragPrompt") String promptTemplate) {
+                               String promptTemplate) {
+        this(graphIndex, ragService, aiClient, promptTemplate, 11);
+    }
+
+    @Autowired
+    public KnowledgeAskService(HeritageGraphIndex graphIndex,
+                               @Nullable RagService ragService,
+                               AiClient aiClient,
+                               @Qualifier("ragPrompt") String promptTemplate,
+                               @Value("${zhiyu.ai.rag.source-limit:11}") int sourceLimit) {
         this.graphIndex = graphIndex;
         this.ragService = ragService;
         this.aiClient = aiClient;
         this.promptTemplate = promptTemplate;
+        this.sourceLimit = Math.max(6, sourceLimit);
     }
 
     public RagAnswerVO ask(String question) {
@@ -88,7 +102,7 @@ public class KnowledgeAskService {
             unique.putIfAbsent(key, new RagSourceVO(hit.id(), hit.title(), hit.excerpt(),
                     null, null, null, hit.corpusVersion(), "检索文档", "REFERENCE"));
         }
-        return unique.values().stream().limit(6).toList();
+        return unique.values().stream().limit(sourceLimit).toList();
     }
 
     private String context(List<GraphHit> graphHits, List<RagService.VectorHit> vectorHits) {
