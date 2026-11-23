@@ -16,7 +16,7 @@
 			<view class="reason-quote">"</view>
 			<view class="reason-header">
 				<view class="reason-icon-wrap">
-					<wd-icon name="chat" size="28rpx" color="#0E5B53" />
+					<ZyIcon name="comment" :size="28" tone="brand" />
 				</view>
 				<text class="reason-label">小织推荐</text>
 			</view>
@@ -104,6 +104,7 @@ import { http } from '../../utils/request'
 import { trackRecommendationClick } from '../../utils/recommend-click'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import HeritageCard from '../../components/HeritageCard.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 
 const loading = ref(false)
 const errorMsg = ref('')

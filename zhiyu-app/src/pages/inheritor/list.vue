@@ -41,7 +41,7 @@
 		<!-- 搜索框 -->
 		<view class="search-bar zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="search-input-wrap" :class="{ 'is-focused': searchFocused }">
-				<wd-icon name="search" size="32rpx" color="var(--zy-text, #4a5f54)" />
+				<ZyIcon name="search" :size="32" tone="text" />
 				<input
 					class="search-input"
 					type="text"
@@ -114,7 +114,7 @@
 						<view class="footer-left">
 							<RegionSeal v-if="item.region" :region="item.region" size="sm" />
 							<view v-if="item.verified" class="verified-badge">
-								<wd-icon name="check-circle-filled" size="24rpx" color="#0E5B53" />
+								<ZyIcon name="check-circle" :size="24" tone="brand" />
 								<text class="verified-text">已认证</text>
 							</view>
 						</view>

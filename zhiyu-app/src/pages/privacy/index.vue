@@ -5,7 +5,7 @@
 				<!-- 顶部封面 -->
 				<view class="cover zy-slide-up zy-stagger" style="--stagger-i: 0">
 					<view class="cover-icon-wrap">
-						<wd-icon name="setting" size="48rpx" color="#0E5B53" />
+						<ZyIcon name="settings" :size="48" tone="brand" />
 					</view>
 					<text class="cover-title">隐私政策</text>
 					<text class="cover-sub">我们如何保护你的数据</text>
@@ -63,6 +63,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { useUserStore } from '../../stores/user'
 import Toast from '../../components/Toast.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()

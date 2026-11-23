@@ -23,6 +23,7 @@
 
 		<!-- 小组卡片列表 -->
 		<view v-else class="card-list">
+			<text class="list-label">全部小组</text>
 			<view v-if="errorMsg" class="group-error-row" role="alert">
 				<text>{{ errorMsg }}</text>
 				<AccessibleButton @click="loadData">重试</AccessibleButton>
@@ -48,30 +49,26 @@
 						</view>
 						<text v-if="group.description" class="group-desc">{{ group.description }}</text>
 						<view class="member-row">
-							<wd-icon name="user" size="24rpx" color="#4a5f54" />
+							<ZyIcon name="user" :size="24" tone="muted" />
 							<text class="member-text">{{ group.memberCount }} / {{ group.maxCount }} 人</text>
 						</view>
 					</view>
 					<!-- 右侧加入按钮 -->
-					<view v-if="group.joined" class="joined-tag" role="button" tabindex="0" :aria-label="'进入小组 ' + group.name" @click="openGroup(group)" @keydown.enter.prevent="openGroup(group)" @keydown.space.prevent="openGroup(group)">
+					<AccessibleButton v-if="group.joined" class="joined-tag" :aria-label="'进入小组 ' + group.name" @click="openGroup(group)">
 						<text class="joined-text">进入小组</text>
-					</view>
+					</AccessibleButton>
 					<view v-else-if="group.memberCount >= group.maxCount" class="full-tag">
 						<text class="full-text">已满</text>
 					</view>
-					<view
+					<AccessibleButton
 						v-else
 						class="join-btn"
-						role="button"
-						tabindex="0"
 						:aria-label="'加入小组 ' + group.name"
 						:class="{ 'join-btn--loading': joiningId === group.id }"
 						@click="handleJoin(group)"
-						@keydown.enter.prevent="handleJoin(group)"
-						@keydown.space.prevent="handleJoin(group)"
 					>
 						<text class="join-btn-text">{{ joiningId === group.id ? '...' : '加入' }}</text>
-					</view>
+					</AccessibleButton>
 				</view>
 			</view>
 		</view>
@@ -90,6 +87,7 @@ import { http } from '../../utils/request'
 import StateBlock from '../../components/StateBlock.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
@@ -142,7 +140,7 @@ function goCreate() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 36rpx 32rpx 140rpx;
+	padding: var(--zy-space-lg) var(--zy-space-md) 140rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #f1f4f1);
 }
@@ -169,7 +167,7 @@ function goCreate() {
 .brand-title {
 	font-family: var(--zy-font-display, serif);
 	font-size: 64rpx;
-	font-weight: 500;
+	font-weight: 600;
 	line-height: 1.2;
 	color: var(--zy-title, #111816);
 	display: block;
@@ -287,7 +285,14 @@ function goCreate() {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	border-top: 0;
+	padding-top: 20rpx;
+}
+.list-label {
+	display: block;
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 2px;
+	color: var(--zy-muted);
+	margin-bottom: 8rpx;
 }
 
 .group-card {

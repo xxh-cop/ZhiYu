@@ -75,10 +75,10 @@
 					@click="handleMenu(item)"
 				>
 					<view class="menu-icon-wrap" :class="'tone-' + item.tone" aria-hidden="true">
-						<wd-icon :name="item.icon" size="32rpx" color="#0a403b" />
+						<ZyIcon :name="item.icon" :size="30" tone="brand" />
 					</view>
 					<text class="menu-label">{{ item.label }}</text>
-					<wd-icon name="arrow-right" size="32rpx" color="#8fa89c" />
+					<ZyIcon name="arrow" :size="30" tone="muted" />
 				</AccessibleButton>
 			</view>
 		</view>
@@ -120,6 +120,7 @@ import StateBlock from '../../components/StateBlock.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
@@ -132,26 +133,26 @@ const menuSections = [
 		items: [
 			{ icon: 'picture', label: '我的作品', action: 'works', tone: 'brand' },
 			{ icon: 'star', label: '我的收藏', action: 'favorites', tone: 'gold' },
-			{ icon: 'chat', label: '倾听记录', action: 'history', tone: 'brand-light' },
+			{ icon: 'comment', label: '倾听记录', action: 'history', tone: 'brand-light' },
 			{ icon: 'edit', label: '我的便签', action: 'notes', tone: 'gold' },
-			{ icon: 'picture', label: '成长旅程', action: 'journey', tone: 'brand' },
-			{ icon: 'chat', label: '自我了解', action: 'assessment', tone: 'brand-light' },
+			{ icon: 'clock', label: '成长旅程', action: 'journey', tone: 'brand' },
+			{ icon: 'eye', label: '自我了解', action: 'assessment', tone: 'brand-light' },
 		],
 	},
 	{
 		title: '我的参与',
 		items: [
-			{ icon: 'usergroup', label: '活动与预约', action: 'programs', tone: 'brand' },
-			{ icon: 'chat1', label: '非遗问答', action: 'rag', tone: 'brand-light' },
+			{ icon: 'group', label: '活动与预约', action: 'programs', tone: 'brand' },
+			{ icon: 'comment', label: '非遗问答', action: 'rag', tone: 'brand-light' },
 			{ icon: 'user', label: '校园身份', action: 'campus', tone: 'brand' },
 		],
 	},
 	{
 		title: '支持与设置',
 		items: [
-			{ icon: 'call', label: '心理援助', action: 'crisis', tone: 'care' },
-			{ icon: 'setting', label: '个人设置', action: 'settings', tone: 'brand' },
-			{ icon: 'setting1', label: '隐私设置', action: 'privacy', tone: 'neutral' },
+			{ icon: 'phone', label: '心理援助', action: 'crisis', tone: 'care' },
+			{ icon: 'settings', label: '个人设置', action: 'settings', tone: 'brand' },
+			{ icon: 'eye-off', label: '隐私设置', action: 'privacy', tone: 'neutral' },
 		],
 	},
 ]
@@ -282,7 +283,7 @@ function handleLogout() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 32rpx 24rpx 120rpx;
+	padding: var(--zy-space-lg) var(--zy-space-md) 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #ffffff);
 }
@@ -342,7 +343,7 @@ function handleLogout() {
 .profile-name {
 	font-family: var(--zy-font-display, serif);
 	font-size: 64rpx;
-	font-weight: 500;
+	font-weight: 600;
 	line-height: 1.25;
 	letter-spacing: 1rpx;
 	color: var(--zy-title, #111816);
@@ -484,7 +485,6 @@ function handleLogout() {
 .menu-icon-wrap.tone-gold,
 .menu-icon-wrap.tone-care,
 .menu-icon-wrap.tone-neutral { background: transparent; }
-.menu-icon-wrap :deep(.wd-icon) { color: var(--zy-brand-700, #0a403b) !important; }
 .menu-label { flex: 1; min-width: 0; font-size: var(--zy-text-body-lg, 30rpx); color: var(--zy-title, #111816); overflow-wrap: anywhere; }
 
 /* ── ③ 我的边界 ── */

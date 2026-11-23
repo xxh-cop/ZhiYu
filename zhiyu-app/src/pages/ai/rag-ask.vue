@@ -8,7 +8,7 @@
 				<text class="header-desc">材质、工序与纹样观察，都可以慢慢问。</text>
 			</view>
 			<view class="header-icon">
-				<wd-icon name="chat" size="32rpx" color="#0A403B" />
+				<ZyIcon name="comment" :size="32" tone="brand" />
 			</view>
 		</view>
 
@@ -84,7 +84,7 @@
 						<view v-if="msg.sources && msg.sources.length > 0" class="sources-area">
 							<view class="sources-header" role="button" tabindex="0" @click="toggleSources(idx)" @keydown.enter.prevent="toggleSources(idx)" @keydown.space.prevent="toggleSources(idx)">
 								<text class="sources-title">引用来源（{{ msg.sources.length }}）</text>
-								<wd-icon :name="msg.showSources ? 'arrow-up' : 'arrow-down'" size="24rpx" color="#4a5f54" />
+								<ZyIcon :name="msg.showSources ? 'chevron-up' : 'chevron-down'" :size="24" tone="muted" />
 							</view>
 							<view v-if="msg.showSources" class="sources-list">
 								<view
@@ -149,7 +149,7 @@
 				@keydown.enter.prevent="handleAsk"
 				@keydown.space.prevent="handleAsk"
 			>
-				<wd-icon name="arrow-up" size="36rpx" :color="(!inputText.trim() || loading) ? '#6e7b75' : '#FFFFFF'" />
+				<ZyIcon name="chevron-up" :size="36" :color="(!inputText.trim() || loading) ? '#6e7b75' : '#FFFFFF'" />
 			</view>
 		</view>
 

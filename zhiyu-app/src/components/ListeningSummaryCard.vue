@@ -40,7 +40,7 @@
 					aria-label="同意读取本次已结束对话中的用户发言并发送给 AI"
 					@click="consent = !consent"
 				>
-					<view class="summary-consent-box" aria-hidden="true">{{ consent ? '✓' : '' }}</view>
+					<view class="summary-consent-box" aria-hidden="true"><ZyIcon v-if="consent" name="check" :size="22" tone="brand" /></view>
 					<text>同意读取这次已结束对话中我说过的话，用于生成或保存小结</text>
 				</AccessibleButton>
 
@@ -77,6 +77,7 @@ import { request } from '../utils/request'
 import ActionSheet from './ActionSheet.vue'
 import Toast from './Toast.vue'
 import AccessibleButton from './AccessibleButton.vue'
+import ZyIcon from './ZyIcon.vue'
 import { useToast } from '../composables/useToast'
 
 const toast = useToast()

@@ -8,21 +8,13 @@
 		</view>
 
 		<!-- 筛选 tab -->
-		<view class="filter-tabs zy-slide-up zy-stagger" style="--stagger-i: 1" role="tablist" aria-label="作品排序">
-			<view
+		<view class="filter-tabs zy-slide-up zy-stagger" style="--stagger-i: 1" role="group" aria-label="作品排序">
+			<ZyChip
 				v-for="tab in tabs"
 				:key="tab.value"
-				class="filter-tab"
-				:class="{ 'tab-active': activeTab === tab.value }"
-				role="tab"
-				:aria-selected="activeTab === tab.value"
-				:tabindex="activeTab === tab.value ? 0 : -1"
+				:active="activeTab === tab.value"
 				@click="switchTab(tab.value)"
-				@keydown.enter.prevent="switchTab(tab.value)"
-				@keydown.space.prevent="switchTab(tab.value)"
-			>
-				<text class="tab-text" :class="{ 'tab-text-active': activeTab === tab.value }">{{ tab.label }}</text>
-			</view>
+			>{{ tab.label }}</ZyChip>
 		</view>
 
 		<!-- 本期一件：从作品流中提取一件有封面的作品 -->
@@ -83,6 +75,7 @@
 
 		<!-- 作品卡片列表 -->
 		<view v-else class="card-list">
+			<text class="list-label">作品流</text>
 			<view
 				v-for="(item, idx) in visibleRecords"
 				:key="item.id"
@@ -121,11 +114,11 @@
 					<view class="card-meta">
 						<view class="meta-left">
 							<view class="meta-item">
-								<wd-icon name="heart" size="28rpx" :color="item.liked ? '#a64842' : '#4a5f54'" />
+								<ZyIcon name="heart" :size="26" :tone="item.liked ? 'care' : 'muted'" />
 								<text class="meta-num" :class="{ 'meta-liked': item.liked }">{{ item.likeCount }}</text>
 							</view>
 							<view class="meta-item">
-								<wd-icon name="chat" size="28rpx" color="#4a5f54" />
+								<ZyIcon name="comment" :size="26" tone="muted" />
 								<text class="meta-num">{{ item.commentCount }}</text>
 							</view>
 						</view>
@@ -166,6 +159,7 @@ import StateBlock from '../../components/StateBlock.vue'
 import ZySpinner from '../../components/ZySpinner.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import ZyIcon from '../../components/ZyIcon.vue'
+import ZyChip from '../../components/ZyChip.vue'
 
 const tabs = [
 	{ label: '全部', value: 'all' },
@@ -335,31 +329,9 @@ loadData(1)
 /* ── 筛选 tab ── */
 .filter-tabs {
 	display: flex;
+	align-items: flex-end;
 	gap: 12rpx;
 	margin-bottom: 24rpx;
-}
-
-.filter-tab {
-	padding: 10rpx 28rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	transition: all var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-}
-
-.tab-active {
-	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
-	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
-}
-
-.tab-text {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-aid, #4a5f54);
-}
-
-.tab-text-active {
-	color: #FFFFFF;
-	font-weight: 500;
 }
 
 /* ── 骨架屏 ── */
@@ -391,6 +363,13 @@ loadData(1)
 	display: flex;
 	flex-direction: column;
 	gap: 24rpx;
+}
+.list-label {
+	display: block;
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 2px;
+	color: var(--zy-muted);
+	margin-bottom: 4rpx;
 }
 
 .work-card {
@@ -570,16 +549,12 @@ loadData(1)
 }
 
 /* ── v9 冷瓷展签收口 ── */
-.page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg); }
+.page { padding: var(--zy-space-lg) var(--zy-space-md) 120rpx; background-color: var(--zy-bg); }
 .brand-header { padding-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
 .brand-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 18rpx; }
-.brand-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
+.brand-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 600; line-height: 1.2; }
 .brand-subtitle { margin-top: 10rpx; color: var(--zy-muted); }
-.filter-tabs { gap: 28rpx; margin-top: 24rpx; margin-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
-.filter-tab { padding: 6rpx 0 10rpx; border-radius: 0; background: transparent; border: 0; border-bottom: 2rpx solid transparent; }
-.tab-active { background: transparent; border-color: transparent; border-bottom-color: var(--zy-brand-700); }
-.tab-text { color: var(--zy-text); }
-.tab-text-active { color: var(--zy-brand-700); font-weight: 500; }
+.filter-tabs { gap: 28rpx; margin-top: 24rpx; margin-bottom: 28rpx; }
 .skeleton-card { border-radius: 0; border: 1rpx solid var(--zy-border); }
 .card-list { gap: 32rpx; }
 .featured-work { margin-bottom: 40rpx; }
@@ -606,7 +581,6 @@ loadData(1)
 </style>
 
 <style scoped>
-.filter-tab:focus-visible,
 .work-card:focus-visible {
 	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76));
 	outline-offset: 3px;

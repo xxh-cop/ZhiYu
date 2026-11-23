@@ -107,7 +107,7 @@
 				<text class="crisis-card-text">我先陪你一会儿。如果撑不住，这些电话现在就能打。</text>
 				<view class="crisis-card-btns">
 					<AccessibleButton variant="care" size="md" aria-label="查看心理援助资源" @click="goCrisisPage">
-						<wd-icon name="phone" size="28rpx" color="#FFFFFF" />
+						<ZyIcon name="phone" :size="28" color="#FFFFFF" />
 						<text>查看心理援助资源</text>
 					</AccessibleButton>
 					<AccessibleButton variant="secondary" size="md" aria-label="继续聊聊" @click="dismissCrisis">继续聊聊</AccessibleButton>

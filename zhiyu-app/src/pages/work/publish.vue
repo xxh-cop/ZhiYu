@@ -39,7 +39,7 @@
 						@keydown.enter.prevent="switchMediaTab('image')"
 						@keydown.space.prevent="switchMediaTab('image')"
 					>
-						<wd-icon name="image" size="36rpx" :color="form.mediaType === 'image' ? '#217e76' : '#4a5f54'" />
+						<ZyIcon name="picture" :size="36" :tone="form.mediaType === 'image' ? 'brand' : 'muted'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'image' }">图片</text>
 					</view>
 					<view
@@ -52,7 +52,7 @@
 						@keydown.enter.prevent="switchMediaTab('video')"
 						@keydown.space.prevent="switchMediaTab('video')"
 					>
-						<wd-icon name="video" size="36rpx" :color="form.mediaType === 'video' ? '#217e76' : '#4a5f54'" />
+						<ZyIcon name="video" :size="36" :tone="form.mediaType === 'video' ? 'brand' : 'muted'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'video' }">视频</text>
 					</view>
 					<view
@@ -65,7 +65,7 @@
 						@keydown.enter.prevent="switchMediaTab('text')"
 						@keydown.space.prevent="switchMediaTab('text')"
 					>
-						<wd-icon name="edit" size="36rpx" :color="form.mediaType === 'text' ? '#217e76' : '#4a5f54'" />
+						<ZyIcon name="edit" :size="36" :tone="form.mediaType === 'text' ? 'brand' : 'muted'" />
 						<text class="media-tab-text" :class="{ 'media-tab-text--active': form.mediaType === 'text' }">纯文字</text>
 					</view>
 				</view>
@@ -78,7 +78,7 @@
 							<StateBlock type="loading" title="上传中…" compact />
 						</view>
 						<view v-else class="image-placeholder">
-							<wd-icon name="add" size="48rpx" color="#4a5f54" />
+							<ZyIcon name="plus" :size="48" tone="muted" />
 							<text class="image-placeholder-text">点击上传作品图</text>
 							<text class="image-placeholder-hint">支持 jpg / jpeg / png / webp，≤5MB</text>
 						</view>
@@ -99,7 +99,7 @@
 							<text class="upload-loading-text">上传中 {{ uploadProgress }}%</text>
 						</view>
 						<view v-else class="image-placeholder">
-							<wd-icon name="video" size="48rpx" color="#4a5f54" />
+							<ZyIcon name="video" :size="48" tone="muted" />
 							<text class="image-placeholder-text">点击上传作品视频</text>
 							<text class="image-placeholder-hint">MP4 · ≤50MB · 建议 H.264 + AAC</text>
 						</view>
@@ -113,7 +113,7 @@
 				<view v-if="form.mediaType === 'text'" class="media-content">
 					<view class="text-only-hint">
 						<view class="text-only-icon-wrap">
-							<wd-icon name="edit" size="40rpx" color="#0E5B53" />
+							<ZyIcon name="edit" :size="40" tone="brand" />
 						</view>
 						<text class="text-only-title">只写文字，不配图</text>
 						<text class="text-only-sub">用文字记录你的创作故事</text>
@@ -207,7 +207,7 @@
 				<!-- AI 寄语提示 -->
 				<view class="ai-hint">
 					<view class="ai-hint-icon-wrap">
-						<wd-icon name="tips" size="36rpx" color="#0E5B53" />
+						<ZyIcon name="info" :size="36" tone="brand" />
 					</view>
 					<view class="ai-hint-info">
 						<text class="ai-hint-title">小织会留一句话</text>
@@ -243,7 +243,7 @@
 					</view>
 					<!-- 纯文字/无封面 -->
 					<view v-else class="preview-cover preview-cover--placeholder">
-						<wd-icon name="edit" size="40rpx" color="#FFFFFF" />
+						<ZyIcon name="edit" :size="40" color="#FFFFFF" />
 						<text class="preview-cover-text">纯文字作品</text>
 					</view>
 					<view class="preview-body">
@@ -303,6 +303,7 @@ import ZyTextarea from '../../components/ZyTextarea.vue'
 import Toast from '../../components/Toast.vue'
 import XiaotuanPet from '../../components/XiaotuanPet.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { ref, computed, reactive } from 'vue'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'

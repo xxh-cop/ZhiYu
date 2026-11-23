@@ -36,7 +36,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="card-head">
 				<view class="card-icon-wrap">
-					<wd-icon name="user" size="32rpx" color="#FFFFFF" />
+					<ZyIcon name="user" :size="32" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">基本资料</text>
 			</view>
@@ -90,7 +90,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 3">
 			<view class="card-head">
 				<view class="card-icon-wrap card-icon-security">
-					<wd-icon name="lock-on" size="32rpx" color="#FFFFFF" />
+					<ZyIcon name="lock" :size="32" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">修改密码</text>
 			</view>
@@ -141,7 +141,7 @@
 		>
 			<view class="card-head">
 				<view class="card-icon-wrap card-icon-memory">
-					<wd-icon name="heart" size="32rpx" color="#FFFFFF" />
+					<ZyIcon name="heart" :size="32" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">小织记得的</text>
 				<text class="memory-entry-arrow" aria-hidden="true">›</text>
@@ -153,7 +153,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 5">
 			<view class="card-head">
 				<view class="card-icon-wrap card-icon-memory">
-					<wd-icon name="notification" size="32rpx" color="#FFFFFF" />
+					<ZyIcon name="bell" :size="32" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">情绪关怀提醒</text>
 			</view>
@@ -173,7 +173,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 6">
 			<view class="card-head">
 				<view class="card-icon-wrap card-icon-memory">
-					<wd-icon name="tips" size="32rpx" color="#FFFFFF" />
+					<ZyIcon name="info" :size="32" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">陪伴小提示</text>
 			</view>
@@ -192,7 +192,7 @@
 		<view class="section-card zy-slide-up zy-stagger" style="--stagger-i: 7">
 			<view class="card-head">
 				<view class="card-icon-wrap card-icon-memory">
-					<wd-icon name="picture" size="32rpx" color="#FFFFFF" />
+					<ZyIcon name="picture" :size="32" color="#FFFFFF" />
 				</view>
 				<text class="section-heading">页面配色</text>
 			</view>
@@ -234,6 +234,7 @@ import FormField from '../../components/FormField.vue'
 import ZyInput from '../../components/ZyInput.vue'
 import ZyTextarea from '../../components/ZyTextarea.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
@@ -785,7 +786,6 @@ async function handleChangePassword() {
 .section-card { margin-top: 0; padding: 36rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; box-shadow: none; }
 .card-head { display: flex; align-items: center; gap: 14rpx; margin-bottom: 20rpx; }
 .card-icon-wrap, .card-icon-security, .card-icon-memory { width: 40rpx; height: 40rpx; border-radius: 0; background: transparent !important; border: 1rpx solid var(--zy-border, #d3ded8); }
-.card-icon-wrap :deep(.wd-icon) { color: var(--zy-brand-700, #0a403b) !important; }
 .section-heading { font-family: var(--zy-font-display, serif); font-size: 36rpx; font-weight: 500; color: var(--zy-title, #111816); }
 .form-label, .form-readonly-text { color: var(--zy-text, #42524c); }
 .btn-primary, .btn-primary--accent { width: 100%; height: 88rpx; border-radius: 0; background: var(--zy-brand-600, #0e5b53); margin-top: 28rpx; }

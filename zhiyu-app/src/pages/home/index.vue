@@ -10,7 +10,7 @@
 				</view>
 				<view class="header-right">
 					<AccessibleButton class="bell" aria-label="查看通知" @click="goNotifications">
-						<wd-icon name="notification" size="36rpx" color="#42524C" />
+						<ZyIcon name="bell" :size="36" tone="text" />
 						<view v-if="noticeState.unread > 0" class="bell-dot" aria-hidden="true"></view>
 					</AccessibleButton>
 					<AccessibleButton class="avatar" aria-label="打开我的页面" @click="goProfile">{{avatarLetter}}</AccessibleButton>
@@ -117,6 +117,7 @@
 <script setup>
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import CompanionNudge from '../../components/CompanionNudge.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'

@@ -1,17 +1,8 @@
 <template>
 	<view class="growth-page heritage-detail-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
-		<view v-if="loading" class="zy-card heritage-status" role="status" aria-live="polite">
-			<text class="heritage-muted zy-t-body">正在读取纹样…</text>
-		</view>
-		<view v-else-if="error" class="zy-card heritage-status" role="alert">
-			<text class="heritage-error zy-t-body">{{ error }}</text>
-			<AccessibleButton variant="secondary" @click="load">重试</AccessibleButton>
-			<AccessibleButton variant="secondary" @click="back">返回纹样馆</AccessibleButton>
-		</view>
-		<view v-else-if="notFound" class="zy-card heritage-status">
-			<text class="heritage-muted zy-t-body">没有找到这个纹样。</text>
-			<AccessibleButton variant="secondary" @click="back">返回纹样馆</AccessibleButton>
-		</view>
+		<StateBlock v-if="loading" type="loading" shape="detail" title="正在读取纹样…" />
+		<StateBlock v-else-if="error" type="error" title="纹样没有读取成功" :description="error" action-text="重试" @action="load" />
+		<StateBlock v-else-if="notFound" type="empty" title="没有找到这个纹样" description="它可能已被移除，或链接有误。" action-text="返回纹样馆" @action="back" />
 		<template v-else-if="pattern">
 			<SectionHead eyebrow="HERITAGE STUDY" :title="pattern.name" tone="heritage" />
 			<view class="heritage-detail-meta">
@@ -61,7 +52,7 @@
 						<image class="heritage-ref-img" :src="reference.src" mode="aspectFill" :alt="reference.title" />
 						<text class="heritage-ref-title zy-t-caption">{{ reference.title }}</text>
 						<text class="heritage-ref-credit zy-t-micro">{{ reference.attribution }}</text>
-						<view class="heritage-ref-license zy-t-micro zy-link" @click="openLicense(reference)"><text>查看许可</text><ZyIcon name="external" :size="22" tone="brand" /></view>
+						<AccessibleButton class="heritage-ref-license zy-t-micro zy-link" :aria-label="'查看 ' + reference.title + ' 的许可'" @click="openLicense(reference)"><text>查看许可</text><ZyIcon name="external" :size="22" tone="brand" /></AccessibleButton>
 					</view>
 				</scroll-view>
 			</view>
@@ -136,6 +127,7 @@ import PatternLive from '@/components/PatternLive.vue'
 import ProcessStrip from '@/components/ProcessStrip.vue'
 import HeritageRegistryPlate from '@/components/HeritageRegistryPlate.vue'
 import RegionSeal from '@/components/RegionSeal.vue'
+import StateBlock from '@/components/StateBlock.vue'
 import { textureFor, referencesFor } from '@/utils/heritage-media'
 import { useToast } from '@/composables/useToast'
 
@@ -313,17 +305,8 @@ onLoad((query) => {
 	margin: 0 auto;
 	padding: var(--zy-space-lg) var(--zy-space-md) var(--zy-space-3xl);
 }
-.heritage-status {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 12rpx;
-}
 .heritage-muted {
 	color: var(--zy-text);
-}
-.heritage-error {
-	color: var(--zy-care);
 }
 .heritage-detail-meta {
 	display: flex;
@@ -446,10 +429,19 @@ onLoad((query) => {
 	color: var(--zy-text);
 }
 .heritage-ref-license {
-	display: inline-block;
-	margin-top: 6rpx;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 6rpx;
+	width: auto;
+	min-height: 44px;
+	margin: 6rpx 0 0;
+	padding: 0;
+	background: transparent;
+	border: 0;
 	color: var(--zy-brand-700);
 }
+.heritage-ref-license::after { border: 0; }
 .heritage-card-title {
 	display: block;
 	margin-bottom: 10rpx;

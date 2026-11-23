@@ -169,11 +169,11 @@
 		<view v-if="work && !notFound && !error" class="action-dock">
 			<view class="action-dock-inner">
 				<AccessibleButton class="dock-action" :class="{ active: liked }" :disabled="!!interactionBusy" :aria-pressed="liked" @click="toggle(1)">
-					<wd-icon name="heart" size="36rpx" :color="liked ? '#a64842' : '#4a5f54'" />
+					<ZyIcon name="heart" :size="36" :tone="liked ? 'care' : 'muted'" />
 					<text>{{ liked ? '已点赞' : '点赞' }} · {{ likeCount }}</text>
 				</AccessibleButton>
 				<AccessibleButton class="dock-action" :class="{ active: favorited }" :disabled="!!interactionBusy" :aria-pressed="favorited" @click="toggle(0)">
-					<wd-icon name="star" size="36rpx" :color="favorited ? '#217e76' : '#4a5f54'" />
+					<ZyIcon name="star" :size="36" :tone="favorited ? 'brand' : 'muted'" />
 					<text>{{ favorited ? '已收藏' : '收藏' }}</text>
 				</AccessibleButton>
 				<AccessibleButton class="share-trigger" :disabled="!work.shareable || shareBusy" :loading="shareBusy" @click="prepareShare">
@@ -231,6 +231,7 @@ import FormField from '../../components/FormField.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { useToast } from '../../composables/useToast'
 import { ref, computed } from 'vue'
 import { onLoad, onShareAppMessage, onReachBottom } from '@dcloudio/uni-app'

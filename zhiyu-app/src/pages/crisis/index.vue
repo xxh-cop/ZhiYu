@@ -14,7 +14,7 @@
 			<view class="card-stripe stripe-warm"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-warm">
-					<wd-icon name="call" size="40rpx" color="var(--zy-care, #a64842)" />
+					<ZyIcon name="phone" :size="40" tone="care" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ psychCenterName }}</text>
@@ -22,25 +22,25 @@
 				</view>
 			</view>
 			<text class="card-phone">{{ psychCenterPhone }}</text>
-			<view class="card-btn" role="button" tabindex="0" @click="callPhone(psychCenterPhone)" @keydown.enter.prevent="callPhone(psychCenterPhone)" @keydown.space.prevent="callPhone(psychCenterPhone)">
-				<wd-icon name="call" size="32rpx" color="#FFFFFF" />
+			<AccessibleButton class="card-btn" aria-label="拨打校内心理咨询电话" @click="callPhone(psychCenterPhone)">
+				<ZyIcon name="phone" :size="32" color="#FFFFFF" />
 				<text class="card-btn-text">拨打电话</text>
-			</view>
+			</AccessibleButton>
 		</view>
 
-		<view class="card support-card" role="button" tabindex="0" @click="goSupport" @keydown.enter.prevent="goSupport" @keydown.space.prevent="goSupport">
+		<AccessibleButton class="card support-card" aria-label="查看校内预约与官方来源" @click="goSupport">
 			<view class="support-copy">
 				<text class="card-title">校内预约与官方来源</text>
 				<text class="card-desc">查看地点、预约准备和信息核对日期</text>
 			</view>
-			<text class="support-arrow" aria-hidden="true">→</text>
-		</view>
+			<ZyIcon name="arrow" :size="36" tone="brand" class="support-arrow" />
+		</AccessibleButton>
 		<!-- 卡片 2：全国心理援助热线 -->
 		<view class="card card--signal zy-slide-up zy-stagger" style="--stagger-i: 2">
 			<view class="card-stripe stripe-mint"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-mint">
-					<wd-icon name="call" size="40rpx" color="#0E5B53" />
+					<ZyIcon name="phone" :size="40" tone="brand" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ nationalHotlineName }}</text>
@@ -48,23 +48,23 @@
 				</view>
 			</view>
 			<text class="card-phone">{{ nationalHotline }}</text>
-			<view class="card-btn card-btn-mint" role="button" tabindex="0" @click="callPhone(nationalHotline)" @keydown.enter.prevent="callPhone(nationalHotline)" @keydown.space.prevent="callPhone(nationalHotline)">
-				<wd-icon name="call" size="32rpx" color="#FFFFFF" />
+			<AccessibleButton class="card-btn card-btn-mint" aria-label="拨打全国心理援助热线" @click="callPhone(nationalHotline)">
+				<ZyIcon name="phone" :size="32" color="#FFFFFF" />
 				<text class="card-btn-text">拨打电话</text>
-			</view>
+			</AccessibleButton>
 		</view>
 
 		<!-- 卡片 3：立刻找人聊聊 -->
-		<view class="chat-card zy-slide-up zy-stagger" style="--stagger-i: 3" role="button" tabindex="0" @click="goChat" @keydown.enter.prevent="goChat" @keydown.space.prevent="goChat">
+		<AccessibleButton class="chat-card zy-slide-up zy-stagger" style="--stagger-i: 3" aria-label="和小织聊聊" @click="goChat">
 			<view class="chat-card-icon">
-				<wd-icon name="chat" size="44rpx" color="#FFFFFF" />
+				<ZyIcon name="comment" :size="44" color="#FFFFFF" />
 			</view>
 			<view class="chat-card-info">
 				<text class="chat-card-title">和小织聊聊（AI）</text>
 				<text class="chat-card-sub">AI 陪伴不能提供紧急救援</text>
 			</view>
-			<wd-icon name="arrow-right" size="36rpx" color="#FFFFFF" />
-		</view>
+			<ZyIcon name="arrow" :size="36" color="#FFFFFF" />
+		</AccessibleButton>
 
 		<!-- 温暖文案 -->
 		<view class="warm-text zy-slide-up zy-stagger" style="--stagger-i: 4">
@@ -82,6 +82,8 @@ import { ref } from 'vue'
 import { campusSupport } from '../../data/campus-support'
 import { onShow } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
+import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 
 // 兜底值：请求失败时保证页面仍可用（与 application.yml 默认值一致）
 const FALLBACK = {
@@ -134,7 +136,7 @@ function goChat() {
 <style scoped>
 .page {
 	min-height: 100vh;
-	padding: 0 32rpx 120rpx;
+	padding: 0 var(--zy-space-md) 120rpx;
 	box-sizing: border-box;
 	background-color: var(--zy-bg, #ffffff);
 }
@@ -290,8 +292,10 @@ function goChat() {
 .chat-card {
 	display: flex;
 	align-items: center;
+	justify-content: flex-start;
 	gap: 24rpx;
 	padding: 36rpx 32rpx;
+	text-align: left;
 	border-radius: var(--zy-radius-lg, 32rpx);
 	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
 	box-shadow: var(--zy-shadow-md);
@@ -363,7 +367,7 @@ button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1
 .hero-circle { width: 76rpx; height: 76rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-care); box-shadow: none; margin-bottom: 24rpx; }
 .hero-icon-text { font-size: 40rpx; font-weight: 500; color: var(--zy-care); font-family: var(--zy-font-display, serif); }
 .hero-icon-text { font-size: 40rpx; font-weight: 500; }
-.hero-title { font-size: 64rpx; font-weight: 500; line-height: 1.3; }
+.hero-title { font-size: 64rpx; font-weight: 600; line-height: 1.3; }
 .hero-sub { color: var(--zy-muted); }
 .card { margin: 32rpx 0; padding: 28rpx 0; border-radius: 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); box-shadow: none; }
 .card--signal { border-top: 0; padding-top: 0; }

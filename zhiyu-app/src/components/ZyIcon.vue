@@ -75,6 +75,14 @@ const ICONS = {
 	refresh: "<path d='M19.5 12a7.5 7.5 0 1 1-2.2-5.3'/><path d='M19.5 3.5v3.7h-3.7'/>",
 	'chevron-down': "<path d='m6 9.5 6 6 6-6'/>",
 	alert: "<circle cx='12' cy='12' r='8.5'/><path d='M12 7.5v5.5'/><circle cx='12' cy='16.2' r='.9' fill='currentColor' stroke='none'/>",
+	phone: "<path d='M6.4 3.5h3.1l1.5 4-2.1 1.5a11.2 11.2 0 0 0 6.1 6.1l1.5-2.1 4 1.5v3.1a2 2 0 0 1-2.2 2A16.6 16.6 0 0 1 4.4 5.7a2 2 0 0 1 2-2.2Z'/>",
+	picture: "<rect x='3.5' y='5' width='17' height='14'/><circle cx='8.5' cy='9.5' r='1.4'/><path d='m4.5 17 5-5 4 4 3-3 3 3'/>",
+	fullscreen: "<path d='M9 4H4v5'/><path d='M15 4h5v5'/><path d='M20 15v5h-5'/><path d='M4 15v5h5'/>",
+	lock: "<rect x='5' y='10.5' width='14' height='9.5'/><path d='M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5'/>",
+	info: "<circle cx='12' cy='12' r='8.5'/><path d='M12 11v5.5'/><circle cx='12' cy='7.8' r='.9' fill='currentColor' stroke='none'/>",
+	video: "<rect x='3' y='6' width='12' height='12' rx='1'/><path d='m15 10 6-3v10l-6-3'/>",
+	'chevron-up': "<path d='m6 14.5 6-6 6 6'/>",
+	'check-circle': "<circle cx='12' cy='12' r='8.5'/><path d='m8 12 2.8 2.8L16.5 9'/>",
 }
 
 /* 玄墨主题下，浅底 tone 自动映射为深底等价值（data-URI 读不到 CSS 变量） */

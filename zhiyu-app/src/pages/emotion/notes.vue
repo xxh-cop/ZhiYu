@@ -38,6 +38,7 @@
 
 		<!-- 便签卡片列表 -->
 		<view v-else class="card-list">
+			<text class="list-label">最近记录</text>
 			<view
 				v-for="(item, idx) in records"
 				:key="item.id"
@@ -64,7 +65,7 @@
 						</view>
 					</view>
 					<!-- 右侧箭头 -->
-					<wd-icon name="arrow-right" size="24rpx" color="#6e7b75" />
+						<ZyIcon name="arrow" :size="24" tone="muted" />
 				</view>
 			</view>
 
@@ -106,6 +107,7 @@ import ZySpinner from '../../components/ZySpinner.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
@@ -271,9 +273,16 @@ async function confirmDelete() {
 	display: block;
 	font-family: var(--zy-font-display, serif);
 	font-size: 64rpx;
-	font-weight: 500;
+	font-weight: 600;
 	line-height: 1.2;
 	color: var(--zy-title, #111816);
+}
+.list-label {
+	display: block;
+	font-size: var(--zy-text-micro, 22rpx);
+	letter-spacing: 2px;
+	color: var(--zy-muted);
+	margin-bottom: 4rpx;
 }
 .page-subtitle {
 	display: block;

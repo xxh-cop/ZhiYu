@@ -17,7 +17,7 @@
 				</view>
 			<view class="cp-header-actions">
 				<view class="cp-fullscreen-btn" role="button" tabindex="0" aria-label="全屏打开对话" @click="onFullscreen" @keydown.enter.prevent="onFullscreen" @keydown.space.prevent="onFullscreen">
-					<wd-icon name="fullsreen" size="36rpx" color="var(--zy-text, #4a5f54)" />
+					<ZyIcon name="fullscreen" :size="36" tone="text" />
 				</view>
 				<view class="cp-close-btn" role="button" tabindex="0" aria-label="关闭对话面板" @click="onClose" @keydown.enter.prevent="onClose" @keydown.space.prevent="onClose">
 					<ZyIcon name="close" :size="28" tone="muted" />

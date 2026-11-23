@@ -3,13 +3,8 @@
 		<SectionHead eyebrow="HERITAGE STUDIES" title="一针一线，都有来处" tone="heritage" />
 		<text class="heritage-subtitle zy-t-body">{{ catalogCount }} · 来源与练习边界可查。</text>
 
-		<view v-if="loading" class="zy-card heritage-status" role="status" aria-live="polite">
-			<text class="heritage-muted zy-t-body">正在整理纹样…</text>
-		</view>
-		<view v-else-if="error" class="zy-card heritage-status" role="alert">
-			<text class="heritage-error zy-t-body">{{ error }}</text>
-			<AccessibleButton variant="secondary" @click="load">重试</AccessibleButton>
-		</view>
+		<StateBlock v-if="loading" type="loading" shape="list" title="正在整理纹样…" />
+		<StateBlock v-else-if="error" type="error" title="纹样暂时没有载入" :description="error" action-text="重试" @action="load" />
 		<template v-else>
 			<view class="zy-card heritage-search-card">
 				<label class="heritage-label zy-t-caption" for="heritage-search">搜索纹样</label>
@@ -92,6 +87,7 @@ import { useInteraction } from '@/composables/useInteraction'
 import AccessibleButton from '@/components/AccessibleButton.vue'
 import SectionHead from '@/components/SectionHead.vue'
 import HeritageCard from '@/components/HeritageCard.vue'
+import StateBlock from '@/components/StateBlock.vue'
 
 const { reducedMotion } = useInteraction()
 const loading = ref(false)
@@ -172,9 +168,6 @@ onLoad(load)
 }
 .heritage-muted {
 	color: var(--zy-text);
-}
-.heritage-error {
-	color: var(--zy-care);
 }
 .heritage-search-card {
 	padding: 24rpx 28rpx;
