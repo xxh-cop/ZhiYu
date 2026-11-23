@@ -22,9 +22,12 @@ import { refreshTokenApi } from './core';
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 // Fresh Vben checkouts may retain the template demo endpoint in ignored env files.
 // Never send work accounts to that external demo service.
-const businessApiURL = !apiURL || /^https?:\/\/mock-napi\.vben\.pro(?:\/|$)/i.test(apiURL)
-  ? '/api'
-  : apiURL;
+// 未配置且非模板演示地址时回退为空串（相对当前站点根），不再硬编码 /api，
+// 避免非同一主机部署时请求落到站点自身域名。
+const isTemplateDemoApi = /^https?:\/\/mock-napi\.vben\.pro(?:\/|$)/i.test(
+  apiURL ?? '',
+);
+const businessApiURL = isTemplateDemoApi ? '' : (apiURL ?? '');
 
 function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   const client = new RequestClient({
@@ -116,3 +119,6 @@ export const requestClient = createRequestClient(businessApiURL, {
 });
 
 export const baseRequestClient = new RequestClient({ baseURL: businessApiURL });
+
+/** 业务接口根地址；供原生 fetch / XHR 上传等无法经过 RequestClient 的场景复用 */
+export const apiBaseURL = businessApiURL;

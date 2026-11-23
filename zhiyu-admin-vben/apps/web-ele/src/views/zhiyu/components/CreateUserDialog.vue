@@ -6,6 +6,7 @@ import { useAccessStore } from '@vben/stores';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 
+import { apiBaseURL } from '#/api/request';
 import { createUser } from '#/api/zhiyu/admin-user';
 import type { UserCreateBody } from '#/api/zhiyu/admin-user';
 import ZyFormField from '#/components/zy-form-field/ZyFormField.vue';
@@ -88,7 +89,7 @@ async function handleAvatarChange(e: Event) {
     const formData = new FormData();
     formData.append('file', file);
     const token = accessStore.accessToken;
-    const response = await fetch('/api/files/upload/image', {
+    const response = await fetch(`${apiBaseURL}/files/upload/image`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,

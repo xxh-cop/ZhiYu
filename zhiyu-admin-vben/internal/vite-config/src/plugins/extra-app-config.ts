@@ -71,7 +71,13 @@ async function viteExtraAppConfigPlugin({
 }
 
 async function getConfigSource() {
-  const config = await loadEnv();
+  const config: Record<string, string> = { ...(await loadEnv()) };
+  // 构建期同名前缀环境变量优先：允许 CI / 部署平台在不落盘 .env 的情况下注入
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith('VITE_GLOB_') && typeof value === 'string' && value) {
+      config[key] = value;
+    }
+  }
   const windowVariable = `window.${VBEN_ADMIN_PRO_APP_CONF}`;
   // 确保变量不会被修改
   let source = `${windowVariable}=${JSON.stringify(config)};`;

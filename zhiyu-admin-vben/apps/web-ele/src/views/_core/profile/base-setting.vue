@@ -12,6 +12,7 @@ import {
 } from 'element-plus';
 
 import { getUserInfoApi, updateUserProfile } from '#/api';
+import { apiBaseURL } from '#/api/request';
 
 const userStore = useUserStore();
 const accessStore = useAccessStore();
@@ -88,7 +89,7 @@ async function handleAvatarChange(e: Event) {
 
     // 获取 token
     const token = accessStore.accessToken;
-    const response = await fetch('/api/files/upload/image', {
+    const response = await fetch(`${apiBaseURL}/files/upload/image`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,

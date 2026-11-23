@@ -36,7 +36,7 @@ export async function getUserList(params: AdminUserApi.UserListParams) {
   return { ...res, total: Number(res.total) };
 }
 
-export async function getUserDetail(id: number) {
+export async function getUserDetail(id: number | string) {
   return requestClient.get<AdminUserApi.UserListItem & { craftPreferences?: string }>(
     `/admin/users/${id}`,
   );

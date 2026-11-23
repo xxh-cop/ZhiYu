@@ -5,6 +5,7 @@ import { useAccessStore } from '@vben/stores';
 
 import { ElMessage } from 'element-plus';
 
+import { apiBaseURL } from '#/api/request';
 import { updateMyInheritorProfile } from '#/api/zhiyu/inheritor';
 
 interface Props {
@@ -83,7 +84,7 @@ async function handleAvatarChange(e: Event) {
     const formData = new FormData();
     formData.append('file', file);
     const token = accessStore.accessToken;
-    const response = await fetch('/api/files/upload/image', {
+    const response = await fetch(`${apiBaseURL}/files/upload/image`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,

@@ -7,6 +7,7 @@ import type { FormInstance, FormRules } from 'element-plus';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
 
+import { apiBaseURL } from '#/api/request';
 import {
   getInheritorList,
   updateInheritor,
@@ -189,7 +190,7 @@ async function handleAvatarChange(e: Event) {
     const formData = new FormData();
     formData.append('file', file);
     const token = accessStore.accessToken;
-    const response = await fetch('/api/files/upload/image', {
+    const response = await fetch(`${apiBaseURL}/files/upload/image`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,

@@ -3,7 +3,7 @@ import { onBeforeUnmount, ref, watch } from 'vue';
 
 import { useAccessStore } from '@vben/stores';
 
-import { requestClient } from '#/api/request';
+import { apiBaseURL, requestClient } from '#/api/request';
 
 /**
  * 步骤引导音频上传（AW2 2026-11-05，对接后端 AU3）。
@@ -68,7 +68,7 @@ function choose(e: Event) {
 
   const xhr = new XMLHttpRequest();
   request = xhr;
-  xhr.open('POST', '/api/files/upload/audio');
+  xhr.open('POST', `${apiBaseURL}/files/upload/audio`);
   xhr.setRequestHeader('Authorization', `Bearer ${access.accessToken}`);
   xhr.timeout = 120_000;
   xhr.upload.onprogress = (ev) => {
