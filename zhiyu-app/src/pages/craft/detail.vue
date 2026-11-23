@@ -26,7 +26,7 @@
 
 				<view class="cover-top">
 					<AccessibleButton class="cover-fab" aria-label="返回上一页" @click="goBack">
-						<text class="cover-fab-t">←</text>
+						<ZyIcon name="back" :size="32" color="#F1F4F1" />
 					</AccessibleButton>
 					<text class="cover-index">手作档案 / {{ archiveNo }}</text>
 					<button open-type="share" class="cover-fab" aria-label="分享手作项目" @click="share">

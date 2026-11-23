@@ -142,7 +142,7 @@ onLoad(options => {
 			{{ error }}
 			<AccessibleButton v-if="!group" class="growth-button secondary" :disabled="loading" @click="load">重新读取</AccessibleButton>
 		</view>
-		<StateBlock v-if="loading && !group" type="loading" title="正在读取小组…" />
+		<StateBlock v-if="loading && !group" type="loading" shape="detail" title="正在读取小组…" />
 
 		<template v-if="group">
 			<view class="growth-card">

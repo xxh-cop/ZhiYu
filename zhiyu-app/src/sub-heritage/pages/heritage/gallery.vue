@@ -20,7 +20,7 @@
 					class="heritage-input zy-t-body"
 					aria-label="搜索纹样"
 					placeholder="输入名称、地域或学习观察点"
-					placeholder-style="font-size:24rpx;color:#8a9a93"
+					placeholder-style="font-size:24rpx;color:#8B9994"
 					confirm-type="search"
 				/>
 				<text class="heritage-muted zy-t-caption">可按名称、地域或学习观察点查找。</text>

@@ -37,20 +37,7 @@
 			<view class="textarea-card">
 				<FormField label="写下此刻" required :error="errors.content" :maxlength="500" :count="content.length">
 					<template #default="{ id, ariaDescribedby, ariaInvalid }">
-						<textarea
-							:id="id"
-							class="note-textarea"
-							v-model="content"
-							:aria-describedby="ariaDescribedby"
-							:aria-invalid="ariaInvalid"
-							placeholder="写下此刻的心情..."
-							placeholder-style="color: #8a9a93; font-size: 24rpx;"
-							:maxlength="500"
-							:auto-height="true"
-							:show-confirm-bar="false"
-							:adjust-position="true"
-							@input="errors.content = ''"
-						/>
+						<ZyTextarea :id="id" v-model="content" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!errors.content" placeholder="写下此刻的心情..." :maxlength="500" auto-height :show-confirm-bar="false" @update:model-value="errors.content = ''" />
 					</template>
 				</FormField>
 			</view>
@@ -89,6 +76,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import ActionSheet from '../../components/ActionSheet.vue'
 import FormField from '../../components/FormField.vue'
+import ZyTextarea from '../../components/ZyTextarea.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
 

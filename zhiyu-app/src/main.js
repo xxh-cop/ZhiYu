@@ -9,6 +9,7 @@ import {
 } from "vue";
 import App from "./App.vue";
 import { useThemeStore } from "./stores/theme";
+import { recordVisit, routeLabel } from "./utils/recent";
 // #ifdef H5
 import ZyTabBar from "./components/ZyTabBar.vue";
 import { currentTabRoute, isTabRoute } from "./utils/tabbar";
@@ -35,6 +36,7 @@ export function createApp() {
 			() => theme.themeClass,
 			(cls) => {
 				document.documentElement.classList.toggle("zy-theme-warm", cls === "zy-theme-warm");
+				document.documentElement.classList.toggle("zy-theme-dark", cls === "zy-theme-dark");
 			},
 			{ immediate: true }
 		);
@@ -65,7 +67,16 @@ export function createApp() {
 			try {
 				const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
 				current = pages.length ? pages[pages.length - 1] : null
-				if (current && current.route) uni.$emit('zy:tabshow', '/' + current.route)
+				if (current && current.route) {
+					uni.$emit('zy:tabshow', '/' + current.route)
+					// 记录「最近访问」：仅路由与页面名，供首页继续上次/最近入口
+					let full = '/' + current.route
+					const query = current.options || {}
+					const keys = Object.keys(query)
+					if (keys.length) full += '?' + keys.map((k) => k + '=' + encodeURIComponent(query[k])).join('&')
+					const label = routeLabel(full)
+					if (label) recordVisit(full, label)
+				}
 			} catch (e) {
 				/* 页面栈不可用时由自定义导航条自行读取 */
 			}

@@ -1,14 +1,14 @@
 <template>
 	<view :class="zyThemeClass" class="page" @touchstart="idleArm" @click="idleArm">
 		<view class="chat-header">
-			<AccessibleButton class="nav-back" aria-label="返回上一页" @click="requestLeave">←</AccessibleButton>
+			<AccessibleButton class="nav-back" aria-label="返回上一页" @click="requestLeave"><ZyIcon name="back" :size="36" tone="dark" /></AccessibleButton>
 			<view class="header-avatar" aria-hidden="true"><text class="header-avatar-text">织</text></view>
 			<view class="chat-header-copy">
 				<text class="header-name zy-t-serif">小织</text>
 				<text class="header-state">{{ headerState }}</text>
 			</view>
 			<AccessibleButton variant="danger" size="sm" class="header-action support-btn" aria-label="查看心理援助资源" @click="moreOpen = false; goCrisisPage()">求助</AccessibleButton>
-			<AccessibleButton class="more-btn" aria-label="更多会话操作" :aria-expanded="moreOpen" @click.stop="toggleMore">···</AccessibleButton>
+			<AccessibleButton class="more-btn" aria-label="更多会话操作" :aria-expanded="moreOpen" @click.stop="toggleMore"><ZyIcon name="more" :size="32" tone="dark-muted" /></AccessibleButton>
 		</view>
 		<!-- 更多操作：主流聊天式浮层菜单，保留结束倾听与返回入口 -->
 			<view v-if="moreOpen" class="more-mask" @click="moreOpen = false"></view>
@@ -133,7 +133,7 @@
 	</scroll-view>
 		<!-- 主流聊天式「回到底部」：滚离底部时出现，有新回复时带未读数 -->
 		<AccessibleButton v-if="messages.length && !atBottom" class="jump-latest" :aria-label="unreadCount ? `回到底部，${unreadCount} 条新消息` : '回到底部'" @click="jumpToLatest">
-			<text class="jump-arrow" aria-hidden="true">↓</text>
+			<ZyIcon name="chevron-down" :size="24" tone="brand-light" />
 			<text class="jump-text">{{ unreadCount ? `${unreadCount} 条新消息` : '回到最新' }}</text>
 		</AccessibleButton>
 	</view>
@@ -201,6 +201,7 @@ import StateBlock from '../../components/StateBlock.vue'
 import CompanionNudge from '../../components/CompanionNudge.vue'
 import ChatBubble from '../../components/ChatBubble.vue'
 import ChatInputBar from '../../components/ChatInputBar.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
 import { useIdleNudge } from '../../composables/useIdleNudge'

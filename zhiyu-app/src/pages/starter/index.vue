@@ -17,7 +17,7 @@
    <view v-if="matches.length>1" class="growth-grid"><AccessibleButton v-for="item in matches.filter(x=>x.id!==featured.id)" :key="item.id" class="growth-card result" @click="open(item)" ><CraftCover :category="item.medium"/><text class="growth-card-title">{{item.title}}</text><text class="growth-muted">{{item.minutes}} 分钟 · {{item.medium}} · {{item.steps.length}} 步</text><text class="growth-muted">{{item.tools.length?item.tools.join(' / '):'无需剪刀与胶带'}}</text></AccessibleButton></view>
    <text class="growth-muted">原创入门练习，不代表传统技艺认证或专业疗效。具体来源见准备页。</text>
   </template>
-  <AccessibleButton class="growth-button secondary zy-link" @click="openCredits()"><text>图片来源与授权</text><ZyIcon name="external" :size="24" color="#1A645E" /></AccessibleButton><text class="growth-foot">本系统不能替代专业心理咨询</text>
+  <AccessibleButton class="growth-button secondary zy-link" @click="openCredits()"><text>图片来源与授权</text><ZyIcon name="external" :size="24" tone="brand" /></AccessibleButton><text class="growth-foot">本系统不能替代专业心理咨询</text>
  </view>
 </template>
 <script setup>

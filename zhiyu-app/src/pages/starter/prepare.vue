@@ -1,6 +1,6 @@
 <template>
 	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
- <StateBlock v-if="loading" type="loading" title="正在读取准备清单…" />
+ <StateBlock v-if="loading" type="loading" shape="list" title="正在读取准备清单…" />
  <view v-else-if="error" class="prepare-error">
   <StateBlock type="error" title="这件练习暂时没准备好" :description="error" action-text="重新读取" @action="load" />
   <AccessibleButton class="state-back" @click="back">回到手作起点</AccessibleButton>

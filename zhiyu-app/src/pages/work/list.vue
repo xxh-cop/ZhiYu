@@ -142,7 +142,7 @@
 
 			<!-- 底部状态 -->
 			<view v-if="records.length > 0" class="bottom-status">
-				<view v-if="loading" class="loading-dot"></view>
+				<ZySpinner v-if="loading" :size="28" />
 				<text v-if="loading" class="bottom-text">正在加载…</text>
 				<template v-else-if="!hasMore">
 					<view class="bottom-divider"></view>
@@ -163,6 +163,7 @@ import { onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { API_BASE_URL } from '../../utils/config.js'
 import StateBlock from '../../components/StateBlock.vue'
+import ZySpinner from '../../components/ZySpinner.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import ZyIcon from '../../components/ZyIcon.vue'
 

@@ -1,7 +1,8 @@
 /*
  * 自定义 tabBar 样式（原生 wxss，不走 rpx 变量继承：组件在页面根 view 之外，拿不到 --zy-* 变量）。
- * v7「一线」：白底 + 顶部发丝线 + 五个纯文字入口，取消缺口 SVG 与中央悬浮球。
- * 条体 104rpx；底部安全区由根节点底色填充。
+ * v7「一线」+ P0 图标化（2026-11-18）：白底 + 顶部发丝线 + 线性图标/文字五入口；
+ * 选中 = 窑青 + 朱砂短线；「我的」挂未读朱砂圆点。条体 112rpx；底部安全区由根节点底色填充。
+ * 图标 data-URI 由 .ai-tmp/gen-tabbar-wxss.js 生成，与 src/components/ZyIcon.vue 同一套 path。
  */
 .zy-tabbar {
 	position: fixed;
@@ -10,8 +11,8 @@
 	bottom: 0;
 	z-index: 990;
 	box-sizing: border-box;
-	height: calc(104rpx + constant(safe-area-inset-bottom));
-	height: calc(104rpx + env(safe-area-inset-bottom));
+	height: calc(112rpx + constant(safe-area-inset-bottom));
+	height: calc(112rpx + env(safe-area-inset-bottom));
 	padding-bottom: constant(safe-area-inset-bottom);
 	padding-bottom: env(safe-area-inset-bottom);
 	background-color: #ffffff;
@@ -22,7 +23,7 @@
 	position: relative;
 	display: flex;
 	align-items: stretch;
-	height: 104rpx;
+	height: 112rpx;
 }
 
 .zy-tab-item {
@@ -32,29 +33,79 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 8rpx;
+	gap: 4rpx;
 	height: 100%;
 }
 
 .zy-tab-mark {
+	position: absolute;
+	top: 6rpx;
 	width: 26rpx;
-	height: 2rpx;
+	height: 3rpx;
 	background-color: transparent;
 	transition: background-color 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.zy-tab-iconwrap { position: relative; display: flex; }
+.zy-tab-icon {
+	width: 40rpx;
+	height: 40rpx;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+.zy-tab-dot {
+	position: absolute;
+	top: -2rpx;
+	right: -8rpx;
+	width: 14rpx;
+	height: 14rpx;
+	border-radius: 50%;
+	background-color: #A64842;
+	border: 2rpx solid #ffffff;
+	box-sizing: border-box;
+}
+
 .zy-tab-text {
-	font-size: 22rpx;
-	line-height: 1.4;
+	font-size: 24rpx;
+	line-height: 1.3;
 	color: #6E7B75;
 	letter-spacing: 1rpx;
 }
 
 .zy-tab-item.is-active .zy-tab-text {
-	color: #111816;
-	font-weight: 500;
+	color: #0E5B53;
+	font-weight: 600;
 }
 
 .zy-tab-item.is-active .zy-tab-mark {
 	background-color: #A64842;
 }
+
+.zy-tab-icon-home { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%236E7B75'%20color%3D'%236E7B75'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M4%2011%2012%204l8%207'%2F%3E%3Cpath%20d%3D'M6%209.5V20h12V9.5'%2F%3E%3Cpath%20d%3D'M10%2020v-5h4v5'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-item.is-active .zy-tab-icon-home { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%230E5B53'%20color%3D'%230E5B53'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M4%2011%2012%204l8%207'%2F%3E%3Cpath%20d%3D'M6%209.5V20h12V9.5'%2F%3E%3Cpath%20d%3D'M10%2020v-5h4v5'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-icon-community { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%236E7B75'%20color%3D'%236E7B75'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'4'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'4'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-item.is-active .zy-tab-icon-community { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%230E5B53'%20color%3D'%230E5B53'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'4'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'4'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-icon-craft { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%236E7B75'%20color%3D'%236E7B75'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M19%205%208.5%2015.5'%2F%3E%3Cpath%20d%3D'M19%205c1%201%201%202.5%200%203.5L8.5%2019%205%2019l0-3.5L15.5%205c1-1%202.5-1%203.5%200Z'%2F%3E%3Ccircle%20cx%3D'17.2'%20cy%3D'6.8'%20r%3D'.9'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-item.is-active .zy-tab-icon-craft { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%230E5B53'%20color%3D'%230E5B53'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M19%205%208.5%2015.5'%2F%3E%3Cpath%20d%3D'M19%205c1%201%201%202.5%200%203.5L8.5%2019%205%2019l0-3.5L15.5%205c1-1%202.5-1%203.5%200Z'%2F%3E%3Ccircle%20cx%3D'17.2'%20cy%3D'6.8'%20r%3D'.9'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-icon-group { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%236E7B75'%20color%3D'%236E7B75'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'9'%20cy%3D'9'%20r%3D'3.2'%2F%3E%3Cpath%20d%3D'M3.5%2019a5.5%205.5%200%200%201%2011%200'%2F%3E%3Cpath%20d%3D'M15.5%206.5a3.2%203.2%200%200%201%200%205.5'%2F%3E%3Cpath%20d%3D'M17%2013.6a5.5%205.5%200%200%201%203.5%205.4'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-item.is-active .zy-tab-icon-group { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%230E5B53'%20color%3D'%230E5B53'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'9'%20cy%3D'9'%20r%3D'3.2'%2F%3E%3Cpath%20d%3D'M3.5%2019a5.5%205.5%200%200%201%2011%200'%2F%3E%3Cpath%20d%3D'M15.5%206.5a3.2%203.2%200%200%201%200%205.5'%2F%3E%3Cpath%20d%3D'M17%2013.6a5.5%205.5%200%200%201%203.5%205.4'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-icon-user { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%236E7B75'%20color%3D'%236E7B75'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'12'%20cy%3D'8'%20r%3D'4'%2F%3E%3Cpath%20d%3D'M4.5%2020a7.5%207.5%200%200%201%2015%200'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tab-item.is-active .zy-tab-icon-user { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%230E5B53'%20color%3D'%230E5B53'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'12'%20cy%3D'8'%20r%3D'4'%2F%3E%3Cpath%20d%3D'M4.5%2020a7.5%207.5%200%200%201%2015%200'%2F%3E%3C%2Fsvg%3E"); }
+
+/* ── 玄墨主题（2026-11-18 P5）：原生组件无 CSS 变量，独立深色分支 ── */
+.zy-tabbar.is-dark { background-color: #111E1A; border-top-color: rgba(241,244,241,0.22); }
+.zy-tabbar.is-dark .zy-tab-text { color: #A9BBB2; }
+.zy-tabbar.is-dark .zy-tab-item.is-active .zy-tab-text { color: #8FC7B8; }
+.zy-tabbar.is-dark .zy-tab-item.is-active .zy-tab-mark { background-color: #D4736A; }
+.zy-tabbar.is-dark .zy-tab-dot { border-color: #111E1A; background-color: #D4736A; }
+.zy-tabbar.is-dark .zy-tab-item.is-active .zy-tab-icon-home { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%238FC7B8'%20color%3D'%238FC7B8'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M4%2011%2012%204l8%207'%2F%3E%3Cpath%20d%3D'M6%209.5V20h12V9.5'%2F%3E%3Cpath%20d%3D'M10%2020v-5h4v5'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-item.is-active .zy-tab-icon-community { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%238FC7B8'%20color%3D'%238FC7B8'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'4'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'4'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-item.is-active .zy-tab-icon-craft { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%238FC7B8'%20color%3D'%238FC7B8'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M19%205%208.5%2015.5'%2F%3E%3Cpath%20d%3D'M19%205c1%201%201%202.5%200%203.5L8.5%2019%205%2019l0-3.5L15.5%205c1-1%202.5-1%203.5%200Z'%2F%3E%3Ccircle%20cx%3D'17.2'%20cy%3D'6.8'%20r%3D'.9'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-item.is-active .zy-tab-icon-group { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%238FC7B8'%20color%3D'%238FC7B8'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'9'%20cy%3D'9'%20r%3D'3.2'%2F%3E%3Cpath%20d%3D'M3.5%2019a5.5%205.5%200%200%201%2011%200'%2F%3E%3Cpath%20d%3D'M15.5%206.5a3.2%203.2%200%200%201%200%205.5'%2F%3E%3Cpath%20d%3D'M17%2013.6a5.5%205.5%200%200%201%203.5%205.4'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-item.is-active .zy-tab-icon-user { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%238FC7B8'%20color%3D'%238FC7B8'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'12'%20cy%3D'8'%20r%3D'4'%2F%3E%3Cpath%20d%3D'M4.5%2020a7.5%207.5%200%200%201%2015%200'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-icon-home { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23A9BBB2'%20color%3D'%23A9BBB2'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M4%2011%2012%204l8%207'%2F%3E%3Cpath%20d%3D'M6%209.5V20h12V9.5'%2F%3E%3Cpath%20d%3D'M10%2020v-5h4v5'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-icon-community { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23A9BBB2'%20color%3D'%23A9BBB2'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'4'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'4'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'4'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3Crect%20x%3D'13'%20y%3D'13'%20width%3D'7'%20height%3D'7'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-icon-craft { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23A9BBB2'%20color%3D'%23A9BBB2'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M19%205%208.5%2015.5'%2F%3E%3Cpath%20d%3D'M19%205c1%201%201%202.5%200%203.5L8.5%2019%205%2019l0-3.5L15.5%205c1-1%202.5-1%203.5%200Z'%2F%3E%3Ccircle%20cx%3D'17.2'%20cy%3D'6.8'%20r%3D'.9'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-icon-group { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23A9BBB2'%20color%3D'%23A9BBB2'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'9'%20cy%3D'9'%20r%3D'3.2'%2F%3E%3Cpath%20d%3D'M3.5%2019a5.5%205.5%200%200%201%2011%200'%2F%3E%3Cpath%20d%3D'M15.5%206.5a3.2%203.2%200%200%201%200%205.5'%2F%3E%3Cpath%20d%3D'M17%2013.6a5.5%205.5%200%200%201%203.5%205.4'%2F%3E%3C%2Fsvg%3E"); }
+.zy-tabbar.is-dark .zy-tab-icon-user { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23A9BBB2'%20color%3D'%23A9BBB2'%20stroke-width%3D'1.5'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'12'%20cy%3D'8'%20r%3D'4'%2F%3E%3Cpath%20d%3D'M4.5%2020a7.5%207.5%200%200%201%2015%200'%2F%3E%3C%2Fsvg%3E"); }

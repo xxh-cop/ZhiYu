@@ -13,7 +13,7 @@
 			<text class="nudge-text">{{ text }}</text>
 			<text class="nudge-action">{{ actionText }}</text>
 		</AccessibleButton>
-		<AccessibleButton class="nudge-close" aria-label="关闭陪伴提示" @click="dismiss">✕</AccessibleButton>
+		<AccessibleButton class="nudge-close" aria-label="关闭陪伴提示" @click="dismiss"><ZyIcon name="close" :size="24" tone="muted" /></AccessibleButton>
 	</view>
 </template>
 
@@ -21,6 +21,7 @@
 import { ref, watch, onBeforeUnmount } from 'vue'
 import XiaotuanPet from './XiaotuanPet.vue'
 import AccessibleButton from './AccessibleButton.vue'
+import ZyIcon from './ZyIcon.vue'
 
 /**
  * CompanionNudge —— 小织「按需出现」轻提示（F2）。

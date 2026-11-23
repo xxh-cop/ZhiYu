@@ -113,7 +113,7 @@
 				<view v-if="form.mediaType === 'text'" class="media-content">
 					<view class="text-only-hint">
 						<view class="text-only-icon-wrap">
-							<wd-icon name="edit" size="40rpx" color="#217e76" />
+							<wd-icon name="edit" size="40rpx" color="#0E5B53" />
 						</view>
 						<text class="text-only-title">只写文字，不配图</text>
 						<text class="text-only-sub">用文字记录你的创作故事</text>
@@ -136,15 +136,7 @@
 
 				<FormField label="作品标题" required :error="errors.title">
 					<template #default="{ id }">
-						<wd-input
-							:id="id"
-							v-model="form.title"
-							placeholder="给作品起个名字"
-							:maxlength="100"
-							no-border
-							custom-class="form-input-el"
-							@input="errors.title = ''"
-						/>
+						<ZyInput :id="id" v-model="form.title" :error="!!errors.title" placeholder="给作品起个名字" :maxlength="100" @update:model-value="errors.title = ''" />
 					</template>
 				</FormField>
 
@@ -155,14 +147,7 @@
 					:count="form.message.length"
 				>
 					<template #default="{ id }">
-						<wd-textarea
-							:id="id"
-							v-model="form.message"
-							placeholder="分享创作过程中的感受…"
-							:maxlength="500"
-							no-border
-							custom-class="form-textarea-el"
-						/>
+						<ZyTextarea :id="id" v-model="form.message" placeholder="分享创作过程中的感受…" :maxlength="500" />
 					</template>
 				</FormField>
 				<text v-if="prefilledMessage" class="char-hint">已带入小织回顾，可修改或删除。</text>
@@ -222,7 +207,7 @@
 				<!-- AI 寄语提示 -->
 				<view class="ai-hint">
 					<view class="ai-hint-icon-wrap">
-						<wd-icon name="tips" size="36rpx" color="#217e76" />
+						<wd-icon name="tips" size="36rpx" color="#0E5B53" />
 					</view>
 					<view class="ai-hint-info">
 						<text class="ai-hint-title">小织会留一句话</text>
@@ -313,6 +298,8 @@
 import MediaVideo from "../../components/MediaVideo.vue"
 import StateBlock from '../../components/StateBlock.vue'
 import FormField from '../../components/FormField.vue'
+import ZyInput from '../../components/ZyInput.vue'
+import ZyTextarea from '../../components/ZyTextarea.vue'
 import Toast from '../../components/Toast.vue'
 import XiaotuanPet from '../../components/XiaotuanPet.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'

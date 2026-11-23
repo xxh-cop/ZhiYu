@@ -114,7 +114,7 @@
 						<view class="footer-left">
 							<RegionSeal v-if="item.region" :region="item.region" size="sm" />
 							<view v-if="item.verified" class="verified-badge">
-								<wd-icon name="check-circle-filled" size="24rpx" color="#217e76" />
+								<wd-icon name="check-circle-filled" size="24rpx" color="#0E5B53" />
 								<text class="verified-text">已认证</text>
 							</view>
 						</view>
@@ -125,7 +125,7 @@
 
 			<!-- 底部状态 -->
 			<view v-if="records.length > 0" class="bottom-status">
-				<view v-if="loading" class="loading-dot"></view>
+				<ZySpinner v-if="loading" :size="28" />
 				<text v-if="loading" class="bottom-text">正在加载…</text>
 				<template v-else-if="!hasMore">
 					<view class="bottom-divider"></view>
@@ -145,6 +145,7 @@ import { ref, computed } from 'vue'
 import { onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import HeritageCard from '../../components/HeritageCard.vue'
+import ZySpinner from '../../components/ZySpinner.vue'
 import RegionSeal from '../../components/RegionSeal.vue'
 import ZyIcon from '../../components/ZyIcon.vue'
 

@@ -9,10 +9,8 @@
 		</view>
 		<view class="zy-bubble-col">
 			<view class="zy-bubble">
-				<view v-if="typing" class="zy-typing-dots" aria-label="正在输入">
-					<view class="zy-typing-dot"></view>
-					<view class="zy-typing-dot" style="animation-delay: 180ms"></view>
-					<view class="zy-typing-dot" style="animation-delay: 360ms"></view>
+				<view v-if="typing" class="zy-typing" role="status" aria-label="小织正在输入">
+					<ZySpinner :size="30" :tone="dark ? 'light' : 'brand'" />
 				</view>
 				<text v-else class="zy-bubble-text"><slot /></text>
 			</view>
@@ -24,6 +22,7 @@
 
 <script setup>
 import XiaotuanPet from './XiaotuanPet.vue'
+import ZySpinner from './ZySpinner.vue'
 
 defineOptions({ options: { virtualHost: true, styleIsolation: 'shared' } })
 defineProps({
@@ -46,8 +45,7 @@ defineProps({
 .is-ai .zy-bubble { background: var(--zy-card-bg, #ffffff); color: var(--zy-title, #33302a); border-radius: 8rpx 32rpx 32rpx 32rpx; }
 .is-user .zy-bubble { background: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); color: #FFFFFF; border-radius: 32rpx 8rpx 32rpx 32rpx; }
 .zy-bubble-time { margin-top: 10rpx; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
-.zy-typing-dots { display: flex; gap: 8rpx; align-items: center; padding: 8rpx 4rpx; }
-.zy-typing-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)); animation: zyTypingDots 1400ms var(--zy-ease-in-out, ease-in-out) infinite; }
+.zy-typing { display: flex; align-items: center; padding: 8rpx 4rpx; }
 
 /* ── 玄墨倾听室：不是气泡，是一行行被看见的话 ── */
 .zy-bubble-row.is-dark { align-items: flex-start; gap: 14rpx; margin-bottom: 44rpx; }
@@ -59,9 +57,5 @@ defineProps({
 .is-dark.is-ai .zy-bubble { color: var(--zy-d-text, #F1F4F1); border-left: 1rpx solid rgba(143,199,184,.35); padding-left: 22rpx; }
 .is-dark.is-user .zy-bubble { color: var(--zy-d-text-secondary, #A9BBB2); text-align: right; }
 .zy-bubble-row.is-dark .zy-bubble-time { color: rgba(169,187,178,.55); }
-.zy-bubble-row.is-dark .zy-typing-dot { background: var(--zy-brand-300, #8FC7B8); }
-@keyframes zyTypingDots {
-	0%, 100% { opacity: .35; transform: scale(.85); }
-	50% { opacity: 1; transform: scale(1); }
-}
+.zy-bubble-row.is-dark .zy-typing { padding-left: 22rpx; }
 </style>

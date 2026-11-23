@@ -6,6 +6,7 @@ import com.zhiyu.security.RestAccessDeniedHandler;
 import com.zhiyu.security.RestAuthenticationEntryPoint;
 import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -64,6 +66,14 @@ public class SecurityConfig {
 
     private static final List<String> ALLOWED_METHODS =
             List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+
+    /**
+     * 额外放行的跨域来源（逗号分隔，支持通配模式），默认空。
+     * 用于短期演示：通过环境变量 ZHIYU_CORS_ALLOWED_ORIGINS 注入已部署前端域名，
+     * 不必把临时域名写进代码；不配置时行为与原先完全一致。
+     */
+    @Value("${zhiyu.cors.allowed-origins:}")
+    private String extraAllowedOrigins;
 
     private final JwtUtil jwtUtil;
     private final com.zhiyu.modules.auth.mapper.UserMapper userMapper;
@@ -149,7 +159,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(ALLOWED_ORIGIN_PATTERNS);
+        List<String> originPatterns = new ArrayList<>(ALLOWED_ORIGIN_PATTERNS);
+        if (extraAllowedOrigins != null) {
+            for (String origin : extraAllowedOrigins.split(",")) {
+                String trimmed = origin.trim();
+                if (!trimmed.isEmpty()) {
+                    originPatterns.add(trimmed);
+                }
+            }
+        }
+        config.setAllowedOriginPatterns(originPatterns);
         config.setAllowedOrigins(null);
         config.setAllowedMethods(ALLOWED_METHODS);
         config.setAllowedHeaders(List.of("*"));

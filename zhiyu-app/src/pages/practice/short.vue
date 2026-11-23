@@ -73,7 +73,7 @@
 						<view class="band-b"></view>
 					</view>
 				</view>
-				<view class="done-mark">✓</view>
+				<view class="done-mark"><ZyIcon name="check" :size="44" tone="brand" /></view>
 				<text class="done-title">这一小段，已经完成。</text>
 				<text class="done-copy">{{ practice.closing }}</text>
 				<text class="done-meta">{{ practice.minutes }} 分钟 · 已记录为一次练习</text>
@@ -97,6 +97,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { onLoad, onHide, onUnload } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
 import ActionSheet from '../../components/ActionSheet.vue'
@@ -405,7 +406,7 @@ function leave() {
 .player-actions .primary-action,
 .player-actions .secondary-action { margin-top: 0; }
 .done-card { text-align: center; padding-top: 44rpx; }
-.done-mark { width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-title-lg, 40rpx); line-height: 94rpx; }
+.done-mark { display: flex; align-items: center; justify-content: center; width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-title-lg, 40rpx); line-height: 94rpx; }
 .done-title { display: block; font-family: var(--zy-font-display, serif); font-size:40rpx; color: var(--zy-title, #111816); }
 .done-copy { display: block; margin: 14rpx auto 0; max-width: 560rpx; font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .done-meta { display: block; margin: 16rpx 0 10rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-sub, #73857b); }

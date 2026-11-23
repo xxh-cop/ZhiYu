@@ -5,7 +5,7 @@
 			<AccessibleButton class="text-btn" @click="openFavorites">我的收藏</AccessibleButton>
 		</view>
 
-		<StateBlock v-if="loading && !work" type="loading" title="正在展开这份创作…" />
+		<StateBlock v-if="loading && !work" type="loading" shape="detail" title="正在展开这份创作…" />
 
 		<StateBlock
 			v-else-if="notFound || error"

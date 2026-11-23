@@ -15,7 +15,7 @@
             <view class="permission-heading"><text class="permission-title">隐私政策同意</text><text class="status-tag" :class="{ enabled: ready && isAgreed }">{{ !ready ? '待确认' : isAgreed ? '已同意' : '未同意' }}</text></view>
             <text class="body-text">用于需要授权的情绪记录与陪伴功能。撤回后关闭可联系授权，已有记录仍可导出。</text>
             <view class="button-row">
-              <AccessibleButton class="text-button zy-link" :disabled="busy" @click="readPolicy"><text>阅读隐私政策</text><ZyIcon name="external" :size="24" color="#1A645E" /></AccessibleButton>
+              <AccessibleButton class="text-button zy-link" :disabled="busy" @click="readPolicy"><text>阅读隐私政策</text><ZyIcon name="external" :size="24" tone="brand" /></AccessibleButton>
               <AccessibleButton v-if="isAgreed" class="secondary-button" :disabled="!ready || busy" @click="openDialog('withdraw')">撤回同意</AccessibleButton>
               <AccessibleButton v-else class="primary-button" :disabled="!ready || busy" :loading="operation === 'agree'" @click="agree">同意隐私政策</AccessibleButton>
             </view>

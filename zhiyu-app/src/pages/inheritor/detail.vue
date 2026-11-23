@@ -136,7 +136,7 @@
 
 					<!-- 底部状态 -->
 					<view v-if="projects.length > 0" class="bottom-status">
-						<view v-if="projectLoading" class="loading-dot"></view>
+						<ZySpinner v-if="projectLoading" :size="28" />
 						<text v-if="projectLoading" class="bottom-text">正在加载…</text>
 						<template v-else-if="!hasMore">
 							<view class="bottom-divider"></view>
@@ -158,6 +158,7 @@ import { ref, computed } from 'vue'
 import { onLoad, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZySpinner from '../../components/ZySpinner.vue'
 import RegionSeal from '../../components/RegionSeal.vue'
 
 const inheritorId = ref(null)

@@ -4,10 +4,10 @@
  <view v-if="upcoming.length&&!loading" class="next-plan"><view><text class="section-kicker">下一段安排 · {{upcoming.length}} 项待参加</text><text class="plan-title">{{upcoming[0].title}}</text><text class="growth-muted">{{format(upcoming[0].start_time)}} · {{status[upcoming[0].myStatus]}}</text></view><AccessibleButton class="text-button" @click="filter='MINE';query=''">查看预约</AccessibleButton></view>
  <AccessibleButton class="growth-button secondary" @click="goConversations">我的预约交流</AccessibleButton><view class="catalog-head"><view><text class="section-kicker">EXPLORE TOGETHER</text><text class="section-title">发现适合你的体验</text></view><AccessibleButton class="text-button" :disabled="loading||!!busy" @click="load">{{loading?'更新中…':'刷新'}}</AccessibleButton></view>
  <view class="search-box"><text class="search-label">搜索</text><input v-model="query" placeholder="活动名称或地点" confirm-type="search" aria-label="搜索活动名称或地点"/><AccessibleButton v-if="query" class="text-button" @click="query=''">清除</AccessibleButton></view>
- <scroll-view scroll-x class="filter-scroll"><view class="filters"><AccessibleButton v-for="f in filters" :key="f.id" :class="['filter-button',{active:filter===f.id}]" :aria-pressed="filter===f.id" @click="filter=f.id">{{f.text}}</AccessibleButton></view></scroll-view>
+ <scroll-view scroll-x class="filter-scroll"><view class="filters"><ZyChip v-for="f in filters" :key="f.id" :active="filter===f.id" @click="filter=f.id">{{f.text}}</ZyChip></view></scroll-view>
  <StateBlock v-if="error" type="error" title="活动暂时没有载入" :description="error" action-text="重新加载" :action-loading="loading" @action="load"/>
- <StateBlock v-else-if="loading" type="loading" title="正在读取活动安排…"/>
- <StateBlock v-else-if="!visible.length" type="empty" face="calm" :title="emptyTitle" :description="emptyDescription" :action-text="emptyActionText" @action="onEmptyAction"/>
+ <StateBlock v-else-if="loading" type="loading" shape="card" title="正在读取活动安排…"/>
+ <StateBlock v-else-if="!visible.length" type="empty" art="programs" face="calm" :title="emptyTitle" :description="emptyDescription" :action-text="emptyActionText" @action="onEmptyAction"/>
  <template v-else><text class="result-count">{{visible.length}} 项体验 · 时间均为北京时间</text><view class="program-grid"><view v-for="p in visible" :key="p.id" class="program-card">
  <view class="cover-wrap"><image :src="covers[p.kind]||covers.WORKSHOP" mode="aspectFill" class="program-cover" lazy-load :alt="(p.title||'活动')+'封面'"/><text class="cover-label">{{names[p.kind]}} · 材料示意图</text><view class="date-chip"><text>{{p.start_time.slice(5,7)}} 月</text><text class="date-day">{{p.start_time.slice(8,10)}}</text></view></view>
  <view class="card-content"><view class="card-state" :class="{pending:p.myStatus==='PENDING',muted:p.status==='CANCELLED'||p.myStatus==='REJECTED'}"><text class="state-dot"/>{{p.status==='CANCELLED'?'活动已取消':status[p.myStatus]||(ended(p)?'报名已结束':'开放报名')}}</view><text class="program-title">{{p.title}}</text><text class="meta">时间　{{format(p.start_time)}}</text><text class="meta">地点　{{p.location}}</text><view class="capacity-row"><text>{{p.booked}} / {{p.capacity}} 个名额</text><text>{{Math.max(0,p.capacity-p.booked)}} 个剩余</text></view><view class="growth-progress"><view class="growth-progress-fill" :style="{width:Math.min(100,p.booked/p.capacity*100)+'%'}"/></view>
@@ -23,6 +23,7 @@ import ActionSheet from '@/components/ActionSheet.vue'
 import Toast from '@/components/Toast.vue'
 import XiaotuanPet from '@/components/XiaotuanPet.vue'
 import AccessibleButton from '@/components/AccessibleButton.vue'
+import ZyChip from '@/components/ZyChip.vue'
 import {useToast} from '@/composables/useToast'
 const {reducedMotion}=useInteraction()
 const toast=useToast()

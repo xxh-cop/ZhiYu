@@ -23,11 +23,11 @@
 				</AccessibleButton>
 			</view>
 			<view v-if="enabled" class="consent consent-on">
-				<text class="consent-box is-on">✓</text>
+				<view class="consent-box is-on"><ZyIcon name="check" :size="20" tone="brand" /></view>
 				<text>已开启。小织只会使用你明确选择的偏好与话题；关掉后，下一句起就不再引用。</text>
 			</view>
 			<view v-else class="consent" role="checkbox" :aria-checked="consent" tabindex="0" @click="consent = !consent" @keydown.enter.prevent="consent = !consent" @keydown.space.prevent="consent = !consent">
-				<text class="consent-box">{{ consent ? '✓' : '' }}</text>
+				<view class="consent-box"><ZyIcon v-if="consent" name="check" :size="20" tone="brand" /></view>
 				<text>我已读过上面的说明：小织会记住我填写的偏好与话题，也会从手作和便签里看出「我注意到的」。</text>
 			</view>
 		</view>
@@ -60,7 +60,7 @@
 			<view v-if="avoidTopics.length" class="topic-list">
 				<view v-for="(topic, i) in avoidTopics" :key="topic" class="topic-tag">
 					<text>{{ topic }}</text>
-					<text class="topic-remove" role="button" tabindex="0" :aria-label="'删除话题 ' + topic" @click="avoidTopics.splice(i, 1)" @keydown.enter.prevent="avoidTopics.splice(i, 1)" @keydown.space.prevent="avoidTopics.splice(i, 1)">×</text>
+					<view class="topic-remove" role="button" tabindex="0" :aria-label="'删除话题 ' + topic" @click="avoidTopics.splice(i, 1)" @keydown.enter.prevent="avoidTopics.splice(i, 1)" @keydown.space.prevent="avoidTopics.splice(i, 1)"><ZyIcon name="close" :size="24" tone="muted" /></view>
 				</view>
 			</view>
 			<text v-else class="growth-muted">还没有设置。没有这个需要也没关系。</text>
@@ -95,6 +95,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { onShow } from '@dcloudio/uni-app'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import { request } from '../../utils/request'
@@ -223,9 +224,9 @@ onShow(load)
 .memory-page .field-label { color: var(--zy-title); font-size: 22rpx; font-weight: 500; letter-spacing: 1rpx; margin-top: 24rpx; margin-bottom: 4rpx; }
 .memory-page .consent { color: var(--zy-muted); font-size: 21rpx; line-height: 1.8; margin-top: 18rpx; }
 .memory-page .consent-on { color: var(--zy-brand-700); }
-.memory-page .consent-box { width: 28rpx; height: 28rpx; border: 1rpx solid var(--zy-border); border-radius: 0; line-height: 26rpx; color: var(--zy-care); font-size: 20rpx; }
+.memory-page .consent-box { display: flex; align-items: center; justify-content: center; width: 28rpx; height: 28rpx; border: 1rpx solid var(--zy-border); border-radius: 0; line-height: 26rpx; color: var(--zy-care); font-size: 20rpx; }
 .memory-page .consent-box.is-on { border-color: var(--zy-brand-600); color: var(--zy-brand-700); }
-.memory-page .growth-input { height: 76rpx; min-height: 76rpx; padding: 0 4rpx; margin: 10rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-title); font-size: 24rpx; }
+.memory-page .growth-input { height: 76rpx; min-height: 76rpx; padding: 0 4rpx; margin: 10rpx 0; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: 0; background: transparent; color: var(--zy-title); font-size: 24rpx; }
 .memory-page .growth-choice { padding: 18rpx 0; margin: 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-text); font-size: 24rpx; }
 .memory-page .growth-choice.selected { border-bottom-color: var(--zy-brand-600); background: transparent; color: var(--zy-brand-700); }
 .memory-page .growth-button { margin-top: 20rpx; padding: 0 24rpx; min-height: 72rpx; border-radius: 0; background: var(--zy-brand-700); color: #fff; font-size: 24rpx; line-height: 72rpx; }

@@ -69,6 +69,7 @@ onBeforeUnmount(release)
 .dialog-panel.is-dark{background:#0F1C19;border:1px solid rgba(241,244,241,.22);border-radius:0;color:#F1F4F1;box-shadow:0 24px 80px rgba(0,0,0,.45)}
 .dialog-panel.is-dark .dialog-title{color:#F1F4F1}
 .dialog-mask.is-dark{background:rgba(4,10,9,.72)}
-.dialog-title{display:block;font-size:21px;font-weight:600;line-height:1.5;margin-bottom:16px}
+.dialog-title{display:block;font-size:21px;font-weight:600;line-height:1.5;margin-bottom:16px;padding-left:14px;border-left:4rpx solid var(--zy-brand-600,#0E5B53)}
+.dialog-panel.is-dark .dialog-title{border-left-color:var(--zy-d-primary,#8FC7B8)}
 @media(max-width:480px){.dialog-panel{padding:24px 20px}}
 </style>

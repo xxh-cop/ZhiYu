@@ -30,7 +30,7 @@
 					:disabled="statusBusy || progressSaving || pageLoading || !!loadError"
 					aria-label="更多操作：暂停、放弃或和小织聊聊"
 					@click="showMore"
-				>⋯</AccessibleButton>
+				><ZyIcon name="more" :size="32" tone="muted" /></AccessibleButton>
 			</view>
 		</view>
 
@@ -95,7 +95,7 @@
 					:aria-pressed="guidePlaying"
 					@click="handleAudio"
 				>
-					<ZyIcon name="sound" :size="36" color="#1A645E" class="audio-icon" />
+					<ZyIcon name="sound" :size="36" tone="brand" class="audio-icon" />
 					<text class="audio-text">{{ guidePlaying ? '停止引导语音' : '播放引导语音' }}</text>
 				</AccessibleButton>
 			</view>
@@ -165,7 +165,7 @@
 			<view v-if="calibration" class="calibration-card" role="dialog" aria-label="专注体验小反馈">
 				<view class="cal-head">
 					<text class="cal-title">一分钟小反馈</text>
-					<AccessibleButton class="cal-close" aria-label="跳过这次反馈" :disabled="calibrationBusy" @click="skipCalibration">✕</AccessibleButton>
+					<AccessibleButton class="cal-close" aria-label="跳过这次反馈" :disabled="calibrationBusy" @click="skipCalibration"><ZyIcon name="close" :size="26" tone="muted" /></AccessibleButton>
 				</view>
 				<text class="cal-question">{{ calibration.question }}</text>
 				<view class="cal-scale" role="radiogroup" :aria-label="calibration.question">
@@ -193,7 +193,7 @@
 
 		<!-- 加载中 -->
 		<view v-if="pageLoading" class="loading-overlay">
-			<view class="loading-dot"></view>
+			<ZySpinner :size="28" />
 			<text class="loading-text">正在准备…</text>
 		</view>
 
@@ -249,6 +249,7 @@
 
 <script setup>
 import MediaVideo from "../../components/MediaVideo.vue"
+import ZySpinner from '../../components/ZySpinner.vue'
 import { ref, computed, watch } from 'vue'
 import { createMusicAudio } from '../../utils/music-audio'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config'

@@ -1,4 +1,4 @@
-<view class="zy-tabbar">
+<view class="zy-tabbar {{dark ? 'is-dark' : ''}}">
 	<view class="zy-tabbar-row">
 		<view
 			wx:for="{{items}}"
@@ -7,9 +7,13 @@
 			data-path="{{item.path}}"
 			bindtap="onTap"
 			aria-role="tab"
-			aria-label="{{item.text}}"
+			aria-label="{{item.text}}{{item.path === '/pages/profile/index' && unread > 0 ? '，有未读消息' : ''}}"
 		>
 			<view class="zy-tab-mark"></view>
+			<view class="zy-tab-iconwrap">
+				<view class="zy-tab-icon zy-tab-icon-{{item.icon}}"></view>
+				<view wx:if="{{item.path === '/pages/profile/index' && unread > 0}}" class="zy-tab-dot"></view>
+			</view>
 			<text class="zy-tab-text">{{item.text}}</text>
 		</view>
 	</view>

@@ -5,7 +5,7 @@
 				<!-- 顶部封面 -->
 				<view class="cover zy-slide-up zy-stagger" style="--stagger-i: 0">
 					<view class="cover-icon-wrap">
-						<wd-icon name="setting" size="48rpx" color="#217e76" />
+						<wd-icon name="setting" size="48rpx" color="#0E5B53" />
 					</view>
 					<text class="cover-title">隐私政策</text>
 					<text class="cover-sub">我们如何保护你的数据</text>

@@ -36,7 +36,7 @@
 .card-state.muted{color:var(--zy-muted,#6e7b75)}
 .program-title{display:block;font-family:var(--zy-font-display,serif);font-size:40rpx;font-weight:500;line-height:1.45;margin:14rpx 0 16rpx;color:var(--zy-title,#111816)}
 .meta{display:block;font-size:var(--zy-text-caption,24rpx);color:var(--zy-text,#42524c);line-height:1.8;overflow-wrap:anywhere}
-.capacity-row{display:flex;justify-content:space-between;font-size:var(--zy-text-micro,22rpx);color:var(--zy-muted,#6e7b75);margin-top:22rpx}
+.capacity-row{display:flex;justify-content:space-between;font-size:var(--zy-text-micro,22rpx);color:var(--zy-muted,#6e7b75);margin-top:22rpx;font-variant-numeric:tabular-nums}
 .growth-progress{margin:10rpx 0 18rpx;height:2rpx}
 .details-toggle{padding:14rpx 0;text-align:left;background:transparent;color:var(--zy-brand-700,#0a403b);font-size:var(--zy-text-caption,24rpx);line-height:1.6}
 .details{padding:20rpx 0 20rpx 20rpx;background:transparent;border-left:2rpx solid var(--zy-border,#d3ded8);border-radius:0;font-size:var(--zy-text-caption,24rpx);line-height:1.9;color:var(--zy-text,#42524c)}

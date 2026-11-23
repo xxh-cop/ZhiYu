@@ -181,6 +181,22 @@ pnpm --filter @vben/web-ele dev --port 5194
 
 生产管理端使用同域 `/api`，正式部署时由网关反向代理到后端；独立域名可通过 `VITE_GLOB_API_URL` 指定。已屏蔽模板遗留的 Vben 演示接口地址，工作账号不会再发送到该演示服务。前端只可配置公开接口地址，不可保存服务端密钥。
 
+#### 接口地址变更后重建并覆盖发布（隧道场景）
+
+API 地址默认是长期固定的 Cloudflare 具名隧道 `https://api.xiangjuntao.ltd`。用一条命令完成两端重建与覆盖发布；不读取、不修改任何 `.env`，地址只通过构建期环境变量注入：
+
+```powershell
+powershell -File scripts/deploy-frontends.ps1
+```
+
+- 默认地址已写入脚本参数；需要换地址时传 `-ApiBaseUrl https://<地址>`，不要改 `.env`。
+- 学生端注入 `VITE_API_BASE_URL=<地址>`，管理端注入 `VITE_GLOB_API_URL=<地址>/api`。
+- 脚本先探测 `<地址>/api`：5xx 或连接失败会等待 10 秒重试，最多 6 次，仍失败才退出。
+- 构建后校验产物：必须出现新地址，且不得残留 `localhost:8080`、旧隧道域名（`*.serveousercontent.com`、`*.lhr.life`）与相对 `/api` 字面量（管理端）。
+- 通过 deployment 插件把两份产物分别覆盖发布到原有两个站点，并等待部署成功；站点 ID 可用 `-AppSiteId` / `-AdminSiteId` 覆盖。
+- 需要本机可用的 Trae deployment 插件、Node.js 与 pnpm；`zhiyu-app` 依赖用 npm 安装，`zhiyu-admin-vben` 用 pnpm 安装。
+
+
 #### dev 启动失败 / 打开的是旧页面（5777 被残留实例占用）
 
 `Exit status 4294967295`（unsigned 的 `-1`）表示 vite 进程被外部终止（终端关闭、工具或进程树结束），不是编译或依赖错误。常见诱因是上一次的 dev 实例仍占着端口：vite 打印 `Port 5777 is in use, trying another one...` 后会自动改用 5778，于是打开 5777 看到的其实是旧实例。按顺序执行（端口取自 `apps/web-ele/.env.development` 的 `VITE_PORT=5777`）：

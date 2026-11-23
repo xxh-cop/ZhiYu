@@ -7,6 +7,8 @@
 			:class="'tone-' + item.tone"
 			role="status"
 		>
+			<ZyIcon v-if="item.tone === 'success'" name="check" :size="28" color="#FFFFFF" />
+			<ZyIcon v-else-if="item.tone === 'care'" name="alert" :size="28" color="#FFFFFF" />
 			<text>{{ item.message }}</text>
 		</view>
 	</view>
@@ -19,6 +21,7 @@
  * 挂载计数用于 notify() 判断宿主页面是否有统一渲染层（见 composables/useToast.js）。
  */
 import { onMounted, onBeforeUnmount } from 'vue'
+import ZyIcon from './ZyIcon.vue'
 import { toastState as state, _trackToastMount } from '../composables/useToast'
 
 onMounted(() => _trackToastMount(1))
@@ -39,6 +42,9 @@ onBeforeUnmount(() => _trackToastMount(-1))
 	pointer-events: none;
 }
 .toast-item {
+	display: flex;
+	align-items: center;
+	gap: 12rpx;
 	max-width: 80vw;
 	padding: 16rpx 32rpx;
 	border-radius: 0;
@@ -48,7 +54,6 @@ onBeforeUnmount(() => _trackToastMount(-1))
 	line-height: 1.6;
 	overflow-wrap: anywhere;
 	animation: toast-in var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
-	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(33, 126, 118, 0.08));
 }
 .toast-item.tone-success { background: var(--zy-success, #2e7d5b); }
 .toast-item.tone-care { background: var(--zy-care, var(--zy-care, #a64842)); }

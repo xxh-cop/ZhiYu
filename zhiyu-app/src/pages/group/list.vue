@@ -13,10 +13,10 @@
 		</view>
 
 		<!-- 首屏加载骨架 -->
-		<StateBlock v-if="loading" type="loading" title="正在整理小组…" />
+		<StateBlock v-if="loading" type="loading" shape="list" title="正在整理小组…" />
 
 		<!-- 空状态 -->
-		<StateBlock v-else-if="groups.length === 0 && !errorMsg" type="empty" face="calm" title="还没有小组" description="来创建第一个吧。" action-text="创建小组" @action="goCreate" />
+		<StateBlock v-else-if="groups.length === 0 && !errorMsg" type="empty" art="groups" face="calm" title="还没有小组" description="来创建第一个吧。" action-text="创建小组" @action="goCreate" />
 
 		<!-- 错误状态 -->
 		<StateBlock v-else-if="errorMsg && groups.length === 0" type="error" title="小组加载失败" :description="errorMsg" action-text="重试" @action="loadData" />

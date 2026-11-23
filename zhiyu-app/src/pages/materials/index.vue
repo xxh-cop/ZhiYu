@@ -2,7 +2,7 @@
 	<view class="growth-page materials-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
  <view class="growth-hero"><text class="growth-eyebrow">MATERIAL ATLAS · 材料探索</text><text class="growth-title">从一种材料，认识一门手艺</text><text class="growth-subtitle">沿着材料、项目与安全说明探索。关联来自已发布项目的人工标注。</text></view>
  <AccessibleButton class="growth-card kit-entry" @click="openKits"><view class="kit-entry-copy"><text class="growth-card-title">工作坊材料包</text><text class="growth-muted">竹编 · 夏布绣 · 剪纸 / 3 份准备清单</text></view><text class="kit-entry-arrow">→</text></AccessibleButton>
- <view class="growth-card"><input v-model="query" class="growth-input" maxlength="60" placeholder="搜索项目、品类或材料" placeholder-style="font-size:24rpx;color:#8a9a93"/><view class="growth-row categories"><AccessibleButton v-for="m in ['全部','染','塑','织绣','纸','香','雕','未标注']" :key="m" :class="['growth-tag',{selected:medium===m}]" :aria-pressed="medium===m" @click="medium=m">{{m}}</AccessibleButton></view></view>
+ <view class="growth-card"><input v-model="query" class="growth-input" maxlength="60" placeholder="搜索项目、品类或材料" placeholder-style="font-size:24rpx;color:#8B9994"/><view class="growth-row categories"><AccessibleButton v-for="m in ['全部','染','塑','织绣','纸','香','雕','未标注']" :key="m" :class="['growth-tag',{selected:medium===m}]" :aria-pressed="medium===m" @click="medium=m">{{m}}</AccessibleButton></view></view>
  <view v-if="loading" class="growth-card" aria-busy="true"><view class="growth-skeleton"/><view class="growth-skeleton short"/><text class="growth-muted">正在整理材料关系…</text></view>
  <view v-else-if="error" class="growth-error" role="alert">{{error}}<AccessibleButton class="growth-button secondary" @click="load">重新加载</AccessibleButton></view>
  <template v-else><view class="relationship"><text class="node">{{medium==='全部'?'所有材料':medium}}</text><text class="connection">→</text><text class="node">{{visible.length}} 个项目</text><text class="connection">→</text><text class="node">安全依据</text></view><text v-if="truncated" class="growth-muted">展示最近 200 个项目，更多项目可在手作推荐中查看。</text><view v-if="!visible.length" class="growth-card"><text class="growth-card-title">还没有匹配的项目</text><text class="growth-muted">试试其他关键词。未维护的材料关系不会由 AI 自动补写。</text><AccessibleButton class="growth-button secondary" @click="query='';medium='全部'">清除筛选</AccessibleButton></view>
@@ -29,7 +29,7 @@ async function load(){loading.value=true;error.value='';try{const data=await req
 /* ── v9 冷瓷展签收口 ── */
 .materials-page .growth-title { font-size: 56rpx; max-width: 100%; }
 .materials-page > .growth-card:not(.kit-entry) { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; padding: 24rpx 0; }
-.materials-page .growth-input { background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; padding: 14rpx 0; margin: 6rpx 0 10rpx; font-size: 26rpx; font-weight: 400; color: var(--zy-title); }
+.materials-page .growth-input { background: transparent; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: 0; padding: 14rpx 0; margin: 6rpx 0 10rpx; font-size: 26rpx; font-weight: 400; color: var(--zy-title); }
 .kit-entry { border: 1rpx solid var(--zy-border, #d3ded8); border-left: 4rpx solid var(--zy-brand-600, #0e5b53); background: transparent; padding: 24rpx 20rpx; }
 .kit-entry-copy .growth-card-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
 .kit-entry-arrow { color: var(--zy-brand-700, #0a403b); }

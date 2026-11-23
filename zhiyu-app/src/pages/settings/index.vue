@@ -43,30 +43,13 @@
 
 			<FormField label="昵称" required :error="profileErrors.nickname" :maxlength="50" :count="form.nickname.length">
 				<template #default="{ id, ariaDescribedby, ariaInvalid }">
-					<input
-						:id="id"
-						class="form-input"
-						:class="{ 'is-focused': focusedField === 'nickname' }"
-						v-model="form.nickname"
-						:aria-describedby="ariaDescribedby"
-						:aria-invalid="ariaInvalid"
-						placeholder="请输入昵称"
-						:maxlength="50"
-						@input="profileErrors.nickname = ''"
-						@focus="focusedField = 'nickname'"
-						@blur="focusedField = ''"
-					/>
+					<ZyInput :id="id" v-model="form.nickname" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!profileErrors.nickname" placeholder="请输入昵称" :maxlength="50" @update:model-value="profileErrors.nickname = ''" />
 				</template>
 			</FormField>
 
 			<view class="form-group">
 				<text class="form-label">用户名</text>
-				<input
-					class="form-input form-input--disabled"
-					:value="form.username"
-					aria-label="用户名"
-					disabled
-				/>
+				<ZyInput :model-value="form.username" aria-label="用户名" disabled />
 			</view>
 
 			<view class="form-group">
@@ -78,39 +61,13 @@
 
 			<FormField label="学校" :error="profileErrors.school" :maxlength="100" :count="form.school.length">
 				<template #default="{ id, ariaDescribedby, ariaInvalid }">
-					<input
-						:id="id"
-						class="form-input"
-						:class="{ 'is-focused': focusedField === 'school' }"
-						v-model="form.school"
-						:aria-describedby="ariaDescribedby"
-						:aria-invalid="ariaInvalid"
-						placeholder="请输入学校名称"
-						:maxlength="100"
-						@input="profileErrors.school = ''"
-						@focus="focusedField = 'school'"
-						@blur="focusedField = ''"
-					/>
+					<ZyInput :id="id" v-model="form.school" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!profileErrors.school" placeholder="请输入学校名称" :maxlength="100" @update:model-value="profileErrors.school = ''" />
 				</template>
 			</FormField>
 
 			<FormField label="个人简介" optional-text="选填" hint="会展示在你的作品与主页上" :error="profileErrors.intro" :maxlength="500" :count="form.intro.length">
 				<template #default="{ id, ariaDescribedby, ariaInvalid }">
-					<textarea
-						:id="id"
-						class="form-textarea"
-						:class="{ 'is-focused': focusedField === 'intro' }"
-						v-model="form.intro"
-						:aria-describedby="ariaDescribedby"
-						:aria-invalid="ariaInvalid"
-						placeholder="介绍一下自己吧"
-						:maxlength="500"
-						:auto-height="true"
-						:style="{ minHeight: '120rpx' }"
-						@input="profileErrors.intro = ''"
-						@focus="focusedField = 'intro'"
-						@blur="focusedField = ''"
-					/>
+					<ZyTextarea :id="id" v-model="form.intro" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!profileErrors.intro" placeholder="介绍一下自己吧" :maxlength="500" auto-height @update:model-value="profileErrors.intro = ''" />
 				</template>
 			</FormField>
 
@@ -140,58 +97,19 @@
 
 			<FormField label="旧密码" required :error="pwdErrors.old" :maxlength="32" :count="pwdForm.oldPassword.length">
 				<template #default="{ id, ariaDescribedby, ariaInvalid }">
-					<input
-						:id="id"
-						class="form-input"
-						:class="{ 'is-focused': focusedField === 'oldPassword' }"
-						v-model="pwdForm.oldPassword"
-						:aria-describedby="ariaDescribedby"
-						:aria-invalid="ariaInvalid"
-						placeholder="请输入旧密码"
-						password
-						:maxlength="32"
-						@input="pwdErrors.old = ''"
-						@focus="focusedField = 'oldPassword'"
-						@blur="focusedField = ''"
-					/>
+					<ZyInput :id="id" v-model="pwdForm.oldPassword" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!pwdErrors.old" placeholder="请输入旧密码" password :maxlength="32" @update:model-value="pwdErrors.old = ''" />
 				</template>
 			</FormField>
 
 			<FormField label="新密码" required hint="6-32 位，建议包含字母与数字" :error="pwdErrors.new" :maxlength="32" :count="pwdForm.newPassword.length">
 				<template #default="{ id, ariaDescribedby, ariaInvalid }">
-					<input
-						:id="id"
-						class="form-input"
-						:class="{ 'is-focused': focusedField === 'newPassword' }"
-						v-model="pwdForm.newPassword"
-						:aria-describedby="ariaDescribedby"
-						:aria-invalid="ariaInvalid"
-						placeholder="6-32 位新密码"
-						password
-						:maxlength="32"
-						@input="pwdErrors.new = ''"
-						@focus="focusedField = 'newPassword'"
-						@blur="focusedField = ''"
-					/>
+					<ZyInput :id="id" v-model="pwdForm.newPassword" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!pwdErrors.new" placeholder="6-32 位新密码" password :maxlength="32" @update:model-value="pwdErrors.new = ''" />
 				</template>
 			</FormField>
 
 			<FormField label="确认新密码" required :error="pwdErrors.confirm" :maxlength="32" :count="pwdForm.confirmPassword.length">
 				<template #default="{ id, ariaDescribedby, ariaInvalid }">
-					<input
-						:id="id"
-						class="form-input"
-						:class="{ 'is-focused': focusedField === 'confirmPassword' }"
-						v-model="pwdForm.confirmPassword"
-						:aria-describedby="ariaDescribedby"
-						:aria-invalid="ariaInvalid"
-						placeholder="请再次输入新密码"
-						password
-						:maxlength="32"
-						@input="pwdErrors.confirm = ''"
-						@focus="focusedField = 'confirmPassword'"
-						@blur="focusedField = ''"
-					/>
+					<ZyInput :id="id" v-model="pwdForm.confirmPassword" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!pwdErrors.confirm" placeholder="请再次输入新密码" password :maxlength="32" @update:model-value="pwdErrors.confirm = ''" />
 				</template>
 			</FormField>
 
@@ -313,6 +231,8 @@ import { useThemeStore } from '../../stores/theme'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config.js'
 import Toast from '../../components/Toast.vue'
 import FormField from '../../components/FormField.vue'
+import ZyInput from '../../components/ZyInput.vue'
+import ZyTextarea from '../../components/ZyTextarea.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import { useToast } from '../../composables/useToast'
 
@@ -329,8 +249,10 @@ const userStore = useUserStore()
 const themeStore = useThemeStore()
 
 const THEME_OPTIONS = [
-	{ value: 'white', name: '云白', desc: '干净的白底（默认）' },
-	{ value: 'warm', name: '暖纸', desc: '像棉纸一样的米色底' },
+	{ value: 'white', name: '云白', desc: '冷瓷白底（默认）' },
+	{ value: 'dark', name: '玄墨', desc: '墨绿黑底，夜间更安静' },
+	{ value: 'system', name: '跟随系统', desc: '随手机深浅色自动切换' },
+	{ value: 'warm', name: '暖纸', desc: '历史选项，现与云白一致' },
 ]
 
 const form = ref({
@@ -705,52 +627,11 @@ async function handleChangePassword() {
 	margin-bottom: 24rpx;
 }
 
-.form-field {
-	margin-bottom: 24rpx;
-}
-
 .form-label {
 	font-size:var(--zy-text-caption, 24rpx);
 	color: var(--zy-text, #4a5f54);
 	display: block;
 	margin-bottom: 10rpx;
-}
-
-.form-input {
-	width: 100%;
-	height: 80rpx;
-	padding: 0 24rpx;
-	font-size:var(--zy-text-body, 28rpx);
-	color: var(--zy-title, #233d34);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: var(--zy-radius-md, 16rpx);
-	background-color: var(--zy-bg, #ffffff);
-	box-sizing: border-box;
-	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-}
-
-.form-input.is-focused {
-	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
-}
-
-.form-input--disabled {
-	opacity: 0.6;
-}
-
-.form-textarea {
-	width: 100%;
-	padding: 20rpx 24rpx;
-	font-size:var(--zy-text-body, 28rpx);
-	color: var(--zy-title, #233d34);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	border-radius: var(--zy-radius-md, 16rpx);
-	background-color: var(--zy-bg, #ffffff);
-	box-sizing: border-box;
-	transition: border-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-}
-
-.form-textarea.is-focused {
-	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
 }
 
 .form-readonly {
@@ -873,14 +754,18 @@ async function handleChangePassword() {
 }
 
 /* ── 页面配色选项 ── */
-.theme-options { display: flex; gap: 20rpx; margin-top: 20rpx; }
-.theme-option { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 8rpx; padding: 20rpx; border-radius: var(--zy-radius-card); background: var(--zy-card-bg); border: 2rpx solid var(--zy-border); margin: 0; line-height: 1.6; text-align: left; }
+.theme-options { display: flex; flex-wrap: wrap; gap: 20rpx; margin-top: 20rpx; }
+.theme-option { flex: 1 1 calc(50% - 10rpx); min-width: calc(50% - 10rpx); display: flex; flex-direction: column; align-items: flex-start; gap: 8rpx; padding: 20rpx; border-radius: var(--zy-radius-card); background: var(--zy-card-bg); border: 2rpx solid var(--zy-border); margin: 0; line-height: 1.6; text-align: left; }
 .theme-option.is-selected { border-color: var(--zy-brand-600); }
-.theme-swatch { width: 100%; height: 72rpx; border-radius: 16rpx; border: 2rpx solid var(--zy-border); }
-/* 色板为两主题的展示样本，刻意硬编码展示色，不随当前主题变化 */
-.theme-swatch-white { background: #FFFFFF; }
+.theme-swatch { width: 100%; height: 72rpx; border-radius: 0; border: 2rpx solid var(--zy-border); position: relative; }
+/* 色板为主题的展示样本，刻意硬编码展示色，不随当前主题变化 */
+.theme-swatch-white { background: #F1F4F1; }
 .theme-swatch-warm { background: #F6F1E7; }
+.theme-swatch-dark { background: #0B1513; }
+.theme-swatch-dark::after { content: ''; position: absolute; left: 12rpx; right: 12rpx; top: 50%; height: 2rpx; background: #D4736A; }
+.theme-swatch-system { background: linear-gradient(90deg, #F1F4F1 50%, #0B1513 50%); }
 .theme-option-name { font-size: var(--zy-text-body); font-weight: 600; color: var(--zy-title); }
+.theme-option-desc { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted); line-height: 1.6; }
 .theme-option.is-selected .theme-option-name { color: var(--zy-brand-700); }
 /* ── v9 冷瓷展签覆盖（不改表单结构，只收口视觉） ── */
 .page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg, #f1f4f1); }
@@ -902,9 +787,6 @@ async function handleChangePassword() {
 .card-icon-wrap, .card-icon-security, .card-icon-memory { width: 40rpx; height: 40rpx; border-radius: 0; background: transparent !important; border: 1rpx solid var(--zy-border, #d3ded8); }
 .card-icon-wrap :deep(.wd-icon) { color: var(--zy-brand-700, #0a403b) !important; }
 .section-heading { font-family: var(--zy-font-display, serif); font-size: 36rpx; font-weight: 500; color: var(--zy-title, #111816); }
-.form-input, .form-textarea { background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; padding: 12rpx 0; height: 88rpx; box-sizing: border-box; }
-.form-input:focus, .form-input.is-focused, .form-textarea:focus, .form-textarea.is-focused { border-bottom-color: var(--zy-brand-600, #0e5b53); background: transparent; }
-.form-textarea { min-height: 140rpx !important; padding-top: 16rpx; line-height: 1.8; }
 .form-label, .form-readonly-text { color: var(--zy-text, #42524c); }
 .btn-primary, .btn-primary--accent { width: 100%; height: 88rpx; border-radius: 0; background: var(--zy-brand-600, #0e5b53); margin-top: 28rpx; }
 .btn-primary-text { font-size: var(--zy-text-body, 28rpx); letter-spacing: 1rpx; }

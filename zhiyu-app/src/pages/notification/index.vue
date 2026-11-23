@@ -29,7 +29,7 @@
 			</view>
 		</scroll-view>
 
-		<StateBlock v-if="loading && !records.length" type="loading" title="正在整理消息…" />
+		<StateBlock v-if="loading && !records.length" type="loading" shape="list" title="正在整理消息…" />
 		<StateBlock
 			v-else-if="error && !records.length"
 			type="error"
@@ -76,7 +76,7 @@
 					:aria-label="'删除这条' + typeLabel(item.type) + '消息'"
 					:disabled="deleting === item.id"
 					@click="askDelete(item)"
-				>✕</AccessibleButton>
+				><ZyIcon name="close" :size="26" tone="muted" /></AccessibleButton>
 			</view>
 		</view>
 
@@ -114,6 +114,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import { useNotifications } from '../../composables/useNotifications'

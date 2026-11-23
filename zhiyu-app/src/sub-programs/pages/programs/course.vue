@@ -76,7 +76,7 @@ onLoad((options) => {
 			:action-loading="loading"
 			@action="load"
 		/>
-		<StateBlock v-else-if="loading && !rows.length" type="loading" title="正在读取课程…" />
+		<StateBlock v-else-if="loading && !rows.length" type="loading" shape="list" title="正在读取课程…" />
 
 		<template v-else>
 			<view class="growth-card">

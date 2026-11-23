@@ -16,7 +16,7 @@
 			<view class="reason-quote">"</view>
 			<view class="reason-header">
 				<view class="reason-icon-wrap">
-					<wd-icon name="chat" size="28rpx" color="#217e76" />
+					<wd-icon name="chat" size="28rpx" color="#0E5B53" />
 				</view>
 				<text class="reason-label">小织推荐</text>
 			</view>
@@ -175,10 +175,10 @@ function familyFor(category) {
 }
 
 const FAMILY_COVER = {
-	cutout: '/static/covers/papercut-window.jpg',
+	cutout: '/static/covers/jianzhi.jpg',
 	stitch: '/static/blueprint/hero-cloth.jpg',
 	weave: '/static/blueprint/hero-bamboo.jpg',
-	porcelain: '/static/heritage/texture/porcelain.jpg',
+	porcelain: '/static/covers/taoyi.jpg',
 }
 
 function coverStyle(coverUrl, family) {

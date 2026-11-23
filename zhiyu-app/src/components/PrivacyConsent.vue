@@ -16,19 +16,19 @@
 			<!-- 简述区 -->
 			<view class="panel-body">
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#217e76" />
+					<wd-icon name="check" size="28rpx" color="#0E5B53" />
 					<text class="clause-text">我们仅在你同意后收集昵称、对话内容等必要信息</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#217e76" />
+					<wd-icon name="check" size="28rpx" color="#0E5B53" />
 					<text class="clause-text">对话与便签加密存储，咨询师看到的是脱敏汇总</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#217e76" />
+					<wd-icon name="check" size="28rpx" color="#0E5B53" />
 					<text class="clause-text">你可随时撤回同意、关闭联系方式授权或注销账号</text>
 				</view>
 				<view class="clause">
-					<wd-icon name="check" size="28rpx" color="#217e76" />
+					<wd-icon name="check" size="28rpx" color="#0E5B53" />
 					<text class="clause-text">本系统不能替代专业心理咨询</text>
 				</view>
 			</view>

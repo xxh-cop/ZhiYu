@@ -13,15 +13,7 @@
 				<!-- 小组名称 -->
 				<FormField label="小组名称" required :error="errors.name" style="--stagger-i: 2">
 					<template #default="{ id }">
-						<wd-input
-							:id="id"
-							v-model="form.name"
-							placeholder="给小组起个名字"
-							:maxlength="100"
-							no-border
-							custom-class="form-input-el"
-							@input="errors.name = ''"
-						/>
+						<ZyInput :id="id" v-model="form.name" :error="!!errors.name" placeholder="给小组起个名字" :maxlength="100" @update:model-value="errors.name = ''" />
 					</template>
 				</FormField>
 
@@ -35,16 +27,7 @@
 					style="--stagger-i: 3"
 				>
 					<template #default="{ id }">
-						<wd-textarea
-							:id="id"
-							v-model="form.description"
-							placeholder="简单介绍一下这个小组"
-							:maxlength="200"
-							:rows="3"
-							no-border
-							custom-class="form-textarea-el"
-							@input="errors.description = ''"
-						/>
+						<ZyTextarea :id="id" v-model="form.description" :error="!!errors.description" placeholder="简单介绍一下这个小组" :maxlength="200" @update:model-value="errors.description = ''" />
 					</template>
 				</FormField>
 
@@ -57,15 +40,7 @@
 					style="--stagger-i: 4"
 				>
 					<template #default="{ id }">
-						<wd-input
-							:id="id"
-							v-model="form.maxCount"
-							placeholder="默认 10"
-							type="number"
-							no-border
-							custom-class="form-input-el"
-							@input="errors.maxCount = ''"
-						/>
+						<ZyInput :id="id" v-model="form.maxCount" :error="!!errors.maxCount" placeholder="默认 10" type="number" @update:model-value="errors.maxCount = ''" />
 					</template>
 				</FormField>
 			</view>
@@ -92,6 +67,8 @@
 import { ref, computed, reactive } from 'vue'
 import { http } from '../../utils/request'
 import FormField from '../../components/FormField.vue'
+import ZyInput from '../../components/ZyInput.vue'
+import ZyTextarea from '../../components/ZyTextarea.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
 

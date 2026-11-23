@@ -1,6 +1,6 @@
 <template>
 	<view :class="zyThemeClass" class="appeal-page">
-		<StateBlock v-if="loading" type="loading" title="正在整理这条内容…" />
+		<StateBlock v-if="loading" type="loading" shape="detail" title="正在整理这条内容…" />
 
 		<StateBlock
 			v-else-if="loadError"

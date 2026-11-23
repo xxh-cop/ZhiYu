@@ -1,7 +1,7 @@
 <template>
 	<view class="check-page">
 		<view class="check-top">
-			<AccessibleButton class="back-btn" aria-label="返回上一页" @click="goBack">←</AccessibleButton>
+			<AccessibleButton class="back-btn" aria-label="返回上一页" @click="goBack"><ZyIcon name="back" :size="36" tone="title" /></AccessibleButton>
 			<text class="top-index">自我了解 / SELF-CHECK</text>
 		</view>
 
@@ -61,6 +61,7 @@
 
 <script setup>
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import Toast from '../../components/Toast.vue'
 import { computed, reactive } from 'vue'
 import { useToast } from '../../composables/useToast'

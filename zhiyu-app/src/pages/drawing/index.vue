@@ -10,7 +10,7 @@
    <view class="growth-row growth-spread"><text class="growth-muted" aria-live="polite">已绘色 {{filled}} / {{shapes.length}} 块</text><AccessibleButton class="reset-link" :disabled="busy" @click="reset">清空颜色</AccessibleButton></view>
    <text v-if="message" class="growth-notice" role="status">{{message}}</text>
   </view>
-  <view class="growth-card"><text class="growth-card-title">让 AI 帮你搭配线稿</text><input v-model="theme" class="growth-input" maxlength="120" placeholder="例如：一片对称展开的叶子" :disabled="busy"/><text class="growth-muted">支持花朵、叶片与涟漪的几何变化。只发送这段主题，不发送你的画面或成长记录。</text><checkbox-group @change="consent=$event.detail.value.length>0"><label class="growth-consent"><checkbox value="yes" :checked="consent" color="#217e76"/>同意发送本次主题用于 AI 生成与安全审核。</label></checkbox-group><AccessibleButton class="growth-button" :disabled="busy||!consent||!theme.trim()" @click="generate">{{busy?'正在搭配线稿…':'生成线稿结构'}}</AccessibleButton><text v-if="error" class="growth-error" role="alert">{{error}}</text><AccessibleButton v-if="error" class="growth-button secondary" @click="help">寻求支持</AccessibleButton></view>
+  <view class="growth-card"><text class="growth-card-title">让 AI 帮你搭配线稿</text><ZyInput v-model="theme" :maxlength="120" placeholder="例如：一片对称展开的叶子" :disabled="busy" aria-label="线稿主题"/><text class="growth-muted">支持花朵、叶片与涟漪的几何变化。只发送这段主题，不发送你的画面或成长记录。</text><checkbox-group @change="consent=$event.detail.value.length>0"><label class="growth-consent"><checkbox value="yes" :checked="consent" color="#0E5B53"/>同意发送本次主题用于 AI 生成与安全审核。</label></checkbox-group><AccessibleButton class="growth-button" :disabled="busy||!consent||!theme.trim()" @click="generate">{{busy?'正在搭配线稿…':'生成线稿结构'}}</AccessibleButton><text v-if="error" class="growth-error" role="alert">{{error}}</text><AccessibleButton v-if="error" class="growth-button secondary" @click="help">寻求支持</AccessibleButton></view>
   <AccessibleButton class="growth-button secondary" :disabled="busy" @click="trace">用这张线稿辅助临摹</AccessibleButton><text class="growth-foot">绘色仅留在当前页面，离开前可预览保存。不会自动上传。<br/>本系统不能替代专业心理咨询</text>
   <ActionSheet :open="sheet.open" :title="sheet.title" :description="sheet.description" :actions="[{key:'confirm',label:sheet.confirmLabel,tone:'danger'}]" cancel-text="再想想" @select="onSheetSelect" @close="onSheetClose"/>
   <Toast/>
@@ -21,6 +21,7 @@ import {useInteraction} from '../../composables/useInteraction'
 import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
+import ZyInput from '../../components/ZyInput.vue'
 import {useToast} from '../../composables/useToast'
 const {reducedMotion}=useInteraction()
 const toast=useToast()

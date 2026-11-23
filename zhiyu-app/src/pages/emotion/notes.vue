@@ -13,12 +13,13 @@
 		</view>
 
 		<!-- 加载状态 -->
-		<StateBlock v-if="loading && records.length === 0" type="loading" title="正在读取心情便签…" />
+		<StateBlock v-if="loading && records.length === 0" type="loading" shape="list" title="正在读取心情便签…" />
 
 		<!-- 空状态 -->
 		<StateBlock
 			v-else-if="!loading && records.length === 0 && !errorMsg"
 			type="empty"
+			art="notes"
 			title="还没有心情便签"
 			description="写下此刻的心情，就从第一句开始"
 			action-text="记录第一条"
@@ -69,7 +70,7 @@
 
 			<!-- 底部状态 -->
 			<view v-if="records.length > 0" class="bottom-status">
-				<view v-if="loading" class="loading-dot"></view>
+				<ZySpinner v-if="loading" :size="28" />
 				<text v-if="loading" class="bottom-text">正在加载…</text>
 				<template v-else-if="!hasMore">
 					<view class="bottom-divider"></view>
@@ -101,6 +102,7 @@ import { ref, computed } from 'vue'
 import { onShow, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import StateBlock from '../../components/StateBlock.vue'
+import ZySpinner from '../../components/ZySpinner.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'

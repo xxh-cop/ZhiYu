@@ -40,7 +40,7 @@
 			<view class="card-stripe stripe-mint"></view>
 			<view class="card-header">
 				<view class="card-icon-wrap card-icon-mint">
-					<wd-icon name="call" size="40rpx" color="#217e76" />
+					<wd-icon name="call" size="40rpx" color="#0E5B53" />
 				</view>
 				<view class="card-header-info">
 					<text class="card-title">{{ nationalHotlineName }}</text>

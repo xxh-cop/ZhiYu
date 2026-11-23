@@ -6,7 +6,7 @@
 			<text class="xiaozhi-title">想说了就聊两句。</text>
 			<text class="xiaozhi-hint">或者，从一件小手作开始</text>
 		</view>
-		<ZyIcon name="arrow" :size="28" color="#1A645E" class="xiaozhi-arrow" />
+		<ZyIcon name="arrow" :size="28" tone="brand" class="xiaozhi-arrow" />
 	</AccessibleButton>
 </template>
 

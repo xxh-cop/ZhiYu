@@ -106,7 +106,7 @@
 										role="link"
 										:aria-label="'打开来源 ' + src.title"
 										@click="openSource(src)"
-									><text>打开已登记来源</text><ZyIcon name="external" :size="24" color="#1A645E" /></AccessibleButton>
+									><text>打开已登记来源</text><ZyIcon name="external" :size="24" tone="brand" /></AccessibleButton>
 									<text v-if="src.mediaReuse === 'NOT_GRANTED'" class="source-media">仅作背景参考，媒体不转载</text>
 								</view>
 							</view>

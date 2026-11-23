@@ -1,7 +1,33 @@
 <template>
 	<view class="state-block" :class="['state-' + type, { compact }]" :role="type === 'error' ? 'alert' : 'status'">
 		<template v-if="type === 'loading'">
-			<view class="skeleton-stack" aria-hidden="true">
+			<!-- 骨架形状按页面内容预置：bars 默认 / list 列表 / card 卡片 / detail 详情 / chat 对话 -->
+			<view v-if="shape === 'list'" class="skeleton-list" aria-hidden="true">
+				<view v-for="i in 3" :key="i" class="skeleton-row">
+					<view class="zy-skeleton skeleton-thumb" />
+					<view class="skeleton-row-copy">
+						<view class="zy-skeleton skeleton-bar" />
+						<view class="zy-skeleton skeleton-bar short" />
+					</view>
+				</view>
+			</view>
+			<view v-else-if="shape === 'card'" class="skeleton-stack" aria-hidden="true">
+				<view class="zy-skeleton skeleton-cover" />
+				<view class="zy-skeleton skeleton-bar" />
+				<view class="zy-skeleton skeleton-bar short" />
+			</view>
+			<view v-else-if="shape === 'detail'" class="skeleton-stack" aria-hidden="true">
+				<view class="zy-skeleton skeleton-hero" />
+				<view class="zy-skeleton skeleton-bar" />
+				<view class="zy-skeleton skeleton-bar short" />
+				<view class="zy-skeleton skeleton-bar shorter" />
+			</view>
+			<view v-else-if="shape === 'chat'" class="skeleton-chat" aria-hidden="true">
+				<view class="zy-skeleton skeleton-bubble left" />
+				<view class="zy-skeleton skeleton-bubble right" />
+				<view class="zy-skeleton skeleton-bubble left narrow" />
+			</view>
+			<view v-else class="skeleton-stack" aria-hidden="true">
 				<view class="zy-skeleton skeleton-bar" />
 				<view class="zy-skeleton skeleton-bar short" />
 				<view class="zy-skeleton skeleton-bar shorter" />
@@ -23,7 +49,8 @@
 			<AccessibleButton
 				v-if="actionText"
 				class="state-action"
-				:class="{ secondary: type === 'empty' }"
+				:variant="type === 'empty' ? 'secondary' : 'primary'"
+				size="md"
 				:disabled="actionLoading"
 				:loading="actionLoading"
 				@click="$emit('action')"
@@ -50,9 +77,11 @@ const props = defineProps({
 	actionLoading: { type: Boolean, default: false },
 	/** 小织表情（calm/listen/think/happy/care/sleepy），缺省按类型给默认 */
 	face: { type: String, default: '' },
-	/** 空态插画（R2：works 我的作品 / community 社区 / notice 通知）；仅 H5 渲染，MP 自动降级为表情 */
-	art: { type: String, default: '', validator: (v) => ['', 'works', 'community', 'notice'].includes(v) },
+	/** 空态插画（R2：works/community/notice；P2 补 notes/groups/programs）；仅 H5 渲染，MP 自动降级为表情 */
+	art: { type: String, default: '', validator: (v) => ['', 'works', 'community', 'notice', 'notes', 'groups', 'programs'].includes(v) },
 	compact: { type: Boolean, default: false },
+	/** 骨架形状：bars 默认三条 / list 列表行 / card 封面卡 / detail 详情 / chat 对话气泡 */
+	shape: { type: String, default: 'bars', validator: (v) => ['bars', 'list', 'card', 'detail', 'chat'].includes(v) },
 })
 defineEmits(['action'])
 
@@ -79,10 +108,22 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 	background-size: 200% 100%;
 	animation: zy-shimmer 1.6s var(--zy-ease-linear, linear) infinite;
 }
-.skeleton-bar.short { width: 78%; align-self: center; }
-.skeleton-bar.shorter { width: 52%; align-self: center; }
+.skeleton-bar.short { width: 78%; }
+.skeleton-bar.shorter { width: 52%; }
+.skeleton-list { width: 100%; display: flex; flex-direction: column; gap: 28rpx; }
+.skeleton-row { display: flex; gap: 20rpx; align-items: center; }
+.skeleton-thumb { width: 96rpx; height: 96rpx; flex-shrink: 0; }
+.skeleton-row-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14rpx; }
+.skeleton-row-copy .skeleton-bar { height: 26rpx; }
+.skeleton-row-copy .skeleton-bar.short { width: 56%; align-self: flex-start; }
+.skeleton-cover { width: 100%; height: 300rpx; }
+.skeleton-hero { width: 100%; height: 360rpx; }
+.skeleton-chat { width: 100%; display: flex; flex-direction: column; gap: 24rpx; }
+.skeleton-bubble { height: 72rpx; width: 70%; }
+.skeleton-bubble.right { width: 55%; align-self: flex-end; }
+.skeleton-bubble.narrow { width: 64%; }
 @media (prefers-reduced-motion: reduce) {
-	.skeleton-bar { animation: none; }
+	.skeleton-bar, .skeleton-thumb, .skeleton-cover, .skeleton-hero, .skeleton-bubble { animation: none; }
 }
 
 .state-title {
@@ -100,24 +141,7 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 	line-height: 1.7;
 	overflow-wrap: anywhere;
 }
-.state-action {
-	min-height: 44px;
-	margin: 8rpx 0 0;
-	padding: 16rpx 44rpx;
-	border-radius: 0;
-	background: var(--zy-brand-600, #0e5b53);
-	color: #fff;
-	font-size: var(--zy-font-base, 28rpx);
-	line-height: 1.5;
-}
-.state-action.secondary {
-	background: transparent;
-	border: 1rpx solid var(--zy-border, #d3ded8);
-	color: var(--zy-brand-700, #0a403b);
-}
-.state-action::after { border: 0; }
-.state-action.is-disabled { opacity: .55; }
-.state-action:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+.state-action { margin: 8rpx 0 0; }
 
 @keyframes zy-shimmer {
 	0% { background-position: 200% 0; }

@@ -17,6 +17,18 @@
 				</view>
 			</view>
 			<text class="date-line">{{todayLine}}</text>
+			<!-- 任务型入口：把上次停留与最近用过的功能提回一层 -->
+			<view v-if="lastVisit" class="resume">
+				<text class="resume-eyebrow">继续上次</text>
+				<AccessibleButton class="resume-row" :aria-label="`继续上次：${lastVisit.label}`" @click="openRecent(lastVisit.path)">
+					<text class="resume-title">{{ lastVisit.label }}</text>
+					<text class="resume-go">继续 <text aria-hidden="true">→</text></text>
+				</AccessibleButton>
+				<view v-if="recentRest.length" class="recent-line">
+					<text class="recent-label">最近</text>
+					<AccessibleButton v-for="item in recentRest" :key="item.path" class="recent-chip" variant="ghost" size="sm" :aria-label="`打开${item.label}`" @click="openRecent(item.path)">{{ item.label }}</AccessibleButton>
+				</view>
+			</view>
 			<view v-if="showConsentBanner" class="consent-banner" role="status">
 				<text class="consent-banner-text">同意隐私政策后，才能使用对话与记录。</text>
 				<AccessibleButton variant="ghost" size="sm" @click="goOnboarding">去开启</AccessibleButton>
@@ -40,7 +52,7 @@
 						<text class="cta-arrow" aria-hidden="true">→</text>
 					</AccessibleButton>
 				</view>
-				<text class="hero-credit">材料印象 · 夏布与绣线 / 概念视觉，非作品实拍</text>
+				<text class="hero-credit">夏布与绣线 · AI 生成概念视觉，非作品实拍</text>
 			</view>
 
 			<view class="after-hero">
@@ -113,11 +125,23 @@ import { useUserStore } from '../../stores/user'
 import { useInteraction } from '../../composables/useInteraction'
 import { useCompanionNudge } from '../../composables/useCompanionNudge'
 import { useNotifications } from '../../composables/useNotifications'
+import { getRecent } from '../../utils/recent'
+import { isTabRoute } from '../../utils/tabbar'
 
 const { reducedMotion } = useInteraction()
 const userStore = useUserStore()
 const { state: noticeState, refreshUnread } = useNotifications()
 const showConsentBanner = ref(false)
+const recent = ref([])
+const lastVisit = computed(() => recent.value[0] || null)
+const recentRest = computed(() => recent.value.slice(1, 4))
+
+function openRecent(path) {
+	if (!path) return
+	const url = path.split('?')[0]
+	if (isTabRoute(url)) uni.switchTab({ url })
+	else uni.navigateTo({ url: path })
+}
 
 const nickname = computed(() => (userStore.userInfo && userStore.userInfo.nickname) || '同学')
 const avatarLetter = computed(() => (nickname.value && nickname.value.charAt(0)) || '同')
@@ -145,6 +169,7 @@ onShow(() => {
 	loadCurrentUser()
 	ensurePrivacyOnboarding()
 	refreshUnread()
+	recent.value = getRecent()
 	const pending = nudgeQuota.takePendingNudge()
 	if (pending && nudgeQuota.canShow(pending.quotaKey)) {
 		nudgeQuota.markShown(pending.quotaKey)
@@ -206,6 +231,16 @@ function goSupport() { uni.navigateTo({ url: '/pages/support/index' }) }
 .bell-dot { position: absolute; top: 12rpx; right: 14rpx; width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--zy-care); border: 2rpx solid var(--zy-bg); }
 .avatar { width: 64rpx; height: 64rpx; line-height: 64rpx; padding: 0; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); font-size: var(--zy-text-caption); margin: 0; min-width: 64rpx; }
 .date-line { display: block; padding: 18rpx 36rpx 0; color: var(--zy-muted); font-size: 20rpx; letter-spacing: 2rpx; }
+
+/* ── 继续上次 / 最近 ── */
+.resume { margin: 18rpx 36rpx 0; padding-top: 16rpx; border-top: 1rpx solid var(--zy-border); }
+.resume-eyebrow { display: block; color: var(--zy-muted); font-size: 20rpx; letter-spacing: 3rpx; }
+.resume-row { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 88rpx; margin: 0; padding: 0; background: transparent; border: 0; border-radius: 0; text-align: left; color: var(--zy-title); }
+.resume-title { font-size: 30rpx; font-weight: 500; letter-spacing: 1rpx; }
+.resume-go { color: var(--zy-brand-700); font-size: 22rpx; letter-spacing: 1rpx; }
+.recent-line { display: flex; flex-wrap: wrap; align-items: center; gap: 10rpx; padding: 6rpx 0 4rpx; }
+.recent-label { color: var(--zy-muted); font-size: 20rpx; margin-right: 2rpx; }
+.recent-chip { min-height: 56rpx; margin: 0; padding: 0 16rpx; border: 1rpx solid var(--zy-border); background: transparent; color: var(--zy-text); font-size: 20rpx; border-radius: 0; }
 .consent-banner { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin: 20rpx 36rpx 0; padding: 14rpx 18rpx; border-top: 1rpx solid var(--zy-border); border-bottom: 1rpx solid var(--zy-border); background: transparent; }
 .consent-banner-text { flex: 1; min-width: 0; font-size: var(--zy-text-micro); line-height: 1.6; color: var(--zy-text); }
 .consent-banner button { flex-shrink: 0; margin: 0; padding: 0 8rpx; }

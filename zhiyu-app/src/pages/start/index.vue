@@ -6,7 +6,7 @@
   <XiaozhiCard @open="openChat()"/><AccessibleButton class="growth-card entry" @click="openMusic()"><text class="entry-number">♫</text><view class="entry-copy"><text class="growth-card-title">听一段音乐，松一口气</text><text class="growth-muted">自主播放 · 定时停止</text></view><text class="arrow">›</text></AccessibleButton><text class="section-label">也可以这样开始</text>
   <AccessibleButton v-for="item in primary" :key="item.path" class="growth-card entry" @click="go(item.path)"><view class="entry-stitch zy-stitch-h" aria-hidden="true"/><view class="entry-number zy-t-serif">{{item.number}}</view><view class="entry-copy"><text class="growth-card-title">{{item.title}}</text><text class="growth-muted">{{item.desc}}</text></view><text class="arrow">›</text></AccessibleButton>
   <text class="section-label">探索与记录</text>
-  <view class="growth-grid"><AccessibleButton v-for="item in secondary" :key="item.path" class="growth-card explore" @click="go(item.path)"><view class="explore-stitch zy-stitch-h" aria-hidden="true"/><text class="growth-card-title">{{item.title}}</text><text class="growth-muted">{{item.desc}}</text><ZyIcon name="arrow" :size="28" color="#1A645E" class="explore-arrow" /></AccessibleButton></view>
+  <view class="growth-grid"><AccessibleButton v-for="item in secondary" :key="item.path" class="growth-card explore" @click="go(item.path)"><view class="explore-stitch zy-stitch-h" aria-hidden="true"/><text class="growth-card-title">{{item.title}}</text><text class="growth-muted">{{item.desc}}</text><ZyIcon name="arrow" :size="28" tone="brand" class="explore-arrow" /></AccessibleButton></view>
   <text class="growth-foot">本系统不能替代专业心理咨询</text>
  </view>
 </template>
@@ -88,7 +88,9 @@ function go(path){uni.navigateTo({url:path.startsWith('/')?path:'/pages/'+path})
 /* #endif */
 
 /* ── v9 冷瓷展签收口 ── */
-.growth-page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
+.growth-page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); color: var(--zy-text); }
+.growth-muted, .growth-foot { color: var(--zy-muted); }
+.start-brand { color: var(--zy-title); }
 .motion-toggle { padding: 0; border: 0; background: transparent; color: var(--zy-muted); letter-spacing: 1rpx; }
 .start-brand { font-family: var(--zy-font-display, serif); font-weight: 500; letter-spacing: 1rpx; }
 .start-seal { width: 66rpx; height: 66rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1rpx solid var(--zy-care); color: var(--zy-care); font-family: var(--zy-font-display, serif); font-size: 30rpx; line-height: 1; }
@@ -112,7 +114,7 @@ function go(path){uni.navigateTo({url:path.startsWith('/')?path:'/pages/'+path})
 .mood-row button { border: 0; border-right: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-text); }
 .mood-row button:last-child { border-right: 0; }
 .mood-row button.selected { background: transparent; border-color: var(--zy-border); color: var(--zy-title); box-shadow: inset 0 -3rpx 0 var(--zy-care); }
-.moment-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
+.moment-title { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title); }
 .short-suggest { border-top: 1rpx solid var(--zy-border); }
 .short-suggest-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
 .short-item { padding: 20rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; }

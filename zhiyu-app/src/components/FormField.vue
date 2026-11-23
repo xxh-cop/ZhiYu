@@ -9,7 +9,10 @@
 		<!-- 消费方通过作用域插槽拿到 id / aria 属性，绑定到自己的 input / textarea -->
 		<slot :id="inputId" :aria-describedby="describedBy" :aria-invalid="!!error" />
 		<view class="field-footer">
-			<text v-if="error" :id="errorId" class="field-error" role="alert">{{ error }}</text>
+			<view v-if="error" :id="errorId" class="field-error" role="alert">
+				<ZyIcon name="alert" :size="26" tone="care" />
+				<text>{{ error }}</text>
+			</view>
 			<text v-if="showCounter" class="field-counter" aria-hidden="true">{{ count }} / {{ maxlength }}</text>
 		</view>
 	</view>
@@ -17,6 +20,7 @@
 
 <script setup>
 import { computed, getCurrentInstance } from 'vue'
+import ZyIcon from './ZyIcon.vue'
 
 /**
  * FormField —— 可见标签 + 必填标记 + hint + 错误定位 + 字数统计（计划 §3.2）。
@@ -50,31 +54,34 @@ const showCounter = computed(() => props.maxlength > 0)
 	display: flex;
 	align-items: baseline;
 	gap: 8rpx;
-	font-family: var(--zy-font-display, "Songti SC", serif);
-	font-size: var(--zy-font-base, 30rpx);
+	font-family: var(--zy-sans, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif);
+	font-size: var(--zy-text-body, 28rpx);
 	font-weight: 500;
 	color: var(--zy-title, #111816);
 }
-.field-required { color: var(--zy-care, var(--zy-care, #a64842)); }
-.field-optional { font-size: var(--zy-font-xs, 20rpx); font-weight: 400; color: var(--zy-text-secondary, #4a5f54); }
+.field-required { color: var(--zy-care, #a64842); }
+.field-optional { font-size: var(--zy-text-micro, 22rpx); font-weight: 400; color: var(--zy-muted, #6E7B75); }
 .field-hint {
-	font-size: var(--zy-font-sm, 24rpx);
-	color: var(--zy-text-secondary, #4a5f54);
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-muted, #6E7B75);
 	line-height: 1.7;
 }
 .field-footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
 .field-error {
-	font-size: var(--zy-font-sm, 24rpx);
-	color: var(--zy-care, var(--zy-care, #a64842));
+	display: flex;
+	align-items: flex-start;
+	gap: 8rpx;
+	font-size: var(--zy-text-caption, 24rpx);
+	color: var(--zy-care, #a64842);
 	line-height: 1.6;
 	overflow-wrap: anywhere;
 }
 .field-counter {
 	margin-left: auto;
-	font-size: var(--zy-font-xs, 20rpx);
-	color: var(--zy-text-secondary, #4a5f54);
+	font-size: var(--zy-text-micro, 22rpx);
+	color: var(--zy-muted, #6E7B75);
 	font-variant-numeric: tabular-nums;
 }
 .has-error ::v-deep textarea,
-.has-error ::v-deep input { border-color: var(--zy-care, var(--zy-care, #a64842)) !important; }
+.has-error ::v-deep input { border-color: var(--zy-care, #a64842) !important; }
 </style>

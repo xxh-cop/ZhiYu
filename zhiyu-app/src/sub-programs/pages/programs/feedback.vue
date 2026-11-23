@@ -33,7 +33,7 @@ onLoad(options=>{id.value=options.id||'';if(/^\d+$/.test(id.value))load();else e
 			{{ error }}
 			<AccessibleButton v-if="!data" class="growth-button secondary" :disabled="loading" @click="load">重试</AccessibleButton>
 		</view>
-		<StateBlock v-if="loading" type="loading" title="正在读取这次体验…" />
+		<StateBlock v-if="loading" type="loading" shape="detail" title="正在读取这次体验…" />
 
 		<template v-else-if="data">
 			<view class="feedback-context">
@@ -59,7 +59,7 @@ onLoad(options=>{id.value=options.id||'';if(/^\d+$/.test(id.value))load();else e
 				<text class="step-number">02 / 留给自己的话</text>
 				<text class="growth-card-title">有什么想记住的？<text class="optional">选填</text></text>
 				<text class="growth-muted">可以记下一个瞬间、一种材料的触感，或下次想尝试的事。笔记仅你自己可见。</text>
-				<textarea v-model="note" maxlength="1000" :disabled="saving||!data.eligible" class="growth-input feedback-note" placeholder="例如：今天愿意慢下来，试着完成一个小步骤。" placeholder-style="color:#8a9a93;font-size:24rpx"></textarea>
+				<textarea v-model="note" maxlength="1000" :disabled="saving||!data.eligible" class="growth-input feedback-note" placeholder="例如：今天愿意慢下来，试着完成一个小步骤。" placeholder-style="color:#8B9994;font-size:24rpx"></textarea>
 				<text class="word-count">{{ note.length }} / 1000</text>
 			</view>
 
@@ -108,7 +108,7 @@ onLoad(options=>{id.value=options.id||'';if(/^\d+$/.test(id.value))load();else e
 .rating-option.selected .rating-number { background: var(--zy-brand-600, #0e5b53); border-color: var(--zy-brand-600, #0e5b53); color: #fff; }
 .rating-label { flex: 1; }
 .optional { font-size: var(--zy-text-micro, 22rpx); font-weight: 400; color: var(--zy-muted, #6e7b75); margin-left: 16rpx; }
-.feedback-note { height: 230rpx; line-height: 1.8; border: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; padding: 18rpx; }
+.feedback-note { height: 230rpx; line-height: 1.8; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: 0; background: transparent; padding: 16rpx 0; }
 .word-count { display: block; text-align: right; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); }
 .privacy-card { display: flex; flex-direction: column; gap: 12rpx; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-left: 2rpx solid var(--zy-care, #a64842); background: transparent; border-radius: 0; padding: 24rpx 0 24rpx 20rpx; font-size: var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-text, #42524c); }
 .privacy-title { font-family: var(--zy-font-display, "Songti SC", serif); font-size: var(--zy-text-body, 28rpx); font-weight: 500; color: var(--zy-title, #111816); }

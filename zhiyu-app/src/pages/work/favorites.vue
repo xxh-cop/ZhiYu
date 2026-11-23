@@ -1,7 +1,7 @@
 <template>
 	<view :class="zyThemeClass" class="favorites-page"><view class="favorites-hero"><view><text class="eyebrow">灵感收集 · 慢慢回看</text><text class="title">留给下一次相遇</text><text class="subtitle">把触动你的创作，慢慢收好。</text></view><XiaotuanPet :size="76" face="care" aria-hidden="true"/></view>
  <view class="toolbar"><text>{{total}} 份可查看的创作</text><AccessibleButton :disabled="loading" @click="load(1)">刷新收藏</AccessibleButton></view><text class="hint">仅你可见的收藏清单。已下架或不可访问的作品不会展示。</text>
- <StateBlock v-if="loading&&!records.length" type="loading" title="正在整理收藏…"/>
+ <StateBlock v-if="loading&&!records.length" type="loading" shape="list" title="正在整理收藏…"/>
  <StateBlock v-else-if="error&&!records.length" type="error" title="收藏没有加载成功" :description="error" action-text="重试" :action-loading="loading" @action="load(failedPage)"/>
  <StateBlock v-else-if="!records.length" type="empty" face="happy" title="还没有收藏的创作" description="遇到喜欢的作品，点一下收藏就能在这里找到。" action-text="去社区发现" @action="community"/>
  <template v-else>

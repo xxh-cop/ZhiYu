@@ -5,11 +5,11 @@
  * 与 src/utils/tabbar.js 的 TAB_ITEMS 保持一致；v7 为五个纯文字入口，无中央悬浮球。
  */
 const TAB_ITEMS = [
-	{ path: '/pages/home/index', text: '首页' },
-	{ path: '/pages/work/list', text: '社区' },
-	{ path: '/pages/start/index', text: '手作' },
-	{ path: '/pages/group/list', text: '小组' },
-	{ path: '/pages/profile/index', text: '我的' },
+	{ path: '/pages/home/index', text: '首页', icon: 'home' },
+	{ path: '/pages/work/list', text: '社区', icon: 'community' },
+	{ path: '/pages/start/index', text: '手作', icon: 'craft' },
+	{ path: '/pages/group/list', text: '小组', icon: 'group' },
+	{ path: '/pages/profile/index', text: '我的', icon: 'user' },
 ]
 
 function normalizeRoute(route) {
@@ -22,6 +22,8 @@ Component({
 	data: {
 		items: TAB_ITEMS,
 		active: '',
+		unread: 0,
+		dark: false,
 	},
 	lifetimes: {
 		attached() {
@@ -54,6 +56,33 @@ Component({
 			}
 			if (active !== this.data.active) {
 				this.setData({ active })
+			}
+			// 未读角标：由 useNotifications 写入 storage；未登录不显示
+			let unread = 0
+			try {
+				if (wx.getStorageSync('token')) {
+					unread = Math.max(0, Number(wx.getStorageSync('zy-notify-unread')) || 0)
+				}
+			} catch (e) {
+				unread = 0
+			}
+			if (unread !== this.data.unread) {
+				this.setData({ unread })
+			}
+			// 玄墨主题：原生组件拿不到页面 CSS 变量，按 storage + 系统偏好自行换肤
+			let dark = false
+			try {
+				const t = wx.getStorageSync('zy-theme')
+				if (t === 'dark') dark = true
+				else if (t === 'system') {
+					const info = wx.getSystemInfoSync()
+					dark = !!(info && info.theme === 'dark')
+				}
+			} catch (e) {
+				dark = false
+			}
+			if (dark !== this.data.dark) {
+				this.setData({ dark })
 			}
 		},
 		onTap(event) {

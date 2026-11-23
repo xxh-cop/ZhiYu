@@ -12,6 +12,12 @@ import { http } from '../utils/request'
  */
 const state = reactive({ unread: 0, loaded: false, fetching: false, lastFetch: 0 })
 const MIN_INTERVAL = 15000
+const UNREAD_STORAGE_KEY = 'zy-notify-unread'
+
+/** 同步给小程序原生 custom-tab-bar（页面级实例在 show 时读取）；失败静默 */
+function persistUnread(n) {
+	try { uni.setStorageSync(UNREAD_STORAGE_KEY, Math.max(0, Number(n) || 0)) } catch (e) { /* 静默 */ }
+}
 
 export function useNotifications() {
 	async function refreshUnread(force = false) {
@@ -23,6 +29,7 @@ export function useNotifications() {
 			state.unread = Number(data?.unread) || 0
 			state.lastFetch = Date.now()
 			state.loaded = true
+			persistUnread(state.unread)
 		} catch (e) {
 			/* 静默：通知角标失败不阻塞页面 */
 		} finally {
@@ -32,6 +39,7 @@ export function useNotifications() {
 	function setUnread(n) {
 		state.unread = Math.max(0, Number(n) || 0)
 		state.lastFetch = Date.now()
+		persistUnread(state.unread)
 	}
 	return { state, refreshUnread, setUnread }
 }
