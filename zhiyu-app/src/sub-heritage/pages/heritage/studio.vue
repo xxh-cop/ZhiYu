@@ -295,7 +295,7 @@
 </template>
 
 <script setup>
-import ZyPageHead from '../../../../components/ZyPageHead.vue'
+import ZyPageHead from '@/components/ZyPageHead.vue'
 import { computed, getCurrentInstance, nextTick, onMounted, ref, watch } from 'vue'
 import { onLoad, onReady, onUnload } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'

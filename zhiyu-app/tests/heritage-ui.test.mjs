@@ -55,6 +55,6 @@ test('looks up patterns, traditions and only the pattern source citations', () =
 })
 
 test('maps pattern ids to the generated local image paths', () => {
-  assert.equal(patternImage('971201'), '/static/heritage/971201.png')
-  assert.ok(fs.existsSync(new URL('../src/static/heritage/971201.png', import.meta.url)))
+  assert.equal(patternImage('971101'), '/sub-heritage/static/heritage/971101.png')
+  assert.ok(fs.existsSync(new URL('../src/sub-heritage/static/heritage/971101.png', import.meta.url)))
 })
