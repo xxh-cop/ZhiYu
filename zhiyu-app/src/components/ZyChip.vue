@@ -30,7 +30,7 @@ defineEmits(['click'])
 	background: transparent;
 	border: 0;
 	border-bottom: 2rpx solid transparent;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	color: var(--zy-text, #42524C);
 	font-size: var(--zy-text-caption, 24rpx);
 	line-height: 1.5;
@@ -46,9 +46,11 @@ defineEmits(['click'])
 	height: 88rpx;
 	border: 0;
 }
+/* v9：选中 = 青花蓝实底白字 */
 .zy-chip.active {
-	border-bottom-color: var(--zy-brand-700, #0A403B);
-	color: var(--zy-brand-700, #0A403B);
-	font-weight: 500;
+	background: var(--zy-brand-600, #24478f);
+	border-color: var(--zy-brand-600, #24478f);
+	color: #ffffff;
+	font-weight: 600;
 }
 </style>

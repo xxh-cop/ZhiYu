@@ -16,10 +16,11 @@
 
 /* ── 从下滑入 ── */
 .zy-slide-up {
-  animation: zySlideUp var(--zy-duration-slow) var(--zy-ease-smooth);
+  /* v9：入场更快更轻，长页面不再「空白一下」 */
+  animation: zySlideUp var(--zy-duration-base) var(--zy-ease-smooth);
 }
 @keyframes zySlideUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -43,7 +44,7 @@
 
 /* ── 错峰入场（配合 --stagger-i） ── */
 .zy-stagger {
-  animation-delay: calc(var(--stagger-i, 0) * 60ms);
+  animation-delay: calc(var(--stagger-i, 0) * 40ms);
   animation-fill-mode: both;
 }
 

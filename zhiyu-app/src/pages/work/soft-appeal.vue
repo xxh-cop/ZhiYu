@@ -115,7 +115,6 @@
 				<text v-if="submitError" class="submit-error" role="alert">{{ submitError }}</text>
 			</view>
 
-			<text class="footnote">本系统不能替代专业心理咨询</text>
 		</view>
 
 		<Toast />
@@ -284,13 +283,13 @@ function goBack() {
 <style scoped>
 .appeal-page { min-height: 100vh; padding: 0 28rpx 120rpx; box-sizing: border-box; background: var(--zy-bg, #ffffff); }
 .appeal-nav { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; height: 96rpx; font-size:var(--zy-text-body, 28rpx); color: var(--zy-title, #233d34); }
-.appeal-nav .text-btn { padding: 8rpx 0; margin: 0; background: transparent; color: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-caption, 24rpx); }
+.appeal-nav .text-btn { padding: 8rpx 0; margin: 0; background: transparent; color: var(--zy-brand-600, var(--zy-brand-700, #24478f)); font-size:var(--zy-text-caption, 24rpx); }
 .appeal-nav .text-btn::after { border: 0; }
 .nav-placeholder { width: 96rpx; flex-shrink: 0; }
 
 .appeal-body { max-width: 760px; margin: 12rpx auto 0; display: flex; flex-direction: column; gap: 24rpx; }
 .appeal-card { background: var(--zy-card-bg, #fff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 28rpx; padding: 28rpx; display: flex; flex-direction: column; gap: 16rpx; min-width: 0; }
-.card-eyebrow { font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2rpx; color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-weight: 600; }
+.card-eyebrow { font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2rpx; color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); font-weight: 600; }
 
 .work-title { font-family: var(--zy-serif); font-size:var(--zy-text-title, 32rpx); font-weight: 600; color: var(--zy-title, #233d34); line-height: 1.5; overflow-wrap: anywhere; }
 .work-message { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); line-height: 1.8; overflow-wrap: anywhere; white-space: pre-wrap; }
@@ -301,25 +300,25 @@ function goBack() {
 .status-row { display: flex; align-items: center; gap: 16rpx; flex-wrap: wrap; }
 .status-badge { flex-shrink: 0; padding: 6rpx 18rpx; border-radius: var(--zy-radius-full, 9999rpx); color: #fff; font-size:var(--zy-text-micro, 22rpx); font-weight: 600; }
 .status-badge.limited { background: var(--zy-warning-text, var(--zy-accent, #7a5c12)); }
-.status-badge.normal { background: var(--zy-brand-600, var(--zy-brand-600, #217e76)); }
+.status-badge.normal { background: var(--zy-brand-600, var(--zy-brand-600, #24478f)); }
 .status-remain { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-warning-text, var(--zy-accent, #7a5c12)); line-height: 1.6; }
 .status-help { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); line-height: 1.8; overflow-wrap: anywhere; }
 
 .appeal-desc { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); line-height: 1.8; overflow-wrap: anywhere; }
 .reason-field { display: block; }
 .reason-input { width: 100%; height: 180rpx; padding: 20rpx; box-sizing: border-box; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 20rpx; background: var(--zy-bg, #ffffff); font-size:var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-title, #233d34); }
-.appeal-btn { align-self: flex-start; margin: 4rpx 0 0; padding: 16rpx 44rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); color: #fff; font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
+.appeal-btn { align-self: flex-start; margin: 4rpx 0 0; padding: 16rpx 44rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-brand-600, var(--zy-brand-700, #24478f)); color: #fff; font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
 .appeal-btn::after { border: 0; }
 
 .appealed-block { display: flex; flex-direction: column; align-items: flex-start; gap: 14rpx; }
 .appealed-title { font-size:var(--zy-text-body, 28rpx); font-weight: 600; color: var(--zy-title, #233d34); line-height: 1.6; }
 .appealed-desc { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); line-height: 1.8; overflow-wrap: anywhere; }
 .appeal-note { display: flex; flex-direction: column; align-items: flex-start; gap: 14rpx; }
-.notice-btn { align-self: flex-start; margin: 0; padding: 12rpx 32rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
+.notice-btn { align-self: flex-start; margin: 0; padding: 12rpx 32rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
 .notice-btn::after { border: 0; }
 
 .submit-error { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-care, var(--zy-care, #a64842)); line-height: 1.7; overflow-wrap: anywhere; }
 .footnote { display: block; margin-top: 16rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
 
-.appeal-btn:focus-visible, .notice-btn:focus-visible, .text-btn:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+.appeal-btn:focus-visible, .notice-btn:focus-visible, .text-btn:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 </style>

@@ -65,7 +65,7 @@ function draw() {
 		const y = (node.y / 100) * sizeValue
 		const radius = node.type === 'tradition' ? 18 : 15
 		context.beginPath()
-		context.setFillStyle(node.type === 'tradition' ? '#217e76' : '#bb914d')
+		context.setFillStyle(node.type === 'tradition' ? '#24478f' : '#bb914d')
 		context.arc(x, y, radius, 0, Math.PI * 2)
 		context.fill()
 		context.setFillStyle('#233d34')
@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
 .knowledge-map-legend { display: flex; justify-content: center; gap: 24rpx; margin: 12rpx 0 16rpx; }
 .legend-item { display: flex; align-items: center; gap: 8rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
 .legend-dot { width: 16rpx; height: 16rpx; border-radius: 50%; }
-.legend-dot.tradition { background: var(--zy-brand-600, #217e76); }
+.legend-dot.tradition { background: var(--zy-brand-600, #24478f); }
 .legend-dot.source { background: #bb914d; }
 .knowledge-map-list { display: flex; flex-direction: column; gap: 12rpx; }
 .knowledge-group { padding: 14rpx 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #ffffff); }

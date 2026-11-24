@@ -1,9 +1,7 @@
 <template>
 	<view :class="zyThemeClass" class="growth-page memory-page zy-page-enter">
 		<view class="growth-hero">
-			<text class="growth-eyebrow">MEMORY / 陪伴档案</text>
-			<text class="growth-title">我记得什么，你说了算。</text>
-			<text class="growth-subtitle">你告诉我的，和我注意到的。都能看、能改、能删。</text>
+			<ZyPageHead seal="忆" title="我记得什么，你说了算。" subtitle="你告诉我的，和我注意到的。都能看、能改、能删。" />
 		</view>
 
 		<view v-if="loading" class="growth-card">
@@ -94,6 +92,7 @@
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref } from 'vue'
 import ZyIcon from '../../components/ZyIcon.vue'
 import { onShow } from '@dcloudio/uni-app'
@@ -192,14 +191,14 @@ onShow(load)
 <style scoped>
 .field-label { display: block; font-size: var(--zy-text-body, 28rpx); font-weight: 600; margin-top: 26rpx; margin-bottom: 6rpx; }
 .consent { display: flex; gap: 12rpx; align-items: flex-start; font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-text, #5c5648); margin-top: 20rpx; }
-.consent-box { width: 32rpx; height: 32rpx; border: 2rpx solid var(--zy-brand-600, #217e76); border-radius: 8rpx; text-align: center; line-height: 30rpx; color: var(--zy-brand-700, #1a645e); flex-shrink: 0; }
+.consent-box { width: 32rpx; height: 32rpx; border: 2rpx solid var(--zy-brand-600, #24478f); border-radius: 8rpx; text-align: center; line-height: 30rpx; color: var(--zy-brand-700, #24478f); flex-shrink: 0; }
 .memory-off { display: block; margin-top: 18rpx; }
 .topic-row { display: flex; align-items: center; gap: 16rpx; }
 .topic-input { flex: 1; }
 .topic-add { margin-top: 18rpx; padding: 0 28rpx; }
 .topic-list { display: flex; flex-wrap: wrap; gap: 12rpx; margin: 16rpx 0; }
-.topic-tag { display: inline-flex; align-items: center; gap: 8rpx; background: var(--zy-bg-tint-mint, #e4efe7); color: var(--zy-brand-700, #1a645e); border-radius: 999rpx; padding: 8rpx 12rpx 8rpx 20rpx; font-size: var(--zy-text-caption, 24rpx); }
-.topic-remove { font-size: var(--zy-text-body, 28rpx); line-height: 1; padding: 4rpx 8rpx; color: var(--zy-brand-700, #1a645e); cursor: pointer; }
+.topic-tag { display: inline-flex; align-items: center; gap: 8rpx; background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, #24478f); border-radius: 999rpx; padding: 8rpx 12rpx 8rpx 20rpx; font-size: var(--zy-text-caption, 24rpx); }
+.topic-remove { font-size: var(--zy-text-body, 28rpx); line-height: 1; padding: 4rpx 8rpx; color: var(--zy-brand-700, #24478f); cursor: pointer; }
 .topic-remove::after { border: 0; }
 .derived-item { display: flex; padding: 22rpx 0; border-top: 1rpx solid var(--zy-line-soft, #e9e2d5); }
 .derived-item:first-of-type { border-top: 0; }
@@ -215,7 +214,7 @@ onShow(load)
 .memory-page .growth-title { color: var(--zy-title); font-family: var(--zy-serif); font-size: 56rpx; font-weight: 500; line-height: 1.4; letter-spacing: 1rpx; }
 .memory-page .growth-subtitle { color: var(--zy-muted); font-size: 22rpx; line-height: 1.8; margin-top: 12rpx; }
 .memory-page .growth-hero + .growth-card { border-top: 0; }
-.memory-page .growth-card { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; padding: 30rpx 0 32rpx; margin: 0; }
+.memory-page .growth-card { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); padding: 30rpx 0 32rpx; margin: 0; }
 .memory-page .growth-card-title { color: var(--zy-title); font-family: var(--zy-serif); font-size: 34rpx; font-weight: 500; letter-spacing: 1rpx; margin-bottom: 12rpx; }
 .memory-page .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16rpx; }
 .memory-page .card-head .growth-card-title { margin-bottom: 12rpx; }
@@ -224,18 +223,18 @@ onShow(load)
 .memory-page .field-label { color: var(--zy-title); font-size: 22rpx; font-weight: 500; letter-spacing: 1rpx; margin-top: 24rpx; margin-bottom: 4rpx; }
 .memory-page .consent { color: var(--zy-muted); font-size: 21rpx; line-height: 1.8; margin-top: 18rpx; }
 .memory-page .consent-on { color: var(--zy-brand-700); }
-.memory-page .consent-box { display: flex; align-items: center; justify-content: center; width: 28rpx; height: 28rpx; border: 1rpx solid var(--zy-border); border-radius: 0; line-height: 26rpx; color: var(--zy-care); font-size: 20rpx; }
+.memory-page .consent-box { display: flex; align-items: center; justify-content: center; width: 28rpx; height: 28rpx; border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); line-height: 26rpx; color: var(--zy-care); font-size: 20rpx; }
 .memory-page .consent-box.is-on { border-color: var(--zy-brand-600); color: var(--zy-brand-700); }
-.memory-page .growth-input { height: 76rpx; min-height: 76rpx; padding: 0 4rpx; margin: 10rpx 0; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: 0; background: transparent; color: var(--zy-title); font-size: 24rpx; }
-.memory-page .growth-choice { padding: 18rpx 0; margin: 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; color: var(--zy-text); font-size: 24rpx; }
+.memory-page .growth-input { height: 76rpx; min-height: 76rpx; padding: 0 4rpx; margin: 10rpx 0; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: var(--zy-radius-control, 18rpx); background: transparent; color: var(--zy-title); font-size: 24rpx; }
+.memory-page .growth-choice { padding: 18rpx 0; margin: 0; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); background: transparent; color: var(--zy-text); font-size: 24rpx; }
 .memory-page .growth-choice.selected { border-bottom-color: var(--zy-brand-600); background: transparent; color: var(--zy-brand-700); }
-.memory-page .growth-button { margin-top: 20rpx; padding: 0 24rpx; min-height: 72rpx; border-radius: 0; background: var(--zy-brand-700); color: #fff; font-size: 24rpx; line-height: 72rpx; }
+.memory-page .growth-button { margin-top: 20rpx; padding: 0 24rpx; min-height: 72rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-700); color: #fff; font-size: 24rpx; line-height: 72rpx; }
 .memory-page .growth-button.memory-switch { display: inline-flex; width: auto; align-self: flex-start; min-height: 64rpx; margin-top: 16rpx; background: transparent; border: 1rpx solid var(--zy-brand-700); color: var(--zy-brand-700); font-size: 22rpx; line-height: 64rpx; }
 .memory-page .growth-button.secondary { background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); }
 .memory-page .growth-button.danger { background: transparent; border: 1rpx solid rgba(166,72,66,.42); color: var(--zy-care); }
 .memory-page .growth-button.is-disabled { opacity: 1; background: transparent; border-color: var(--zy-border); color: var(--zy-muted); }
-.memory-page .growth-error { background: transparent; border-left: 2rpx solid var(--zy-care); border-radius: 0; color: var(--zy-care); padding: 10rpx 0 10rpx 16rpx; }
-.memory-page .topic-tag { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); font-size: 21rpx; padding: 6rpx 10rpx 6rpx 14rpx; }
+.memory-page .growth-error { background: transparent; border-left: 2rpx solid var(--zy-care); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-care); padding: 10rpx 0 10rpx 16rpx; }
+.memory-page .topic-tag { border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); font-size: 21rpx; padding: 6rpx 10rpx 6rpx 14rpx; }
 .memory-page .derived-item { border-top: 1rpx solid var(--zy-border); padding: 20rpx 0; }
 .memory-page .derived-label { color: var(--zy-muted); font-size: 20rpx; letter-spacing: 1rpx; }
 .memory-page .derived-value { color: var(--zy-title); font-family: var(--zy-serif); font-size: 30rpx; font-weight: 500; }

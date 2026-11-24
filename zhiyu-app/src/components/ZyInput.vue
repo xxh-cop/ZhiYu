@@ -72,10 +72,14 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 	position: relative;
 	display: flex;
 	align-items: center;
-	min-height: 88rpx;
-	border-bottom: 2rpx solid var(--zy-faint, #8B9994);
-	background: transparent;
+	min-height: 92rpx;
+	/* v9：白底描边方框 + 聚焦光环，一眼看出「这里能填」 */
+	padding: 0 24rpx;
+	border: 2rpx solid var(--zy-border, #d3dbe7);
+	border-radius: var(--zy-radius-control, 20rpx);
+	background: var(--zy-card-bg, #fff);
 	box-sizing: border-box;
+	transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .zy-input-el {
 	flex: 1;
@@ -90,20 +94,9 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 	color: var(--zy-title, #111816);
 }
 /* 聚焦：窑青实线 + 上方浅青虚线（双线如一针穿过） */
-.zy-input.is-focused { border-bottom-color: var(--zy-brand-600, #0E5B53); }
-.zy-input.is-focused::after {
-	content: '';
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 2rpx;
-	height: 2rpx;
-	background: var(--zy-brand-300, #8FC7B8);
-	opacity: .55;
-	pointer-events: none;
-}
-.zy-input.is-error { border-bottom-color: var(--zy-care, #A64842); }
-.zy-input.is-disabled { opacity: .55; }
+.zy-input.is-focused { border-color: var(--zy-brand-600, #24478f); box-shadow: 0 0 0 6rpx var(--zy-brand-100, #dde6f6); }
+.zy-input.is-error { border-color: var(--zy-care, #b03d33); box-shadow: 0 0 0 6rpx var(--zy-bg-tint-care, #fbeae7); }
+.zy-input.is-disabled { background: var(--zy-bg-sunken, #eef2f7); }
 .zy-input-eye {
 	flex-shrink: 0;
 	width: 72rpx;

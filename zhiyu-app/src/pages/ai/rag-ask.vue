@@ -3,9 +3,7 @@
 		<!-- 顶部说明 -->
 		<view class="header-card zy-slide-up">
 			<view class="header-text">
-				<text class="header-eyebrow">HERITAGE ATLAS · 非遗问答</text>
-				<text class="header-title">问一件非遗的事</text>
-				<text class="header-desc">材质、工序与纹样观察，都可以慢慢问。</text>
+				<ZyPageHead seal="问" title="问一件非遗的事" subtitle="材质、工序与纹样观察，都可以慢慢问。" />
 			</view>
 			<view class="header-icon">
 				<ZyIcon name="comment" :size="32" tone="brand" />
@@ -39,7 +37,7 @@
 		<scroll-view class="chat-area" scroll-y :scroll-top="scrollTop" :scroll-with-animation="true">
 			<!-- 欢迎语 -->
 			<view v-if="messages.length === 0" class="welcome-area zy-slide-up">
-				<text class="welcome-kicker">ASK A QUESTION · 从一条线索开始</text>
+				<text class="welcome-kicker">从一条线索开始</text>
 				<text class="welcome-title">你想先了解哪一件？</text>
 				<text class="welcome-note">可以问材料、工序，也可以问纹样怎么看。</text>
 				<view class="suggestion-tags">
@@ -149,17 +147,17 @@
 				@keydown.enter.prevent="handleAsk"
 				@keydown.space.prevent="handleAsk"
 			>
-				<ZyIcon name="chevron-up" :size="36" :color="(!inputText.trim() || loading) ? '#6e7b75' : '#FFFFFF'" />
+				<ZyIcon name="chevron-up" :size="36" :color="(!inputText.trim() || loading) ? '#586379' : '#FFFFFF'" />
 			</view>
 		</view>
 
 		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 		<Toast />
 	</view>
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref, nextTick, onMounted } from 'vue'
 import { request } from '../../utils/request'
 import HeritageKnowledgeMap from '../../components/HeritageKnowledgeMap.vue'
@@ -304,7 +302,7 @@ onMounted(loadGraph)
 .header-icon {
 	width: 68rpx;
 	height: 68rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 	border: 1rpx solid var(--zy-border, #d3ded8);
 	display: flex;
@@ -380,7 +378,7 @@ onMounted(loadGraph)
 	width: 100%;
 	box-sizing: border-box;
 	padding: 20rpx 0;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	border: 0;
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 	background-color: transparent;
@@ -390,11 +388,11 @@ onMounted(loadGraph)
 
 .suggestion-tag:active {
 	background-color: transparent;
-	border-color: var(--zy-brand-600, #0e5b53);
+	border-color: var(--zy-brand-600, #24478f);
 	opacity: .75;
 }
 
-.tag-mark { flex-shrink: 0; width: 44rpx; height: 44rpx; line-height: 42rpx; text-align: center; border: 1rpx solid var(--zy-border, #d3ded8); font-size: 22rpx; color: var(--zy-brand-700, #0a403b); }
+.tag-mark { flex-shrink: 0; width: 44rpx; height: 44rpx; line-height: 42rpx; text-align: center; border: 1rpx solid var(--zy-border, #d3ded8); font-size: 22rpx; color: var(--zy-brand-700, #183369); }
 .tag-text {
 	font-size: var(--zy-text-caption, 24rpx);
 	color: var(--zy-title, #111816);
@@ -414,8 +412,8 @@ onMounted(loadGraph)
 .msg-bubble-user {
 	max-width: 78%;
 	padding: 16rpx 22rpx;
-	border-radius: 0;
-	background: var(--zy-brand-600, #0e5b53);
+	border-radius: var(--zy-radius-control, 18rpx);
+	background: var(--zy-brand-600, #24478f);
 }
 
 .msg-text-user {
@@ -432,10 +430,10 @@ onMounted(loadGraph)
 .msg-bubble-ai {
 	max-width: 90%;
 	padding: 8rpx 0 8rpx 20rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background-color: transparent;
 	border: 0;
-	border-left: 2rpx solid var(--zy-brand-600, #0e5b53);
+	border-left: 2rpx solid var(--zy-brand-600, #24478f);
 }
 
 .msg-text-ai {
@@ -471,7 +469,7 @@ onMounted(loadGraph)
 
 .source-item {
 	padding: 14rpx 0;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 	background-color: transparent;
 }
@@ -479,7 +477,7 @@ onMounted(loadGraph)
 .source-title {
 	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 500;
-	color: var(--zy-brand-700, #0a403b);
+	color: var(--zy-brand-700, #183369);
 }
 
 .source-excerpt {
@@ -501,7 +499,7 @@ onMounted(loadGraph)
 	width: 12rpx;
 	height: 12rpx;
 	border-radius: 50%;
-	background-color: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8));
+	background-color: var(--zy-brand-300, var(--zy-brand-300, #8ea9dc));
 	animation: dotBounce 1.4s infinite ease-in-out both;
 }
 
@@ -527,7 +525,7 @@ onMounted(loadGraph)
 .input-wrap {
 	flex: 1;
 	height: 76rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background-color: transparent;
 	border: 0;
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
@@ -545,8 +543,8 @@ onMounted(loadGraph)
 .send-btn {
 	width: 76rpx;
 	height: 76rpx;
-	border-radius: 0;
-	background: var(--zy-brand-600, #0e5b53);
+	border-radius: var(--zy-radius-control, 18rpx);
+	background: var(--zy-brand-600, #24478f);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -575,7 +573,7 @@ onMounted(loadGraph)
 	overflow: hidden;
 	border: 0;
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .map-toggle {
@@ -591,17 +589,17 @@ onMounted(loadGraph)
 }
 .map-title { display: block; font-family:var(--zy-font-display,serif); font-size:28rpx; font-weight:500; color:var(--zy-title, #111816); }
 .map-desc { display: block; margin-top: 4rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); }
-.map-action { flex-shrink: 0; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, #0a403b); }
+.map-action { flex-shrink: 0; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, #183369); }
 .map-panel { box-sizing: border-box; width: 100%; height: 52vh; padding: 0 0 16rpx; }
 .map-error { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; padding: 20rpx 0; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-care,#a64842); }
-.map-retry { padding: 8rpx 18rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700,#0a403b); background: transparent; border: 1rpx solid var(--zy-border,#d3ded8); border-radius: 0; }
+.map-retry { padding: 8rpx 18rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700,#183369); background: transparent; border: 1rpx solid var(--zy-border,#d3ded8); border-radius: var(--zy-radius-control, 18rpx); }
 .answer-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10rpx; margin-top: 12rpx; }
-.mode-chip { padding: 2rpx 8rpx; border-radius: 0; border:1rpx solid var(--zy-border,#d3ded8); background: transparent; color: var(--zy-muted,#6e7b75); font-size:var(--zy-text-micro, 22rpx); }
+.mode-chip { padding: 2rpx 8rpx; border-radius: var(--zy-radius-control, 18rpx); border:1rpx solid var(--zy-border,#d3ded8); background: transparent; color: var(--zy-muted,#6e7b75); font-size:var(--zy-text-micro, 22rpx); }
 .mode-note { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted,#6e7b75); }
 .source-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12rpx; }
-.source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 0; background: transparent; border:1rpx solid var(--zy-border,#d3ded8); color: var(--zy-muted,#6e7b75); font-size:var(--zy-text-micro, 22rpx); }
+.source-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border:1rpx solid var(--zy-border,#d3ded8); color: var(--zy-muted,#6e7b75); font-size:var(--zy-text-micro, 22rpx); }
 .source-org, .source-relation, .source-version, .source-media { display: block; margin-top: 4rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-muted,#6e7b75); word-break: break-word; }
-.source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, #0a403b); background: transparent; border: 0; text-align: left; }
+.source-link { display: inline-block; margin-top: 8rpx; padding: 0; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, #183369); background: transparent; border: 0; text-align: left; }
 
 @media (min-width: 900px) {
 	.map-card,
@@ -617,7 +615,7 @@ onMounted(loadGraph)
 }
 
 button:focus-visible {
-	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	outline-offset: 3px;
 }
 </style>

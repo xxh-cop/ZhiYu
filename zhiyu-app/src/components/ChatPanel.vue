@@ -396,7 +396,7 @@ onUnmounted(() => {
 
 .cp-welcome-text {
 	font-size:var(--zy-text-body-lg, 30rpx);
-	color: var(--wot-color-theme, var(--zy-brand-700, #1a645e));
+	color: var(--wot-color-theme, var(--zy-brand-700, #24478f));
 	margin-bottom: 16rpx;
 }
 
@@ -447,7 +447,7 @@ onUnmounted(() => {
 	width: 64rpx;
 	height: 64rpx;
 	border-radius: 50%;
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -457,7 +457,7 @@ onUnmounted(() => {
 .cp-ai-avatar-text {
 	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 600;
-	color: var(--wot-color-theme, var(--zy-brand-700, #1a645e));
+	color: var(--wot-color-theme, var(--zy-brand-700, #24478f));
 }
 
 /* ── 用户头像 ── */
@@ -488,13 +488,13 @@ onUnmounted(() => {
 }
 
 .cp-bubble-user {
-	background-color: var(--wot-color-theme, var(--zy-brand-600, #217e76));
+	background-color: var(--wot-color-theme, var(--zy-brand-600, #24478f));
 }
 
 .cp-bubble-ai {
 	background-color: #FFFFFF;
 	border: 1px solid var(--zy-border, #dfe7dc);
-	box-shadow: 0 2rpx 8rpx rgba(33, 126, 118, 0.06);
+	box-shadow: 0 2rpx 8rpx rgba(36, 71, 143, 0.06);
 }
 
 .cp-bubble-text {
@@ -513,7 +513,7 @@ onUnmounted(() => {
 /* ── 打字机光标 ── */
 .cp-typing {
 	font-size: 15px;
-	color: var(--wot-color-theme, var(--zy-brand-700, #1a645e));
+	color: var(--wot-color-theme, var(--zy-brand-700, #24478f));
 	margin-left: 2px;
 	animation: cpBlink 0.8s steps(2) infinite;
 }

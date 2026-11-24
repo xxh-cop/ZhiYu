@@ -40,12 +40,12 @@ defineProps({
 	gap: 8rpx;
 	padding: var(--zy-space-sm);
 	border: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .process-step.is-current {
 	background: transparent;
-	border-color: var(--zy-brand-700, #0a403b);
+	border-color: var(--zy-brand-700, #183369);
 	border-left: 2rpx solid var(--zy-care, #a64842);
 }
 .process-step.is-done {
@@ -101,7 +101,7 @@ defineProps({
 	top: 18rpx;
 	width: 8rpx;
 	height: 8rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: var(--zy-care, #a64842);
 }
 /* 剪刻：负空间 */

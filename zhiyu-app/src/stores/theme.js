@@ -1,6 +1,6 @@
 /**
- * 页面配色主题：white=云白（默认）/ warm=暖纸（历史兼容，面级并入云白）/
- * dark=玄墨（全局深色）/ system=跟随系统。
+ * 页面配色主题：white=云白·青花瓷（默认）/ warm=暖纸（宣纸米色）/
+ * jade=青瓷（原版淡青底 + 青绿）/ dark=玄墨（全局深色）/ system=跟随系统。
  * 仅切换面级 CSS 变量，不涉业务逻辑。
  * 持久化：uni storage 'zy-theme'；main.js 挂载前同步 init，首帧即正确主题，不闪色。
  * 原生 tabBar / 导航条经 setTabBarStyle / setNavigationBarColor 联动。
@@ -8,13 +8,14 @@
 import { defineStore } from 'pinia'
 
 const STORAGE_KEY = 'zy-theme'
-const VALID = ['white', 'warm', 'dark', 'system']
+const VALID = ['white', 'warm', 'jade', 'dark', 'system']
 
 /** 原生 tabBar 面级值 */
-const TABBAR_BG = { white: '#FFFFFF', warm: '#FFFFFF', dark: '#111E1A' }
-const TABBAR_BORDER = { white: 'black', warm: 'black', dark: 'white' }
-/** 导航条面级值（跟 --zy-bg） */
-const NAV_BG = { white: '#F1F4F1', warm: '#F1F4F1', dark: '#0B1513' }
+const TABBAR_BG = { white: '#FFFFFF', warm: '#FFFDF8', jade: '#FFFFFF', dark: '#1C2740' }
+const TABBAR_BORDER = { white: 'black', warm: 'black', jade: 'black', dark: 'white' }
+/** 导航条面级值（v9：云白默认白底；暖纸为宣纸米色；青瓷为原版淡青） */
+const NAV_BG = { white: '#FFFFFF', warm: '#F6F1E6', jade: '#FFFFFF', dark: '#121A2B' }
+const THEME_CLASS = { warm: 'zy-theme-warm', jade: 'zy-theme-jade', dark: 'zy-theme-dark' }
 
 export const useThemeStore = defineStore('theme', {
 	state: () => ({
@@ -30,8 +31,7 @@ export const useThemeStore = defineStore('theme', {
 		isDark() { return this.resolvedTheme === 'dark' },
 		/** 页面根 view 绑定用 */
 		themeClass() {
-			const r = this.resolvedTheme
-			return r === 'warm' ? 'zy-theme-warm' : r === 'dark' ? 'zy-theme-dark' : ''
+			return THEME_CLASS[this.resolvedTheme] || ''
 		},
 	},
 	actions: {

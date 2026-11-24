@@ -37,6 +37,7 @@ export function createApp() {
 			(cls) => {
 				document.documentElement.classList.toggle("zy-theme-warm", cls === "zy-theme-warm");
 				document.documentElement.classList.toggle("zy-theme-dark", cls === "zy-theme-dark");
+				document.documentElement.classList.toggle("zy-theme-jade", cls === "zy-theme-jade");
 			},
 			{ immediate: true }
 		);

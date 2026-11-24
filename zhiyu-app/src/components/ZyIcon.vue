@@ -23,16 +23,19 @@ const props = defineProps({
 
 /* v7「一线」色板快照（与 theme.scss 同步；SVG data-URI 无法读 CSS 变量，故在此对齐） */
 const TONES = {
-	text: '#42524C',
-	title: '#111816',
-	muted: '#6E7B75',
-	faint: '#8B9994',
-	brand: '#0E5B53',
-	'brand-light': '#8FC7B8',
-	care: '#A64842',
+	text: '#384256',
+	title: '#141C2E',
+	muted: '#586379',
+	faint: '#8A93A6',
+	brand: '#24478F',
+	'brand-light': '#3A62AE',
+	care: '#B03D33',
+	cinnabar: '#C0392B',
+	gold: '#C58B2A',
+	pine: '#2F7D68',
 	white: '#FFFFFF',
-	dark: '#F1F4F1',
-	'dark-muted': '#A9BBB2',
+	dark: '#EEF2F8',
+	'dark-muted': '#A7B1C6',
 }
 
 /* 每个图标 = SVG 内部片段；stroke 继承根节点，实心元素自带 fill */
@@ -87,17 +90,28 @@ const ICONS = {
 
 /* 玄墨主题下，浅底 tone 自动映射为深底等价值（data-URI 读不到 CSS 变量） */
 const DARK_TONES = {
-	text: '#C3D2CA',
-	title: '#F1F4F1',
-	muted: '#A9BBB2',
-	faint: '#8FA39A',
-	brand: '#8FC7B8',
-	care: '#D4736A',
+	text: '#C9D1E0',
+	title: '#EEF2F8',
+	muted: '#A7B1C6',
+	faint: '#8590A8',
+	brand: '#9DB8EC',
+	care: '#E07A6E',
+	cinnabar: '#E8806F',
+}
+/* 青瓷主题：品牌色回到原版青绿，正文墨色带一点绿 */
+const JADE_TONES = {
+	text: '#3B4641',
+	title: '#1E2724',
+	muted: '#5B6660',
+	faint: '#85918B',
+	brand: '#136A5F',
+	'brand-light': '#2A8070',
 }
 const themeStore = useThemeStore()
 
 const iconStyle = computed(() => {
-	const palette = themeStore.isDark ? { ...TONES, ...DARK_TONES } : TONES
+	const r = themeStore.resolvedTheme
+	const palette = r === 'dark' ? { ...TONES, ...DARK_TONES } : r === 'jade' ? { ...TONES, ...JADE_TONES } : TONES
 	const stroke = props.color || palette[props.tone] || palette.text
 	// more 等实心点用 currentColor：SVG 根节点 color 与 stroke 同值即可继承
 	const body = (ICONS[props.name] || ICONS.arrow)

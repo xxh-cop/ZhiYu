@@ -1,101 +1,96 @@
 <template>
 	<view :class="zyThemeClass" class="page">
-		<!-- ① 我是谁：展签式身份区 -->
-		<view class="page-head zy-slide-up">
-			<text class="page-eyebrow">PERSONAL ARCHIVE · 个人档案</text>
-			<view class="identity-row">
+		<!-- ① 青花名帖 -->
+		<view class="name-card">
+			<view class="name-wave zy-wave-bg--light" aria-hidden="true"></view>
+			<view class="name-top">
 				<AccessibleButton class="monogram" aria-label="修改个人资料" @click="goSettings">
 					<image v-if="avatarFullUrl && !avatarError" class="avatar-img" :src="avatarFullUrl" mode="aspectFill" alt="我的头像" @error="avatarError = true" />
-					<view v-else class="avatar"><text class="avatar-text">{{ avatarChar }}</text></view>
+					<text v-else class="avatar-text">{{ avatarChar }}</text>
 				</AccessibleButton>
 				<view class="identity-copy">
 					<text class="profile-name">{{ nickname }}</text>
 					<text class="profile-signature">{{ signature }}</text>
 					<view class="profile-meta">
-						<text v-if="roleLabel" class="role-text">{{ roleLabel }}</text>
-						<text v-if="school" class="school-text">{{ school }}</text>
+						<text v-if="roleLabel" class="meta-pill">{{ roleLabel }}</text>
+						<text v-if="school" class="meta-pill">{{ school }}</text>
 					</view>
 				</view>
+				<AccessibleButton class="gear" aria-label="个人设置" @click="goSettings"><ZyIcon name="settings" :size="36" color="#FFFFFF" /></AccessibleButton>
 			</view>
 		</view>
 
-		<StateBlock
-			v-if="profileError"
-			type="error"
-			compact
-			title="信息暂时没有更新"
-			:description="profileError"
-			action-text="重新加载"
-			@action="retryProfile"
-		/>
-
-		<!-- ② 我做过什么：旅程三指标（与首页「连续记录」同源：/api/user/stats） -->
-		<text class="section-eyebrow zy-slide-up zy-stagger" style="--stagger-i: 0">JOURNEY · 旅程</text>
-		<view class="stats-row" role="group" aria-label="我的创作旅程">
-			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 1">
+		<!-- ② 旅程三指标（与首页同源：/api/user/stats） -->
+		<view class="stats-card" role="group" aria-label="我的创作旅程">
+			<view class="stat">
 				<text class="stat-num">{{ stats.daysHere }}</text>
-				<text class="stat-label">来到这里 / 天</text>
+				<text class="stat-label">来到这里 · 天</text>
 			</view>
-			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 2">
+			<view class="stat-divider" aria-hidden="true"></view>
+			<view class="stat">
 				<text class="stat-num">{{ stats.totalWorks }}</text>
-				<text class="stat-label">作品 / 件</text>
+				<text class="stat-label">作品 · 件</text>
 			</view>
-			<view class="stat-card zy-slide-up zy-stagger" style="--stagger-i: 3">
+			<view class="stat-divider" aria-hidden="true"></view>
+			<view class="stat">
 				<text class="stat-num">{{ stats.totalMinutes }}</text>
-				<text class="stat-label">专注 / 分钟</text>
+				<text class="stat-label">专注 · 分钟</text>
 			</view>
 		</view>
 
-		<!-- 徽章横滑：由统计数据推导的成就，未达成的展示进度 -->
-		<view class="badge-section zy-slide-up zy-stagger" style="--stagger-i: 3">
-			<view class="badge-heading">
-				<text class="section-title">一路留下的印记</text>
-				<text class="section-note">由你的真实记录生成，不需要额外打卡。</text>
-			</view>
-			<view class="badge-scroll">
-				<view class="badge-track">
-					<view v-for="badge in badges" :key="badge.key" class="badge-card" :class="{ locked: !badge.earned }">
-						<view class="badge-icon" aria-hidden="true"><text>{{ badge.mark }}</text></view>
-						<text class="badge-name">{{ badge.name }}</text>
-						<text class="badge-desc">{{ badge.earned ? badge.desc : badge.progress }}</text>
-					</view>
-				</view>
+		<StateBlock v-if="profileError" type="error" compact title="信息暂时没有更新" :description="profileError" action-text="重新加载" @action="retryProfile" />
+
+		<!-- ③ 印记：印章徽章 -->
+		<view class="sec-head">
+			<view class="sec-mark" aria-hidden="true"></view>
+			<text class="sec-title">一路留下的印记</text>
+			<text class="sec-note">{{ earnedCount }} / {{ badges.length }}</text>
+		</view>
+		<view class="badge-grid">
+			<view v-for="badge in badges" :key="badge.key" class="badge" :class="{ locked: !badge.earned }" :aria-label="badge.name + '，' + (badge.earned ? badge.desc : badge.progress)">
+				<ZySeal :text="badge.mark" size="lg" :tone="badge.earned ? 'cinnabar' : 'outline'" :tilt="badge.earned" />
+				<text class="badge-name">{{ badge.name }}</text>
+				<text class="badge-desc">{{ badge.earned ? badge.desc : badge.progress }}</text>
 			</view>
 		</view>
 
-		<!-- 菜单分区 -->
-		<view v-for="section in menuSections" :key="section.title" class="menu-section">
-			<text class="menu-section-title">{{ section.title }}</text>
+		<!-- ④ 我的记录：宫格 -->
+		<view class="sec-head">
+			<view class="sec-mark" aria-hidden="true"></view>
+			<text class="sec-title">{{ menuSections[0].title }}</text>
+		</view>
+		<view class="tile-grid">
+			<AccessibleButton v-for="item in menuSections[0].items" :key="item.action" class="tile" :aria-label="item.label" @click="handleMenu(item)">
+				<view class="tile-icon" :class="'tone-' + item.tone" aria-hidden="true"><ZyIcon :name="item.icon" :size="40" :tone="iconTone(item.tone)" /></view>
+				<text class="tile-label">{{ item.label }}</text>
+			</AccessibleButton>
+		</view>
+
+		<!-- ⑤ 其余分区：列表 -->
+		<view v-for="section in menuSections.slice(1)" :key="section.title" class="menu-section">
+			<view class="sec-head">
+				<view class="sec-mark" aria-hidden="true"></view>
+				<text class="sec-title">{{ section.title }}</text>
+			</view>
 			<view class="menu-list">
-				<AccessibleButton
-					v-for="item in section.items"
-					:key="item.action"
-					class="menu-item"
-					:aria-label="item.label"
-					@click="handleMenu(item)"
-				>
-					<view class="menu-icon-wrap" :class="'tone-' + item.tone" aria-hidden="true">
-						<ZyIcon :name="item.icon" :size="30" tone="brand" />
-					</view>
-					<text class="menu-label">{{ item.label }}</text>
-					<ZyIcon name="arrow" :size="30" tone="muted" />
+				<AccessibleButton v-for="item in section.items" :key="item.action" class="menu-row" :aria-label="item.label" @click="handleMenu(item)">
+					<view class="row-icon" :class="'tone-' + item.tone" aria-hidden="true"><ZyIcon :name="item.icon" :size="32" :tone="iconTone(item.tone)" /></view>
+					<text class="row-label">{{ item.label }}</text>
+					<ZyIcon name="arrow" :size="28" tone="faint" />
 				</AccessibleButton>
 			</view>
 		</view>
 
-		<!-- ③ 我的边界：隐私与安全 -->
+		<!-- ⑥ 我的边界 -->
 		<view class="boundary-card">
-			<view class="boundary-copy">
-				<text class="section-title">你的记录，由你做主</text>
-				<text class="boundary-desc">在「账号与隐私」中可以撤回授权、导出个人记录，或注销账号。操作即时生效，导出副本归你保存。</text>
-			</view>
-			<AccessibleButton class="boundary-btn" @click="goPrivacy">管理授权与账号</AccessibleButton>
+			<view class="boundary-band zy-band-meander" aria-hidden="true"></view>
+			<text class="boundary-title">你的记录，由你做主</text>
+			<text class="boundary-desc">在「账号与隐私」中可以撤回授权、导出个人记录，或注销账号。操作即时生效，导出副本归你保存。</text>
+			<AccessibleButton variant="secondary" size="md" class="boundary-action" @click="goPrivacy">管理授权与账号</AccessibleButton>
 		</view>
 
 		<AccessibleButton class="logout-btn" aria-label="退出登录" @click="showLogout = true">退出登录</AccessibleButton>
 
-		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<ActionSheet
 			:open="showLogout"
@@ -121,6 +116,7 @@ import ActionSheet from '../../components/ActionSheet.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import ZyIcon from '../../components/ZyIcon.vue'
+import ZySeal from '../../components/ZySeal.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
@@ -204,6 +200,10 @@ const badges = computed(() => {
 	]
 })
 
+const earnedCount = computed(() => badges.value.filter((b) => b.earned).length)
+const ICON_TONE = { brand: 'brand', 'brand-light': 'pine', gold: 'gold', care: 'cinnabar', neutral: 'muted' }
+function iconTone(tone) { return ICON_TONE[tone] || 'brand' }
+
 onShow(() => {
 	if (!userStore.isLogin) {
 		uni.reLaunch({ url: '/pages/login/index' })
@@ -281,256 +281,74 @@ function handleLogout() {
 </script>
 
 <style scoped>
-.page {
-	min-height: 100vh;
-	padding: var(--zy-space-lg) var(--zy-space-md) 120rpx;
-	box-sizing: border-box;
-	background-color: var(--zy-bg, #ffffff);
-}
+.page { min-height: 100vh; padding: 0 28rpx 160rpx; box-sizing: border-box; background-color: var(--zy-bg); }
 /* #ifdef MP */
-/* 小程序 custom tabBar 不占页面视口，页面自留底部空间（含安全区） */
-.page { padding-bottom: calc(112rpx + env(safe-area-inset-bottom)); }
+.page { padding-bottom: calc(140rpx + env(safe-area-inset-bottom)); }
+/* 自定义导航：让出微信胶囊按钮区域 */
+.name-card { padding-top: calc(var(--status-bar-height, 20px) + 120rpx); }
 /* #endif */
 
-/* ── 展签式身份区 ── */
-.page-head {
-	padding: 8rpx 4rpx 36rpx;
-	margin-bottom: 8rpx;
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-}
-.page-eyebrow,
-.section-eyebrow {
-	display: block;
-	font-size: var(--zy-text-micro, 22rpx);
-	letter-spacing: 2px;
-	color: var(--zy-muted, #6e7b75);
-	margin-bottom: 22rpx;
-}
-.identity-row { display: flex; align-items: flex-start; gap: 28rpx; }
-.monogram {
-	width: 132rpx;
-	height: 160rpx;
-	min-height: 160rpx;
-	flex-shrink: 0;
-	padding: 0;
-	margin: 0;
-	border-radius: 0;
-	background: var(--zy-bg-sunken, #e9efeb);
-	overflow: hidden;
-}
-.monogram::after { border: 0; }
-.avatar, .avatar-img {
-	width: 100%;
-	height: 100%;
-	border-radius: 0;
-	border: 0;
-	box-sizing: border-box;
-	display: block;
-}
-.avatar {
-	background: var(--zy-bg-sunken, #e9efeb);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-.avatar-text {
-	font-family: var(--zy-font-display, serif);
-	font-size: 68rpx;
-	font-weight: 500;
-	color: var(--zy-brand-700, #0a403b);
-}
-.identity-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10rpx; }
-.profile-name {
-	font-family: var(--zy-font-display, serif);
-	font-size: 64rpx;
-	font-weight: 600;
-	line-height: 1.25;
-	letter-spacing: 1rpx;
-	color: var(--zy-title, #111816);
-	overflow-wrap: anywhere;
-}
-.profile-signature { font-size: var(--zy-text-body, 28rpx); color: var(--zy-text, #42524c); overflow-wrap: anywhere; }
-.profile-meta { display: flex; align-items: center; gap: 18rpx; flex-wrap: wrap; margin-top: 6rpx; }
-.role-text {
-	font-size: var(--zy-text-micro, 22rpx);
-	letter-spacing: 1px;
-	color: var(--zy-accent, #8e4a3c);
-}
-.school-text { font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); overflow-wrap: anywhere; }
+/* 青花名帖 */
+.name-card { position: relative; margin: 0 -28rpx; padding: calc(var(--status-bar-height, 0px) + 56rpx) 36rpx 110rpx; background: var(--zy-brand-600); border-radius: 0 0 56rpx 56rpx; overflow: hidden; }
+.name-wave { position: absolute; inset: 0; }
+.name-top { position: relative; display: flex; align-items: center; gap: 26rpx; }
+.monogram { width: 136rpx; height: 136rpx; min-width: 136rpx; padding: 0; margin: 0; border-radius: 50%; background: #fff; border: 6rpx solid rgba(255, 255, 255, .45); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 10rpx 30rpx rgba(13, 31, 69, .35); }
+.avatar-img { width: 100%; height: 100%; }
+.avatar-text { font-family: var(--zy-font-display); font-size: 64rpx; font-weight: 700; color: var(--zy-brand-600); }
+.identity-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.profile-name { font-family: var(--zy-font-display); font-size: 48rpx; font-weight: 700; color: #fff; letter-spacing: 2rpx; }
+.profile-signature { font-size: 24rpx; color: rgba(255, 255, 255, .82); }
+.profile-meta { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 6rpx; }
+.meta-pill { padding: 4rpx 18rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .18); color: #fff; font-size: 22rpx; }
+.gear { position: absolute; top: -12rpx; right: -8rpx; width: 72rpx; height: 72rpx; min-width: 72rpx; padding: 0; margin: 0; border-radius: 50%; background: rgba(255, 255, 255, .16); border: 0; display: flex; align-items: center; justify-content: center; }
 
-/* ── ② 旅程三指标：一根线分三栏，不做卡片 ── */
-.stats-row {
-	display: flex;
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	margin-bottom: 40rpx;
-}
-.stat-card {
-	flex: 1;
-	min-width: 0;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 6rpx;
-	padding: 24rpx 20rpx 24rpx 0;
-	background: transparent;
-	border: 0;
-}
-.stat-card + .stat-card { padding-left: 24rpx; border-left: 1rpx solid var(--zy-border, #d3ded8); }
-.stat-num {
-	font-size: 56rpx;
-	font-weight: 500;
-	color: var(--zy-title, #111816);
-	font-family: var(--zy-font-display, serif);
-	line-height: 1;
-	font-variant-numeric: tabular-nums;
-}
-.stat-label { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.5; letter-spacing: 1rpx; }
+/* 统计 */
+.stats-card { position: relative; z-index: 2; display: flex; align-items: center; margin: -72rpx 8rpx 0; padding: 30rpx 10rpx; background: var(--zy-card-bg); border-radius: var(--zy-radius-card); box-shadow: var(--zy-shadow-pop); }
+.stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6rpx; }
+.stat-num { font-family: var(--zy-font-display); font-size: 52rpx; font-weight: 700; color: var(--zy-brand-600); line-height: 1.1; }
+.stat-label { font-size: 22rpx; color: var(--zy-muted); }
+.stat-divider { width: 2rpx; height: 64rpx; background: var(--zy-line-soft); }
 
-/* ── 徽章横滑：展签小卡 ── */
-.badge-section { margin-bottom: 44rpx; }
-.badge-heading { margin-bottom: 20rpx; }
-.section-title {
-	display: block;
-	font-family: var(--zy-font-display, serif);
-	font-size: 40rpx;
-	font-weight: 500;
-	line-height: 1.4;
-	color: var(--zy-title, #111816);
-}
-.section-note { display: block; margin-top: 6rpx; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); line-height: 1.7; }
-.badge-scroll { width: 100%; }
-.badge-track { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-left: 1rpx solid var(--zy-border, #d3ded8); }
-.badge-card {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 8rpx;
-	width: auto;
-	min-width: 0;
-	padding: 20rpx 18rpx 22rpx;
-	border-radius: 0;
-	border: 0;
-	border-right: 1rpx solid var(--zy-border, #d3ded8);
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	background: transparent;
-	box-sizing: border-box;
-	white-space: normal;
-	text-align: left;
-}
-.badge-card.locked { background: transparent; }
-.badge-icon {
-	width: 56rpx;
-	height: 56rpx;
-	border-radius: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-family: var(--zy-font-display, serif);
-	font-size: 40rpx;
-	font-weight: 500;
-	color: var(--zy-brand-700, #0a403b);
-	background: transparent;
-}
-.badge-card.locked .badge-icon { color: var(--zy-muted, #6e7b75); opacity: .55; }
-.badge-name { font-size: var(--zy-text-caption, 24rpx); font-weight: 500; color: var(--zy-title, #111816); }
-.badge-card.locked .badge-name { color: var(--zy-text, #42524c); }
-.badge-desc { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.55; }
-.badge-card.locked .badge-desc { color: var(--zy-muted, #6e7b75); font-variant-numeric: tabular-nums; }
+.sec-head { display: flex; align-items: center; gap: 14rpx; margin: 44rpx 0 20rpx; }
+.sec-mark { width: 8rpx; height: 34rpx; border-radius: 4rpx; background: var(--zy-cinnabar); }
+.sec-title { font-family: var(--zy-font-display); font-size: 36rpx; font-weight: 700; letter-spacing: 2rpx; color: var(--zy-title); }
+.sec-note { margin-left: auto; font-size: 24rpx; color: var(--zy-cinnabar); font-weight: 600; }
 
-/* ── 菜单分区 ── */
-.menu-section { margin-bottom: 36rpx; }
-.menu-section-title {
-	display: block;
-	margin: 0 0 12rpx;
-	font-size: var(--zy-text-micro, 22rpx);
-	font-weight: 400;
-	letter-spacing: 2px;
-	color: var(--zy-muted, #6e7b75);
-}
-.menu-list {
-	overflow: hidden;
-	border-radius: 0;
-	background: transparent;
-	border-top: 1rpx solid var(--zy-border, #d3ded8);
-}
-.menu-item {
-	display: flex;
-	align-items: center;
-	gap: 20rpx;
-	width: 100%;
-	padding: 24rpx 4rpx;
-	margin: 0;
-	background: transparent;
-	border-radius: 0;
-	line-height: 1.5;
-	text-align: left;
-	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-}
-.menu-item::after { border: 0; }
-.menu-item:not(:last-child) { border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
-.menu-item:active { background-color: var(--zy-bg-sunken, #e9efeb); }
-.menu-icon-wrap {
-	width: 44rpx;
-	height: 44rpx;
-	border-radius: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	background: transparent;
-	border: 1rpx solid var(--zy-border, #d3ded8);
-}
-.menu-icon-wrap.tone-brand,
-.menu-icon-wrap.tone-brand-light,
-.menu-icon-wrap.tone-gold,
-.menu-icon-wrap.tone-care,
-.menu-icon-wrap.tone-neutral { background: transparent; }
-.menu-label { flex: 1; min-width: 0; font-size: var(--zy-text-body-lg, 30rpx); color: var(--zy-title, #111816); overflow-wrap: anywhere; }
+/* 印章徽章 */
+.badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12rpx; padding: 26rpx 12rpx; background: var(--zy-card-bg); border-radius: var(--zy-radius-card); box-shadow: var(--zy-shadow-card); }
+.badge { display: flex; flex-direction: column; align-items: center; gap: 10rpx; text-align: center; }
+.badge-name { font-family: var(--zy-font-display); font-size: 26rpx; font-weight: 700; color: var(--zy-title); }
+.badge-desc { font-size: 20rpx; line-height: 1.4; color: var(--zy-muted); }
+.badge.locked .badge-name { color: var(--zy-muted); }
 
-/* ── ③ 我的边界 ── */
-.boundary-card {
-	display: flex;
-	flex-direction: column;
-	gap: 18rpx;
-	padding: 24rpx 0 24rpx 24rpx;
-	margin: 0 0 36rpx;
-	border-left: 4rpx solid var(--zy-care, #a64842);
-	background: transparent;
-}
-.boundary-copy { min-width: 0; }
-.boundary-desc { display: block; margin-top: 8rpx; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); line-height: 1.8; }
-.boundary-btn {
-	min-height: 44px;
-	margin: 0;
-	padding: 12rpx 24rpx;
-	border-radius: 0;
-	background: transparent;
-	border: 1rpx solid var(--zy-brand-700, #0a403b);
-	color: var(--zy-brand-700, #0a403b);
-	font-size: var(--zy-text-caption, 24rpx);
-	line-height: 1.5;
-	align-self: flex-start;
-}
-.boundary-btn::after { border: 0; }
+/* 宫格 */
+.tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16rpx; }
+.tile { margin: 0; padding: 28rpx 8rpx 22rpx; display: flex; flex-direction: column; align-items: center; gap: 14rpx; background: var(--zy-card-bg); border: 0; border-radius: var(--zy-radius-card); box-shadow: var(--zy-shadow-card); }
+.tile:active { transform: scale(.97); background: var(--zy-brand-50); }
+.tile-icon, .row-icon { display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.tile-icon { width: 84rpx; height: 84rpx; }
+.tile-label { font-size: 26rpx; font-weight: 600; color: var(--zy-title); }
+.tone-brand { background: var(--zy-brand-50); }
+.tone-brand-light { background: var(--zy-pine-50, #e6f3ee); }
+.tone-gold { background: var(--zy-gamboge-50, #fbf1de); }
+.tone-care { background: var(--zy-cinnabar-50, #fbecea); }
+.tone-neutral { background: var(--zy-bg-sunken); }
 
-/* ── 退出登录 ── */
-.logout-btn {
-	width: 100%;
-	height: 80rpx;
-	margin: 0;
-	border-radius: 0;
-	border: 0;
-	background: transparent;
-	color: var(--zy-muted, #6e7b75);
-	font-size: var(--zy-text-caption, 24rpx);
-	line-height: 80rpx;
-	letter-spacing: 1px;
-}
-.logout-btn::after { border: 0; }
-.logout-btn:active { color: var(--zy-care, #a64842); }
+/* 列表 */
+.menu-list { background: var(--zy-card-bg); border-radius: var(--zy-radius-card); box-shadow: var(--zy-shadow-card); overflow: hidden; }
+.menu-row { display: flex; align-items: center; gap: 22rpx; width: 100%; margin: 0; padding: 24rpx 26rpx; background: transparent; border: 0; border-bottom: 2rpx solid var(--zy-line-soft); border-radius: 0; text-align: left; }
+.menu-row:last-child { border-bottom: 0; }
+.menu-row:active { background: var(--zy-brand-50); }
+.row-icon { width: 64rpx; height: 64rpx; flex-shrink: 0; }
+.row-label { flex: 1; font-size: 30rpx; color: var(--zy-title); }
 
-.footnote { display: block; margin-top: 32rpx; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); text-align: center; }
+/* 边界 */
+.boundary-card { margin-top: 44rpx; padding: 0 28rpx 28rpx; background: var(--zy-card-bg); border-radius: var(--zy-radius-card); box-shadow: var(--zy-shadow-card); overflow: hidden; display: flex; flex-direction: column; gap: 12rpx; }
+.boundary-band { margin: 0 -28rpx 12rpx; }
+.boundary-title { font-family: var(--zy-font-display); font-size: 32rpx; font-weight: 700; color: var(--zy-title); }
+.boundary-desc { font-size: 24rpx; line-height: 1.7; color: var(--zy-text); }
+.boundary-action { margin: 8rpx 0 0; }
 
-
-button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+.logout-btn { width: 100%; margin: 32rpx 0 0; min-height: 88rpx; font-size: 28rpx; }
+.footnote { display: block; margin-top: 32rpx; font-size: 22rpx; color: var(--zy-muted); text-align: center; }
 </style>

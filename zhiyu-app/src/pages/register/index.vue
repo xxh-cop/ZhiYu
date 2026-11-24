@@ -4,7 +4,7 @@
     <AccountField id="register-username" ref="usernameField" v-model="form.username" label="登录名" placeholder="设置一个好记的登录名" hint="3–50 个字符，之后用它登录" autocomplete="username" :maxlength="50" :disabled="loading||accountCreated" :error="errors.username" @blur="validate('username')" @confirm="nicknameField?.focus()"/>
     <template v-if="!accountCreated">
       <AccountField id="register-nickname" ref="nicknameField" v-model="form.nickname" label="昵称" placeholder="你希望小织怎样称呼你" autocomplete="nickname" :maxlength="50" :disabled="loading" :error="errors.nickname" @blur="validate('nickname')" @confirm="schoolField?.focus()"/>
-      <AccountField id="register-school" ref="schoolField" v-model="form.school" label="学校" placeholder="例如：江西师范大学" optional :maxlength="100" :disabled="loading" @confirm="passwordField?.focus()"/>
+      <AccountField id="register-school" ref="schoolField" v-model="form.school" label="学校" placeholder="请输入学校（不填写默认为未知）" optional :maxlength="100" :disabled="loading" @confirm="passwordField?.focus()"/>
     </template>
     <AccountField id="register-password" ref="passwordField" v-model="form.password" label="密码" placeholder="设置登录密码" hint="6–32 个字符，建议组合字母、数字和符号" :autocomplete="accountCreated?'current-password':'new-password'" secret :maxlength="32" :disabled="loading" :error="errors.password" @blur="validate('password')" :confirm-type="accountCreated?'done':'next'" @confirm="accountCreated?handleRegister():confirmField?.focus()"/>
     <AccountField v-if="!accountCreated" id="register-confirm" ref="confirmField" v-model="form.confirmPassword" label="确认密码" placeholder="再次输入密码" autocomplete="new-password" secret :maxlength="32" :disabled="loading" :error="errors.confirmPassword" confirm-type="done" @blur="validate('confirmPassword')" @confirm="handleRegister"/>
@@ -49,7 +49,7 @@ async function handleRegister(){
   const invalid=keys.find(key=>errors[key]);if(invalid){fields[invalid].value?.focus();return}
   loading.value=true
   try{
-    const data=await flow.submit({username:form.username.trim(),nickname:form.nickname.trim(),school:form.school.trim()||undefined,password:form.password})
+    const data=await flow.submit({username:form.username.trim(),nickname:form.nickname.trim(),school:form.school.trim()||'未知',password:form.password})
     userStore.setToken(data.token);userStore.setUserInfo(data)
     uni.reLaunch({url:returnTo.value||'/pages/home/index'})
   }catch(e){

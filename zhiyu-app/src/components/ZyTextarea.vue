@@ -51,13 +51,16 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 <style scoped>
 .zy-textarea {
 	position: relative;
-	border-bottom: 2rpx solid var(--zy-faint, #8B9994);
-	background: transparent;
+	/* v9：白底描边方框 */
+	border: 2rpx solid var(--zy-border, #d3dbe7);
+	border-radius: var(--zy-radius-control, 20rpx);
+	background: var(--zy-card-bg, #fff);
+	transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .zy-textarea-el {
 	width: 100%;
-	min-height: 176rpx;
-	padding: 16rpx 0;
+	min-height: 200rpx;
+	padding: 20rpx 24rpx;
 	margin: 0;
 	background: transparent;
 	border: 0;
@@ -66,18 +69,7 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 	line-height: 1.7;
 	color: var(--zy-title, #111816);
 }
-.zy-textarea.is-focused { border-bottom-color: var(--zy-brand-600, #0E5B53); }
-.zy-textarea.is-focused::after {
-	content: '';
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 2rpx;
-	height: 2rpx;
-	background: var(--zy-brand-300, #8FC7B8);
-	opacity: .55;
-	pointer-events: none;
-}
-.zy-textarea.is-error { border-bottom-color: var(--zy-care, #A64842); }
-.zy-textarea.is-disabled { opacity: .55; }
+.zy-textarea.is-focused { border-color: var(--zy-brand-600, #24478f); box-shadow: 0 0 0 6rpx var(--zy-brand-100, #dde6f6); }
+.zy-textarea.is-error { border-color: var(--zy-care, #b03d33); box-shadow: 0 0 0 6rpx var(--zy-bg-tint-care, #fbeae7); }
+.zy-textarea.is-disabled { background: var(--zy-bg-sunken, #eef2f7); }
 </style>

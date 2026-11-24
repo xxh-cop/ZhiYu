@@ -81,7 +81,6 @@
 				<AccessibleButton class="text-action" @click="leave">回到此刻</AccessibleButton>
 			</view>
 
-			<text class="short-disclaimer">本系统不能替代专业心理咨询</text>
 		</template>
 		<ActionSheet
 			:open="showAbandonSheet"
@@ -353,10 +352,10 @@ function leave() {
 .subtitle { display: block; margin-top: 10rpx; font-size:var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-muted, #6e7b75); }
 .intro-card,
 .player,
-.done-card { padding: 26rpx 0; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; box-shadow: none; }
+.done-card { padding: 26rpx 0; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: var(--zy-radius-control, 18rpx); background: transparent; box-shadow: none; }
 
 /* 材质带（气息深化·阶段二）：HERITAGE 按纹样族，其余回落针线；纯 CSS 只用令牌 */
-.material-band { display: flex; align-items: center; justify-content: center; min-height: 72rpx; margin-bottom: 20rpx; border-radius: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-bottom: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
+.material-band { display: flex; align-items: center; justify-content: center; min-height: 72rpx; margin-bottom: 20rpx; border-radius: var(--zy-radius-control, 18rpx); border-top: 1rpx solid var(--zy-border, #d3ded8); border-bottom: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
 .band-motif { position: relative; width: 48rpx; height: 48rpx; }
 .band-stitch .band-motif { width: 168rpx; height: 24rpx; }
 .band-a,
@@ -373,7 +372,7 @@ function leave() {
 .step-preview { margin: 22rpx 0; }
 .preview-row { display: flex; gap: 18rpx; padding: 16rpx 0; border-bottom: 1rpx solid var(--zy-border, #dfe7dc); }
 .preview-row:last-child { border-bottom: 0; }
-.preview-index { flex-shrink: 0; width: 44rpx; height: 44rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-micro, 22rpx); line-height: 42rpx; text-align: center; }
+.preview-index { flex-shrink: 0; width: 44rpx; height: 44rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #183369); font-size:var(--zy-text-micro, 22rpx); line-height: 42rpx; text-align: center; }
 .preview-copy { flex: 1; min-width: 0; }
 .preview-title { display: block; font-family: var(--zy-font-display, serif); font-size:28rpx; font-weight: 500; color: var(--zy-title, #233d34); }
 .preview-cue { display: block; margin-top: 6rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-muted); }
@@ -382,31 +381,31 @@ function leave() {
 .materials-text { color: var(--zy-content, #4a5f54); }
 .safety-note { display: block; margin-bottom: 22rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-muted); }
 .primary-action,
-.secondary-action { min-height: 88rpx; margin-top: 14rpx; border-radius: 0; font-size:var(--zy-text-body, 28rpx); line-height: 2.9; }
-.primary-action { background: var(--zy-brand-600, #0e5b53); color: #fff; }
+.secondary-action { min-height: 88rpx; margin-top: 14rpx; border-radius: var(--zy-radius-control, 18rpx); font-size:var(--zy-text-body, 28rpx); line-height: 2.9; }
+.primary-action { background: var(--zy-brand-600, #24478f); color: #fff; }
 .primary-action.is-disabled { opacity: 0.55; }
-.secondary-action { border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; color: var(--zy-brand-700, #0a403b); }
+.secondary-action { border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; color: var(--zy-brand-700, #183369); }
 .primary-action::after,
 .secondary-action::after { border: 0; }
 .text-action { margin-top: 14rpx; background: transparent; color: var(--zy-muted); font-size:var(--zy-text-caption, 24rpx); line-height: 2.4; }
 .text-action::after { border: 0; }
 .short-error { display: block; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-care, var(--zy-care, #a64842)); }
-.progress-track { height: 2rpx; overflow: hidden; border-radius: 0; background: var(--zy-border, #d3ded8); }
-.progress-fill { height: 100%; border-radius: 0; background: var(--zy-brand-600, #0e5b53); transition: width 0.4s ease; }
+.progress-track { height: 2rpx; overflow: hidden; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-border, #d3ded8); }
+.progress-fill { height: 100%; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600, #24478f); transition: width 0.4s ease; }
 .breath-area { display: flex; justify-content: center; padding: 28rpx 0 18rpx; }
 .breath-orb { width: 280rpx; height: 280rpx; border-radius: 50%; border: 1rpx solid var(--zy-border, #d3ded8); background: #f7f9f7; display: flex; align-items: center; justify-content: center; box-shadow: none; transition: transform 0.8s ease; }
 .breath-orb.breathing { animation: short-breathe 10s ease-in-out infinite; }
-.orb-text { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.orb-text { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 .step-index { display: block; text-align: center; font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2rpx; color: var(--zy-muted); }
 .step-title { display: block; margin-top: 10rpx; text-align: center; font-family: var(--zy-font-display, serif); font-size:44rpx; font-weight: 500; color: var(--zy-title, #111816); }
 .step-cue { display: block; margin: 16rpx auto 0; max-width: 600rpx; text-align: center; font-size:var(--zy-text-caption, 24rpx); line-height: 1.9; color: var(--zy-content, #4a5f54); }
-.timer { display: block; margin-top: 18rpx; text-align: center; font-family: var(--zy-sans); font-size:var(--zy-text-title-lg, 40rpx); font-variant-numeric: tabular-nums; color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.timer { display: block; margin-top: 18rpx; text-align: center; font-family: var(--zy-sans); font-size:var(--zy-text-title-lg, 40rpx); font-variant-numeric: tabular-nums; color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 .timer-hint { display: block; margin-top: 6rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted); }
 .player-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14rpx; margin-top: 14rpx; }
 .player-actions .primary-action,
 .player-actions .secondary-action { margin-top: 0; }
 .done-card { text-align: center; padding-top: 44rpx; }
-.done-mark { display: flex; align-items: center; justify-content: center; width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-title-lg, 40rpx); line-height: 94rpx; }
+.done-mark { display: flex; align-items: center; justify-content: center; width: 96rpx; height: 96rpx; margin: 0 auto 18rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-brand-700, #183369); font-size:var(--zy-text-title-lg, 40rpx); line-height: 94rpx; }
 .done-title { display: block; font-family: var(--zy-font-display, serif); font-size:40rpx; color: var(--zy-title, #111816); }
 .done-copy { display: block; margin: 14rpx auto 0; max-width: 560rpx; font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-content, #4a5f54); }
 .done-meta { display: block; margin: 16rpx 0 10rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted); }
@@ -428,5 +427,5 @@ function leave() {
 	.breath-orb.breathing { animation: none; }
 	.progress-fill { transition: none; }
 }
-button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 </style>

@@ -24,6 +24,7 @@ Component({
 		active: '',
 		unread: 0,
 		dark: false,
+		jade: false,
 	},
 	lifetimes: {
 		attached() {
@@ -71,8 +72,10 @@ Component({
 			}
 			// 玄墨主题：原生组件拿不到页面 CSS 变量，按 storage + 系统偏好自行换肤
 			let dark = false
+			let jade = false
 			try {
 				const t = wx.getStorageSync('zy-theme')
+				jade = t === 'jade'
 				if (t === 'dark') dark = true
 				else if (t === 'system') {
 					const info = wx.getSystemInfoSync()
@@ -81,8 +84,8 @@ Component({
 			} catch (e) {
 				dark = false
 			}
-			if (dark !== this.data.dark) {
-				this.setData({ dark })
+			if (dark !== this.data.dark || jade !== this.data.jade) {
+				this.setData({ dark, jade })
 			}
 		},
 		onTap(event) {

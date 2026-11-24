@@ -1,6 +1,6 @@
 <template>
 	<view class="mindful-page" :class="[{sleeping:sleepMode}, zyThemeClass]">
-    <view class="mindful-header"><text class="eyebrow">MINDFUL PAUSE · 留一点时间给自己</text><text class="title">把呼吸，放慢一点</text><text class="subtitle">跟随自己的节奏，轻轻地呼吸。</text></view>
+    <view class="mindful-header"><ZyPageHead seal="息" title="把呼吸，放慢一点" subtitle="跟随自己的节奏，轻轻地呼吸。" /></view>
     <view class="practice-card">
       <view class="duration-row"><AccessibleButton v-for="value in [1, 3, 5]" :key="value" :class="{ selected: minutes === value }" :aria-pressed="minutes === value" :disabled="running || elapsed > 0" @click="minutes = value">{{ value }} 分钟</AccessibleButton></view>
       <view class="orb-area"><view class="orb" :class="{ expanding: running && inhale }" :style="{ transitionDuration: running ? (inhale ? '4s' : '6s') : '0.3s' }"><text class="phase" role="status" aria-live="polite">{{ completed ? '练习完成' : running ? inhale ? '轻轻吸气' : '缓缓呼气' : elapsed ? '休息一下' : '准备好了' }}</text><text class="phase-detail">{{ running ? inhale ? '4 秒 · 慢慢展开' : '6 秒 · 放松下来' : '不必用力，保持舒适' }}</text></view></view>
@@ -15,12 +15,12 @@
     <view class="sleep-card"><text class="sound-title">睡前安顿</text><text class="sound-description">放松肩膀，调低屏幕亮度，把今晚暂时解决不了的事留到明天。无需强迫自己入睡。</text><AccessibleButton class="text-action" @click="sleepMode = !sleepMode">{{ sleepMode ? '退出夜间安静模式' : '进入夜间安静模式' }}</AccessibleButton></view>
     <view class="other-actions"><AccessibleButton @click="goChat">想说说此刻的感受</AccessibleButton><AccessibleButton @click="goCraft">开始一件手作</AccessibleButton></view>
     <text class="safety-note">保持自然呼吸，如感到不适可随时停止。离开页面时练习与声音会自动暂停。</text>
-    <text class="disclaimer">本系统不能替代专业心理咨询</text>
     <Toast />
   </view>
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import SensoryPractice from '../../components/SensoryPractice.vue'
 import Toast from '../../components/Toast.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
@@ -125,30 +125,29 @@ onUnload(pause)
 
 .practice-card {
 	padding: 28rpx 0;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	border: 0;
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 	background: transparent;
 	box-shadow: none;
 	text-align: center;
 }
-.duration-row { display: flex; gap: 0; }
+.duration-row { display: flex; gap: 14rpx; }
 .duration-row button {
 	flex: 1;
-	font-size:var(--zy-text-caption, 24rpx);
-	background: transparent;
-	color: var(--zy-muted, #6e7b75);
-	border: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	font-size: var(--zy-text-body, 28rpx);
+	background: var(--zy-card-bg);
+	color: var(--zy-text);
+	border: 2rpx solid var(--zy-border);
+	border-radius: var(--zy-radius-control, 18rpx);
 	padding: 0;
-	margin-right: -1rpx;
 }
+/* v8：选中 = 青绿实底白字 */
 .duration-row .selected {
-	background: transparent;
-	border-color: var(--zy-brand-600, #0e5b53);
-	border-bottom-width: 3rpx;
-	color: var(--zy-brand-700, #0a403b);
-	font-weight: 500;
+	background: var(--zy-brand-600);
+	border-color: var(--zy-brand-600);
+	color: #fff;
+	font-weight: 600;
 }
 .duration-row button.is-disabled { opacity: .7; }
 
@@ -158,8 +157,8 @@ button::after { border: 0; }
 	width: 270rpx;
 	height: 270rpx;
 	border-radius: 50%;
-	border: 2rpx solid var(--zy-brand-600, #0e5b53);
-	background: var(--zy-brand-600, #0e5b53);
+	border: 2rpx solid var(--zy-brand-600, #24478f);
+	background: var(--zy-brand-600, #24478f);
 	box-shadow: 0 0 0 1rpx var(--zy-border, #d3ded8), 0 0 0 42rpx rgba(14, 91, 83, 0.06);
 	display: flex;
 	flex-direction: column;
@@ -174,14 +173,14 @@ button::after { border: 0; }
 .time { font-family: var(--zy-font-display, serif); font-size: 72rpx; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--zy-title, #111816); }
 .caption { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); margin: 8rpx 0 32rpx; }
 .primary-action {
-	background: var(--zy-brand-600, #0e5b53);
+	background: var(--zy-brand-600, #24478f);
 	color: #ffffff;
 	font-size:var(--zy-text-body-lg, 30rpx);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	font-weight: 500;
 	box-shadow: none;
 }
-.text-action { color: var(--zy-brand-700, #0a403b); background: transparent; font-size:var(--zy-text-caption, 24rpx); margin-top: 12rpx; }
+.text-action { color: var(--zy-brand-700, #183369); background: transparent; font-size:var(--zy-text-caption, 24rpx); margin-top: 12rpx; }
 
 .sound-card {
 	display: flex;
@@ -193,7 +192,7 @@ button::after { border: 0; }
 	border: 0;
 	border-top: 1rpx solid var(--zy-border, #d3ded8);
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .sound-title,.sound-description { display: block; }
@@ -203,40 +202,40 @@ button::after { border: 0; }
 	flex-shrink: 0;
 	margin: 0;
 	background: transparent;
-	color: var(--zy-brand-700, #0a403b);
+	color: var(--zy-brand-700, #183369);
 	font-size:var(--zy-text-caption, 24rpx);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	border: 1rpx solid var(--zy-border, #d3ded8);
 }
 .other-actions { display: flex; gap: 16rpx; margin-top: 24rpx; }
-.other-actions button { background: transparent; color: var(--zy-brand-700, #0a403b); font-size:var(--zy-text-caption, 24rpx); padding: 0 8rpx; }
+.other-actions button { background: transparent; color: var(--zy-brand-700, #183369); font-size:var(--zy-text-caption, 24rpx); padding: 0 8rpx; }
 .safety-note,.disclaimer { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.8; text-align: center; margin-top: 24rpx; }
 
 /* 睡前安顿卡 + 夜间安静模式：暗色保留，统一为令牌墨绿 */
-.sleep-card { padding: 24rpx 0; margin-top: 24rpx; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; line-height: 1.8; background: transparent; }
+.sleep-card { padding: 24rpx 0; margin-top: 24rpx; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: var(--zy-radius-control, 18rpx); line-height: 1.8; background: transparent; }
 .sleeping { background: var(--zy-title, #233d34) !important; }
 .sleeping .mindful-header,.sleeping .other-actions { display: none; }
 .sleeping .practice-card { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); box-shadow: none; }
-.sleeping .time { color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .time { color: var(--zy-bg-tint-mint, #eef3fb); }
 .sleeping .caption { color: rgba(232, 239, 228, 0.75); }
 .sleeping .duration-row button { color: rgba(232, 239, 228, 0.85); border-color: rgba(255, 255, 255, 0.2); }
-.sleeping .duration-row .selected { background: rgba(91, 196, 168, 0.2); border-color: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)); color: var(--zy-bg-tint-mint, #e8efe4); }
-.sleeping .orb { box-shadow: none; background: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); border-color: var(--zy-brand-600, var(--zy-brand-600, #217e76)); }
-.sleeping .primary-action { background: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)); color: var(--zy-title, #233d34); box-shadow: none; }
+.sleeping .duration-row .selected { background: rgba(142, 169, 220, 0.2); border-color: var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)); color: var(--zy-bg-tint-mint, #eef3fb); }
+.sleeping .orb { box-shadow: none; background: var(--zy-brand-700, var(--zy-brand-700, #24478f)); border-color: var(--zy-brand-600, var(--zy-brand-600, #24478f)); }
+.sleeping .primary-action { background: var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)); color: var(--zy-title, #233d34); box-shadow: none; }
 .sleeping .text-action { color: rgba(232, 239, 228, 0.85); }
 .sleeping .sound-card { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
-.sleeping .sound-title { color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .sound-title { color: var(--zy-bg-tint-mint, #eef3fb); }
 .sleeping .sound-description { color: rgba(232, 239, 228, 0.75); }
-.sleeping .sound-toggle { background: rgba(91, 196, 168, 0.2); color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .sound-toggle { background: rgba(142, 169, 220, 0.2); color: var(--zy-bg-tint-mint, #eef3fb); }
 .sleeping .safety-note,.sleeping .disclaimer { color: rgba(232, 239, 228, 0.7); }
 /* 子组件根元素受父级 scoped 影响：感官落地卡在夜间模式同样压暗 */
 .sleeping .sensory { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
 .sleeping .sensory .kicker { color: rgba(232, 239, 228, 0.6); }
-.sleeping .sensory .number { color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .sensory .number { color: var(--zy-bg-tint-mint, #eef3fb); }
 .sleeping .sensory .stage { border-left-color: rgba(232, 239, 228, 0.5); }
-.sleeping .sensory .heading,.sleeping .sensory .prompt { color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .sensory .heading,.sleeping .sensory .prompt { color: var(--zy-bg-tint-mint, #eef3fb); }
 .sleeping .sensory .intro { color: rgba(232, 239, 228, 0.75); }
-.sleeping .sensory .actions button { background: rgba(91, 196, 168, 0.2); color: var(--zy-bg-tint-mint, #e8efe4); }
+.sleeping .sensory .actions button { background: rgba(142, 169, 220, 0.2); color: var(--zy-bg-tint-mint, #eef3fb); }
 
 @media (prefers-reduced-motion: reduce) { .orb,.orb.expanding { transform: none; transition: none; } }
 /* #ifdef H5 */

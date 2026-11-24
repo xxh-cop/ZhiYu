@@ -1,4 +1,5 @@
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import StateBlock from '../../components/StateBlock.vue'
 import ActionSheet from '../../components/ActionSheet.vue'
@@ -128,9 +129,7 @@ onLoad(options => {
 <template>
 	<view :class="zyThemeClass" class="growth-page group-page">
 		<view class="group-head">
-			<text class="growth-eyebrow">COMMON ROOM · 小组空间</text>
-			<text class="group-title">一起，慢慢来</text>
-			<text class="group-sub">不追问，不评判。在这里，按自己的节奏与人同行。</text>
+			<ZyPageHead seal="组" title="一起，慢慢来" subtitle="不追问，不评判。在这里，按自己的节奏与人同行。" />
 			<view v-if="group" class="group-meta">
 				<text class="meta-chip">{{ group.member_count }} / {{ group.max_count }} 人</text>
 				<text class="meta-chip">{{ group.myRole }}</text>
@@ -227,7 +226,6 @@ onLoad(options => {
 			@select="sheetConfirm"
 			@close="sheet = null"
 		/>
-		<text class="growth-foot">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
 
@@ -289,16 +287,16 @@ onLoad(options => {
 	align-items: center;
 	gap: 10rpx;
 	padding: 0;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .member-avatar {
 	width: 44rpx;
 	height: 44rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	border: 1rpx solid var(--zy-border, #d3ded8);
 	background: transparent;
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	font-family: var(--zy-font-display, "Songti SC", serif);
 	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 500;
@@ -317,8 +315,8 @@ onLoad(options => {
 .leader-box {
 	margin-top: 18rpx;
 	padding: 14rpx 0 14rpx 18rpx;
-	border-radius: 0;
-	border-left: 3rpx solid var(--zy-brand-700, #0a403b);
+	border-radius: var(--zy-radius-control, 18rpx);
+	border-left: 3rpx solid var(--zy-brand-700, #183369);
 	background: transparent;
 }
 .leader-title {
@@ -403,21 +401,21 @@ onLoad(options => {
 .group-title { margin-top: 14rpx; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.25; color: var(--zy-title); }
 .group-sub { margin-top: 10rpx; color: var(--zy-muted); }
 .group-meta { gap: 0; margin-top: 16rpx; border-top: 0; padding-top: 0; }
-.meta-chip { padding: 0 16rpx; border-radius: 0; background: transparent; border-right: 1rpx solid var(--zy-border); }
+.meta-chip { padding: 0 16rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border-right: 1rpx solid var(--zy-border); }
 .meta-chip:first-child { padding-left: 0; }
 .meta-chip:last-child { border-right: 0; }
-.group-page .growth-card { padding: 28rpx 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; }
+.group-page .growth-card { padding: 28rpx 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); }
 .group-page .growth-card-title { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
 .group-description { color: var(--zy-text); }
 .member-strip { border-top: 1rpx solid var(--zy-border); border-bottom: 1rpx solid var(--zy-border); gap: 16rpx; }
-.member-pill { padding: 0; border-radius: 0; background: transparent; gap: 10rpx; }
-.member-avatar { width: 40rpx; height: 40rpx; border-radius: 0; background: var(--zy-bg-sunken); color: var(--zy-brand-700); font-family: var(--zy-font-display, serif); font-weight: 500; }
+.member-pill { padding: 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; gap: 10rpx; }
+.member-avatar { width: 40rpx; height: 40rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-bg-sunken); color: var(--zy-brand-700); font-family: var(--zy-font-display, serif); font-weight: 500; }
 .member-name { color: var(--zy-text); }
-.leader-box { border-left: 3rpx solid var(--zy-accent, #a64842); border-radius: 0; background: transparent; padding: 14rpx 0 14rpx 18rpx; }
+.leader-box { border-left: 3rpx solid var(--zy-accent, #a64842); border-radius: var(--zy-radius-control, 18rpx); background: transparent; padding: 14rpx 0 14rpx 18rpx; }
 .leader-title { font-weight: 500; color: var(--zy-accent, #a64842); }
 .manage-row { margin-top: 14rpx; border-top: 1rpx solid var(--zy-border); padding-top: 16rpx; }
 .group-head + .growth-card{border-top:0}
-.group-input { border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; padding: 10rpx 0; }
+.group-input { border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); background: transparent; padding: 10rpx 0; }
 .message { border-bottom: 1rpx solid var(--zy-border); }
 .message-author { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title); }
 .message-time { color: var(--zy-muted); }

@@ -61,7 +61,7 @@ onBeforeUnmount(() => element?.removeEventListener('keydown', keydown))
 <style scoped>
 button{position:relative;min-height:44px;box-sizing:border-box;line-height:1.5;display:flex;align-items:center;justify-content:center;gap:8px}
 button::after{border:0}
-button:focus-visible{outline:3px solid var(--zy-brand-700,#0a403b);outline-offset:3px}
+button:focus-visible{outline:3px solid var(--zy-brand-700,#183369);outline-offset:3px}
 button.is-disabled{opacity:.55;cursor:not-allowed}
 
 /* ── 变体（P0 组件升级 2026-11-18：tonal / 状态层 / loading / 令牌化禁用） ── */
@@ -72,12 +72,12 @@ button.is-disabled{opacity:.55;cursor:not-allowed}
 .zy-btn--sm{min-height:64rpx;padding:0 24rpx;font-size:var(--zy-text-caption,24rpx)}
 .zy-btn--mini{min-height:56rpx;padding:0 16rpx;font-size:var(--zy-text-caption,24rpx);line-height:1.8}
 .zy-btn--sm::after,.zy-btn--mini::after{content:'';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:88rpx;border:0}
-.zy-btn--icon{width:80rpx;height:80rpx;min-width:80rpx;min-height:80rpx;padding:0;border-radius:0}
+.zy-btn--icon{width:80rpx;height:80rpx;min-width:80rpx;min-height:80rpx;padding:0;border-radius: var(--zy-radius-control, 18rpx)}
 
-.zy-btn--primary{background:var(--zy-brand-600,#0e5b53);color:#FFFFFF}
-.zy-btn--tonal{background:var(--zy-brand-50,#eef5f1);color:var(--zy-brand-700,#0a403b)}
-.zy-btn--secondary{background:transparent;border:1rpx solid var(--zy-border,#D3DED8);color:var(--zy-brand-700,#0a403b)}
-.zy-btn--ghost{background:transparent;color:var(--zy-brand-700,#0a403b)}
+.zy-btn--primary{background:var(--zy-brand-600,#24478f);color:#FFFFFF}
+.zy-btn--tonal{background:var(--zy-brand-50,#eef3fb);color:var(--zy-brand-700,#183369)}
+.zy-btn--secondary{background:transparent;border:1rpx solid var(--zy-border,#D3DED8);color:var(--zy-brand-700,#183369)}
+.zy-btn--ghost{background:transparent;color:var(--zy-brand-700,#183369)}
 .zy-btn--danger{background:transparent;border:1rpx solid rgba(166,72,66,.42);color:var(--zy-care,#a64842)}
 .zy-btn--care{background:var(--zy-care,#a64842);color:#FFFFFF}
 
@@ -87,8 +87,8 @@ button.is-disabled{opacity:.55;cursor:not-allowed}
 @media (hover:hover){.zy-btn:hover::before{opacity:.08}.zy-btn.is-disabled:hover::before{opacity:0}}
 .zy-btn.is-disabled:active::before{opacity:0}
 .zy-btn:active{transition:opacity var(--zy-duration-instant,100ms) var(--zy-ease-out,ease-out)}
-.zy-btn--primary:active{background:var(--zy-brand-700,#0a403b)}
-.zy-btn--tonal:active{background:var(--zy-brand-100,#dcece5)}
+.zy-btn--primary:active{background:var(--zy-brand-700,#183369)}
+.zy-btn--tonal:active{background:var(--zy-brand-100,#dde6f6)}
 .zy-btn--care:active{background:#8F3A35}
 
 .zy-btn.is-disabled{opacity:1;background:var(--zy-bg-sunken,#E4ECE8);color:var(--zy-muted,#6E7B75);border:1rpx solid var(--zy-border,#D3DED8);box-shadow:none}

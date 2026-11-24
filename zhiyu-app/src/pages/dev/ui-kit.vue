@@ -209,7 +209,7 @@ function onVoice() { voiceState.value = voiceState.value === 'recording' ? '' : 
 <style scoped>
 .kit-page { min-height: 100vh; padding: 40rpx 32rpx 96rpx; background: var(--zy-bg, #F1F4F1); }
 .kit-h1 { display: block; font-size: var(--zy-text-title-lg, 44rpx); font-weight: 600; color: var(--zy-title, #111816); margin-bottom: 16rpx; }
-.kit-pet-stage { display: flex; flex-direction: column; align-items: center; gap: 16rpx; padding: 32rpx; margin-bottom: 24rpx; background: var(--zy-bg-sunken, #E9EFEB); border-radius: 0; }
+.kit-pet-stage { display: flex; flex-direction: column; align-items: center; gap: 16rpx; padding: 32rpx; margin-bottom: 24rpx; background: var(--zy-bg-sunken, #E9EFEB); border-radius: var(--zy-radius-control, 18rpx); }
 .kit-pet-thumbs { margin: 28rpx 0; }
 .kit-pet-sample { display: flex; flex-direction: column; align-items: center; }
 .kit-h2 { display: block; font-size: var(--zy-text-caption, 24rpx); letter-spacing: 2rpx; color: var(--zy-text, #42524C); margin: 48rpx 0 20rpx; }

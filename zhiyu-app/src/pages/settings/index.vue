@@ -2,9 +2,7 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 页面标题 -->
 		<view class="page-header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="page-eyebrow">SETTINGS · 个人设置</text>
-			<text class="page-title">把自己，安顿好</text>
-			<text class="page-subtitle">管理你的资料与账号安全</text>
+			<ZyPageHead seal="设" title="把自己，安顿好" subtitle="管理你的资料与账号安全" />
 		</view>
 		<view v-if="loadError" class="settings-error" role="alert">
 			<text>{{ loadError }}</text>
@@ -216,12 +214,12 @@
 		</view>
 
 		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 		<Toast />
 	</view>
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { request } from '../../utils/request'
@@ -250,10 +248,11 @@ const userStore = useUserStore()
 const themeStore = useThemeStore()
 
 const THEME_OPTIONS = [
-	{ value: 'white', name: '云白', desc: '冷瓷白底（默认）' },
-	{ value: 'dark', name: '玄墨', desc: '墨绿黑底，夜间更安静' },
+	{ value: 'white', name: '青花瓷', desc: '白瓷底 · 青花蓝（默认）' },
+	{ value: 'jade', name: '青瓷', desc: '淡青底 · 原版青绿' },
+	{ value: 'warm', name: '暖纸', desc: '宣纸米色 · 青花蓝' },
+	{ value: 'dark', name: '玄墨', desc: '藏青深底，夜间更安静' },
 	{ value: 'system', name: '跟随系统', desc: '随手机深浅色自动切换' },
-	{ value: 'warm', name: '暖纸', desc: '历史选项，现与云白一致' },
 ]
 
 const form = ref({
@@ -550,7 +549,7 @@ async function handleChangePassword() {
 	height: 140rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
 	padding: 6rpx;
-	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)));
 	flex-shrink: 0;
 }
 
@@ -566,7 +565,7 @@ async function handleChangePassword() {
 	width: 100%;
 	height: 100%;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-brand-700, var(--zy-brand-700, #1a645e)) 0%, var(--zy-primary, var(--zy-brand-600, #217e76)) 100%);
+	background: linear-gradient(135deg, var(--zy-brand-700, var(--zy-brand-700, #24478f)) 0%, var(--zy-primary, var(--zy-brand-600, #24478f)) 100%);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -606,7 +605,7 @@ async function handleChangePassword() {
 	width: 56rpx;
 	height: 56rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -650,7 +649,7 @@ async function handleChangePassword() {
 .btn-primary {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -690,7 +689,7 @@ async function handleChangePassword() {
 <style scoped>
 .avatar-ring:focus-visible,
 .btn-primary:focus-visible {
-	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76));
+	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #24478f));
 	outline-offset: 3px;
 }
 .settings-error {
@@ -711,16 +710,16 @@ async function handleChangePassword() {
 	flex-shrink: 0;
 	min-height: 64rpx;
 	padding: 0 22rpx;
-	border: 1rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
+	border: 1rpx solid var(--zy-primary, var(--zy-brand-600, #24478f));
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	background: var(--zy-bg-tint-mint, #eef3fb);
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 2.5;
 }
 .settings-error button::after { border: 0; }
 .card-icon-memory {
-	background: linear-gradient(135deg, var(--zy-accent, var(--zy-accent, #7a5c12)), var(--zy-primary, var(--zy-brand-600, #217e76)));
+	background: linear-gradient(135deg, var(--zy-accent, var(--zy-accent, #7a5c12)), var(--zy-primary, var(--zy-brand-600, #24478f)));
 }
 .memory-entry {
 	cursor: pointer;
@@ -745,8 +744,8 @@ async function handleChangePassword() {
 	margin-top: 18rpx;
 	padding: 12rpx 26rpx;
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
-	background: var(--zy-bg-tint-mint, #e8efe4);
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
+	background: var(--zy-bg-tint-mint, #eef3fb);
 	border-radius: 999rpx;
 }
 .nudge-toggle.is-off {
@@ -758,13 +757,20 @@ async function handleChangePassword() {
 .theme-options { display: flex; flex-wrap: wrap; gap: 20rpx; margin-top: 20rpx; }
 .theme-option { flex: 1 1 calc(50% - 10rpx); min-width: calc(50% - 10rpx); display: flex; flex-direction: column; align-items: flex-start; gap: 8rpx; padding: 20rpx; border-radius: var(--zy-radius-card); background: var(--zy-card-bg); border: 2rpx solid var(--zy-border); margin: 0; line-height: 1.6; text-align: left; }
 .theme-option.is-selected { border-color: var(--zy-brand-600); }
-.theme-swatch { width: 100%; height: 72rpx; border-radius: 0; border: 2rpx solid var(--zy-border); position: relative; }
+.theme-swatch { width: 100%; height: 72rpx; border-radius: var(--zy-radius-control, 18rpx); border: 2rpx solid var(--zy-border); position: relative; }
 /* 色板为主题的展示样本，刻意硬编码展示色，不随当前主题变化 */
-.theme-swatch-white { background: #F1F4F1; }
-.theme-swatch-warm { background: #F6F1E7; }
-.theme-swatch-dark { background: #0B1513; }
-.theme-swatch-dark::after { content: ''; position: absolute; left: 12rpx; right: 12rpx; top: 50%; height: 2rpx; background: #D4736A; }
-.theme-swatch-system { background: linear-gradient(90deg, #F1F4F1 50%, #0B1513 50%); }
+/* v9：底色 + 一枚主色胶囊，一眼看出「底是什么颜色、按钮是什么颜色」 */
+.theme-swatch::after { content: ''; position: absolute; left: 16rpx; bottom: 16rpx; width: 88rpx; height: 24rpx; border-radius: 999rpx; }
+.theme-swatch-white { background: #F6F8FB; }
+.theme-swatch-white::after { background: #24478F; }
+.theme-swatch-jade { background: #F1F4F1; }
+.theme-swatch-jade::after { background: #136A5F; }
+.theme-swatch-warm { background: #F6F1E6; }
+.theme-swatch-warm::after { background: #24478F; }
+.theme-swatch-dark { background: #121A2B; }
+.theme-swatch-dark::after { background: #9DB8EC; }
+.theme-swatch-system { background: linear-gradient(90deg, #F6F8FB 50%, #121A2B 50%); }
+.theme-swatch-system::after { background: #24478F; }
 .theme-option-name { font-size: var(--zy-text-body); font-weight: 600; color: var(--zy-title); }
 .theme-option-desc { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted); line-height: 1.6; }
 .theme-option.is-selected .theme-option-name { color: var(--zy-brand-700); }
@@ -777,23 +783,23 @@ async function handleChangePassword() {
 .avatar-section { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 24rpx; padding: 32rpx 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
 .avatar-copy { display: flex; flex-direction: column; gap: 8rpx; min-width: 0; }
 .avatar-title { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; color: var(--zy-title, #111816); }
-.avatar-ring { width: 104rpx; height: 104rpx; border-radius: 0; padding: 0; margin: 0; background: var(--zy-bg-sunken, #e9efeb); overflow: hidden; flex-shrink: 0; }
+.avatar-ring { width: 104rpx; height: 104rpx; border-radius: var(--zy-radius-control, 18rpx); padding: 0; margin: 0; background: var(--zy-bg-sunken, #e9efeb); overflow: hidden; flex-shrink: 0; }
 .avatar-ring::after { border: 0; }
-.avatar-img, .avatar-placeholder { width: 100%; height: 100%; border-radius: 0; border: 0; }
+.avatar-img, .avatar-placeholder { width: 100%; height: 100%; border-radius: var(--zy-radius-control, 18rpx); border: 0; }
 .avatar-placeholder { display: flex; align-items: center; justify-content: center; background: var(--zy-bg-sunken, #e9efeb); }
-.avatar-placeholder-text { font-family: var(--zy-font-display, serif); font-size: 48rpx; color: var(--zy-brand-700, #0a403b); }
+.avatar-placeholder-text { font-family: var(--zy-font-display, serif); font-size: 48rpx; color: var(--zy-brand-700, #183369); }
 .avatar-hint { font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); }
-.section-card { margin-top: 0; padding: 36rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; box-shadow: none; }
+.section-card { margin-top: 0; padding: 36rpx 0; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-radius: var(--zy-radius-control, 18rpx); background: transparent; box-shadow: none; }
 .card-head { display: flex; align-items: center; gap: 14rpx; margin-bottom: 20rpx; }
-.card-icon-wrap, .card-icon-security, .card-icon-memory { width: 40rpx; height: 40rpx; border-radius: 0; background: transparent !important; border: 1rpx solid var(--zy-border, #d3ded8); }
+.card-icon-wrap, .card-icon-security, .card-icon-memory { width: 40rpx; height: 40rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent !important; border: 1rpx solid var(--zy-border, #d3ded8); }
 .section-heading { font-family: var(--zy-font-display, serif); font-size: 36rpx; font-weight: 500; color: var(--zy-title, #111816); }
 .form-label, .form-readonly-text { color: var(--zy-text, #42524c); }
-.btn-primary, .btn-primary--accent { width: 100%; height: 88rpx; border-radius: 0; background: var(--zy-brand-600, #0e5b53); margin-top: 28rpx; }
+.btn-primary, .btn-primary--accent { width: 100%; height: 88rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600, #24478f); margin-top: 28rpx; }
 .btn-primary-text { font-size: var(--zy-text-body, 28rpx); letter-spacing: 1rpx; }
-.nudge-toggle { border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
+.nudge-toggle { border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
 .nudge-toggle.is-off { border-color: var(--zy-border, #d3ded8); color: var(--zy-muted, #6e7b75); }
-.theme-option { border-radius: 0; border-width: 1rpx; padding: 16rpx; }
-.theme-swatch { border-radius: 0; border-width: 1rpx; }
+.theme-option { border-radius: var(--zy-radius-control, 18rpx); border-width: 1rpx; padding: 16rpx; }
+.theme-swatch { border-radius: var(--zy-radius-control, 18rpx); border-width: 1rpx; }
 .theme-option-name { font-weight: 500; }
 .footnote { color: var(--zy-muted, #6e7b75); }
 </style>

@@ -144,7 +144,7 @@ zhiyu:
     # 是否允许使用仓库内置的开发/测试默认密钥（application-dev.yml / application-test.yml）。
     # 默认 false：命中内置默认密钥即启动失败，防止把公开密钥带进生产/演示环境（上线阻塞项）。
     # 仅本地开发或单测可显式设置 ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET=true。
-    allow-default-secret: ${ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET:false}
+    allow-default-secret: ${ZHIYU_CRYPTO_ALLOW_DEFAULT_SECRET:falsenp}
 
   # ── 情绪对话配置（T1.3a） ──
   emotion:

@@ -24,7 +24,7 @@ defineProps({
 	justify-content: center;
 	padding: 6rpx 10rpx;
 	border: 1rpx solid var(--zy-care, #a64842);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 	transform: rotate(-1deg);
 }

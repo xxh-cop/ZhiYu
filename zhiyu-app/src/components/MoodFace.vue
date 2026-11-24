@@ -45,13 +45,13 @@ const faceStyle = computed(() => (props.size > 0 ? { transform: `scale(${props.s
 .zy-mood.is-flat { min-height: 0; padding: 0; }
 .zy-mood.is-flat .zy-mood-ring { margin: 0; }
 .zy-mood-ring { width: 92rpx; height: 92rpx; border-radius: 50%; border: 2rpx dashed transparent; display: flex; align-items: center; justify-content: center; margin: 0 auto 12rpx; transition: border-color 200ms ease-out, background-color 200ms ease-out; }
-.zy-mood.is-selected .zy-mood-ring { border: 2rpx solid var(--zy-brand-600, var(--zy-brand-600, #217e76)); background: var(--zy-bg-tint-mint, #e4efe7); }
-.zy-mood.is-selected .zy-mood-label { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-weight: 500; }
+.zy-mood.is-selected .zy-mood-ring { border: 2rpx solid var(--zy-brand-600, var(--zy-brand-600, #24478f)); background: var(--zy-bg-tint-mint, #eef3fb); }
+.zy-mood.is-selected .zy-mood-label { color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); font-weight: 500; }
 .zy-mood-label { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #5c5648); }
 
 /* ── 脸谱（与首页 P0 版一致的五官绘制） ── */
 .zy-mood-face { position: relative; width: 68rpx; height: 68rpx; border-radius: 50%; background: #f7e9bf; }
-.zy-mood-face--1 { background: var(--zy-bg-tint-mint, #e4efe7); }
+.zy-mood-face--1 { background: var(--zy-bg-tint-mint, #eef3fb); }
 .zy-mood-face--2 { background: var(--zy-bg-tint-warm, #f3e9cf); }
 .zy-mood-face--3 { background: #e7e4ef; }
 .zy-mood-face--4 { background: #e3e9ee; }

@@ -1,14 +1,14 @@
 <template>
 	<view :class="zyThemeClass" class="page" @touchstart="idleArm" @click="idleArm">
 		<view class="chat-header">
-			<AccessibleButton class="nav-back" aria-label="返回上一页" @click="requestLeave"><ZyIcon name="back" :size="36" tone="dark" /></AccessibleButton>
+			<AccessibleButton class="nav-back" aria-label="返回上一页" @click="requestLeave"><ZyIcon name="back" :size="36" tone="title" /></AccessibleButton>
 			<view class="header-avatar" aria-hidden="true"><text class="header-avatar-text">织</text></view>
 			<view class="chat-header-copy">
 				<text class="header-name zy-t-serif">小织</text>
 				<text class="header-state">{{ headerState }}</text>
 			</view>
 			<AccessibleButton variant="danger" size="sm" class="header-action support-btn" aria-label="查看心理援助资源" @click="moreOpen = false; goCrisisPage()">求助</AccessibleButton>
-			<AccessibleButton class="more-btn" aria-label="更多会话操作" :aria-expanded="moreOpen" @click.stop="toggleMore"><ZyIcon name="more" :size="32" tone="dark-muted" /></AccessibleButton>
+			<AccessibleButton class="more-btn" aria-label="更多会话操作" :aria-expanded="moreOpen" @click.stop="toggleMore"><ZyIcon name="more" :size="32" tone="muted" /></AccessibleButton>
 		</view>
 		<!-- 更多操作：主流聊天式浮层菜单，保留结束倾听与返回入口 -->
 			<view v-if="moreOpen" class="more-mask" @click="moreOpen = false"></view>
@@ -32,7 +32,7 @@
 					</view>
 					<!-- 空状态：玄墨倾听室，只留一句提问和三行开头 -->
 					<view v-if="messages.length === 0" class="welcome">
-					<text class="welcome-eyebrow">玄墨倾听室 · 只在此刻</text>
+					<text class="welcome-eyebrow">听雨轩 · 只在此刻</text>
 					<view class="welcome-rule" aria-hidden="true"></view>
 					<text class="welcome-title zy-t-serif">今天想从哪儿说起？</text>
 					<text class="welcome-sub">不用想好句子，说半句也行。我不评价，也不替你总结。</text>
@@ -60,14 +60,14 @@
 					<ChatBubble
 						v-if="msg.role === 'assistant'"
 						role="ai"
-						dark
+						:dark="isDark"
 						:time="msg.done ? formatTime(msg) : ''"
 						:typing="!msg.done && !msg.text"
 					>{{ msg.text }}</ChatBubble>
 					<ChatBubble
 						v-else
 						role="user"
-						dark
+						:dark="isDark"
 						:time="formatTime(msg)"
 						:user-initial="userInitial"
 					>{{ msg.text }}</ChatBubble>
@@ -148,7 +148,7 @@
 		<ChatInputBar
 			v-if="!historyId || historyLoading"
 			v-model="inputText"
-			dark
+			:dark="isDark"
 			placeholder="说说你现在的感受…"
 			:disabled="streaming || historyLoading || historyError || isConsentError"
 			:voice-state="voiceStateView"
@@ -174,7 +174,7 @@
 			@close="idleNudgeOpen = false"
 		/>
 		<!-- 会话退场确认：返回/结束都先给一次明确选择，避免误触丢上下文 -->
-		<AccessibleDialog :open="!!closeMode" :title="closeTitle" dark @close="closeMode = ''">
+		<AccessibleDialog :open="!!closeMode" :title="closeTitle" :dark="isDark" @close="closeMode = ''">
 			<text class="close-copy">{{ closeCopy }}</text>
 			<view class="close-actions">
 				<AccessibleButton class="close-cancel" @click="closeMode = ''">继续聊</AccessibleButton>
@@ -188,6 +188,7 @@
 <script setup>
 import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useThemeStore } from '../../stores/theme'
 import {request} from '../../utils/request'
 import { onLoad, onUnload, onShow, onReady, onBackPress } from '@dcloudio/uni-app'
 import { useEmotionStore } from '../../stores/emotion'
@@ -240,6 +241,8 @@ async function refreshHeader() {
 onShow(refreshHeader)
 
 const emotionStore = useEmotionStore()
+const themeStore = useThemeStore()
+const isDark = computed(() => themeStore.isDark)
 const userStore = useUserStore()
 const { messages, streaming, errorMsg, errorCode, scrollSignal, crisisTriggered, localMode } = storeToRefs(emotionStore)
 
@@ -615,30 +618,30 @@ const voiceStateView = computed(() => {
 	flex-direction: column;
 	height: calc(100vh - var(--window-top, 0px));
 	overflow: hidden;
-	background-color: var(--zy-d-bg, #0B1513);
-	color: var(--zy-d-text, #F1F4F1);
+	background-color: var(--zy-bg);
+	color: var(--zy-title);
 }
 
 /* ── 页头：主流聊天结构——返回 / 身份 / 求助 / 更多 ── */
-.chat-header { position: relative; z-index: 70; display: flex; align-items: center; gap: 12rpx; padding: 16rpx 24rpx; padding-top: calc(16rpx + env(safe-area-inset-top, 0px)); flex-shrink: 0; border-bottom: 1rpx solid rgba(241,244,241,.12); }
-.nav-back { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; margin: 0; padding: 0; background: transparent; border: 0; color: var(--zy-d-text); font-size: 34rpx; line-height: 1; }
+.chat-header { position: relative; z-index: 70; display: flex; align-items: center; gap: 12rpx; padding: 16rpx 24rpx; padding-top: calc(16rpx + env(safe-area-inset-top, 0px)); flex-shrink: 0; border-bottom: 1rpx solid var(--zy-line-soft); }
+.nav-back { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; margin: 0; padding: 0; background: transparent; border: 0; color: var(--zy-title); font-size: 34rpx; line-height: 1; }
 .nav-back::after { border: 0; }
 .chat-header-copy { flex: 1; min-width: 0; }
-.header-avatar { width: 52rpx; height: 52rpx; margin-right: 12rpx; border: 1rpx solid rgba(143,199,184,.42); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(143,199,184,.08); }
-.header-avatar-text { font-family: var(--zy-serif); font-size: 22rpx; line-height: 1; color: var(--zy-brand-300); }
-.header-name { display: block; font-size: 32rpx; font-weight: 500; letter-spacing: 3rpx; color: var(--zy-d-text); white-space: nowrap; }
-.header-state { display: block; font-size: 20rpx; color: var(--zy-d-text-secondary); margin-top: 4rpx; letter-spacing: 1rpx; }
+.header-avatar { width: 52rpx; height: 52rpx; margin-right: 12rpx; border: 1rpx solid var(--zy-brand-300); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--zy-brand-50); }
+.header-avatar-text { font-family: var(--zy-serif); font-size: 22rpx; line-height: 1; color: var(--zy-brand-600); }
+.header-name { display: block; font-size: 32rpx; font-weight: 500; letter-spacing: 3rpx; color: var(--zy-title); white-space: nowrap; }
+.header-state { display: block; font-size: 20rpx; color: var(--zy-text); margin-top: 4rpx; letter-spacing: 1rpx; }
 .header-action { flex-shrink: 0; margin: 0; }
 .support-btn { min-height: 56rpx; padding: 0 18rpx; font-size: 22rpx; }
-.more-btn { width: 56rpx; height: 56rpx; min-width: 56rpx; min-height: 56rpx; margin: 0; padding: 0; background: transparent; border: 1rpx solid rgba(241,244,241,.24); border-radius: 0; color: var(--zy-d-text-secondary); font-size: 24rpx; line-height: 1; }
+.more-btn { width: 56rpx; height: 56rpx; min-width: 56rpx; min-height: 56rpx; margin: 0; padding: 0; background: transparent; border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-text); font-size: 24rpx; line-height: 1; }
 .more-btn::after { border: 0; }
 .more-mask { position: fixed; inset: 0; z-index: 65; background: transparent; }
-.more-menu { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 112rpx); right: 24rpx; z-index: 72; width: 360rpx; padding: 8rpx 0; background: #10201D; border: 1rpx solid rgba(241,244,241,.22); box-shadow: 0 18rpx 48rpx rgba(0,0,0,.4); }
-.more-item { display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 80rpx; margin: 0; padding: 18rpx 24rpx; background: transparent; border: 0; border-bottom: 1rpx solid rgba(241,244,241,.12); border-radius: 0; color: var(--zy-d-text); font-size: 25rpx; line-height: 1.4; }
+.more-menu { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 112rpx); right: 24rpx; z-index: 72; width: 360rpx; padding: 8rpx 0; background: var(--zy-card-bg); border: 1rpx solid var(--zy-border); box-shadow: 0 18rpx 48rpx rgba(54,40,18,.16); }
+.more-item { display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 80rpx; margin: 0; padding: 18rpx 24rpx; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-line-soft); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-title); font-size: 25rpx; line-height: 1.4; }
 .more-item:last-child { border-bottom: 0; }
 .more-item::after { border: 0; }
-.more-item:active { background: rgba(143,199,184,.1); }
-.more-note { margin-top: 4rpx; font-size: 20rpx; color: var(--zy-d-text-secondary); }
+.more-item:active { background: var(--zy-brand-50); }
+.more-note { margin-top: 4rpx; font-size: 20rpx; color: var(--zy-text); }
 
 /* ── 对话区（flex: 1 占满剩余空间） ── */
 .chat-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -650,83 +653,83 @@ const voiceStateView = computed(() => {
 }
 .chat-list { padding: 0 36rpx 32rpx; }
 .chat-date { display: flex; justify-content: center; padding: 24rpx 0 8rpx; }
-.chat-date text { padding: 6rpx 18rpx; border: 1rpx solid rgba(241,244,241,.14); color: rgba(169,187,178,.72); font-size: 20rpx; letter-spacing: 1rpx; }
+.chat-date text { padding: 6rpx 18rpx; border: 1rpx solid var(--zy-line-soft); color: var(--zy-muted); font-size: 20rpx; letter-spacing: 1rpx; }
 
 /* ── 空状态：玄墨、偏左、像进入一间房 ── */
 .welcome { display: flex; flex-direction: column; align-items: flex-start; padding: 11vh 0 56rpx; }
-.welcome-eyebrow { color: var(--zy-d-text-secondary); font-size: 20rpx; letter-spacing: 4rpx; }
+.welcome-eyebrow { color: var(--zy-text); font-size: 20rpx; letter-spacing: 4rpx; }
 .welcome-rule { width: 44rpx; height: 2rpx; margin: 26rpx 0 30rpx; background: var(--zy-care); }
-.welcome-title { font-size: 58rpx; line-height: 1.35; font-weight: 500; color: var(--zy-d-text); letter-spacing: 2rpx; max-width: 88%; }
-.welcome-sub { margin-top: 20rpx; font-size: 26rpx; line-height: 1.9; color: var(--zy-d-text-secondary); max-width: 88%; }
-.memory-line { display: grid; grid-template-columns: 1fr auto; column-gap: 14rpx; row-gap: 6rpx; align-items: end; margin-top: 34rpx; padding-left: 16rpx; border-left: 2rpx solid rgba(196,64,47,.7); }
-.memory-label { grid-column: 1 / -1; color: var(--zy-brand-300); font-size: 20rpx; letter-spacing: 2rpx; }
-.memory-text { grid-column: 1; color: var(--zy-d-text-secondary); font-size: 24rpx; line-height: 1.7; }
-.memory-link { grid-column: 2; color: var(--zy-brand-300); font-size: 20rpx; padding: 0 4rpx; text-decoration: underline; text-underline-offset: 5rpx; }
-.memory-note { margin-top: 30rpx; color: rgba(169,187,178,.66); font-size: 21rpx; line-height: 1.7; }
+.welcome-title { font-size: 58rpx; line-height: 1.35; font-weight: 500; color: var(--zy-title); letter-spacing: 2rpx; max-width: 88%; }
+.welcome-sub { margin-top: 20rpx; font-size: 26rpx; line-height: 1.9; color: var(--zy-text); max-width: 88%; }
+.memory-line { display: grid; grid-template-columns: 1fr auto; column-gap: 14rpx; row-gap: 6rpx; align-items: end; margin-top: 34rpx; padding-left: 16rpx; border-left: 2rpx solid var(--zy-cinnabar); }
+.memory-label { grid-column: 1 / -1; color: var(--zy-brand-600); font-size: 20rpx; letter-spacing: 2rpx; }
+.memory-text { grid-column: 1; color: var(--zy-text); font-size: 24rpx; line-height: 1.7; }
+.memory-link { grid-column: 2; color: var(--zy-brand-600); font-size: 20rpx; padding: 0 4rpx; text-decoration: underline; text-underline-offset: 5rpx; }
+.memory-note { margin-top: 30rpx; color: var(--zy-muted); font-size: 21rpx; line-height: 1.7; }
 .welcome-openers { width: 100%; margin-top: 46rpx; }
-.opener-row { display: flex; align-items: center; gap: 16rpx; width: 100%; padding: 22rpx 0; background: transparent; border: 0; border-top: 1rpx solid rgba(241,244,241,.14); border-radius: 0; text-align: left; margin: 0; color: var(--zy-d-text-secondary); line-height: 1.5; }
-.opener-index { width: 44rpx; flex-shrink: 0; color: rgba(169,187,178,.55); font-family: var(--zy-serif); font-size: 20rpx; }
+.opener-row { display: flex; align-items: center; gap: 16rpx; width: 100%; padding: 22rpx 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-line-soft); border-radius: var(--zy-radius-control, 18rpx); text-align: left; margin: 0; color: var(--zy-text); line-height: 1.5; }
+.opener-index { width: 44rpx; flex-shrink: 0; color: var(--zy-muted); font-family: var(--zy-serif); font-size: 20rpx; }
 .opener-text { flex: 1; font-size: 27rpx; }
-.opener-arrow { color: rgba(169,187,178,.55); font-size: 24rpx; }
-.welcome-foot { margin-top: 40rpx; color: rgba(169,187,178,.5); font-size: 20rpx; }
+.opener-arrow { color: var(--zy-muted); font-size: 24rpx; }
+.welcome-foot { margin-top: 40rpx; color: var(--zy-muted); font-size: 20rpx; }
 
 /* ── 消息行（暗色排版行在 ChatBubble dark 内） ── */
 .msg-row { display: flex; flex-direction: column; }
-.msg-provider { display: block; margin: -30rpx 0 26rpx 62rpx; font-size: 20rpx; color: var(--zy-d-text-secondary); opacity: .6; }
+.msg-provider { display: block; margin: -30rpx 0 26rpx 62rpx; font-size: 20rpx; color: var(--zy-text); opacity: .6; }
 .msg-actions { display: flex; gap: 16rpx; margin: -28rpx 0 26rpx 62rpx; }
-.speak-btn { min-height: 52rpx; margin: 0; padding: 0 18rpx; border-radius: 0; background: transparent; border: 1rpx solid rgba(143,199,184,.4); color: var(--zy-brand-300); font-size: 20rpx; line-height: 1.6; }
+.speak-btn { min-height: 52rpx; margin: 0; padding: 0 18rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-brand-300); color: var(--zy-brand-600); font-size: 20rpx; line-height: 1.6; }
 .speak-btn::after { border: 0; }
-.speak-btn.is-pressed { background: rgba(143,199,184,.16); color: var(--zy-d-text); }
+.speak-btn.is-pressed { background: var(--zy-brand-100); color: var(--zy-title); }
 .speak-btn.is-disabled { opacity: .5; }
 
 /* ── 推荐入口：一行字，不做胶囊 ── */
-.recommend-entry { align-self: flex-start; margin: -16rpx 0 28rpx 62rpx; padding: 10rpx 0; border-radius: 0; background: transparent; border-bottom: 1rpx solid rgba(196,64,47,.6); box-shadow: none; line-height: 1.6; }
-.recommend-text { font-size: 23rpx; color: var(--zy-brand-300); }
+.recommend-entry { align-self: flex-start; margin: -16rpx 0 28rpx 62rpx; padding: 10rpx 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border-bottom: 1rpx solid var(--zy-cinnabar); box-shadow: none; line-height: 1.6; }
+.recommend-text { font-size: 23rpx; color: var(--zy-brand-600); }
 
 /* ── 错误重试 ── */
 .error-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
 .error-text { font-size: var(--zy-text-caption); color: var(--zy-danger, var(--zy-care, #a64842)); }
 
 /* ── 本地兜底持续轻注 ── */
-.local-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 12rpx 24rpx; background: rgba(143,199,184,.08); border-top: 1rpx solid rgba(143,199,184,.18); }
-.local-note__text { font-size: var(--zy-text-micro); color: var(--zy-d-text-secondary); }
-.local-note__link { font-size: var(--zy-text-micro); color: var(--zy-brand-300); }
+.local-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 12rpx 24rpx; background: var(--zy-brand-50); border-top: 1rpx solid var(--zy-brand-100); }
+.local-note__text { font-size: var(--zy-text-micro); color: var(--zy-text); }
+.local-note__link { font-size: var(--zy-text-micro); color: var(--zy-brand-600); }
 
 /* ── 回到底部：不抢历史阅读，有新消息才提示 ── */
-.jump-latest { position: absolute; right: 28rpx; bottom: 24rpx; z-index: 20; display: flex; align-items: center; gap: 8rpx; min-height: 64rpx; margin: 0; padding: 0 20rpx; background: #10201D; border: 1rpx solid rgba(143,199,184,.5); border-radius: 0; color: var(--zy-brand-300); font-size: 21rpx; line-height: 1.4; box-shadow: 0 10rpx 28rpx rgba(0,0,0,.28); }
+.jump-latest { position: absolute; right: 28rpx; bottom: 24rpx; z-index: 20; display: flex; align-items: center; gap: 8rpx; min-height: 64rpx; margin: 0; padding: 0 20rpx; background: var(--zy-card-bg); border: 1rpx solid var(--zy-brand-300); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-brand-600); font-size: 21rpx; line-height: 1.4; box-shadow: 0 10rpx 28rpx rgba(54,40,18,.12); }
 .jump-latest::after { border: 0; }
 .jump-arrow { font-size: 26rpx; line-height: 1; }
 .jump-text { white-space: nowrap; }
 
 /* ── 历史对话只读出口 ── */
-.history-dock { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; padding: 20rpx 32rpx 8rpx; border-top: 1rpx solid rgba(241,244,241,.18); }
-.history-dock-text { font-size: 22rpx; color: var(--zy-d-text-secondary); }
-.history-new { min-height: 60rpx; margin: 0; padding: 0 18rpx; background: transparent; border: 1rpx solid rgba(143,199,184,.5); border-radius: 0; color: var(--zy-brand-300); font-size: 22rpx; }
+.history-dock { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; padding: 20rpx 32rpx 8rpx; border-top: 1rpx solid var(--zy-line-soft); }
+.history-dock-text { font-size: 22rpx; color: var(--zy-text); }
+.history-new { min-height: 60rpx; margin: 0; padding: 0 18rpx; background: transparent; border: 1rpx solid var(--zy-brand-300); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-brand-600); font-size: 22rpx; }
 .history-new::after { border: 0; }
 
 /* ── 会话退场确认 ── */
-.close-copy { display: block; font-size: 25rpx; line-height: 1.8; color: var(--zy-d-text-secondary); margin-bottom: 28rpx; }
+.close-copy { display: block; font-size: 25rpx; line-height: 1.8; color: var(--zy-text); margin-bottom: 28rpx; }
 .close-actions { display: flex; gap: 16rpx; justify-content: flex-end; }
-.close-cancel { min-height: 64rpx; margin: 0; padding: 0 24rpx; background: transparent; border: 1rpx solid rgba(241,244,241,.24); border-radius: 0; color: var(--zy-d-text-secondary); font-size: 24rpx; }
-.close-confirm { min-height: 64rpx; margin: 0; padding: 0 24rpx; background: var(--zy-care); border: 1rpx solid var(--zy-care); border-radius: 0; color: #FFFFFF; font-size: 24rpx; }
+.close-cancel { min-height: 64rpx; margin: 0; padding: 0 24rpx; background: transparent; border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-text); font-size: 24rpx; }
+.close-confirm { min-height: 64rpx; margin: 0; padding: 0 24rpx; background: var(--zy-care); border: 1rpx solid var(--zy-care); border-radius: var(--zy-radius-control, 18rpx); color: #FFFFFF; font-size: 24rpx; }
 .close-cancel::after, .close-confirm::after { border: 0; }
 
 /* ── 底部免责声明（发丝线上缘） ── */
-.footer-disclaimer { flex-shrink: 0; margin: 0 32rpx; padding: 12rpx 0; padding-bottom: calc(12rpx + constant(safe-area-inset-bottom)); padding-bottom: calc(12rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid rgba(241,244,241,.14); text-align: center; }
-.footer-disclaimer-text { font-size: var(--zy-text-micro); color: rgba(169,187,178,.58); }
+.footer-disclaimer { flex-shrink: 0; margin: 0 32rpx; padding: 12rpx 0; padding-bottom: calc(12rpx + constant(safe-area-inset-bottom)); padding-bottom: calc(12rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid var(--zy-line-soft); text-align: center; }
+.footer-disclaimer-text { font-size: var(--zy-text-micro); color: var(--zy-muted); }
 
 /* ── 危机关怀卡片：暗底朱砂，不跳出房间 ── */
 .crisis-card {
 	margin: 16rpx 0 24rpx;
 	padding: 28rpx 0 28rpx 20rpx;
-	border-left: 2rpx solid var(--zy-d-care, #D4736A);
+	border-left: 2rpx solid var(--zy-care);
 	background: transparent;
 	animation: crisisIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .crisis-card-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 18rpx; }
 .crisis-avatar { flex-shrink: 0; }
-.crisis-card-title { font-size: 30rpx; font-weight: 500; color: var(--zy-d-care, #D4736A); }
-.crisis-card-text { display: block; font-size: 26rpx; line-height: 1.8; color: var(--zy-d-text); margin-bottom: 24rpx; }
+.crisis-card-title { font-size: 30rpx; font-weight: 500; color: var(--zy-care); }
+.crisis-card-text { display: block; font-size: 26rpx; line-height: 1.8; color: var(--zy-title); margin-bottom: 24rpx; }
 .crisis-card-btns { display: flex; flex-direction: column; gap: 16rpx; }
 @keyframes crisisIn {
 	from { opacity: 0; transform: translateY(16rpx); }

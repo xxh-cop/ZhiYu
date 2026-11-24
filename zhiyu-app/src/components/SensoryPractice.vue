@@ -1,6 +1,6 @@
 <template>
 	<view class="sensory">
-		<text class="kicker">GROUNDING · 五感</text>
+		<text class="kicker">五感</text>
 		<text class="heading">感官落地练习</text>
 		<text class="intro">睁开眼睛，慢慢注意身边。某个感官不方便时，可以跳过。</text>
 		<view class="stage">
@@ -34,7 +34,7 @@ const steps = [
 	border: 0;
 	border-top: 1rpx solid var(--zy-border, #d3ded8);
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	color: var(--zy-text, #42524c);
 }
 .kicker {
@@ -65,7 +65,7 @@ const steps = [
 	gap: 26rpx;
 	margin: 28rpx 0 8rpx;
 	padding: 22rpx 0 22rpx 22rpx;
-	border-left: 2rpx solid var(--zy-brand-600, #0e5b53);
+	border-left: 2rpx solid var(--zy-brand-600, #24478f);
 }
 .number {
 	flex-shrink: 0;
@@ -73,7 +73,7 @@ const steps = [
 	font-size: 96rpx;
 	font-weight: 500;
 	line-height: 1;
-	color: var(--zy-brand-700, #0a403b);
+	color: var(--zy-brand-700, #183369);
 	font-variant-numeric: tabular-nums;
 }
 .prompt {
@@ -92,16 +92,16 @@ const steps = [
 .actions button {
 	flex: 1;
 	min-height: 80rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	border: 1rpx solid var(--zy-border, #d3ded8);
 	background: transparent;
-	color: var(--zy-brand-700, #0a403b);
+	color: var(--zy-brand-700, #183369);
 	font-size: var(--zy-text-caption, 24rpx);
 	margin: 0 -1rpx 0 0;
 }
 .actions button:last-child {
-	background: var(--zy-brand-600, #0e5b53);
-	border-color: var(--zy-brand-600, #0e5b53);
+	background: var(--zy-brand-600, #24478f);
+	border-color: var(--zy-brand-600, #24478f);
 	color: #fff;
 }
 .actions button.is-disabled {

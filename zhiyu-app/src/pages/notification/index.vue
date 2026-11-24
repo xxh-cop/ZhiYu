@@ -1,11 +1,7 @@
 <template>
 	<view :class="zyThemeClass" class="page">
-		<view class="page-head">
-			<view>
-				<text class="page-eyebrow">INBOX · 消息</text>
-				<text class="page-title">慢慢看，都在这里</text>
-				<text class="page-subtitle">审核结果、回复与小组动态，都会在这里等你。</text>
-			</view>
+		<view class="page-head page-head--v9">
+			<ZyPageHead seal="讯" title="慢慢看，都在这里" subtitle="审核结果、回复与小组动态，都会在这里等你。" />
 			<view class="head-actions">
 				<AccessibleButton v-if="unreadCount > 0" class="read-all-btn" :disabled="readingAll" :loading="readingAll" @click="handleReadAll">
 					{{ readingAll ? '正在处理…' : '全部已读' }}
@@ -86,7 +82,6 @@
 		<text v-else-if="records.length && !error" class="list-end">已读完所有消息</text>
 		<StateBlock v-if="error && records.length" type="error" compact title="更多消息没有加载成功" :description="error" action-text="重试" @action="load(failedPage)" />
 
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 		<Toast />
 
 		<!-- AQ4 单条删除确认 -->
@@ -113,6 +108,7 @@
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref, computed } from 'vue'
 import ZyIcon from '../../components/ZyIcon.vue'
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
@@ -372,7 +368,7 @@ function goCommunity() {
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20rpx; margin-bottom: 24rpx; }
 .page-title { display: block; font-family: var(--zy-serif); font-size:var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-title, #233d34); }
 .page-subtitle { display: block; margin-top: 8rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); line-height: 1.6; }
-.read-all-btn { flex-shrink: 0; padding: 12rpx 24rpx; margin: 0; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
+.read-all-btn { flex-shrink: 0; padding: 12rpx 24rpx; margin: 0; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
 .read-all-btn::after { border: 0; }
 /* AQ4 删除相关 */
 .head-actions { display: flex; flex-direction: column; gap: 12rpx; align-items: flex-end; flex-shrink: 0; }
@@ -381,7 +377,7 @@ function goCommunity() {
 .notice-wrap { position: relative; }
 .notice-del { position: absolute; top: 8rpx; right: 8rpx; min-height: 88rpx; min-width: 88rpx; padding: 0 10rpx; margin: 0; background: transparent; color: var(--zy-text, #4a5f54); font-size:var(--zy-text-micro, 22rpx); line-height: 44rpx; opacity: 0.65; }
 .notice-del::after { border: 0; }
-.notice-del:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 2px; opacity: 1; }
+.notice-del:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 2px; opacity: 1; }
 .clear-desc { display: block; font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-text, #4a5f54); margin: 8rpx 0 24rpx; }
 .clear-actions { display: flex; gap: 20rpx; justify-content: flex-end; }
 .clear-cancel { padding: 12rpx 28rpx; background: transparent; color: var(--zy-text, #4a5f54); font-size:var(--zy-text-caption, 24rpx); }
@@ -391,32 +387,32 @@ function goCommunity() {
 .filters { display: inline-flex; gap: 12rpx; }
 .filter-chip { margin: 0; padding: 10rpx 24rpx; min-height: 44px; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-card-bg, #fff); border: 1rpx solid var(--zy-border, #dfe7dc); color: var(--zy-text, #4a5f54); font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
 .filter-chip::after { border: 0; }
-.filter-chip.active { background: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); border-color: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); color: #fff; }
+.filter-chip.active { background: var(--zy-brand-600, var(--zy-brand-700, #24478f)); border-color: var(--zy-brand-600, var(--zy-brand-700, #24478f)); color: #fff; }
 
 .notice-list { display: flex; flex-direction: column; gap: 16rpx; }
 .notice-item { position: relative; display: flex; align-items: flex-start; gap: 20rpx; width: 100%; margin: 0; padding: 24rpx; box-sizing: border-box; background: var(--zy-card-bg, #fff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: var(--zy-radius-card, 32rpx); line-height: 1.6; text-align: left; }
 .notice-item::after { border: 0; }
-.notice-item.unread { border-left: 6rpx solid var(--zy-brand-600, var(--zy-brand-600, #217e76)); }
+.notice-item.unread { border-left: 6rpx solid var(--zy-brand-600, var(--zy-brand-600, #24478f)); }
 /* BI（2026-11-05）：基础类自带默认配色（沿用 icon-work 同款薄荷系令牌）——
  * 任何未知 refType（如后端新增的 inheritor_profile / project）都有可见图标底，
  * 不会再出现「只有字、没有圆块」的空图标位；具体 refType 配色仍在下方覆盖。
  * 顺带兜住 campus_verification（AH 批加了图标字但漏配样式）。 */
-.notice-icon { flex-shrink: 0; width: 64rpx; height: 64rpx; border-radius: var(--zy-radius-full, 9999rpx); display: flex; align-items: center; justify-content: center; font-size:var(--zy-text-caption, 24rpx); font-weight: 600; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); }
-.icon-work, .icon-comment { background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); }
-.icon-booking, .icon-group { background: var(--zy-brand-50, var(--zy-brand-50, #eaf4f1)); color: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); }
+.notice-icon { flex-shrink: 0; width: 64rpx; height: 64rpx; border-radius: var(--zy-radius-full, 9999rpx); display: flex; align-items: center; justify-content: center; font-size:var(--zy-text-caption, 24rpx); font-weight: 600; background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); }
+.icon-work, .icon-comment { background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); }
+.icon-booking, .icon-group { background: var(--zy-brand-50, var(--zy-brand-50, #eaf4f1)); color: var(--zy-brand-600, var(--zy-brand-700, #24478f)); }
 .icon-care_reminder { background: var(--zy-bg-tint-warm, #f7efd9); color: var(--zy-accent, var(--zy-accent, #7a5c12)); }
 .notice-main { flex: 1; min-width: 0; }
 .notice-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
-.notice-type { font-size:var(--zy-text-caption, 24rpx); font-weight: 600; color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); }
+.notice-type { font-size:var(--zy-text-caption, 24rpx); font-weight: 600; color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); }
 .notice-time { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); font-variant-numeric: tabular-nums; }
 .notice-text { display: block; margin-top: 8rpx; font-size:var(--zy-text-body, 28rpx); color: var(--zy-title, #233d34); line-height: 1.7; overflow-wrap: anywhere; }
 .unread-dot { position: absolute; top: 28rpx; right: 24rpx; width: 14rpx; height: 14rpx; border-radius: 50%; background: var(--zy-care, var(--zy-care, #a64842)); }
 
-.load-more { display: block; margin: 28rpx auto 0; padding: 16rpx 40rpx; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); font-size:var(--zy-text-caption, 24rpx); }
+.load-more { display: block; margin: 28rpx auto 0; padding: 16rpx 40rpx; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); font-size:var(--zy-text-caption, 24rpx); }
 .load-more::after { border: 0; }
 .list-end { display: block; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); padding: 28rpx 0; }
 .footnote { display: block; margin-top: 40rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
-button:focus-visible, .filter-chip:focus-visible, .notice-item:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+button:focus-visible, .filter-chip:focus-visible, .notice-item:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 
 /* ── v9 冷瓷展签收口 ── */
 .page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
@@ -424,23 +420,29 @@ button:focus-visible, .filter-chip:focus-visible, .notice-item:focus-visible { o
 .page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 14rpx; }
 .page-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
 .page-subtitle { color: var(--zy-muted); }
-.read-all-btn { padding: 0; border-radius: 0; background: transparent; color: var(--zy-brand-700); border-bottom: 1rpx solid var(--zy-border); }
-.clear-btn { padding: 0; border-radius: 0; color: var(--zy-muted); border-bottom: 1rpx solid var(--zy-border); }
+.read-all-btn { padding: 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; color: var(--zy-brand-700); border-bottom: 1rpx solid var(--zy-border); }
+.clear-btn { padding: 0; border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-muted); border-bottom: 1rpx solid var(--zy-border); }
 .filter-scroll { margin: 22rpx 0; }
 .filters { gap: 28rpx; }
-.filter-chip { margin: 0; padding: 6rpx 0 10rpx; min-height: 0; border: 0; border-bottom: 2rpx solid transparent; border-radius: 0; background: transparent; color: var(--zy-text); }
-.filter-chip.active { background: transparent; border-color: transparent; border-bottom-color: var(--zy-brand-700); color: var(--zy-brand-700); }
+.filter-chip { margin: 0; padding: 8rpx 24rpx; min-height: 0; border: 2rpx solid var(--zy-border); border-radius: 999rpx; background: var(--zy-card-bg); color: var(--zy-text); white-space: nowrap; }
+.filter-chip.active { background:var(--zy-brand-600);border:2rpx solid var(--zy-brand-600);color:#fff;font-weight:600;box-shadow:none }
 .notice-list { gap: 0; }
-.notice-item { padding: 24rpx 80rpx 24rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; }
+.notice-item { padding: 24rpx 80rpx 24rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); }
 .notice-item.unread { border-left: 3rpx solid var(--zy-care); padding-left: 20rpx; }
-.notice-icon { width: 48rpx; height: 48rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); font-family: var(--zy-font-display, serif); font-weight: 500; }
+.notice-icon { width: 48rpx; height: 48rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-border); color: var(--zy-brand-700); font-family: var(--zy-font-display, serif); font-weight: 500; }
 .icon-work, .icon-comment, .icon-booking, .icon-group, .icon-care_reminder { background: transparent; color: var(--zy-brand-700); border-color: var(--zy-border); }
 .icon-care_reminder { color: var(--zy-care, #a64842); border-color: var(--zy-care, #a64842); }
 .notice-type { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title); }
 .notice-time { color: var(--zy-muted); font-size: 20rpx; }
 .notice-text { color: var(--zy-text); }
-.unread-dot { top: 24rpx; right: 8rpx; width: 8rpx; height: 8rpx; border-radius: 0; display: none; }
+.unread-dot { top: 24rpx; right: 8rpx; width: 8rpx; height: 8rpx; border-radius: var(--zy-radius-control, 18rpx); display: none; }
 .notice-del { top: 12rpx; right: 2rpx; min-width: 56rpx; min-height: 56rpx; padding: 0; opacity: .32; font-size: 20rpx; color: var(--zy-muted); }
-.load-more { border-radius: 0; border: 1rpx solid var(--zy-border); background: transparent; }
+.load-more { border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border); background: transparent; }
 .list-end, .footnote { color: var(--zy-muted); }
+</style>
+<style scoped>
+/* v9：页头独占一行，批量操作放在下方右侧 */
+.page-head.page-head--v9 { display: block; padding-bottom: 0; border-bottom: 0; }
+.page-head--v9 .head-actions { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 12rpx; margin: -4rpx 0 20rpx; }
+.page-head--v9 .head-actions .read-all-btn, .page-head--v9 .head-actions .clear-btn { min-height: 60rpx; padding: 0 24rpx; font-size: 24rpx; margin: 0; }
 </style>

@@ -103,7 +103,7 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 .skeleton-stack { width: 100%; display: flex; flex-direction: column; gap: 20rpx; }
 .skeleton-bar {
 	height: 32rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: linear-gradient(90deg, var(--zy-bg-sunken, #eef1ee) 25%, var(--zy-border, #d3ded8) 50%, var(--zy-bg-sunken, #eef1ee) 75%);
 	background-size: 200% 100%;
 	animation: zy-shimmer 1.6s var(--zy-ease-linear, linear) infinite;

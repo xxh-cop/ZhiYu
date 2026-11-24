@@ -1,146 +1,143 @@
 <template>
-	<view :class="zyThemeClass" class="page zy-page-enter">
-		<!-- 加载中 -->
+	<view :class="zyThemeClass" class="page">
 		<view v-if="loading" class="status-box">
-			<wd-loading color="#0E5B53" />
+			<ZySpinner :size="48" />
 			<text class="status-text">正在打开手作档案…</text>
 		</view>
 
-		<!-- 错误状态 -->
 		<view v-else-if="errorMsg" class="status-box">
 			<text class="error-text">{{ errorMsg }}</text>
 			<view class="status-actions">
-				<wd-button type="primary" plain size="small" @click="loadData">重试</wd-button>
-				<wd-button type="primary" plain size="small" @click="goBack">返回上一页</wd-button>
+				<AccessibleButton variant="secondary" size="sm" @click="loadData">重试</AccessibleButton>
+				<AccessibleButton variant="secondary" size="sm" @click="goBack">返回上一页</AccessibleButton>
 			</view>
 		</view>
 
-		<!-- 项目详情：展签式 -->
 		<view v-else-if="project" class="detail-content">
-			<!-- 通栏材料图：标题压图，像一张展签而不是商品头图 -->
-			<view class="cover zy-slide-up zy-stagger" style="--stagger-i: 0">
-				<image v-if="project.coverUrl" :src="coverSrc" mode="aspectFill" class="cover-img" />
-				<view v-else class="cover-pattern" :class="'ph-' + coverKind" aria-hidden="true"></view>
-				<view class="cover-scrim" aria-hidden="true"></view>
-				<view class="cover-top-scrim" aria-hidden="true"></view>
-
-				<view class="cover-top">
-					<AccessibleButton class="cover-fab" aria-label="返回上一页" @click="goBack">
-						<ZyIcon name="back" :size="32" color="#F1F4F1" />
-					</AccessibleButton>
-					<text class="cover-index">手作档案 / {{ archiveNo }}</text>
-					<button open-type="share" class="cover-fab" aria-label="分享手作项目" @click="share">
-						<ZyIcon name="share" :size="28" color="#F1F4F1" />
-					</button>
+			<!-- ① 大图：实拍材料图通栏，标题与朱砂印压在图上 -->
+			<view class="hero">
+				<image :src="heroSrc" mode="aspectFill" class="hero-img" />
+				<view class="hero-shade" aria-hidden="true"></view>
+				<view class="hero-cloud zy-cloud-bg" aria-hidden="true"></view>
+				<view class="hero-top">
+					<AccessibleButton class="glass-btn" aria-label="返回上一页" @click="goBack"><ZyIcon name="back" :size="34" color="#FFFFFF" /></AccessibleButton>
+					<text class="hero-no">手作档案 · {{ archiveNo }}</text>
+					<button open-type="share" class="glass-btn" aria-label="分享手作项目" @click="share"><ZyIcon name="share" :size="30" color="#FFFFFF" /></button>
 				</view>
-
-				<view class="cover-copy">
-					<text class="cover-kicker">{{ project.category || '手作' }} · {{ levelLabel(project.level) }}</text>
-					<text class="cover-title zy-t-serif">{{ project.title }}</text>
-					<text v-if="project.intro" class="cover-intro">{{ project.intro }}</text>
-				</view>
-				<text class="cover-credit">{{ coverCredit }}</text>
-			</view>
-
-			<!-- 元信息：像展签的三栏，不做 chip 流 -->
-			<view class="meta-strip zy-slide-up zy-stagger" style="--stagger-i: 1">
-				<view class="meta-item">
-					<text class="meta-label">时间</text>
-					<text class="meta-value">{{ project.estMinutes || '—' }} 分钟</text>
-				</view>
-				<view class="meta-item">
-					<text class="meta-label">难度</text>
-					<text class="meta-value">{{ levelLabel(project.level) || '未标注' }}</text>
-				</view>
-				<view class="meta-item">
-					<text class="meta-label">技艺</text>
-					<text class="meta-value">{{ project.category || '手作' }}</text>
-				</view>
-			</view>
-
-			<!-- 示范者：姓名 / 技艺 / 授权与出处，缺一不可；技艺不匹配时宁可不展示，也不挂错名 -->
-			<view v-if="project.inheritorProfileId && demoMatchesCraft" class="section demo-section zy-slide-up zy-stagger" style="--stagger-i: 2">
-				<text class="section-kicker">示范者 / DEMONSTRATOR</text>
-				<view class="demo-row">
-					<text class="demo-name zy-t-serif">{{ project.inheritorNickname || '未署名示范者' }}</text>
-					<text class="demo-skill">{{ project.inheritorSkill || project.category }}</text>
-				</view>
-				<text class="demo-source">平台邀约示范 · 项目档案来源；非官方认证课程。{{ isDemoInheritor ? '标注为“演示示范”的档案为 AI 生成演示数据。' : '示范者信息以平台核验为准。' }}</text>
-				<AccessibleButton class="text-link" @click="goInheritorDetail">查看示范者档案 →</AccessibleButton>
-			</view>
-
-			<!-- 文化背景：一句大引言，不加装饰引号 -->
-			<view v-if="project.cultureBg" class="quote-section zy-slide-up zy-stagger" style="--stagger-i: 3">
-				<view class="quote-line" aria-hidden="true"></view>
-				<text class="quote zy-t-serif">{{ project.cultureBg }}</text>
-				<text class="quote-src">文化背景 · 项目档案</text>
-			</view>
-
-			<!-- 安全：未标注不开放开始 -->
-			<view class="safety-section zy-slide-up zy-stagger" style="--stagger-i: 4">
-				<CraftSafety :project-id="projectId" @status="onSafetyStatus" />
-			</view>
-
-			<!-- 材料：优先真实字段；缺失时给明确标注的建议清单 -->
-			<view v-if="materialList.length" class="section zy-slide-up zy-stagger" style="--stagger-i: 5">
-				<text class="section-kicker">工具与材料 / MATERIALS</text>
-				<text class="section-title zy-t-serif">开始前，把桌面留干净</text>
-				<view class="material-list">
-					<view v-for="(mat, idx) in materialList" :key="mat.id || idx" class="material-row">
-						<text class="material-index">{{ String(idx + 1).padStart(2, '0') }}</text>
-						<text class="material-name">{{ mat.name }}</text>
-						<text v-if="mat.qty" class="material-qty">{{ mat.qty }}</text>
+				<view class="hero-copy">
+					<view class="hero-seal-row">
+						<ZySeal :text="(project.category || '手作').slice(0, 2)" size="md" tilt />
+						<text class="hero-kicker">{{ project.category || '手作' }}<text v-if="levelLabel(project.level)"> · {{ levelLabel(project.level) }}</text></text>
 					</view>
+					<text class="hero-title">{{ project.title }}</text>
+					<text v-if="project.intro" class="hero-intro">{{ project.intro }}</text>
 				</view>
-				<text class="section-note">{{ materialNote }}</text>
+				<text class="hero-credit">{{ coverCredit }}</text>
 			</view>
 
-			<!-- 步骤：编号 + 发丝线，不做圆点气球 -->
-			<view v-if="steps.length" class="section zy-slide-up zy-stagger" style="--stagger-i: 6">
-				<text class="section-kicker">步骤 / STEPS</text>
-				<text class="section-title zy-t-serif">跟着手，不跟着钟</text>
-				<view class="steps">
-					<view v-for="(step, idx) in steps" :key="step.id || idx" class="step-row" :class="{ 'is-last': idx === steps.length - 1 }">
-						<view class="step-rail">
-							<text class="step-num">{{ String(step.stepNo || idx + 1).padStart(2, '0') }}</text>
-							<view v-if="idx !== steps.length - 1" class="step-connector" aria-hidden="true"></view>
-						</view>
-						<view class="step-content">
-							<text class="step-title">{{ step.title }}</text>
-							<text v-if="step.guide" class="step-guide">{{ step.guide }}</text>
+			<!-- ② 浮起信息卡 -->
+			<view class="info-card">
+				<view class="info-item">
+					<view class="info-icon tone-blue"><ZyIcon name="clock" :size="34" tone="brand" /></view>
+					<text class="info-value">{{ project.estMinutes || '—' }}<text class="info-unit"> 分钟</text></text>
+					<text class="info-label">预计时间</text>
+				</view>
+				<view class="info-divider" aria-hidden="true"></view>
+				<view class="info-item">
+					<view class="info-icon tone-gold"><ZyIcon name="star" :size="34" tone="gold" /></view>
+					<text class="info-value">{{ levelLabel(project.level) || '未标注' }}</text>
+					<text class="info-label">难度</text>
+				</view>
+				<view class="info-divider" aria-hidden="true"></view>
+				<view class="info-item">
+					<view class="info-icon tone-red"><ZyIcon name="craft" :size="34" tone="cinnabar" /></view>
+					<text class="info-value">{{ project.category || '手作' }}</text>
+					<text class="info-label">技艺</text>
+				</view>
+			</view>
+
+			<view class="body">
+				<!-- ③ 示范者 -->
+				<view v-if="project.inheritorProfileId && demoMatchesCraft" class="card demo-card" role="button" tabindex="0" @click="goInheritorDetail" @keydown.enter.prevent="goInheritorDetail">
+					<view class="demo-avatar"><text>{{ (project.inheritorNickname || '匠').charAt(0) }}</text></view>
+					<view class="demo-copy">
+						<text class="demo-kicker">示范者</text>
+						<text class="demo-name">{{ project.inheritorNickname || '未署名示范者' }}</text>
+						<text class="demo-skill">{{ project.inheritorSkill || project.category }} · 查看档案</text>
+					</view>
+					<ZyIcon name="arrow" :size="30" tone="brand" />
+				</view>
+				<text v-if="project.inheritorProfileId && demoMatchesCraft" class="demo-source">平台邀约示范 · 项目档案来源；非官方认证课程。{{ isDemoInheritor ? '标注为“演示示范”的档案为 AI 生成演示数据。' : '示范者信息以平台核验为准。' }}</text>
+
+				<!-- ④ 文化背景：青花边饰引言卡 -->
+				<view v-if="project.cultureBg" class="card culture-card">
+					<view class="culture-band zy-band-meander" aria-hidden="true"></view>
+					<text class="culture-kicker">文化背景</text>
+					<text class="culture-quote">{{ project.cultureBg }}</text>
+				</view>
+
+				<!-- ⑤ 安全 -->
+				<view class="safety-wrap">
+					<CraftSafety :project-id="projectId" @status="onSafetyStatus" />
+				</view>
+
+				<!-- ⑥ 材料：清单 -->
+				<view v-if="materialList.length" class="card">
+					<view class="sec-head"><view class="sec-mark" aria-hidden="true"></view><text class="sec-title">工具与材料</text><text class="sec-note">{{ materialList.length }} 样</text></view>
+					<view class="material-grid">
+						<view v-for="(mat, idx) in materialList" :key="mat.id || idx" class="material-chip">
+							<view class="material-check" aria-hidden="true"><ZyIcon name="check" :size="22" color="#FFFFFF" /></view>
+							<text class="material-name">{{ mat.name }}</text>
+							<text v-if="mat.qty" class="material-qty">{{ mat.qty }}</text>
 						</view>
 					</view>
+					<text class="section-note">{{ materialNote }}</text>
+				</view>
+
+				<!-- ⑦ 步骤：时间线 -->
+				<view v-if="steps.length" class="card">
+					<view class="sec-head"><view class="sec-mark" aria-hidden="true"></view><text class="sec-title">跟着手，不跟着钟</text><text class="sec-note">{{ steps.length }} 步</text></view>
+					<view class="steps">
+						<view v-for="(step, idx) in steps" :key="step.id || idx" class="step-row">
+							<view class="step-rail">
+								<text class="step-num">{{ step.stepNo || idx + 1 }}</text>
+								<view v-if="idx !== steps.length - 1" class="step-line" aria-hidden="true"></view>
+							</view>
+							<view class="step-content">
+								<text class="step-title">{{ step.title }}</text>
+								<text v-if="step.guide" class="step-guide">{{ step.guide }}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+
+				<view class="closing">
+					<text class="closing-text">做完可以带走，<br/>做不完也可以留下。</text>
 				</view>
 			</view>
-
-			<view class="closing">
-				<view class="closing-line" aria-hidden="true"></view>
-				<text class="closing-text zy-t-serif">做完可以带走，<br/>做不完也可以留下。</text>
-			</view>
-
 			<view class="bottom-spacer"></view>
 		</view>
 
-		<!-- 引导式安全确认：不用系统蓝色弹窗，保持展签语言 -->
+		<!-- 引导式安全确认 -->
 		<view v-if="guidedConfirmOpen" class="guided-overlay" @click="guidedConfirmOpen = false">
 			<view class="guided-panel" role="dialog" aria-modal="true" aria-label="安全操作确认" @click.stop>
-				<text class="guided-kicker">安全确认 / GUIDED</text>
-				<text class="guided-title zy-t-serif">先在指导下确认</text>
+				<ZySeal text="安" size="md" />
+				<text class="guided-title">先在指导下确认</text>
 				<text class="guided-copy">这项手作需要基础工具与带领者确认。请确认已阅读安全说明，并在可协助的环境中操作。</text>
 				<view class="guided-actions">
-					<button class="guided-btn guided-btn-ghost" @click="guidedConfirmOpen = false">先不开始</button>
-					<button class="guided-btn guided-btn-solid" @click="confirmGuided">我已确认</button>
+					<AccessibleButton variant="secondary" size="md" class="guided-btn" @click="guidedConfirmOpen = false">先不开始</AccessibleButton>
+					<AccessibleButton variant="primary" size="md" class="guided-btn" @click="confirmGuided">我已确认</AccessibleButton>
 				</view>
 			</view>
 		</view>
 
-		<!-- 底部行动：安全未标注时明确不开放 -->
+		<!-- 底部行动栏 -->
 		<view v-if="project" class="bottom-bar">
 			<view class="bar-copy">
-				<text class="bar-title">{{ canStart ? '进度自动保留，随时可以离开' : '安全标注待补，暂不开放开始' }}</text>
-				<text class="bar-sub">本系统不能替代专业心理咨询</text>
+				<text class="bar-title">{{ canStart ? '进度自动保留' : '安全标注待补' }}</text>
+				<text class="bar-sub">{{ canStart ? '随时可以离开，下次接着做' : '暂不开放开始' }}</text>
 			</view>
-			<AccessibleButton variant="primary" size="lg" class="start-btn" :disabled="!canStart" @click="goSession">{{ canStart ? '开始创作' : '暂未开放' }}</AccessibleButton>
+			<AccessibleButton variant="primary" size="lg" class="start-cta" :disabled="!canStart" @click="goSession">{{ canStart ? '开始创作' : '暂未开放' }}</AccessibleButton>
 		</view>
 
 		<Toast />
@@ -153,6 +150,8 @@ import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import ZyIcon from '../../components/ZyIcon.vue'
+import ZySeal from '../../components/ZySeal.vue'
+import ZySpinner from '../../components/ZySpinner.vue'
 import CraftSafety from '../../components/CraftSafety.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
@@ -278,6 +277,10 @@ const coverSrc = computed(() => {
 	if (/^https?:|^\/static\//.test(src)) return src
 	return API_BASE_URL + src
 })
+/* 大图：有封面用封面；没有就按技艺取项目自带的实拍材料图，不再显示灰色占位纹 */
+const HERO_BY_CATEGORY = { 赣绣: '/static/blueprint/hero-cloth.jpg', 扎染: '/static/covers/zharan.jpg', 剪纸: '/static/covers/jianzhi.jpg', 陶艺: '/static/blueprint/hero-glaze.jpg', 竹编: '/static/blueprint/hero-bamboo.jpg' }
+const HERO_BY_KIND = { yarn: '/static/covers/ganxiu.jpg', clay: '/static/covers/taoyi.jpg', paper: '/static/covers/papercut-window.jpg' }
+const heroSrc = computed(() => coverSrc.value || HERO_BY_CATEGORY[project.value?.category] || HERO_BY_KIND[coverKind.value])
 const coverKind = computed(() => {
 	const cat = (project.value && (project.value.category || project.value.title)) || ''
 	return /线|编|绣|染/.test(cat) ? 'yarn' : /陶|泥/.test(cat) ? 'clay' : 'paper'
@@ -285,113 +288,102 @@ const coverKind = computed(() => {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; padding: 0 0 220rpx; box-sizing: border-box; background-color: var(--zy-bg); }
-
-/* ── 状态区 ── */
-.status-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 0; gap: 24rpx; }
-.status-text { font-size: var(--zy-text-body); color: var(--zy-text); }
-.error-text { font-size: var(--zy-text-body); color: var(--zy-care); }
+/* v9 手作详情：实拍大图 + 浮起信息卡 + 卡片化内容 */
+.page { min-height: 100vh; padding: 0 0 240rpx; box-sizing: border-box; background: var(--zy-bg); }
+.status-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 200rpx 40rpx; gap: 24rpx; }
+.status-text { font-size: 28rpx; color: var(--zy-text); }
+.error-text { font-size: 28rpx; color: var(--zy-care); text-align: center; }
 .status-actions { display: flex; gap: 20rpx; }
 
-/* ── 展签封面：3:4 竖幅，标题压图 ── */
-.cover { position: relative; height: 60vh; min-height: 680rpx; max-height: 960rpx; overflow: hidden; background: #0B1513; }
-.cover-img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.cover-pattern { position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg stroke='%23ffffff' stroke-width='2' fill='none' opacity='.35'%3E%3Cpath d='M-10 30 Q30 12 60 30 T130 30'/%3E%3Cpath d='M-10 60 Q30 42 60 60 T130 60'/%3E%3Cpath d='M-10 90 Q30 72 60 90 T130 90'/%3E%3Cpath d='M30 -10 Q12 60 30 130'/%3E%3Cpath d='M60 -10 Q42 60 60 130'/%3E%3Cpath d='M90 -10 Q72 60 90 130'/%3E%3C/g%3E%3C/svg%3E"); background-size: 240rpx 240rpx; }
-.cover-pattern.ph-yarn { background-color: var(--zy-brand-300); }
-.cover-pattern.ph-clay { background-color: var(--zy-brand-500); }
-.cover-pattern.ph-paper { background-color: var(--zy-brand-700); }
-.cover-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,21,19,.2) 0%, rgba(11,21,19,.24) 38%, rgba(11,21,19,.82) 100%); }
-.cover-top-scrim { position: absolute; top: 0; left: 0; right: 0; height: 180rpx; background: linear-gradient(180deg, rgba(11,21,19,.52) 0%, rgba(11,21,19,.16) 62%, rgba(11,21,19,0) 100%); pointer-events: none; z-index: 1; }
-.cover-top { position: absolute; top: calc(26rpx + env(safe-area-inset-top, 0px)); left: 28rpx; right: 28rpx; display: flex; align-items: center; justify-content: space-between; z-index: 2; }
-.cover-index { color: rgba(241,244,241,.92); font-size: 20rpx; letter-spacing: 3rpx; text-shadow: 0 1rpx 10rpx rgba(0,0,0,.52); }
-.cover-fab { width: 64rpx; height: 64rpx; border: 1rpx solid rgba(241,244,241,.5); border-radius: 0; background: rgba(11,21,19,.26); display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; line-height: 1; }
-.cover-fab::after { border: 0; }
-.cover-fab-t { font-size: 30rpx; color: var(--zy-d-text); }
-.cover-copy { position: absolute; left: 36rpx; right: 36rpx; bottom: 58rpx; z-index: 1; }
-.cover-kicker { display: block; font-size: 22rpx; letter-spacing: 3rpx; color: var(--zy-brand-300); }
-.cover-title { display: block; font-size: 64rpx; line-height: 1.25; font-weight: 600; letter-spacing: 3rpx; color: var(--zy-d-text); margin-top: 14rpx; }
-.cover-intro { display: block; margin-top: 18rpx; max-width: 90%; font-size: 24rpx; line-height: 1.8; color: rgba(241,244,241,.8); }
-.cover-credit { position: absolute; left: 36rpx; right: 36rpx; bottom: 22rpx; color: rgba(241,244,241,.48); font-size: 18rpx; letter-spacing: 1rpx; }
+/* ① 大图 */
+.hero { position: relative; height: 820rpx; overflow: hidden; background: var(--zy-brand-900); border-radius: 0 0 56rpx 56rpx; }
+.hero-img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 31, 69, .45) 0%, rgba(13, 31, 69, 0) 22%, rgba(13, 31, 69, 0) 42%, rgba(13, 31, 69, .9) 100%); }
+.hero-cloud { position: absolute; right: 36rpx; bottom: 260rpx; width: 128rpx; height: 64rpx; }
+.hero-top { position: absolute; left: 28rpx; right: 28rpx; top: calc(var(--status-bar-height, 0px) + 24rpx); display: flex; align-items: center; justify-content: space-between; }
+.glass-btn { width: 76rpx; height: 76rpx; min-width: 76rpx; min-height: 76rpx; margin: 0; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, .22); border: 2rpx solid rgba(255, 255, 255, .35); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.glass-btn::after { border: 0; }
+.hero-no { padding: 8rpx 20rpx; border-radius: 999rpx; background: rgba(13, 31, 69, .35); color: rgba(255, 255, 255, .9); font-size: 22rpx; letter-spacing: 2rpx; }
+.hero-copy { position: absolute; left: 36rpx; right: 36rpx; bottom: 150rpx; }
+.hero-seal-row { display: flex; align-items: center; gap: 16rpx; margin-bottom: 18rpx; }
+.hero-kicker { padding: 6rpx 18rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .2); color: #fff; font-size: 24rpx; letter-spacing: 2rpx; }
+.hero-title { display: block; font-family: var(--zy-font-display); font-size: 64rpx; font-weight: 700; line-height: 1.25; letter-spacing: 4rpx; color: #fff; text-shadow: 0 4rpx 18rpx rgba(0, 0, 0, .25); }
+.hero-intro { display: block; margin-top: 14rpx; font-size: 28rpx; line-height: 1.7; color: rgba(255, 255, 255, .9); }
+.hero-credit { position: absolute; left: 36rpx; right: 36rpx; bottom: 104rpx; font-size: 20rpx; color: rgba(255, 255, 255, .6); }
 
-/* ── 元信息 ── */
-.meta-strip { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1rpx solid var(--zy-border); }
-.meta-item { padding: 24rpx 28rpx 26rpx; border-right: 1rpx solid var(--zy-border); }
-.meta-item:last-child { border-right: 0; }
-.meta-label { display: block; color: var(--zy-muted); font-size: 18rpx; letter-spacing: 2rpx; }
-.meta-value { display: block; margin-top: 8rpx; color: var(--zy-title); font-family: var(--zy-serif); font-size: 30rpx; }
+/* ② 浮起信息卡 */
+.info-card { position: relative; z-index: 2; display: flex; align-items: center; margin: -80rpx 28rpx 0; padding: 28rpx 12rpx; background: var(--zy-card-bg); border-radius: var(--zy-radius-card, 28rpx); box-shadow: var(--zy-shadow-pop); }
+.info-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6rpx; }
+.info-icon { width: 64rpx; height: 64rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 4rpx; }
+.tone-blue { background: var(--zy-brand-50); }
+.tone-gold { background: var(--zy-gamboge-50, #fbf1de); }
+.tone-red { background: var(--zy-cinnabar-50, #fbecea); }
+.info-value { font-family: var(--zy-font-display); font-size: 34rpx; font-weight: 700; color: var(--zy-title); }
+.info-unit { font-family: var(--zy-font); font-size: 22rpx; font-weight: 400; color: var(--zy-muted); }
+.info-label { font-size: 22rpx; color: var(--zy-muted); }
+.info-divider { width: 2rpx; height: 88rpx; background: var(--zy-line-soft); }
 
-/* ── 通用区块 ── */
-.section { padding: 42rpx 36rpx 0; }
-.section-kicker { display: block; color: var(--zy-muted); font-size: 20rpx; letter-spacing: 3rpx; }
-.section-title { display: block; margin-top: 12rpx; font-size: 44rpx; line-height: 1.4; color: var(--zy-title); }
+/* 内容区 */
+.body { padding: 28rpx 28rpx 0; }
+.card { background: var(--zy-card-bg); border-radius: var(--zy-radius-card, 28rpx); box-shadow: var(--zy-shadow-card); padding: 28rpx; margin-bottom: 22rpx; }
+.sec-head { display: flex; align-items: center; gap: 14rpx; margin-bottom: 20rpx; }
+.sec-mark { width: 8rpx; height: 32rpx; border-radius: 4rpx; background: var(--zy-cinnabar); }
+.sec-title { font-family: var(--zy-font-display); font-size: 34rpx; font-weight: 700; color: var(--zy-title); }
+.sec-note { margin-left: auto; padding: 4rpx 16rpx; border-radius: 999rpx; background: var(--zy-brand-50); color: var(--zy-brand-700); font-size: 22rpx; font-weight: 600; }
+.section-note { display: block; margin-top: 16rpx; font-size: 22rpx; line-height: 1.6; color: var(--zy-muted); }
 
-/* ── 示范者 ── */
-.demo-section { padding-bottom: 36rpx; border-bottom: 1rpx solid var(--zy-border); }
-.demo-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 16rpx; margin-top: 14rpx; }
-.demo-name { font-size: 48rpx; color: var(--zy-title); }
-.demo-skill { font-size: 22rpx; color: var(--zy-brand-700); letter-spacing: 1rpx; }
-.demo-source { display: block; margin-top: 14rpx; color: var(--zy-muted); font-size: 22rpx; line-height: 1.8; }
-.text-link { margin: 16rpx 0 0; padding: 0; background: transparent; color: var(--zy-brand-700); font-size: 22rpx; }
+/* ③ 示范者 */
+.demo-card { display: flex; align-items: center; gap: 22rpx; margin-bottom: 10rpx; }
+.demo-card:active { background: var(--zy-brand-50); }
+.demo-avatar { width: 96rpx; height: 96rpx; border-radius: 50%; flex-shrink: 0; background: var(--zy-brand-600); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--zy-font-display); font-size: 44rpx; font-weight: 700; box-shadow: 0 0 0 6rpx var(--zy-brand-100); }
+.demo-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.demo-kicker { font-size: 22rpx; color: var(--zy-cinnabar); font-weight: 600; letter-spacing: 2rpx; }
+.demo-name { font-family: var(--zy-font-display); font-size: 36rpx; font-weight: 700; color: var(--zy-title); }
+.demo-skill { font-size: 24rpx; color: var(--zy-brand-600); }
+.demo-source { display: block; margin: 0 8rpx 22rpx; font-size: 20rpx; line-height: 1.6; color: var(--zy-faint); }
 
-/* ── 文化背景引言 ── */
-.quote-section { padding: 48rpx 36rpx 42rpx; border-bottom: 1rpx solid var(--zy-border); }
-.quote-line { width: 48rpx; height: 2rpx; background: var(--zy-care); }
-.quote { display: block; margin-top: 24rpx; color: var(--zy-title); font-size: 42rpx; line-height: 1.9; letter-spacing: 1rpx; }
-.quote-src { display: block; margin-top: 18rpx; color: var(--zy-muted); font-size: 20rpx; letter-spacing: 2rpx; }
+/* ④ 文化背景 */
+.culture-card { padding: 0 32rpx 32rpx; overflow: hidden; background: var(--zy-brand-50); box-shadow: none; }
+.culture-band { margin: 0 -32rpx 24rpx; }
+.culture-kicker { display: block; font-size: 22rpx; font-weight: 700; letter-spacing: 4rpx; color: var(--zy-brand-600); margin-bottom: 12rpx; }
+.culture-quote { display: block; font-family: var(--zy-font-display); font-size: 32rpx; line-height: 1.9; color: var(--zy-brand-900); }
 
-/* ── 安全 ── */
-.safety-section { padding: 34rpx 36rpx 30rpx; border-bottom: 1rpx solid var(--zy-border); }
-:deep(.safety) { margin: 0; padding: 0; background: transparent; border: 0; border-radius: 0; gap: 10rpx; color: var(--zy-text); }
-:deep(.safety .heading) { font-size: 34rpx; font-weight: 600; color: var(--zy-title); font-family: var(--zy-serif); }
-:deep(.safety .label) { color: var(--zy-care); font-size: 22rpx; letter-spacing: 1rpx; }
-:deep(.safety .source) { color: var(--zy-muted); }
+.safety-wrap { margin-bottom: 22rpx; }
 
-/* ── 材料 ── */
-.material-list { margin-top: 24rpx; border-top: 1rpx solid var(--zy-border); }
-.material-row { display: flex; align-items: baseline; gap: 18rpx; padding: 18rpx 0; border-bottom: 1rpx solid var(--zy-border); }
-.material-index { width: 50rpx; flex-shrink: 0; color: var(--zy-muted); font-family: var(--zy-serif); font-size: 20rpx; }
-.material-name { flex: 1; color: var(--zy-title); font-size: 30rpx; }
-.material-qty { color: var(--zy-muted); font-size: 20rpx; }
-.section-note { display: block; margin-top: 16rpx; color: var(--zy-muted); font-size: 20rpx; line-height: 1.7; }
+/* ⑥ 材料 */
+.material-grid { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.material-chip { display: flex; align-items: center; gap: 12rpx; padding: 14rpx 22rpx 14rpx 14rpx; border-radius: 999rpx; background: var(--zy-bg-sunken); }
+.material-check { width: 36rpx; height: 36rpx; border-radius: 50%; background: var(--zy-pine, #2f7d68); display: flex; align-items: center; justify-content: center; }
+.material-name { font-size: 26rpx; color: var(--zy-title); font-weight: 600; }
+.material-qty { font-size: 22rpx; color: var(--zy-muted); }
 
-/* ── 步骤 ── */
-.steps { margin-top: 24rpx; }
-.step-row { display: flex; gap: 20rpx; }
-.step-rail { position: relative; width: 54rpx; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; }
-.step-num { font-family: var(--zy-serif); font-size: 22rpx; color: var(--zy-muted); line-height: 1; padding-top: 4rpx; }
-.step-connector { width: 1rpx; flex: 1; min-height: 70rpx; margin: 12rpx 0 0 6rpx; background: var(--zy-border); }
-.step-content { flex: 1; min-width: 0; padding-bottom: 42rpx; }
-.step-title { display: block; font-size: 34rpx; font-weight: 500; color: var(--zy-title); line-height: 1.5; }
-.step-guide { display: block; margin-top: 8rpx; font-size: 24rpx; line-height: 1.8; color: var(--zy-text); }
-.step-row.is-last .step-content { padding-bottom: 0; }
+/* ⑦ 步骤 */
+.steps { display: flex; flex-direction: column; }
+.step-row { display: flex; gap: 22rpx; }
+.step-rail { width: 60rpx; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+.step-num { width: 60rpx; height: 60rpx; line-height: 60rpx; text-align: center; border-radius: 50%; background: var(--zy-brand-600); color: #fff; font-family: var(--zy-font-display); font-size: 30rpx; font-weight: 700; box-shadow: 0 0 0 6rpx var(--zy-brand-100); }
+.step-line { flex: 1; width: 4rpx; min-height: 28rpx; margin: 8rpx 0; border-radius: 2rpx; background: var(--zy-brand-100); }
+.step-content { flex: 1; min-width: 0; padding: 8rpx 0 32rpx; }
+.step-title { display: block; font-size: 30rpx; font-weight: 700; color: var(--zy-title); }
+.step-guide { display: block; margin-top: 8rpx; font-size: 26rpx; line-height: 1.7; color: var(--zy-text); }
 
-/* ── 收束句 ── */
-.closing { padding: 58rpx 36rpx 0; }
-.closing-line { width: 2rpx; height: 70rpx; background: var(--zy-care); }
-.closing-text { display: block; margin-top: 22rpx; color: var(--zy-title); font-size: 40rpx; line-height: 1.8; letter-spacing: 1rpx; }
+.closing { padding: 24rpx 0 8rpx; text-align: center; }
+.closing-text { font-family: var(--zy-font-display); font-size: 32rpx; line-height: 1.8; color: var(--zy-brand-700); }
+.bottom-spacer { height: 40rpx; }
 
-/* ── 引导式安全确认 ── */
-.guided-overlay { position: fixed; inset: 0; z-index: 140; display: flex; align-items: center; justify-content: center; padding: 48rpx; background: rgba(11,21,19,.62); backdrop-filter: blur(4px); }
-.guided-panel { width: 100%; max-width: 620rpx; padding: 40rpx 36rpx 32rpx; background: var(--zy-bg); border: 1rpx solid rgba(211,222,216,.8); box-shadow: 0 24rpx 80rpx rgba(0,0,0,.28); }
-.guided-kicker { display: block; color: var(--zy-care); font-size: 20rpx; letter-spacing: 2rpx; }
-.guided-title { display: block; margin-top: 16rpx; color: var(--zy-title); font-size: 46rpx; line-height: 1.3; font-weight: 500; }
-.guided-copy { display: block; margin-top: 22rpx; color: var(--zy-content); font-size: 28rpx; line-height: 1.85; }
-.guided-actions { display: flex; gap: 16rpx; margin-top: 32rpx; }
-.guided-btn { flex: 1; height: 84rpx; line-height: 84rpx; border-radius: 0; font-size: 26rpx; padding: 0; }
-.guided-btn::after { border: 0; }
-.guided-btn-ghost { color: var(--zy-title); background: transparent; border: 1rpx solid var(--zy-border); }
-.guided-btn-solid { color: #F1F4F1; background: var(--zy-brand-700); border: 1rpx solid var(--zy-brand-700); }
+/* 引导确认 */
+.guided-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(13, 31, 69, .45); display: flex; align-items: flex-end; }
+.guided-panel { width: 100%; box-sizing: border-box; padding: 40rpx 36rpx calc(40rpx + env(safe-area-inset-bottom)); background: var(--zy-card-bg); border-radius: 48rpx 48rpx 0 0; display: flex; flex-direction: column; gap: 16rpx; }
+.guided-title { font-family: var(--zy-font-display); font-size: 40rpx; font-weight: 700; color: var(--zy-title); }
+.guided-copy { font-size: 28rpx; line-height: 1.7; color: var(--zy-text); }
+.guided-actions { display: flex; gap: 16rpx; margin-top: 12rpx; }
+.guided-btn { flex: 1; margin: 0; }
 
-/* ── 底部行动 ── */
-.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 24rpx; padding: 18rpx 32rpx; padding-bottom: calc(18rpx + env(safe-area-inset-bottom, 0)); background: var(--zy-card-bg); border-top: 1rpx solid var(--zy-border); }
+/* 底部行动栏：毛玻璃白 */
+.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; align-items: center; gap: 20rpx; padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 -8rpx 28rpx rgba(20, 36, 72, .08); }
+.page.zy-theme-dark .bottom-bar { background: rgba(28, 39, 64, .92); }
 .bar-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.bar-title { color: var(--zy-title); font-size: 22rpx; line-height: 1.5; }
-.bar-sub { color: var(--zy-muted); font-size: 18rpx; margin-top: 4rpx; }
-.start-btn { width: 240rpx; flex-shrink: 0; letter-spacing: 2rpx; white-space: nowrap; }
-.bottom-spacer { height: 20rpx; }
-.footnote { display: none; }
-
-button:focus-visible { outline: 3px solid var(--zy-brand-700); outline-offset: 3px; }
-.section-title, .step-title, .demo-name, .cover-title, .quote, .closing-text { font-family: var(--zy-serif); font-weight: 500; }
-.motion-reduced .cover, .motion-reduced .meta-strip, .motion-reduced .demo-section, .motion-reduced .quote-section, .motion-reduced .safety-section, .motion-reduced .section { animation: none !important; }
+.bar-title { font-size: 28rpx; font-weight: 700; color: var(--zy-title); }
+.bar-sub { font-size: 22rpx; color: var(--zy-muted); }
+.start-cta { flex-shrink: 0; min-width: 260rpx; margin: 0; border-radius: 999rpx; }
 </style>

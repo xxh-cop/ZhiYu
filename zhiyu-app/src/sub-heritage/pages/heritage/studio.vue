@@ -14,9 +14,7 @@
 		</view>
 		<template v-else-if="pattern && studio">
 			<view class="growth-hero studio-head">
-				<text class="growth-eyebrow">HERITAGE COLOR STUDY</text>
-				<text class="growth-title">{{ pattern.name }} · 配色练习</text>
-				<text class="growth-subtitle">{{ pattern.traditionName }} · {{ pattern.region }} · {{ pattern.familyLabel }} · {{ pattern.level }}</text>
+				<ZyPageHead seal="色" :title="`${pattern.name} · 配色练习`" :subtitle="`${pattern.traditionName} · ${pattern.region} · ${pattern.familyLabel} · ${pattern.level}`" />
 				<text class="heritage-origin">{{ practiceSession ? '练习会话已连接 · 作品不上传，进度会保存' : '原创教学再设计 · 不上传、不保存' }}</text>
 			</view>
 
@@ -181,7 +179,7 @@
 			</view>
 
 			<view v-if="studio.completed" class="growth-card heritage-culture-card" data-culture-card>
-				<text class="growth-eyebrow">HERITAGE CULTURE CARD</text>
+				<text class="growth-eyebrow">非遗文化卡</text>
 				<text class="culture-title">{{ pattern.name }} · 纹样文化卡</text>
 				<text class="culture-meta">{{ pattern.traditionName }} · {{ pattern.region }} · {{ pattern.familyLabel }} · {{ pattern.level }}</text>
 				<text class="culture-structure">本次观察：{{ activeStructureLabel }}</text>
@@ -200,7 +198,7 @@
 					<text v-for="source in cultureSources" :key="source.id" class="culture-text">{{ source.title }} · {{ source.organization }}</text>
 					<text v-if="!cultureSources.length" class="culture-text">目录未提供来源。</text>
 				</view>
-				<text class="culture-note">原创教学再设计，不是传统原作；来源仅作材料与技艺背景参考。本系统不能替代专业心理咨询。</text>
+				<text class="culture-note">原创教学再设计，不是传统原作；来源仅作材料与技艺背景参考。</text>
 				<AccessibleButton class="growth-button" data-copy-culture @click="copyCultureCard">复制文化卡文字</AccessibleButton>
 				<text v-if="copyStatus" class="culture-status" role="status" aria-live="polite">{{ copyStatus }}</text>
 				<view class="culture-share">
@@ -230,7 +228,7 @@
 			<view v-if="canSaveArtifact" class="growth-card practice-artifact-card" data-practice-artifact>
 				<view class="studio-step-head">
 					<view>
-						<text class="growth-eyebrow">PRACTICE ARTIFACT</text>
+						<text class="growth-eyebrow">练习成果</text>
 						<text class="growth-card-title">{{ artifact ? '已保存到成长旅程' : '把这次练习留下来' }}</text>
 					</view>
 					<text class="studio-ai-badge">{{ artifact ? '已加密保存' : '待保存' }}</text>
@@ -281,7 +279,6 @@
 			<AccessibleButton class="growth-button secondary" @click="back">返回纹样馆</AccessibleButton>
 		</template>
 
-		<text class="growth-foot">本系统不能替代专业心理咨询</text>
 
 		<ActionSheet
 			:open="deleteSheetOpen"
@@ -298,6 +295,7 @@
 </template>
 
 <script setup>
+import ZyPageHead from '../../../../components/ZyPageHead.vue'
 import { computed, getCurrentInstance, nextTick, onMounted, ref, watch } from 'vue'
 import { onLoad, onReady, onUnload } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'
@@ -811,11 +809,11 @@ onMounted(() => {
 .heritage-studio-page { max-width: 1180px; margin: 0 auto; }
 .heritage-status { display: flex; flex-direction: column; align-items: flex-start; gap: 12rpx; }
 .studio-head { padding-bottom: 8rpx; }
-.heritage-origin { display: inline-block; margin-top: 14rpx; padding: 4rpx 12rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-micro, 22rpx); }
+.heritage-origin { display: inline-block; margin-top: 14rpx; padding: 4rpx 12rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); font-size:var(--zy-text-micro, 22rpx); }
 .studio-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, 1fr); gap: 26rpx; align-items: start; }
 .studio-canvas-card { padding: 20rpx; background: var(--zy-card-bg, #fff); border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: var(--zy-radius-lg, 32rpx); }
-.studio-canvas-frame { display: flex; align-items: center; justify-content: center; padding: 18rpx; border-radius: 20rpx; background: var(--zy-bg-tint-mint, #e8efe4); }
-.studio-canvas { display: block; border-radius: 12rpx; box-shadow: var(--zy-shadow-sm, 0 2rpx 8rpx rgba(33, 126, 118, .06)); }
+.studio-canvas-frame { display: flex; align-items: center; justify-content: center; padding: 18rpx; border-radius: 20rpx; background: var(--zy-bg-tint-mint, #eef3fb); }
+.studio-canvas { display: block; border-radius: 12rpx; box-shadow: var(--zy-shadow-sm, 0 2rpx 8rpx rgba(36, 71, 143, .06)); }
 .studio-canvas-caption { display: block; margin-top: 16rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-text, #4a5f54); }
 .studio-tools { display: flex; flex-direction: column; gap: 18rpx; }
 .studio-tools .growth-card { margin-bottom: 0; }
@@ -823,23 +821,23 @@ onMounted(() => {
 .studio-step-title { display: block; margin: 8rpx 0 18rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-title, #233d34); }
 .studio-step-list { display: flex; flex-direction: column; gap: 10rpx; }
 .studio-step { display: flex; align-items: center; gap: 14rpx; min-height: 56rpx; padding: 8rpx 12rpx; border-radius: 12rpx; color: var(--zy-text, #4a5f54); font-size:var(--zy-text-caption, 24rpx); }
-.studio-step.active { color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); background: var(--zy-bg-tint-mint, #e8efe4); }
-.studio-step.done { color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.studio-step.active { color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); background: var(--zy-bg-tint-mint, #eef3fb); }
+.studio-step.done { color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 .studio-step-index { display: inline-flex; align-items: center; justify-content: center; width: 34rpx; height: 34rpx; flex-shrink: 0; border: 1rpx solid currentColor; border-radius: 50%; font-size:var(--zy-text-micro, 22rpx); }
 .studio-status { display: block; margin: 18rpx 0 4rpx; }
-.studio-complete { display: block; margin: 18rpx 0 4rpx; padding: 14rpx 16rpx; border-radius: 12rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-caption, 24rpx); line-height: 1.7; }
+.studio-complete { display: block; margin: 18rpx 0 4rpx; padding: 14rpx 16rpx; border-radius: 12rpx; background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); font-size:var(--zy-text-caption, 24rpx); line-height: 1.7; }
 .studio-colors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12rpx; margin: 18rpx 0; }
 .studio-color { display: flex; align-items: center; gap: 10rpx; min-height: 88rpx; margin: 0; padding: 10rpx 14rpx; text-align: left; border: 2rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-card-bg, #fff); color: var(--zy-text, #4a5f54); font-size:var(--zy-text-caption, 24rpx); }
-.studio-color.selected { border-color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); background: var(--zy-bg-tint-mint, #e8efe4); }
+.studio-color.selected { border-color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); background: var(--zy-bg-tint-mint, #eef3fb); }
 .studio-color-dot { width: 30rpx; height: 30rpx; flex-shrink: 0; border-radius: 50%; border: 1rpx solid var(--zy-border, #dfe7dc); }
 .studio-note { display: block; margin-top: 10rpx; }
 .studio-plan-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10rpx 16rpx; margin: 0 0 18rpx; padding: 12rpx 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-card-bg, #fff); color: var(--zy-text, #4a5f54); font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; }
-.studio-plan-applied { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-micro, 22rpx); }
+.studio-plan-applied { padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); font-size:var(--zy-text-micro, 22rpx); }
 .studio-ai-card { margin-top: 20rpx; border-color: var(--zy-border, #dfe7dc); }
 .studio-ai-form { max-width: 760px; }
-.studio-ai-badge { flex-shrink: 0; padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-micro, 22rpx); }
+.studio-ai-badge { flex-shrink: 0; padding: 2rpx 10rpx; border-radius: 8rpx; background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); font-size:var(--zy-text-micro, 22rpx); }
 .studio-consent { display: flex; align-items: flex-start; gap: 12rpx; width: 100%; margin: 16rpx 0 4rpx; padding: 14rpx 16rpx; text-align: left; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 14rpx; background: var(--zy-bg, #ffffff); color: var(--zy-text, #4a5f54); font-size:var(--zy-text-caption, 24rpx); line-height: 1.6; }
-.studio-consent.is-checked { border-color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.studio-consent.is-checked { border-color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 .studio-consent-box { display: inline-flex; align-items: center; justify-content: center; width: 34rpx; height: 34rpx; flex-shrink: 0; margin-top: 2rpx; border: 1rpx solid currentColor; border-radius: 8rpx; font-size:var(--zy-text-micro, 22rpx); }
 .studio-ai-label { display: block; margin: 16rpx 0 0; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-title, #233d34); }
 .studio-ai-input { box-sizing: border-box; width: 100%; height: 78rpx; margin: 8rpx 0 16rpx; padding: 0 18rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 12rpx; background: var(--zy-bg, #ffffff); color: var(--zy-title, #233d34); font-size:var(--zy-text-caption, 24rpx); }
@@ -847,10 +845,10 @@ onMounted(() => {
 .studio-ai-message { display: block; margin: 14rpx 0 0; line-height: 1.7; word-break: break-word; }
 .studio-ai-variants { display: flex; flex-direction: column; gap: 14rpx; margin-top: 18rpx; }
 .studio-ai-variant { display: flex; flex-direction: column; padding: 16rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 16rpx; background: var(--zy-bg, #ffffff); }
-.studio-ai-variant.applied { border-color: var(--zy-primary, var(--zy-brand-600, #217e76)); background: var(--zy-bg-tint-mint, #e8efe4); }
+.studio-ai-variant.applied { border-color: var(--zy-primary, var(--zy-brand-600, #24478f)); background: var(--zy-bg-tint-mint, #eef3fb); }
 .studio-ai-variant-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12rpx; }
 .studio-ai-variant-name { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-title, #233d34); font-weight: 600; }
-.studio-ai-variant-state { flex-shrink: 0; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.studio-ai-variant-state { flex-shrink: 0; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 .studio-ai-variant-meta { display: block; margin-top: 4rpx; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
 .studio-ai-swatches { display: flex; gap: 8rpx; margin: 10rpx 0; }
 .studio-ai-swatch { width: 32rpx; height: 32rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 50%; }
@@ -861,7 +859,7 @@ onMounted(() => {
 .culture-teaser { margin-top: 20rpx; }
 .culture-title { display: block; margin-top: 6rpx; font-size:var(--zy-text-title, 32rpx); line-height: 1.4; color: var(--zy-title, #233d34); }
 .culture-meta { display: block; margin-top: 6rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); }
-.culture-structure { display: block; margin-top: 10rpx; padding: 8rpx 14rpx; border-radius: 10rpx; background: var(--zy-bg-tint-mint, #e8efe4); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-micro, 22rpx); }
+.culture-structure { display: block; margin-top: 10rpx; padding: 8rpx 14rpx; border-radius: 10rpx; background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); font-size:var(--zy-text-micro, 22rpx); }
 .culture-palette { display: flex; flex-wrap: wrap; gap: 20rpx; margin-top: 16rpx; }
 .culture-swatch { display: flex; align-items: center; gap: 8rpx; }
 .culture-swatch-color { width: 30rpx; height: 30rpx; border: 1rpx solid var(--zy-border, #dfe7dc); border-radius: 50%; }
@@ -870,7 +868,7 @@ onMounted(() => {
 .culture-label { display: block; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-title, #233d34); font-weight: 600; }
 .culture-text { display: block; margin-top: 4rpx; font-size:var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-text, #4a5f54); word-break: break-word; }
 .culture-note { display: block; margin-top: 18rpx; padding: 12rpx 16rpx; border-radius: 12rpx; background: var(--zy-bg, #ffffff); font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-text, #4a5f54); }
-.culture-status { display: block; margin-top: 10rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.culture-status { display: block; margin-top: 10rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 .culture-share { display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx 18rpx; margin-top: 20rpx; }
 .culture-share-caption { flex: 1 1 320rpx; min-width: 0; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-text, #4a5f54); }
 .practice-artifact-card { margin-top: 20rpx; }
@@ -885,7 +883,7 @@ onMounted(() => {
 .artifact-sources { margin-top: 8rpx; }
 .artifact-source { display: block; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-text, #4a5f54); }
 .artifact-notes { height: 120rpx; min-height: 100rpx; }
-.artifact-saved-hint { display: block; margin-top: 10rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.artifact-saved-hint { display: block; margin-top: 10rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 @media (min-width: 900px) { .studio-ai-variants { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 820px) { .studio-layout { grid-template-columns: minmax(0, 1fr); } }
 </style>

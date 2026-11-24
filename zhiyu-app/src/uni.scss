@@ -15,15 +15,15 @@
 /* 颜色变量 */
 
 /* 行为相关颜色（青玉案令牌，2026-11-02 定案，见 design/tokens.json） */
-$uni-color-primary: var(--zy-brand-600, #217e76);
+$uni-color-primary: var(--zy-brand-600, #24478f);
 $uni-color-success: #2e7d5b;
 $uni-color-warning: #9a6a12;
 $uni-color-error: var(--zy-care, #a64842);
 
 /* 文字基本颜色 */
-$uni-text-color: #233d34; // 基本色
+$uni-text-color: #141c2e; // 基本色
 $uni-text-color-inverse: #fff; // 反色
-$uni-text-color-grey: #4a5f54; // 辅助文字（对比度修正）
+$uni-text-color-grey: #586379; // 辅助文字（对比度修正）
 $uni-text-color-placeholder: #808080;
 $uni-text-color-disable: #c0c0c0;
 

@@ -262,7 +262,7 @@ watch(
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	filter: drop-shadow(0 4rpx 8rpx rgba(33, 126, 118, 0.15));
+	filter: drop-shadow(0 4rpx 8rpx rgba(36, 71, 143, 0.15));
 }
 
 .xiaotuan-render {
@@ -279,7 +279,7 @@ watch(
 	padding: 14rpx 24rpx;
 	background: var(--zy-card-bg, #ffffff);
 	border-radius: var(--zy-radius-md, 24rpx);
-	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(33, 126, 118, 0.08));
+	box-shadow: var(--zy-shadow-md, 0 4rpx 16rpx rgba(36, 71, 143, 0.08));
 	font-size: 26rpx;
 	line-height: 1.5;
 	color: var(--zy-title, #233d34);
@@ -327,8 +327,8 @@ watch(
 	bottom: 40rpx;
 	transform: translateX(-50%);
 	padding: 16rpx 40rpx;
-	background: rgba(33, 126, 118, 0.15);
-	border: 2rpx dashed rgba(33, 126, 118, 0.4);
+	background: rgba(36, 71, 143, 0.15);
+	border: 2rpx dashed rgba(36, 71, 143, 0.4);
 	border-radius: var(--zy-radius-full, 9999rpx);
 	pointer-events: none;
 	z-index: 9998;
@@ -337,12 +337,12 @@ watch(
 
 .hide-zone-text {
 	font-size: 26rpx;
-	color: var(--zy-brand-700, #217e76);
+	color: var(--zy-brand-700, #24478f);
 	white-space: nowrap;
 }
 
 .hide-zone-hint.active {
-	background: var(--zy-primary, #217e76);
+	background: var(--zy-primary, #24478f);
 	border-color: transparent;
 	transform: translateX(-50%) scale(1.05);
 }
@@ -370,12 +370,12 @@ watch(
 	width: 72rpx;
 	height: 72rpx;
 	border-radius: 50%;
-	background: rgba(33, 126, 118, 0.15);
+	background: rgba(36, 71, 143, 0.15);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 9999;
-	box-shadow: var(--zy-shadow-sm, 0 2rpx 8rpx rgba(33, 126, 118, 0.06));
+	box-shadow: var(--zy-shadow-sm, 0 2rpx 8rpx rgba(36, 71, 143, 0.06));
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 	pointer-events: auto;
 }

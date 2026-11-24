@@ -21,7 +21,7 @@ page {
    仅影响未单独指定 placeholder-style 的输入框（内联 placeholder-style 优先）。 */
 .uni-input-placeholder,
 .uni-textarea-placeholder {
-	color: #8B9994 !important;
+	color: #857d6e !important;
 	font-size: 24rpx !important;
 	font-weight: 400 !important;
 	letter-spacing: 0.4rpx;
@@ -29,7 +29,7 @@ page {
 
 input::placeholder,
 textarea::placeholder {
-	color: #8B9994 !important;
+	color: #857d6e !important;
 	font-size: 24rpx !important;
 	font-weight: 400 !important;
 	letter-spacing: 0.4rpx;
@@ -58,10 +58,10 @@ textarea::placeholder {
 
 /* ── 骨架屏 shimmer ── */
 .zy-skeleton {
-	background: linear-gradient(90deg, #e5eae6 25%, #f3f6f3 50%, #e5eae6 75%);
+	background: linear-gradient(90deg, #e9edeb 25%, #f5f7f6 50%, #e9edeb 75%);
 	background-size: 200% 100%;
 	animation: shimmer 1.5s ease-in-out infinite;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 }
 @keyframes shimmer {
 	0% { background-position: 200% 0; }
@@ -72,19 +72,19 @@ textarea::placeholder {
    令牌已覆盖面级；这里只处理「硬编码白字/浅底假设」的组件细节。 */
 /* 主按钮：深底品牌填充加深后仍配白字（check:contrast 深色组 5.30:1）；按压态用更深填充保持白字可读 */
 .zy-theme-dark .zy-btn.zy-btn--primary { color: #ffffff; }
-.zy-theme-dark .zy-btn.zy-btn--primary:active { background: #25685f; }
+.zy-theme-dark .zy-btn.zy-btn--primary:active { background: #3a62ae; }
 .zy-theme-dark .zy-btn.zy-btn--care { background: #a64842; color: #ffffff; }
 .zy-theme-dark .zy-btn.zy-btn--care:active { background: #8f3a35; }
 .zy-theme-dark .zy-btn.zy-btn--danger { border-color: rgba(212, 115, 106, 0.5); }
-.zy-theme-dark.zy-theme-dark .zy-tabbar-item.active { color: #8fc7b8; }
+.zy-theme-dark.zy-theme-dark .zy-tabbar-item.active { color: #9db8ec; }
 .zy-theme-dark .zy-skeleton { background: linear-gradient(90deg, #142019 25%, #1b2b24 50%, #142019 75%); background-size: 200% 100%; }
 /* 输入底线在深底提亮（growth 遗留控件与 Zy 组件共用令牌） */
 .zy-theme-dark .growth-input, .zy-theme-dark .growth-textarea { border-bottom-color: #5f7a70; }
-.zy-theme-dark .growth-input:focus, .zy-theme-dark .growth-textarea:focus { border-bottom-color: #8fc7b8; }
+.zy-theme-dark .growth-input:focus, .zy-theme-dark .growth-textarea:focus { border-bottom-color: #9db8ec; }
 /* 等级徽章：浅底用窑青实底白字；深底改深青底浅青字，避免白字压浅绿
    （双写主题类提高特异性，压过页面 scoped 同级规则） */
-.zy-theme-dark.zy-theme-dark .level-badge { background: #1b332d; border: 1rpx solid rgba(143, 199, 184, 0.4); }
-.zy-theme-dark.zy-theme-dark .level-text { color: #8fc7b8; }
+.zy-theme-dark.zy-theme-dark .level-badge { background: #22325a; border: 1rpx solid rgba(157, 184, 236, 0.4); }
+.zy-theme-dark.zy-theme-dark .level-text { color: #9db8ec; }
 /* 朱砂小标签（推荐等）：深底提亮后白字对比不足，改墨字 */
 .zy-theme-dark.zy-theme-dark .short-recommend { color: #26120f; }
 /* growth 骨架屏深底渐变 */
@@ -99,6 +99,8 @@ textarea::placeholder {
 @import '@/styles/animations.scss';
 /* 暖纸青玉工具类（字阶/卡片/缝线/焦点环/纸纹） */
 @import '@/styles/zy-toolkit.scss';
+/* v8 可点性规范：主/次/链接/危险/选项/列表行 六类按钮外观（2026-11-23） */
+@import '@/styles/affordance.scss';
 /* 通用信息页骨架（2026-11-11）：growth-* 在微信小程序端必须全局引入，
    页面级 <style src> 在小程序编译产物中会被丢弃（group/support 等页只剩 scoped 样式）。 */
 @import '@/styles/growth.css';

@@ -36,10 +36,37 @@
 .zy-stitch-v { border-left: 2rpx dashed var(--zy-stitch); }
 
 /* ── 焦点环（双端统一：基座组件 @focus/@blur 切换 .zy-focused；H5 另保留 :focus-visible 渐进增强） ── */
-.zy-focused { box-shadow: 0 0 0 4rpx rgba(33, 126, 118, 0.35); }
+.zy-focused { box-shadow: 0 0 0 4rpx rgba(36, 71, 143, 0.35); }
 
 /* ── 行内链接（文字 + 线性图标；替代「查看许可 ↗」这类字符箭头） ── */
 .zy-link { display: inline-flex; align-items: center; gap: 6rpx; }
+
+/* ── v9 青花纹饰（data-URI SVG，H5 / 小程序通用；色值固定为青花蓝低透明度，纯装饰） ── */
+/* 回纹：横向边饰，用于卡片顶边 / 分区线 */
+.zy-band-meander {
+	height: 14rpx;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12'%3E%3Cpath d='M0 11H3V1H17V9H7V5H13M17 9V11H20' fill='none' stroke='%2324478F' stroke-width='1.3' opacity='.5'/%3E%3C/svg%3E");
+	background-size: 28rpx 14rpx;
+	background-repeat: repeat-x;
+}
+/* 海水纹：页头右上角、空白大块的青花底饰 */
+.zy-wave-bg {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Cg fill='none' stroke='%2324478F' stroke-width='.9' opacity='.16'%3E%3Cpath d='M0 20a10 10 0 0 1 20 0a10 10 0 0 1 20 0M5 20a5 5 0 0 1 10 0M25 20a5 5 0 0 1 10 0M-10 10a10 10 0 0 1 20 0a10 10 0 0 1 20 0a10 10 0 0 1 20 0M-5 10a5 5 0 0 1 10 0M15 10a5 5 0 0 1 10 0M35 10a5 5 0 0 1 10 0'/%3E%3C/g%3E%3C/svg%3E");
+	background-size: 80rpx 40rpx;
+}
+/* 海水纹（白线）：用在青花蓝实底上 */
+.zy-wave-bg--light {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='.9' opacity='.14'%3E%3Cpath d='M0 20a10 10 0 0 1 20 0a10 10 0 0 1 20 0M5 20a5 5 0 0 1 10 0M25 20a5 5 0 0 1 10 0M-10 10a10 10 0 0 1 20 0a10 10 0 0 1 20 0a10 10 0 0 1 20 0M-5 10a5 5 0 0 1 10 0M15 10a5 5 0 0 1 10 0M35 10a5 5 0 0 1 10 0'/%3E%3C/g%3E%3C/svg%3E");
+	background-size: 80rpx 40rpx;
+}
+/* 祥云：主视觉卡片右下角点缀 */
+.zy-cloud-bg {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='32'%3E%3Cpath d='M6 26c-4 0-5-6 0-7c0-6 8-8 11-3c2-6 12-6 13 1c5-2 9 3 6 7c4 0 4 5 0 5H8' fill='none' stroke='%23FFFFFF' stroke-width='1.4' opacity='.28'/%3E%3C/svg%3E");
+	background-size: 128rpx 64rpx;
+	background-repeat: no-repeat;
+}
+/* 青花圆盘描边：今日笺等「器物」卡 */
+.zy-porcelain-rim { box-shadow: inset 0 0 0 4rpx var(--zy-brand-600, #24478f), inset 0 0 0 10rpx var(--zy-card-bg, #fff), inset 0 0 0 12rpx var(--zy-brand-200, #bccdec); }
 
 /* ── 页面底色（纸纹属暖纸主题，见 theme.scss .zy-theme-warm） ── */
 page {

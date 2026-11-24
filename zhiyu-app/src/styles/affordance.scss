@@ -1,0 +1,386 @@
+/**
+ * 织愈 · 可点性规范（v8「宣纸青绿」，2026-11-23）
+ *
+ * 一条规则：能点的必须「有面」。全站 377 个按钮按用途归为 6 类，各有一眼可辨的外观：
+ *   1. 主行动   —— 青绿实底 + 白字 + 投影（每屏最多一个）
+ *   2. 次行动   —— 浅青底 + 青绿描边 + 深青字
+ *   3. 文字链接 —— 青绿字 + 下划线（只用于行内「查看/了解」类）
+ *   4. 危险     —— 浅朱底 + 朱砂描边 + 朱砂字
+ *   5. 选项     —— 白底描边胶囊；选中 = 青绿实底白字
+ *   6. 列表行   —— 白卡片 + 右侧箭头，按压变色
+ *
+ * 选择器用「同类名叠写三次」提高特异性，压过各页面 scoped 的旧 v7 规则
+ * （各页仍可在自己的样式里用更高特异性做例外）。
+ * WXSS 合规：只用类选择器；不用通配、属性选择器、元素选择器。
+ */
+
+/* ── 1. 主行动 ───────────────────────────────────────── */
+.account-action.account-action.account-action,
+.primary-action.primary-action.primary-action,
+.primary-btn.primary-btn.primary-btn,
+.primary-button.primary-button.primary-button,
+.state-primary.state-primary.state-primary,
+.submit.submit.submit,
+.save-btn.save-btn.save-btn,
+.cal-submit.cal-submit.cal-submit,
+.export-btn.export-btn.export-btn,
+.export-action.export-action.export-action,
+.appeal-btn.appeal-btn.appeal-btn,
+.card-btn.card-btn.card-btn,
+.card-btn-mint.card-btn-mint.card-btn-mint,
+.start-btn.start-btn.start-btn,
+.practice-new.practice-new.practice-new,
+.zy-btn--primary.zy-btn--primary.zy-btn--primary {
+	background: var(--zy-brand-600);
+	color: #ffffff;
+	border: 0;
+	border-radius: var(--zy-radius-control);
+	box-shadow: var(--zy-shadow-cta);
+	font-weight: 600;
+	letter-spacing: 2rpx;
+}
+.account-action.account-action.account-action:active,
+.primary-action.primary-action.primary-action:active,
+.primary-btn.primary-btn.primary-btn:active,
+.primary-button.primary-button.primary-button:active,
+.submit.submit.submit:active,
+.save-btn.save-btn.save-btn:active,
+.start-btn.start-btn.start-btn:active,
+.zy-btn--primary.zy-btn--primary.zy-btn--primary:active {
+	background: var(--zy-brand-700);
+	box-shadow: none;
+	transform: translateY(2rpx);
+}
+
+/* ── 2. 次行动 ───────────────────────────────────────── */
+.secondary-action.secondary-action.secondary-action,
+.secondary-button.secondary-button.secondary-button,
+.create-btn.create-btn.create-btn,
+.join-btn.join-btn.join-btn,
+.load-more.load-more.load-more,
+.error-retry.error-retry.error-retry,
+.map-retry.map-retry.map-retry,
+.project-retry.project-retry.project-retry,
+.history-new.history-new.history-new,
+.state-action.state-action.state-action,
+.sheet-action.sheet-action.sheet-action,
+.notice-btn.notice-btn.notice-btn,
+.skip-btn.skip-btn.skip-btn,
+.boundary-btn.boundary-btn.boundary-btn,
+.audio-btn.audio-btn.audio-btn,
+.practice-bar-button.practice-bar-button.practice-bar-button,
+.summary-consent.summary-consent.summary-consent,
+.studio-consent.studio-consent.studio-consent,
+.topic-add.topic-add.topic-add,
+.banner-btn.banner-btn.banner-btn,
+.dialog-secondary.dialog-secondary.dialog-secondary,
+.zy-btn--secondary.zy-btn--secondary.zy-btn--secondary,
+.zy-btn--tonal.zy-btn--tonal.zy-btn--tonal {
+	background: var(--zy-brand-50);
+	color: var(--zy-brand-700);
+	border: 2rpx solid var(--zy-brand-300);
+	border-radius: var(--zy-radius-control);
+	box-shadow: none;
+	font-weight: 500;
+}
+.secondary-action.secondary-action.secondary-action:active,
+.secondary-button.secondary-button.secondary-button:active,
+.create-btn.create-btn.create-btn:active,
+.join-btn.join-btn.join-btn:active,
+.load-more.load-more.load-more:active,
+.state-action.state-action.state-action:active,
+.zy-btn--secondary.zy-btn--secondary.zy-btn--secondary:active,
+.zy-btn--tonal.zy-btn--tonal.zy-btn--tonal:active {
+	background: var(--zy-brand-100);
+}
+/* 行尾小按钮：保证横排、留足点击面 */
+.join-btn.join-btn.join-btn,
+.joined-tag.joined-tag.joined-tag,
+.full-tag.full-tag.full-tag,
+.create-btn.create-btn.create-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 128rpx;
+	min-height: 64rpx;
+	padding: 0 24rpx;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+/* 次行动里的子文字跟随按钮色 */
+.join-btn-text.join-btn-text { color: var(--zy-brand-700); font-weight: 500; }
+.empty-btn.empty-btn.empty-btn { background: var(--zy-brand-600); border-radius: var(--zy-radius-control); }
+
+/* 取消类：中性灰描边，和「次行动」区分开，但仍明显是按钮 */
+.clear-cancel.clear-cancel.clear-cancel,
+.close-cancel.close-cancel.close-cancel,
+.sheet-cancel.sheet-cancel.sheet-cancel,
+.state-back.state-back.state-back,
+.cal-skip.cal-skip.cal-skip {
+	background: var(--zy-card-bg);
+	color: var(--zy-text);
+	border: 2rpx solid var(--zy-border);
+	border-radius: var(--zy-radius-control);
+}
+
+/* 已加入 / 已满：状态标签，不是按钮——用实心浅底、无描边，与「加入」拉开 */
+.joined-tag.joined-tag.joined-tag,
+.full-tag.full-tag.full-tag {
+	background: var(--zy-bg-sunken);
+	border: 0;
+	border-radius: var(--zy-radius-chip);
+}
+
+/* ── 3. 文字链接 ─────────────────────────────────────── */
+.account-link.account-link.account-link,
+.text-link.text-link.text-link,
+.text-action.text-action.text-action,
+.text-button.text-button.text-button,
+.policy-link.policy-link.policy-link,
+.source-link.source-link.source-link,
+.support-link.support-link.support-link,
+.journey-link.journey-link.journey-link,
+.reset-link.reset-link.reset-link,
+.state-link.state-link.state-link,
+.leave-link.leave-link.leave-link {
+	color: var(--zy-brand-600);
+	font-weight: 500;
+	text-decoration: underline;
+	text-decoration-thickness: 2rpx;
+	text-underline-offset: 8rpx;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+}
+
+/* ── 4. 危险 ─────────────────────────────────────────── */
+.danger-button.danger-button.danger-button,
+.logout-btn.logout-btn.logout-btn,
+.withdraw.withdraw.withdraw,
+.zy-btn--danger.zy-btn--danger.zy-btn--danger {
+	background: var(--zy-bg-tint-care);
+	color: var(--zy-care);
+	border: 2rpx solid rgba(176, 61, 51, 0.45);
+	border-radius: var(--zy-radius-control);
+	font-weight: 500;
+}
+.danger-solid.danger-solid.danger-solid,
+.dialog-danger.dialog-danger.dialog-danger,
+.clear-confirm.clear-confirm.clear-confirm,
+.close-confirm.close-confirm.close-confirm,
+.zy-btn--care.zy-btn--care.zy-btn--care {
+	background: var(--zy-care);
+	color: #ffffff;
+	border: 0;
+	border-radius: var(--zy-radius-control);
+	font-weight: 600;
+}
+
+/* ── 5. 选项（单选 / 多选 / 筛选） ──────────────────── */
+.growth-choice.growth-choice.growth-choice,
+.theme-option.theme-option.theme-option,
+.radio-item.radio-item.radio-item,
+.filter-chip.filter-chip.filter-chip,
+.recent-chip.recent-chip.recent-chip,
+.cal-score.cal-score.cal-score,
+.media-tab.media-tab.media-tab,
+.tool-toggle.tool-toggle.tool-toggle,
+.sound-toggle.sound-toggle.sound-toggle,
+.motion-toggle.motion-toggle.motion-toggle,
+.nudge-toggle.nudge-toggle.nudge-toggle,
+.map-toggle.map-toggle.map-toggle,
+.details-toggle.details-toggle.details-toggle {
+	background: var(--zy-card-bg);
+	color: var(--zy-text);
+	border: 2rpx solid var(--zy-border);
+	border-radius: var(--zy-radius-control);
+	box-shadow: none;
+}
+.growth-choice.growth-choice.selected,
+.radio-item.radio-item.active,
+.radio-item.radio-item.selected,
+.filter-chip.filter-chip.active,
+.cal-score.cal-score.selected {
+	background: var(--zy-brand-600);
+	border-color: var(--zy-brand-600);
+	color: #ffffff;
+	font-weight: 600;
+}
+.media-tab.media-tab.media-tab--active { background: var(--zy-brand-50); border: 4rpx solid var(--zy-brand-600); box-shadow: var(--zy-shadow-cta); }
+.media-tab-text--active.media-tab-text--active { color: var(--zy-brand-700); font-weight: 700; }
+/* 主题卡里有色板和两行字，选中用「浅底 + 粗边框」而不是实底，保证文字可读 */
+.theme-option.theme-option.is-selected {
+	background: var(--zy-brand-50);
+	border: 4rpx solid var(--zy-brand-600);
+	color: var(--zy-title);
+	box-shadow: var(--zy-shadow-cta);
+}
+
+/* 各页面的时长 / 心情 / 评分等选项组：未选 = 白底描边，选中 = 青绿实底白字 */
+.time-tabs.time-tabs,
+.mood-row.mood-row,
+.duration-row.duration-row { display: flex; flex-wrap: wrap; gap: 14rpx; border: 0; }
+.selected.selected.selected {
+	background: var(--zy-brand-600);
+	border-color: var(--zy-brand-600);
+	color: #ffffff;
+	font-weight: 600;
+	box-shadow: none;
+}
+.score-point.selected.selected { background: transparent; color: inherit; }
+.motion-toggle.motion-toggle.motion-toggle { padding: 0 20rpx; white-space: nowrap; font-size: var(--zy-text-caption, 24rpx); }
+
+/* 公共组件：分段选择 / 筛选片 / 底部导航（选中必须是「面」，不能只是一根细线） */
+.zy-segmented.zy-segmented {
+	gap: 12rpx;
+	padding: 8rpx;
+	border: 0;
+	border-radius: calc(var(--zy-radius-control) + 8rpx);
+	background: var(--zy-bg-sunken);
+}
+.zy-segmented-item.zy-segmented-item.zy-segmented-item {
+	border: 0;
+	border-radius: var(--zy-radius-control);
+	color: var(--zy-text);
+	font-size: var(--zy-text-body, 28rpx);
+}
+.zy-segmented-item.zy-segmented-item.active {
+	background: var(--zy-card-bg);
+	color: var(--zy-brand-700);
+	font-weight: 600;
+	box-shadow: 0 2rpx 10rpx rgba(74, 56, 26, 0.14), inset 0 -4rpx 0 var(--zy-cinnabar);
+}
+.zy-chip.zy-chip.zy-chip {
+	padding: 8rpx 28rpx;
+	border: 2rpx solid var(--zy-border);
+	border-radius: var(--zy-radius-chip);
+	background: var(--zy-card-bg);
+	color: var(--zy-text);
+}
+.zy-chip.zy-chip.active {
+	background: var(--zy-brand-600);
+	border-color: var(--zy-brand-600);
+	color: #ffffff;
+	font-weight: 600;
+}
+
+/* ── 6. 列表行 / 可点卡片：白卡 + 投影，按压变色 ─────── */
+.menu-item.menu-item.menu-item,
+.opener-row.opener-row.opener-row,
+.resume-row.resume-row.resume-row,
+.kit-entry.kit-entry.kit-entry,
+.soft-entry.soft-entry.soft-entry,
+.recommend-entry.recommend-entry.recommend-entry {
+	background: var(--zy-card-bg);
+	border: 2rpx solid var(--zy-card-line);
+	border-radius: var(--zy-radius-card);
+	box-shadow: var(--zy-shadow-card);
+}
+.menu-item.menu-item.menu-item:active,
+.opener-row.opener-row.opener-row:active,
+.resume-row.resume-row.resume-row:active,
+.kit-entry.kit-entry.kit-entry:active {
+	background: var(--zy-brand-50);
+	border-color: var(--zy-brand-200);
+}
+
+.opener-row.opener-row.opener-row { padding: 26rpx 28rpx; margin-bottom: 16rpx; border-top: 2rpx solid var(--zy-card-line); color: var(--zy-title); }
+.recommend-entry.recommend-entry.recommend-entry { padding: 14rpx 28rpx; border-bottom: 2rpx solid var(--zy-card-line); }
+
+/* 图标按钮（返回 / 更多 / 关闭）：圆形浅底，给出可点的「面」 */
+.more-btn.more-btn.more-btn,
+.back-btn.back-btn.back-btn,
+.nav-back.nav-back.nav-back,
+.nudge-close.nudge-close.nudge-close,
+.sheet-close.sheet-close.sheet-close,
+.cal-close.cal-close.cal-close,
+.dismiss-btn.dismiss-btn.dismiss-btn {
+	border-radius: 999rpx;
+	background: var(--zy-bg-sunken);
+	border: 0;
+}
+
+/* 通用禁用态：明确「不能点」 */
+.zy-btn.is-disabled.is-disabled,
+.account-action.is-disabled.is-disabled,
+.primary-action.is-disabled.is-disabled,
+.primary-btn.is-disabled.is-disabled,
+.submit.is-disabled.is-disabled {
+	background: var(--zy-bg-sunken);
+	color: var(--zy-faint);
+	border: 2rpx dashed var(--zy-border);
+	box-shadow: none;
+}
+
+/* 焦点环随新主色 */
+.zy-focused { box-shadow: 0 0 0 6rpx rgba(36, 71, 143, 0.35); }
+
+/* ── v9 输入框统一：各页手写的下划线输入一律改为白底描边方框（2026-11-23 P3） ── */
+.group-input.group-input.group-input,
+.confirmation-input.confirmation-input.confirmation-input,
+.comment-input.comment-input.comment-input,
+.reason-input.reason-input.reason-input,
+.studio-ai-input.studio-ai-input.studio-ai-input,
+.growth-input.growth-input.growth-input,
+.feedback-note.feedback-note.feedback-note,
+.topic-input.topic-input.topic-input {
+	background: var(--zy-card-bg);
+	border: 2rpx solid var(--zy-border);
+	border-radius: var(--zy-radius-control, 20rpx);
+	padding-left: 24rpx;
+	padding-right: 24rpx;
+	box-sizing: border-box;
+}
+.growth-textarea.growth-textarea.growth-textarea,
+.group-input.group-input.group-input,
+.comment-input.comment-input.comment-input,
+.reason-input.reason-input.reason-input,
+.artifact-notes.artifact-notes.artifact-notes { padding-top: 20rpx; padding-bottom: 20rpx; }
+/* 搜索框：胶囊形 */
+.search-input-wrap.search-input-wrap.search-input-wrap,
+.search-box.search-box.search-box,
+.heritage-input.heritage-input.heritage-input {
+	background: var(--zy-card-bg);
+	border: 2rpx solid var(--zy-border);
+	border-radius: 999rpx;
+	padding-left: 28rpx;
+	padding-right: 28rpx;
+	box-sizing: border-box;
+}
+.heritage-search-card.heritage-search-card.heritage-search-card { border-bottom: 0; }
+
+/* ── v9 内容卡片补充（2026-11-23 P3）：设置分区、问答建议、列表行 ── */
+.section-card.section-card.section-card {
+	background: var(--zy-card-bg);
+	border: 0;
+	border-radius: var(--zy-radius-card, 28rpx);
+	box-shadow: var(--zy-shadow-card);
+	padding: 30rpx 28rpx;
+	margin-bottom: 22rpx;
+}
+.suggestion-tag.suggestion-tag.suggestion-tag {
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+	padding: 22rpx 24rpx;
+	margin-bottom: 14rpx;
+	background: var(--zy-card-bg);
+	border: 2rpx solid var(--zy-card-line);
+	border-radius: var(--zy-radius-card, 28rpx);
+	box-shadow: var(--zy-shadow-card);
+}
+.suggestion-tag.suggestion-tag.suggestion-tag:active { background: var(--zy-brand-50); }
+.tag-mark.tag-mark.tag-mark {
+	width: 48rpx; height: 48rpx; line-height: 48rpx; text-align: center; flex-shrink: 0;
+	border-radius: 12rpx; border: 0;
+	background: var(--zy-brand-600); color: #fff;
+	font-family: var(--zy-font-display); font-weight: 700; font-size: 26rpx;
+}
+.avatar-section.avatar-section.avatar-section {
+	background: var(--zy-card-bg);
+	border-radius: var(--zy-radius-card, 28rpx);
+	box-shadow: var(--zy-shadow-card);
+	padding: 24rpx 28rpx;
+	margin-bottom: 22rpx;
+	border: 0;
+}

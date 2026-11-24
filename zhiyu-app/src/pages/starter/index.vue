@@ -1,6 +1,6 @@
 <template>
 	<view class="growth-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
-  <view class="growth-hero"><text class="growth-eyebrow">FIRST MAKING · 手作起点</text><text class="growth-title">用手边的材料，做一件小作品</text><text class="growth-subtitle">选好时间和场所，小织陪你从准备走到完成。</text></view>
+  <view class="growth-hero"><ZyPageHead seal="起" title="用手边的材料，做一件小作品" subtitle="选好时间和场所，小织陪你从准备走到完成。" /></view>
   <view v-if="active.length" class="growth-card resume-card"><text class="growth-card-title">接着上次的进度</text><AccessibleButton v-for="s in active" :key="s.sessionId" class="resume-row" @click="resume(s)"><text>{{s.projectTitle}}</text><text class="growth-muted">第 {{s.currentStep}} / {{s.totalSteps}} 步 · 继续 →</text></AccessibleButton></view>
   <view v-if="resumeError" class="growth-error">{{resumeError}}<AccessibleButton class="growth-button secondary" @click="loadActive">重新读取进度</AccessibleButton></view>
   <view class="growth-card filters"><text class="growth-card-title">今天的创作条件</text><text class="growth-muted">时间为编辑估计，可随时暂停。选择只用于本页筛选。</text>
@@ -17,10 +17,10 @@
    <view v-if="matches.length>1" class="growth-grid"><AccessibleButton v-for="item in matches.filter(x=>x.id!==featured.id)" :key="item.id" class="growth-card result" @click="open(item)" ><CraftCover :category="item.medium"/><text class="growth-card-title">{{item.title}}</text><text class="growth-muted">{{item.minutes}} 分钟 · {{item.medium}} · {{item.steps.length}} 步</text><text class="growth-muted">{{item.tools.length?item.tools.join(' / '):'无需剪刀与胶带'}}</text></AccessibleButton></view>
    <text class="growth-muted">原创入门练习，不代表传统技艺认证或专业疗效。具体来源见准备页。</text>
   </template>
-  <AccessibleButton class="growth-button secondary zy-link" @click="openCredits()"><text>图片来源与授权</text><ZyIcon name="external" :size="24" tone="brand" /></AccessibleButton><text class="growth-foot">本系统不能替代专业心理咨询</text>
- </view>
+  <AccessibleButton class="growth-button secondary zy-link" @click="openCredits()"><text>图片来源与授权</text><ZyIcon name="external" :size="24" tone="brand" /></AccessibleButton> </view>
 </template>
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 function openChat(){uni.navigateTo({url:'/pages/emotion/chat'})}
 function openMusic(){uni.navigateTo({url:'/pages/music/index'})}
 function openCredits(){uni.navigateTo({url:'/pages/music/credits'})}
@@ -46,16 +46,16 @@ function resume(s){uni.navigateTo({url:`/pages/craft/session?projectId=${s.proje
 </script>
 
 <style scoped>
-.growth-page .filters button.growth-choice{width:auto;flex:1;padding:10rpx 10rpx 14rpx;margin:0;text-align:center;font-size:var(--zy-text-caption, 24rpx);border:0;border-bottom:2rpx solid transparent;border-radius:0;background:transparent;color:var(--zy-muted,#6e7b75);box-shadow:none}
-.growth-page .filters button.growth-choice.selected{background:transparent;border-bottom-color:var(--zy-brand-700,#0a403b);color:var(--zy-brand-700,#0a403b);box-shadow:none}
+.growth-page .filters button.growth-choice{width:auto;flex:1;padding:10rpx 10rpx 14rpx;margin:0;text-align:center;font-size:var(--zy-text-caption, 24rpx);border:2rpx solid var(--zy-border);border-radius: var(--zy-radius-control, 18rpx);background:var(--zy-card-bg);color:var(--zy-text);box-shadow:none}
+.growth-page .filters button.growth-choice.selected{background:var(--zy-brand-600);border:2rpx solid var(--zy-brand-600);color:#fff;font-weight:600;box-shadow:none}
 .growth-muted{display:block}
 .filter-label{display:block;margin:28rpx 0 14rpx;font-size:24rpx;font-weight:500;font-family:var(--zy-font-display,serif);color:var(--zy-title)}
 .growth-row{flex-wrap:wrap}
-.tool-toggle{margin:24rpx 0 0;text-align:left;background:transparent;color:var(--zy-brand-700);font-size:var(--zy-text-caption, 24rpx);border-radius:0;border-bottom:1rpx solid var(--zy-border)}
+.tool-toggle{margin:24rpx 0 0;text-align:left;background:transparent;color:var(--zy-brand-700);font-size:var(--zy-text-caption, 24rpx);border-radius: var(--zy-radius-control, 18rpx);border-bottom:1rpx solid var(--zy-border)}
 .featured{border-color:var(--zy-border)}
 .featured .growth-eyebrow{color:var(--zy-care,#a64842);letter-spacing:2px}
 .result{text-align:left;width:100%;margin:0;line-height:1.7}
-.resume-row{display:flex;justify-content:space-between;gap:18rpx;flex-wrap:wrap;text-align:left;padding:20rpx 0;border-bottom:1rpx solid var(--zy-border);background:transparent;border-radius:0;box-shadow:none;font-size:var(--zy-text-caption, 24rpx)}
+.resume-row{display:flex;justify-content:space-between;gap:18rpx;flex-wrap:wrap;text-align:left;padding:20rpx 0;border-bottom:1rpx solid var(--zy-border);background:transparent;border-radius: var(--zy-radius-control, 18rpx);box-shadow:none;font-size:var(--zy-text-caption, 24rpx)}
 .resume-card{border-top:0;border-left:0}
 button::after{border:0}
 </style>

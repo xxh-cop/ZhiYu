@@ -25,7 +25,7 @@
 			>
 				<text v-if="voiceState === 'recording'" class="zy-inputbar-voice-text">停止</text>
 				<text v-else-if="voiceState === 'processing'" class="zy-inputbar-voice-text">…</text>
-				<ZyIcon v-else name="mic" :size="34" :color="dark ? '#A9BBB2' : '#42524C'" />
+				<ZyIcon v-else name="mic" :size="34" :color="dark ? '#A7B1C6' : '#384256'" />
 			</AccessibleButton>
 			<AccessibleButton
 				variant="primary"
@@ -63,21 +63,20 @@ function onInput(e) { emit('update:modelValue', e.detail.value) }
 	display: flex;
 	align-items: center;
 	gap: 16rpx;
-	background: transparent;
-	border-top: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
-	padding: 16rpx 0 4rpx;
-	box-shadow: none;
+	/* v8：白色输入框 + 描边 + 圆角，一眼看出「在这里打字」 */
+	background: var(--zy-card-bg, #fffdf8);
+	border: 2rpx solid var(--zy-border, #d9cdb5);
+	border-radius: 999rpx;
+	padding: 8rpx 8rpx 8rpx 28rpx;
+	box-shadow: var(--zy-shadow-card);
 }
+.zy-inputbar-send.zy-inputbar-send { border-radius: 999rpx; }
 .zy-inputbar-input { flex: 1; min-height: 64rpx; font-size: var(--zy-text-body, 28rpx); color: var(--zy-title, #111816); background: transparent; }
 .zy-inputbar-voice { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; border-radius: 50%; background: transparent; padding: 0; margin: 0; }
 .zy-inputbar-voice-text { font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); }
 .zy-inputbar-send { font-size:var(--zy-text-body-lg, 30rpx); color: #FFFFFF; }
 
-/* 玄墨：一条输入线，不是白色胶囊 */
-.zy-inputbar.is-dark { padding: 18rpx 32rpx 8rpx; }
-.is-dark .zy-inputbar-pill { background: transparent; border: 0; border-top: 1rpx solid rgba(241,244,241,.18); border-radius: 0; box-shadow: none; padding: 18rpx 0 4rpx; }
-.is-dark .zy-inputbar-input { color: var(--zy-d-text, #F1F4F1); }
-.is-dark .zy-inputbar-voice-text { color: var(--zy-d-text-secondary, #A9BBB2); }
-.is-dark .zy-inputbar-send { background: transparent; border: 1rpx solid rgba(143,199,184,.58); border-radius: 0; }
+/* 玄墨：同样是胶囊输入框，颜色随主题令牌（卡片底比页面底亮一档） */
+.is-dark .zy-inputbar-input { color: var(--zy-title, #F1F4F1); }
+.is-dark .zy-inputbar-voice-text { color: var(--zy-muted, #A9BBB2); }
 </style>

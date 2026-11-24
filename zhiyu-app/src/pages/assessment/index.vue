@@ -2,7 +2,7 @@
 	<view class="check-page">
 		<view class="check-top">
 			<AccessibleButton class="back-btn" aria-label="返回上一页" @click="goBack"><ZyIcon name="back" :size="36" tone="title" /></AccessibleButton>
-			<text class="top-index">自我了解 / SELF-CHECK</text>
+			<text class="top-index">自我了解</text>
 		</view>
 
 		<view class="check-head">
@@ -102,7 +102,7 @@ function saveLocal() {
 <style scoped>
 .check-page { min-height: 100vh; padding: 0 36rpx 64rpx; box-sizing: border-box; background: var(--zy-bg); padding-top: env(safe-area-inset-top, 0px); }
 .check-top { display: flex; align-items: center; gap: 18rpx; padding-top: 24rpx; }
-.back-btn { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; padding: 0; margin: 0; background: transparent; border: 1rpx solid var(--zy-border); border-radius: 0; color: var(--zy-title); font-size: 28rpx; }
+.back-btn { width: 64rpx; height: 64rpx; min-width: 64rpx; min-height: 64rpx; padding: 0; margin: 0; background: transparent; border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-title); font-size: 28rpx; }
 .top-index { color: var(--zy-muted); font-size: 20rpx; letter-spacing: 3rpx; }
 
 .check-head { padding-top: 44rpx; }
@@ -120,7 +120,7 @@ function saveLocal() {
 .dim-name { color: var(--zy-title); font-family: var(--zy-font-display, "Songti SC", serif); font-size: 32rpx; font-weight: 500; letter-spacing: 1rpx; }
 .dim-q { color: var(--zy-muted); font-size: 21rpx; }
 .dim-scale { display: flex; gap: 0; margin-top: 16rpx; align-items: center; }
-.dim-dot { width: 88rpx; height: 80rpx; min-width: 88rpx; min-height: 80rpx; padding: 0; margin: 0 -1rpx 0 0; border: 1rpx solid var(--zy-border); border-radius: 0; background: transparent; display: flex; align-items: center; justify-content: center; }
+.dim-dot { width: 88rpx; height: 80rpx; min-width: 88rpx; min-height: 80rpx; padding: 0; margin: 0 -1rpx 0 0; border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); background: transparent; display: flex; align-items: center; justify-content: center; }
 .dim-dot::after { border: 0; }
 .dim-dot-num { font-size: 26rpx; color: var(--zy-muted); line-height: 1; }
 .dim-dot.is-on { border-color: var(--zy-brand-600); background: transparent; }

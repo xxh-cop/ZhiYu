@@ -4,7 +4,7 @@
 		<StateBlock v-else-if="error" type="error" title="纹样没有读取成功" :description="error" action-text="重试" @action="load" />
 		<StateBlock v-else-if="notFound" type="empty" title="没有找到这个纹样" description="它可能已被移除，或链接有误。" action-text="返回纹样馆" @action="back" />
 		<template v-else-if="pattern">
-			<SectionHead eyebrow="HERITAGE STUDY" :title="pattern.name" tone="heritage" />
+			<ZyPageHead seal="纹" :title="pattern.name" />
 			<view class="heritage-detail-meta">
 				<text class="heritage-muted zy-t-body">{{ pattern.traditionName }} · {{ pattern.region }} · {{ pattern.familyLabel }} · {{ pattern.level }}</text>
 				<RegionSeal :region="pattern.region" size="md" />
@@ -101,7 +101,6 @@
 			<AccessibleButton variant="secondary" @click="back">返回纹样馆</AccessibleButton>
 		</template>
 
-		<text class="heritage-foot zy-t-caption">本系统不能替代专业心理咨询</text>
 
 		<Toast />
 	</view>
@@ -122,7 +121,7 @@ import { createPracticeSession } from '@/utils/practice-session'
 import Toast from '@/components/Toast.vue'
 import AccessibleButton from '@/components/AccessibleButton.vue'
 import ZyIcon from '@/components/ZyIcon.vue'
-import SectionHead from '@/components/SectionHead.vue'
+import ZyPageHead from '@/components/ZyPageHead.vue'
 import PatternLive from '@/components/PatternLive.vue'
 import ProcessStrip from '@/components/ProcessStrip.vue'
 import HeritageRegistryPlate from '@/components/HeritageRegistryPlate.vue'
@@ -321,7 +320,7 @@ onLoad((query) => {
 	margin-top: 14rpx;
 	padding: 4rpx 12rpx;
 	border: 1rpx solid var(--zy-border);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 	color: var(--zy-brand-700);
 	font-size: var(--zy-text-caption);
@@ -335,7 +334,7 @@ onLoad((query) => {
 	overflow: hidden;
 	background: var(--zy-bg, #f7f8f6);
 	border: 1rpx solid var(--zy-border);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	box-shadow: none;
 }
 .heritage-detail-texture {
@@ -356,7 +355,7 @@ onLoad((query) => {
 	color: var(--zy-text);
 	background: var(--zy-card-bg);
 	border: 1rpx solid var(--zy-border);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	opacity: 0.82;
 }
 .heritage-process-bar {
@@ -403,7 +402,7 @@ onLoad((query) => {
 	width: 100%;
 	height: 220rpx;
 	border: 1rpx solid var(--zy-border);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 }
 /* 只有一张实物参考时不做横向图廊：铺满卡片宽度。
    否则单卡片 300rpx 只占约四成宽，右侧大片空白会被误读为“滑不动/卡住”。 */

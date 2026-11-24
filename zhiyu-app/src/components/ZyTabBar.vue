@@ -101,7 +101,10 @@ function go(path) {
 }
 .zy-tabbar-item::after { border: 0; }
 .zy-tabbar-item.active { color: var(--zy-brand-600); font-weight: 600; }
-.zy-tabbar-iconwrap { position: relative; display: flex; }
+/* v8：选中项图标落在青绿浅底「胶囊」里，比一根细线醒目得多 */
+.zy-tabbar-iconwrap { position: relative; display: flex; align-items: center; justify-content: center; width: 96rpx; height: 52rpx; border-radius: 999rpx; transition: background-color 200ms ease; }
+.zy-tabbar-item.active .zy-tabbar-iconwrap { background: var(--zy-brand-100, #dde6f6); }
+.zy-tabbar { box-shadow: 0 -4rpx 18rpx rgba(74, 56, 26, 0.06); }
 .zy-tabbar-dot {
 	position: absolute;
 	top: -2rpx;
@@ -112,11 +115,5 @@ function go(path) {
 	background: var(--zy-care);
 	border: 2rpx solid var(--zy-card);
 }
-.zy-tabbar-mark {
-	position: absolute;
-	top: 6rpx;
-	width: 26rpx;
-	height: 3rpx;
-	background: var(--zy-care);
-}
+.zy-tabbar-mark { display: none; }
 </style>

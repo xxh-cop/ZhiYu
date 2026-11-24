@@ -2,9 +2,7 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部标题区 -->
 		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="page-eyebrow">RECOMMENDATIONS · 疗愈推荐</text>
-			<view class="header-row">
-				<text class="page-title">为你推荐</text>
+			<ZyPageHead seal="荐" title="为你推荐" /><view class="header-row">
 				<view v-if="moodTag" class="mood-badge">
 					<text class="mood-text">{{ moodTag }}</text>
 				</view>
@@ -93,11 +91,11 @@
 		</view>
 
 		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
@@ -244,12 +242,12 @@ function dismiss(item) {
 .mood-badge {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 }
 
 .mood-text {
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 
 /* ── 推荐理由卡片 ── */
@@ -257,7 +255,7 @@ function dismiss(item) {
 	position: relative;
 	padding: 28rpx;
 	border-radius: var(--zy-radius-lg, 32rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	box-shadow: var(--zy-shadow-sm);
 	margin-bottom: 24rpx;
@@ -270,7 +268,7 @@ function dismiss(item) {
 	left: 16rpx;
 	font-size:var(--zy-text-display, 56rpx);
 	font-family: var(--zy-serif);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	opacity: 0.15;
 	line-height: 1;
 }
@@ -295,7 +293,7 @@ function dismiss(item) {
 .reason-label {
 	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 500;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 
 .reason-text {
@@ -315,7 +313,7 @@ function dismiss(item) {
 
 .refresh-icon {
 	font-size:var(--zy-text-body, 28rpx);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	transition: transform 0.5s ease;
 }
 
@@ -325,7 +323,7 @@ function dismiss(item) {
 
 .refresh-text {
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 
 /* ── 骨架屏 ── */
@@ -424,12 +422,12 @@ function dismiss(item) {
 .tag-badge {
 	padding: 6rpx 20rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 }
 
 .tag-text {
 	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 
 /* ── 底部免责 ── */
@@ -455,10 +453,10 @@ function dismiss(item) {
 	border-radius: 999rpx;
 }
 .dismiss-btn:focus-visible {
-	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	outline-offset: 2px;
 }
-button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
+button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #24478f));outline-offset:3px}
 
 /* ── v9 冷瓷展签收口 ── */
 .page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg); }
@@ -466,27 +464,27 @@ button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1
 .page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 18rpx; }
 .header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16rpx; }
 .page-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
-.mood-badge { padding: 0; border-radius: 0; background: transparent; border-bottom: 2rpx solid var(--zy-accent); }
+.mood-badge { padding: 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border-bottom: 2rpx solid var(--zy-accent); }
 .mood-text { color: var(--zy-accent); font-size: var(--zy-text-caption, 24rpx); }
-.reason-card { padding: 24rpx 0 24rpx 24rpx; border-radius: 0; background: transparent; border: 0; border-left: 4rpx solid var(--zy-care); box-shadow: none; }
+.reason-card { padding: 24rpx 0 24rpx 24rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 0; border-left: 4rpx solid var(--zy-care); box-shadow: none; }
 .reason-quote { display: none; }
-.reason-icon-wrap { width: 40rpx; height: 40rpx; border-radius: 0; background: transparent; }
+.reason-icon-wrap { width: 40rpx; height: 40rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; }
 .reason-label { color: var(--zy-care); letter-spacing: 1rpx; }
 .reason-text { font-family: var(--zy-font-display, serif); font-size: 32rpx; line-height: 1.9; color: var(--zy-title); }
 .refresh-btn { padding: 8rpx 0; }
 .refresh-text { color: var(--zy-brand-700); }
-.skeleton-card { border-radius: 0; border: 1rpx solid var(--zy-border); }
+.skeleton-card { border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border); }
 .skeleton-cover { height: 220rpx; }
 .card-list { gap: 28rpx; }
-.craft-card { border-radius: 0; }
+.craft-card { border-radius: var(--zy-radius-control, 18rpx); }
 .craft-card:active { transform: none; }
 .card-cover { padding: 0; }
-.level-badge { padding: 6rpx 12rpx; border-radius: 0; background: var(--zy-brand-700); }
+.level-badge { padding: 6rpx 12rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-700); }
 .level-text { letter-spacing: 1rpx; }
 .card-tags { gap: 10rpx; }
-.tag-badge { padding: 2rpx 8rpx; border-radius: 0; border: 1rpx solid var(--zy-border); background: transparent; }
+.tag-badge { padding: 2rpx 8rpx; border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border); background: transparent; }
 .tag-text { color: var(--zy-muted); }
 .card-dismiss { margin-top: 8rpx; }
-.dismiss-btn { border-radius: 0; padding: 4rpx 0; }
+.dismiss-btn { border-radius: var(--zy-radius-control, 18rpx); padding: 4rpx 0; }
 .footnote { color: var(--zy-muted); }
 </style>

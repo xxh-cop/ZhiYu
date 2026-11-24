@@ -94,7 +94,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 	background: var(--zy-card-bg, #fff);
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: var(--zy-radius-card, 32rpx);
-	box-shadow: var(--zy-shadow-lg, 0 8rpx 24rpx rgba(33, 126, 118, 0.1));
+	box-shadow: var(--zy-shadow-lg, 0 8rpx 24rpx rgba(36, 71, 143, 0.1));
 	animation: nudge-in var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
 }
 .nudge.leaving {
@@ -122,7 +122,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 }
 .nudge-action {
 	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-brand-600, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-600, var(--zy-brand-700, #24478f));
 }
 .nudge-close {
 	flex-shrink: 0;
@@ -141,7 +141,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 	line-height: 1;
 }
 .nudge-close::after { border: 0; }
-button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
 	.nudge { animation: none; }
 	.nudge.leaving { transition: none; }

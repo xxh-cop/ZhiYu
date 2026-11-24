@@ -118,7 +118,7 @@ function viewFullPolicy() {
 
 .panel-accent {
 	height: 8rpx;
-	background: linear-gradient(90deg, var(--zy-brand-600, #217e76) 0%, var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)) 100%);
+	background: linear-gradient(90deg, var(--zy-brand-600, #24478f) 0%, var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)) 100%);
 }
 
 .panel-header {
@@ -132,12 +132,12 @@ function viewFullPolicy() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-brand-600, #217e76), #5BCFBF);
+	background: linear-gradient(135deg, var(--zy-brand-600, #24478f), #5BCFBF);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	margin-bottom: 20rpx;
-	box-shadow: 0 8rpx 24rpx rgba(33, 126, 118, 0.2);
+	box-shadow: 0 8rpx 24rpx rgba(36, 71, 143, 0.2);
 }
 
 .header-icon-text {
@@ -149,7 +149,7 @@ function viewFullPolicy() {
 .panel-title {
 	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 600;
-	color: #233d34;
+	color: var(--zy-title);
 }
 
 .panel-sub {
@@ -173,14 +173,14 @@ function viewFullPolicy() {
 	flex: 1;
 	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1.6;
-	color: #4a5f54;
+	color: var(--zy-text);
 }
 
 .policy-link {
 	display: block;
 	text-align: center;
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-brand-700, #1a645e);
+	color: var(--zy-brand-700, #24478f);
 	padding: 16rpx 0 8rpx;
 }
 
@@ -194,7 +194,7 @@ function viewFullPolicy() {
 	flex: 1;
 	height: 88rpx;
 	border-radius: 999rpx;
-	border: 1rpx solid #dfe7dc;
+	border: 1rpx solid var(--zy-border);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -214,12 +214,12 @@ function viewFullPolicy() {
 	flex: 1.2;
 	height: 88rpx;
 	border-radius: 999rpx;
-	background: linear-gradient(135deg, var(--zy-brand-600, #217e76), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
+	background: linear-gradient(135deg, var(--zy-brand-600, #24478f), var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	transition: transform 0.15s ease;
-	box-shadow: 0 4rpx 16rpx rgba(33, 126, 118, 0.25);
+	box-shadow: 0 4rpx 16rpx rgba(36, 71, 143, 0.25);
 }
 
 .btn-agree:active {

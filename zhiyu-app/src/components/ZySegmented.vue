@@ -33,30 +33,32 @@ defineEmits(['update:modelValue'])
 </script>
 
 <style scoped>
+/* v9：浅底轨道 + 选中项浮起白块（青花蓝字） */
 .zy-segmented {
 	display: flex;
-	border: 1rpx solid var(--zy-border, #D3DED8);
-	background: transparent;
+	gap: 8rpx;
+	padding: 8rpx;
+	border-radius: 28rpx;
+	background: var(--zy-bg-sunken, #eef2f7);
 }
 .zy-segmented-item {
 	flex: 1;
 	min-width: 0;
-	min-height: 80rpx;
+	min-height: 76rpx;
 	margin: 0;
 	padding: 0 8rpx;
 	background: transparent;
 	border: 0;
-	border-right: 1rpx solid var(--zy-border, #D3DED8);
-	border-radius: 0;
-	color: var(--zy-text, #42524C);
-	font-size: var(--zy-text-caption, 24rpx);
+	border-radius: 20rpx;
+	color: var(--zy-text, #384256);
+	font-size: var(--zy-text-body, 28rpx);
 	line-height: 1.5;
 }
-.zy-segmented-item:last-child { border-right: 0; }
 .zy-segmented-item::after { border: 0; }
 .zy-segmented-item.active {
-	color: var(--zy-title, #111816);
-	font-weight: 500;
-	box-shadow: inset 0 -3rpx 0 var(--zy-care, #A64842);
+	background: var(--zy-card-bg, #fff);
+	color: var(--zy-brand-600, #24478f);
+	font-weight: 700;
+	box-shadow: 0 4rpx 14rpx rgba(20, 36, 72, 0.12);
 }
 </style>

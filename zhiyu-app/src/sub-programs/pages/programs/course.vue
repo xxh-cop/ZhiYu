@@ -1,4 +1,5 @@
 <script setup>
+import ZyPageHead from '../../../components/ZyPageHead.vue'
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { request } from '@/utils/request'
@@ -62,9 +63,7 @@ onLoad((options) => {
 <template>
 	<view :class="zyThemeClass" class="growth-page course-page">
 		<view class="growth-hero">
-			<text class="growth-eyebrow">SEQUENTIAL LEARNING · 循序学习</text>
-			<text class="growth-title">一课一针，慢慢学</text>
-			<text class="growth-subtitle">跟随自己的节奏，每次学会一点点。</text>
+			<ZyPageHead seal="学" title="一课一针，慢慢学" subtitle="跟随自己的节奏，每次学会一点点。" />
 		</view>
 
 		<StateBlock
@@ -122,7 +121,6 @@ onLoad((options) => {
 			</view>
 		</template>
 
-		<text class="growth-foot">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
 
@@ -202,7 +200,7 @@ onLoad((options) => {
 	margin-top: 32rpx;
 }
 .lesson-row:focus-visible {
-	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #217e76));
+	outline: 3px solid var(--zy-primary, var(--zy-brand-600, #24478f));
 	outline-offset: 3px;
 }
 </style>

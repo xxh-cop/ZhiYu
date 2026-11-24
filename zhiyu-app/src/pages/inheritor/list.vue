@@ -2,9 +2,7 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 顶部标题 -->
 		<view class="header zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="page-eyebrow">HERITAGE KEEPERS · 非遗传承人</text>
-			<text class="page-title">手艺背后，是人</text>
-			<text class="page-subtitle">从一个人，认识一种材料。</text>
+			<ZyPageHead seal="匠" title="手艺背后，是人" subtitle="从一个人，认识一种材料。" />
 		</view>
 
 		<!-- 手艺人的故事 -->
@@ -73,7 +71,7 @@
 		<!-- 空状态 -->
 		<view v-else-if="!loading && records.length === 0 && !errorMsg" class="status-box">
 			<view class="empty-icon-wrap">
-				<ZyIcon name="search" :size="56" color="#6E7B75" class="empty-emoji" />
+				<ZyIcon name="search" :size="56" color="#586379" class="empty-emoji" />
 			</view>
 			<text class="empty-text">暂无传承人</text>
 		</view>
@@ -136,11 +134,11 @@
 		</view>
 
 		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref, computed } from 'vue'
 import { onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
@@ -340,7 +338,7 @@ loadStories()
 }
 
 .search-input-wrap.is-focused {
-	border-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	border-color: var(--zy-primary, var(--zy-brand-600, #24478f));
 }
 
 .search-input {
@@ -355,7 +353,7 @@ loadStories()
 
 .search-btn {
 	font-size:var(--zy-text-body, 28rpx);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	white-space: nowrap;
 }
 
@@ -412,7 +410,7 @@ loadStories()
 .empty-icon-wrap {
 	width: 120rpx;
 	height: 120rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background-color: transparent;
 	border: 1rpx solid var(--zy-border, #d3ded8);
 	display: flex;
@@ -455,7 +453,7 @@ loadStories()
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: linear-gradient(145deg, var(--zy-card-bg, #fff), var(--zy-bg-tint-mint, #e8efe4));
+	background: linear-gradient(145deg, var(--zy-card-bg, #fff), var(--zy-bg-tint-mint, #eef3fb));
 }
 
 /* ── 头像 ── */
@@ -464,7 +462,7 @@ loadStories()
 	height: 132rpx;
 	border-radius: 50%;
 	padding: 4rpx;
-	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-primary-light, var(--zy-brand-300, #8ea9dc)));
 	flex-shrink: 0;
 }
 
@@ -508,7 +506,7 @@ loadStories()
 
 .verified-text {
 	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 
 .project-count-text {
@@ -536,7 +534,7 @@ loadStories()
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #24478f));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -571,9 +569,9 @@ loadStories()
 .story-card { height: 100%; border: 1rpx solid var(--zy-border, #d3ded8); }
 .story-card :deep(.heritage-card-cover) { background: var(--zy-bg-sunken, #e9efeb); border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
 .story-card :deep(.heritage-card-title) { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; line-height: 1.45; }
-.story-card :deep(.heritage-card-tag) { border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
+.story-card :deep(.heritage-card-tag) { border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
 .story-synopsis { display: -webkit-box; overflow: hidden; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-content, #4a5f54); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.story-link { display: block; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); }
+.story-link { display: block; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); }
 .story-boundary { display: block; margin-top: 12rpx; font-size:var(--zy-text-micro, 22rpx); line-height: 1.7; color: var(--zy-text, #4a5f54); }
 
 /* ── v9 冷瓷展签覆盖 ── */
@@ -582,15 +580,15 @@ loadStories()
 .page-eyebrow { display: block; margin-bottom: 18rpx; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
 .page-title { display: block; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; color: var(--zy-title, #111816); }
 .page-subtitle { display: block; margin-top: 10rpx; font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-muted, #6e7b75); }
-.search-input-wrap { border-radius: 0; padding: 14rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
-.search-input-wrap.is-focused { border-color: var(--zy-brand-600, #0e5b53); }
-.search-btn { color: var(--zy-brand-700, #0a403b); padding-left: 24rpx; border-left: 1rpx solid var(--zy-border, #d3ded8); }
+.search-input-wrap { border-radius: var(--zy-radius-control, 18rpx); padding: 14rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
+.search-input-wrap.is-focused { border-color: var(--zy-brand-600, #24478f); }
+.search-btn { color: var(--zy-brand-700, #183369); padding-left: 24rpx; border-left: 1rpx solid var(--zy-border, #d3ded8); }
 .story-eyebrow { font-size: 36rpx; font-weight: 500; }
 .story-note { color: var(--zy-muted, #6e7b75); }
-.story-link { color: var(--zy-brand-700, #0a403b); }
+.story-link { color: var(--zy-brand-700, #183369); }
 .story-boundary { color: var(--zy-muted, #6e7b75); }
 .card-list { gap: 28rpx; }
-.inheritor-card { border-radius: 0; }
+.inheritor-card { border-radius: var(--zy-radius-control, 18rpx); }
 .inheritor-card:active { transform: none; }
 .inheritor-cover { position: relative; height: 180rpx; display: flex; align-items: flex-end; justify-content: flex-start; padding: 20rpx 24rpx; box-sizing: border-box; overflow: hidden; background: var(--zy-bg, #f1f4f1); border-left: 3rpx solid var(--zy-care, #a64842); }
 .inheritor-cover.has-texture { border-left: 0; }
@@ -598,10 +596,10 @@ loadStories()
 .cover-texture { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .inheritor-card :deep(.heritage-card-cover) { height: 180rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
 .inheritor-card :deep(.heritage-card-title) { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
-.inheritor-card :deep(.heritage-card-tag) { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); }
-.avatar-ring { position: relative; z-index: 2; width: 84rpx; height: 84rpx; border-radius: 0; padding: 0; background: transparent; }
-.card-avatar { width: 84rpx; height: 84rpx; border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); overflow: hidden; }
-.avatar-letter { font-family: var(--zy-font-display, serif); font-size: 36rpx; font-weight: 500; color: var(--zy-brand-700, #0a403b); }
+.inheritor-card :deep(.heritage-card-tag) { border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); }
+.avatar-ring { position: relative; z-index: 2; width: 84rpx; height: 84rpx; border-radius: var(--zy-radius-control, 18rpx); padding: 0; background: transparent; }
+.card-avatar { width: 84rpx; height: 84rpx; border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border, #d3ded8); overflow: hidden; }
+.avatar-letter { font-family: var(--zy-font-display, serif); font-size: 36rpx; font-weight: 500; color: var(--zy-brand-700, #183369); }
 .verified-badge { color: var(--zy-muted, #6e7b75); }
 .verified-text { color: var(--zy-muted, #6e7b75); }
 .project-count-text { color: var(--zy-muted, #6e7b75); }

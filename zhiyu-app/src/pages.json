@@ -118,6 +118,7 @@
     {
       "path": "pages/work/list",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "作品社区",
         "enablePullDownRefresh": true,
         "onReachBottomDistance": 50
@@ -139,6 +140,7 @@
     {
       "path": "pages/group/list",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "互助小组"
       }
     },
@@ -151,6 +153,7 @@
     {
       "path": "pages/profile/index",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "我的"
       }
     },
@@ -208,6 +211,7 @@
     {
       "path": "pages/start/index",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "开始手作"
       }
     },
@@ -364,7 +368,7 @@
   "tabBar": {
     "custom": true,
     "color": "#4a5f54",
-    "selectedColor": "#217e76",
+    "selectedColor": "#136a5f",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [

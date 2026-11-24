@@ -72,7 +72,7 @@ const hint = computed(() => {
 	display: block;
 	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 2rpx;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 .practice-bar-title {
 	display: block;
@@ -100,7 +100,7 @@ const hint = computed(() => {
 	border: 1rpx solid var(--zy-border, #dfe7dc);
 	border-radius: 12rpx;
 	background: var(--zy-bg, #ffffff);
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 44px;
 }

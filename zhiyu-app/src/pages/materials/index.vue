@@ -1,49 +1,48 @@
 <template>
 	<view class="growth-page materials-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
- <view class="growth-hero"><text class="growth-eyebrow">MATERIAL ATLAS · 材料探索</text><text class="growth-title">从一种材料，认识一门手艺</text><text class="growth-subtitle">沿着材料、项目与安全说明探索。关联来自已发布项目的人工标注。</text></view>
+ <view class="growth-hero"><ZyPageHead seal="材" title="从一种材料，认识一门手艺" subtitle="沿着材料、项目与安全说明探索。关联来自已发布项目的人工标注。" /></view>
  <AccessibleButton class="growth-card kit-entry" @click="openKits"><view class="kit-entry-copy"><text class="growth-card-title">工作坊材料包</text><text class="growth-muted">竹编 · 夏布绣 · 剪纸 / 3 份准备清单</text></view><text class="kit-entry-arrow">→</text></AccessibleButton>
  <view class="growth-card"><input v-model="query" class="growth-input" maxlength="60" placeholder="搜索项目、品类或材料" placeholder-style="font-size:24rpx;color:#8B9994"/><view class="growth-row categories"><AccessibleButton v-for="m in ['全部','染','塑','织绣','纸','香','雕','未标注']" :key="m" :class="['growth-tag',{selected:medium===m}]" :aria-pressed="medium===m" @click="medium=m">{{m}}</AccessibleButton></view></view>
  <view v-if="loading" class="growth-card" aria-busy="true"><view class="growth-skeleton"/><view class="growth-skeleton short"/><text class="growth-muted">正在整理材料关系…</text></view>
  <view v-else-if="error" class="growth-error" role="alert">{{error}}<AccessibleButton class="growth-button secondary" @click="load">重新加载</AccessibleButton></view>
  <template v-else><view class="relationship"><text class="node">{{medium==='全部'?'所有材料':medium}}</text><text class="connection">→</text><text class="node">{{visible.length}} 个项目</text><text class="connection">→</text><text class="node">安全依据</text></view><text v-if="truncated" class="growth-muted">展示最近 200 个项目，更多项目可在手作推荐中查看。</text><view v-if="!visible.length" class="growth-card"><text class="growth-card-title">还没有匹配的项目</text><text class="growth-muted">试试其他关键词。未维护的材料关系不会由 AI 自动补写。</text><AccessibleButton class="growth-button secondary" @click="query='';medium='全部'">清除筛选</AccessibleButton></view>
  <view class="material-list"><HeritageCard v-for="p in visible" :key="p.id" class="material-card" :family="familyFor(p.category)" :title="p.title" :tag="p.medium||'未标注'" :meta="(p.category || '未分类') + ' · 约 ' + p.estMinutes + ' 分钟'" :note="levels[p.level]||levels.UNKNOWN" @open="detail(p.id)"><AccessibleButton class="details-toggle" :aria-expanded="expanded===p.id" @click.stop="expanded=expanded===p.id?'':p.id">{{expanded===p.id?'收起安全说明 −':'查看安全说明与依据 +'}}</AccessibleButton><view v-if="expanded===p.id" class="details"><text class="growth-muted">{{p.hazards||'暂未标注具体风险，请先向带领者确认。'}}</text><text class="growth-muted">{{p.guidance||'不要仅凭项目名称推断材料与工具安全。'}}</text><text class="source">依据：{{p.source||'尚未填写'}}</text></view><text class="material-open">查看手作项目 →</text></HeritageCard></view></template>
- <text class="growth-foot">本系统不能替代专业心理咨询</text>
 </view></template>
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import{ref,computed}from'vue';import{onLoad}from'@dcloudio/uni-app';import{request}from'../../utils/request';import{useInteraction}from'../../composables/useInteraction';import AccessibleButton from'../../components/AccessibleButton.vue';import HeritageCard from'../../components/HeritageCard.vue'
 const{reducedMotion}=useInteraction();const rows=ref([]),loading=ref(false),error=ref(''),truncated=ref(false),query=ref(''),medium=ref('全部'),expanded=ref('');const levels={LOW:'常规注意',GUIDED:'需在指导下操作',HIGH:'高风险工具 / 材料',UNKNOWN:'安全信息未核验'}
 const visible=computed(()=>rows.value.filter(p=>(medium.value==='全部'||(medium.value==='未标注'?!p.medium:p.medium===medium.value))&&`${p.title} ${p.category} ${p.medium}`.toLowerCase().includes(query.value.trim().toLowerCase())))
 async function load(){loading.value=true;error.value='';try{const data=await request({url:'/api/growth/material-map'});rows.value=data.items;truncated.value=data.truncated}catch(e){error.value=e.message}finally{loading.value=false}}function detail(id){uni.navigateTo({url:'/pages/craft/detail?id='+id})}function openKits(){uni.navigateTo({url:'/pages/materials/kits'})}function familyFor(category){const t=String(category||'');if(/纸|剪/.test(t))return'cutout';if(/竹|编|藤/.test(t))return'weave';if(/布|绣|织|线/.test(t))return'stitch';if(/陶|瓷|釉/.test(t))return'porcelain';return'weave'}onLoad(load)
-</script><style scoped>.categories{gap:12rpx}.categories button{margin:0;border:0;line-height:2}.categories button::after{border:0}.categories .selected{background:var(--zy-brand-700, #1a645e);color:#fff}.relationship{display:flex;align-items:center;justify-content:center;gap:8rpx;margin:26rpx 0}.node{padding:14rpx 16rpx;border:1rpx solid var(--zy-border, #dfe7dc);border-radius:14rpx;background:var(--zy-card-bg,#fff);font-size:var(--zy-text-caption, 24rpx)}.connection{color:var(--zy-text, #4a5f54)}.details-toggle{background:transparent;font-size:var(--zy-text-caption, 24rpx);color:var(--zy-brand-700, #1a645e);text-align:left;padding:0;margin-top:16rpx}.details-toggle::after{border:0}.details{padding:20rpx;background:var(--zy-bg, #ffffff);border-radius:14rpx;animation:detail-in .2s ease-out}.details text{display:block;margin-bottom:12rpx}.source{font-size:var(--zy-text-caption, 24rpx);color:var(--zy-sub, #4a5f54);line-height:1.8}@keyframes detail-in{from{opacity:.4;transform:translateY(-4px)}to{opacity:1;transform:none}}</style>
+</script><style scoped>.categories{gap:12rpx}.categories button{margin:0;border:0;line-height:2}.categories button::after{border:0}.categories .selected{background:var(--zy-brand-700, #24478f);color:#fff}.relationship{display:flex;align-items:center;justify-content:center;gap:8rpx;margin:26rpx 0}.node{padding:14rpx 16rpx;border:1rpx solid var(--zy-border, #dfe7dc);border-radius:14rpx;background:var(--zy-card-bg,#fff);font-size:var(--zy-text-caption, 24rpx)}.connection{color:var(--zy-text, #4a5f54)}.details-toggle{background:transparent;font-size:var(--zy-text-caption, 24rpx);color:var(--zy-brand-700, #24478f);text-align:left;padding:0;margin-top:16rpx}.details-toggle::after{border:0}.details{padding:20rpx;background:var(--zy-bg, #ffffff);border-radius:14rpx;animation:detail-in .2s ease-out}.details text{display:block;margin-bottom:12rpx}.source{font-size:var(--zy-text-caption, 24rpx);color:var(--zy-sub, #4a5f54);line-height:1.8}@keyframes detail-in{from{opacity:.4;transform:translateY(-4px)}to{opacity:1;transform:none}}</style>
 
 <style scoped>
-.kit-entry { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; width: 100%; text-align: left; border-color: var(--zy-primary, var(--zy-brand-600, #217e76)); background: var(--zy-bg-tint-mint, #eaf5ef); }
+.kit-entry { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; width: 100%; text-align: left; border-color: var(--zy-primary, var(--zy-brand-600, #24478f)); background: var(--zy-bg-tint-mint, #eef3fb); }
 .kit-entry-copy { flex: 1; min-width: 0; }
 .kit-entry-copy .growth-card-title { display: block; margin-bottom: 6rpx; color: var(--zy-title, #233d34); font-size:var(--zy-text-body, 28rpx); }
 .kit-entry-copy .growth-muted { display: block; font-size:var(--zy-text-micro, 22rpx); line-height: 1.6; }
-.kit-entry-arrow { flex-shrink: 0; color: var(--zy-brand-700, var(--zy-brand-600, #217e76)); font-size:var(--zy-text-title, 32rpx); }
+.kit-entry-arrow { flex-shrink: 0; color: var(--zy-brand-700, var(--zy-brand-600, #24478f)); font-size:var(--zy-text-title, 32rpx); }
 .kit-entry::after { border: 0; }
 .material-list { display: flex; flex-direction: column; gap: 24rpx; }
-.material-open { display: block; margin-top: 14rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-brand-700, #0a403b); }
+.material-open { display: block; margin-top: 14rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-brand-700, #183369); }
 
 /* ── v9 冷瓷展签收口 ── */
 .materials-page .growth-title { font-size: 56rpx; max-width: 100%; }
-.materials-page > .growth-card:not(.kit-entry) { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: 0; padding: 24rpx 0; }
-.materials-page .growth-input { background: transparent; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: 0; padding: 14rpx 0; margin: 6rpx 0 10rpx; font-size: 26rpx; font-weight: 400; color: var(--zy-title); }
-.kit-entry { border: 1rpx solid var(--zy-border, #d3ded8); border-left: 4rpx solid var(--zy-brand-600, #0e5b53); background: transparent; padding: 24rpx 20rpx; }
+.materials-page > .growth-card:not(.kit-entry) { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); padding: 24rpx 0; }
+.materials-page .growth-input { background: transparent; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: var(--zy-radius-control, 18rpx); padding: 14rpx 0; margin: 6rpx 0 10rpx; font-size: 26rpx; font-weight: 400; color: var(--zy-title); }
+.kit-entry { border: 1rpx solid var(--zy-border, #d3ded8); border-left: 4rpx solid var(--zy-brand-600, #24478f); background: transparent; padding: 24rpx 20rpx; }
 .kit-entry-copy .growth-card-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
-.kit-entry-arrow { color: var(--zy-brand-700, #0a403b); }
+.kit-entry-arrow { color: var(--zy-brand-700, #183369); }
 .categories { gap: 0; flex-wrap: wrap; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
-.categories button { border: 0; border-radius: 0; background: transparent; color: var(--zy-muted, #6e7b75); padding: 8rpx 14rpx 14rpx; font-size: var(--zy-text-micro, 22rpx); line-height: 1.8; }
-.categories button:last-child { border-right: 0; }
-.categories .selected { background: transparent; color: var(--zy-title, #111816); box-shadow: inset 0 -3rpx 0 var(--zy-brand-700, #0a403b); }
+.categories button { border: 2rpx solid var(--zy-border); border-radius: 999rpx; background: var(--zy-card-bg); color: var(--zy-text); padding: 8rpx 24rpx; font-size: var(--zy-text-caption, 24rpx); line-height: 1.8; }
+.categories .selected { background: var(--zy-brand-600); border-color: var(--zy-brand-600); color: #fff; font-weight: 600; }
 .relationship { justify-content: flex-start; flex-wrap: wrap; gap: 14rpx; margin: 26rpx 0; }
-.node { padding: 0; border: 0; border-radius: 0; background: transparent; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #42524c); }
+.node { padding: 0; border: 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-text, #42524c); }
 .connection { color: var(--zy-muted, #6e7b75); }
-.details-toggle { color: var(--zy-brand-700, #0a403b); }
-.details { padding: 20rpx; border-left: 2rpx solid var(--zy-border, #d3ded8); background: transparent; border-radius: 0; }
+.details-toggle { color: var(--zy-brand-700, #183369); }
+.details { padding: 20rpx; border-left: 2rpx solid var(--zy-border, #d3ded8); background: transparent; border-radius: var(--zy-radius-control, 18rpx); }
 .source { color: var(--zy-muted, #6e7b75); }
 .material-card :deep(.heritage-card-cover--material) { background: var(--zy-bg-sunken, #e9efeb); border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
-.material-card :deep(.heritage-card-tag) { border-radius: 0; border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
+.material-card :deep(.heritage-card-tag) { border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
 .material-card :deep(.heritage-card-title) { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
 </style>

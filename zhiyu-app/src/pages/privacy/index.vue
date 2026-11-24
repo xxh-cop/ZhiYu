@@ -222,7 +222,7 @@ async function handleAgree() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -269,7 +269,7 @@ async function handleAgree() {
 .section-heading {
 	font-size:var(--zy-text-title, 32rpx);
 	font-weight: 600;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	display: block;
 	margin-bottom: 16rpx;
 }
@@ -342,7 +342,7 @@ async function handleAgree() {
 .btn-agree {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -365,7 +365,7 @@ async function handleAgree() {
 }
 
 button:focus-visible {
-	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	outline-offset: 3px;
 }
 </style>

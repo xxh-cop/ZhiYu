@@ -47,7 +47,7 @@ onBeforeUnmount(() => _trackToastMount(-1))
 	gap: 12rpx;
 	max-width: 80vw;
 	padding: 16rpx 32rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: rgba(17, 24, 22, 0.94);
 	color: #fff;
 	font-size: var(--zy-font-sm, 24rpx);

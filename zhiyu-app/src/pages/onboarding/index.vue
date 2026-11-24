@@ -154,7 +154,7 @@ function decline() {
 .brand-logo {
 	width: 52rpx;
 	height: 52rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 }
 .brand-name {
 	font-size:var(--zy-text-title, 32rpx);
@@ -172,7 +172,7 @@ function decline() {
 	margin-top: 20rpx;
 	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 3rpx;
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 }
 .title {
 	display: block;
@@ -205,7 +205,7 @@ function decline() {
 	flex: 0 0 auto;
 	font-size:var(--zy-text-caption, 24rpx);
 	font-weight: 600;
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	padding-top: 4rpx;
 }
 .thing-copy {
@@ -228,7 +228,7 @@ function decline() {
 	margin-top: 30rpx;
 	padding: 28rpx;
 	border: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .privacy-title {
@@ -247,7 +247,7 @@ function decline() {
 	margin: 8rpx 0 0;
 	padding-left: 0;
 	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	justify-content: flex-start;
 }
 .disclaimer {

@@ -2,7 +2,7 @@
 	<view class="companion-card growth-card" data-companion-panel>
 		<view class="companion-head">
 			<view class="companion-head-copy">
-				<text class="companion-eyebrow">A SMALL COMPANION</text>
+				<text class="companion-eyebrow">小织陪着你</text>
 				<text class="growth-card-title">和小织说一句</text>
 			</view>
 			<text v-if="stageLabel" class="companion-stage">{{ stageLabel }}</text>
@@ -222,12 +222,12 @@ onBeforeUnmount(() => {
 	display: block;
 	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 3rpx;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 .companion-stage {
 	flex-shrink: 0;
 	padding: 2rpx 10rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	border: 1rpx solid var(--zy-border, #d3ded8);
 	background: transparent;
 	color: var(--zy-muted, #6e7b75);
@@ -251,8 +251,8 @@ onBeforeUnmount(() => {
 	max-width: 92%;
 	margin: 0 0 14rpx;
 	padding: 4rpx 0 4rpx 16rpx;
-	border-left: 2rpx solid var(--zy-brand-600, #0e5b53);
-	border-radius: 0;
+	border-left: 2rpx solid var(--zy-brand-600, #24478f);
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .companion-message.user {
@@ -260,7 +260,7 @@ onBeforeUnmount(() => {
 	margin-left: auto;
 	padding: 12rpx 16rpx;
 	border-left: 0;
-	background: var(--zy-brand-600, #0e5b53);
+	background: var(--zy-brand-600, #24478f);
 }
 .companion-message.user .companion-message-meta { color: rgba(255,255,255,.72); }
 .companion-message.user .companion-message-text { color: #ffffff; }
@@ -294,7 +294,7 @@ onBeforeUnmount(() => {
 	padding: 12rpx 0;
 	border: 0;
 	border-top: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .companion-tool-title {
@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 	padding: 12rpx 0;
 	border: 0;
 	border-top: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 }
 .companion-citation {
@@ -359,7 +359,7 @@ onBeforeUnmount(() => {
 	padding: 14rpx 2rpx;
 	border: 0;
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
 	color: var(--zy-title, #111816);
 	font-size:var(--zy-text-caption, 24rpx);
@@ -370,7 +370,7 @@ onBeforeUnmount(() => {
 	min-width: 140rpx;
 	min-height: 44px;
 	margin: 0;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 }
 .companion-send.is-disabled {
 	opacity: 0.55;

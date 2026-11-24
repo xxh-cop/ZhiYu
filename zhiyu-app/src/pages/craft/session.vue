@@ -140,7 +140,6 @@
 		</view>
 
 		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<!-- 呼吸引导（底部抽屉） -->
 		<BreathingAnimation
@@ -187,7 +186,7 @@
 					<AccessibleButton class="cal-submit" :disabled="!calScore || calibrationBusy" :loading="calibrationBusy" @click="submitCalibration">提交评分</AccessibleButton>
 					<AccessibleButton class="cal-skip" :disabled="calibrationBusy" @click="skipCalibration">跳过</AccessibleButton>
 				</view>
-				<text class="cal-note">可回答也可跳过，都只是帮我们了解创作体验。本系统不能替代专业心理咨询。</text>
+				<text class="cal-note">可回答也可跳过，都只是帮我们了解创作体验。</text>
 			</view>
 		</view>
 
@@ -947,13 +946,13 @@ function handleBackHome() {
 }
 
 .step-dot.done {
-	background-color: var(--zy-brand-300, var(--zy-brand-300, #5bc4a8));
+	background-color: var(--zy-brand-300, var(--zy-brand-300, #8ea9dc));
 }
 
 .step-dot.current {
 	width: 28rpx;
 	border-radius: 8rpx;
-	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	background-color: var(--zy-primary, var(--zy-brand-600, #24478f));
 }
 
 .step-count {
@@ -1038,7 +1037,7 @@ function handleBackHome() {
 	min-height: 88rpx;
 	padding: 20rpx 36rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	color: #fff;
 	font-size:var(--zy-text-body, 28rpx);
 	font-weight: 600;
@@ -1094,8 +1093,8 @@ function handleBackHome() {
 	font-weight: 600;
 }
 .cal-score.selected {
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
-	border-color: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
+	border-color: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	color: #fff;
 }
 
@@ -1107,7 +1106,7 @@ function handleBackHome() {
 	margin: 0;
 	min-height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	color: #fff;
 	font-weight: 600;
 }
@@ -1137,20 +1136,20 @@ function handleBackHome() {
 .banner-btn::after { border: 0; }
 
 .banner-pause {
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 }
 
-.banner-pause .banner-text { color: var(--zy-brand-700, var(--zy-brand-700, #1a645e)); }
+.banner-pause .banner-text { color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); }
 
 .banner-flow {
 	justify-content: center;
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 	animation: flowFadeIn 0.3s ease;
 }
 
 .banner-flow .banner-text {
 	flex: none;
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	letter-spacing: 4rpx;
 }
 
@@ -1218,7 +1217,7 @@ function handleBackHome() {
 	display: block;
 	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 2rpx;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	margin-bottom: 12rpx;
 }
 
@@ -1253,9 +1252,9 @@ function handleBackHome() {
 	gap: 12rpx;
 	margin: 32rpx 0 0;
 	padding: 16rpx 32rpx;
-	border: 2rpx solid var(--zy-primary, var(--zy-brand-600, #217e76));
+	border: 2rpx solid var(--zy-primary, var(--zy-brand-600, #24478f));
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 	line-height: 1.5;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
 }
@@ -1272,7 +1271,7 @@ function handleBackHome() {
 
 .audio-text {
 	font-size:var(--zy-text-body, 28rpx);
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 }
 
 /* ── 失败 / 空状态 ── */
@@ -1306,7 +1305,7 @@ function handleBackHome() {
 	min-width: 320rpx;
 	padding: 0 48rpx;
 	border-radius: var(--zy-radius-control, 24rpx);
-	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	background-color: var(--zy-primary, var(--zy-brand-600, #24478f));
 	color: #ffffff;
 	font-size:var(--zy-text-body, 28rpx);
 }
@@ -1315,7 +1314,7 @@ function handleBackHome() {
 	margin: 0;
 	padding: 12rpx 24rpx;
 	background: transparent;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.5;
 }
@@ -1341,7 +1340,7 @@ function handleBackHome() {
 	padding: 0 12rpx;
 	margin: 0;
 	background: transparent;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	font-size:var(--zy-text-caption, 24rpx);
 	line-height: 1.5;
 }
@@ -1363,14 +1362,14 @@ function handleBackHome() {
 	width: 100%;
 	min-height: 96rpx;
 	border-radius: var(--zy-radius-control, 24rpx);
-	background-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	background-color: var(--zy-primary, var(--zy-brand-600, #24478f));
 	color: #ffffff;
 	font-size:var(--zy-text-body-lg, 30rpx);
 	font-weight: 500;
 }
 
 .primary-btn:active {
-	background-color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	background-color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 }
 
 /* ── 免责声明 ── */
@@ -1430,7 +1429,7 @@ function handleBackHome() {
 	font-family: var(--zy-serif);
 	font-size:var(--zy-text-title-lg, 40rpx);
 	font-weight: 500;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 }
 
 .success-hint {
@@ -1476,7 +1475,7 @@ function handleBackHome() {
 	height: 48rpx;
 	border-radius: 50%;
 	border: 4rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76));
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #24478f));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -1488,22 +1487,22 @@ function handleBackHome() {
 	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-content, #4a5f54);
 }
-button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
+button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #24478f));outline-offset:3px}
 
 /* ── v9 冷瓷展签收口 ── */
 .page { background: var(--zy-bg, #f1f4f1); }
 .topbar { background: var(--zy-bg, #f1f4f1); border-color: var(--zy-border, #d3ded8); }
 .topbar-eyebrow { letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
 .topbar-title { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title, #111816); }
-.step-dot { width: 10rpx; height: 10rpx; border-radius: 0; }
+.step-dot { width: 10rpx; height: 10rpx; border-radius: var(--zy-radius-control, 18rpx); }
 .step-dot.done { background: var(--zy-brand-300); }
-.step-dot.current { width: 26rpx; border-radius: 0; background: var(--zy-brand-600); }
+.step-dot.current { width: 26rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600); }
 .step-count { color: var(--zy-muted, #6e7b75); }
-.more-btn { border-radius: 0; background: transparent; border: 1rpx solid var(--zy-border); }
+.more-btn { border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-border); }
 .banner-readonly { background: transparent; border-left: 3rpx solid var(--zy-accent); }
-.pet-bubble { background: transparent; border: 0; border-left: 2rpx solid var(--zy-brand-600); border-radius: 0; padding: 12rpx 0 12rpx 18rpx; box-shadow: none; }
+.pet-bubble { background: transparent; border: 0; border-left: 2rpx solid var(--zy-brand-600); border-radius: var(--zy-radius-control, 18rpx); padding: 12rpx 0 12rpx 18rpx; box-shadow: none; }
 .pet-bubble-text { color: var(--zy-text, #42524c); }
-.step-card { background: transparent; border-radius: 0; border-left: 3rpx solid var(--zy-brand-600); padding: 24rpx 0 24rpx 24rpx; box-shadow: none; }
+.step-card { background: transparent; border-radius: var(--zy-radius-control, 18rpx); border-left: 3rpx solid var(--zy-brand-600); padding: 24rpx 0 24rpx 24rpx; box-shadow: none; }
 .step-stitch { display: none; }
 .step-kicker { color: var(--zy-muted); letter-spacing: 2px; }
 .step-title { font-size: 48rpx; font-weight: 500; color: var(--zy-title); }
@@ -1511,7 +1510,7 @@ button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1
 .action-area { background: var(--zy-bg); border-color: var(--zy-border); }
 .session-tip, .safe-tip, .footnote { color: var(--zy-muted); }
 .footnote { background: var(--zy-bg); }
-.primary-btn { border-radius: 0; background: var(--zy-brand-600); }
-.success-card { background: var(--zy-bg); border: 1rpx solid var(--zy-border); border-radius: 0; }
+.primary-btn { border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600); }
+.success-card { background: var(--zy-bg); border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); }
 .success-title { font-family: var(--zy-font-display, serif); color: var(--zy-title); }
 </style>

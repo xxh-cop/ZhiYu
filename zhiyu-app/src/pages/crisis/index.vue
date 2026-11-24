@@ -153,7 +153,7 @@ function goChat() {
 	width: 112rpx;
 	height: 112rpx;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-primary-light, var(--zy-brand-300, #8ea9dc)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -206,7 +206,7 @@ function goChat() {
 }
 
 .stripe-mint {
-	background: linear-gradient(90deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-brand-300, var(--zy-brand-300, #5bc4a8)));
+	background: linear-gradient(90deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)));
 }
 
 .card-header {
@@ -231,7 +231,7 @@ function goChat() {
 }
 
 .card-icon-mint {
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 }
 
 .card-header-info {
@@ -255,7 +255,7 @@ function goChat() {
 	display: block;
 	font-size:var(--zy-text-display, 56rpx);
 	font-weight: 700;
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
+	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
 	font-family: var(--zy-serif);
 	letter-spacing: 4rpx;
 	margin-bottom: 28rpx;
@@ -278,8 +278,8 @@ function goChat() {
 }
 
 .card-btn-mint {
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
-	box-shadow: 0 4rpx 16rpx rgba(33, 126, 118, 0.25);
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
+	box-shadow: 0 4rpx 16rpx rgba(36, 71, 143, 0.25);
 }
 
 .card-btn-text {
@@ -297,7 +297,7 @@ function goChat() {
 	padding: 36rpx 32rpx;
 	text-align: left;
 	border-radius: var(--zy-radius-lg, 32rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	box-shadow: var(--zy-shadow-md);
 	margin-bottom: 32rpx;
 	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
@@ -359,17 +359,17 @@ function goChat() {
 	color: var(--zy-text, #4a5f54);
 	text-align: center;
 }
-button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1a645e));outline-offset:3px}
+button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #24478f));outline-offset:3px}
 
 /* ── v9 冷瓷展签收口 ── */
 .page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
 .hero { align-items: flex-start; padding: 28rpx 0 28rpx; border-bottom: 0; }
-.hero-circle { width: 76rpx; height: 76rpx; border-radius: 0; background: transparent; border: 1rpx solid var(--zy-care); box-shadow: none; margin-bottom: 24rpx; }
+.hero-circle { width: 76rpx; height: 76rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-care); box-shadow: none; margin-bottom: 24rpx; }
 .hero-icon-text { font-size: 40rpx; font-weight: 500; color: var(--zy-care); font-family: var(--zy-font-display, serif); }
 .hero-icon-text { font-size: 40rpx; font-weight: 500; }
 .hero-title { font-size: 64rpx; font-weight: 600; line-height: 1.3; }
 .hero-sub { color: var(--zy-muted); }
-.card { margin: 32rpx 0; padding: 28rpx 0; border-radius: 0; background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); box-shadow: none; }
+.card { margin: 32rpx 0; padding: 28rpx 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); box-shadow: none; }
 .card--signal { border-top: 0; padding-top: 0; }
 .support-card { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; }
 .support-copy { display: flex; flex-direction: column; gap: 8rpx; min-width: 0; }
@@ -377,17 +377,17 @@ button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #1
 .card-stripe { height: 2rpx; }
 .stripe-warm { background: var(--zy-care); }
 .stripe-mint { background: var(--zy-brand-600); }
-.card-icon-wrap { width: 56rpx; height: 56rpx; border-radius: 0; }
+.card-icon-wrap { width: 56rpx; height: 56rpx; border-radius: var(--zy-radius-control, 18rpx); }
 .card-icon-warm, .card-icon-mint { background: transparent; border: 1rpx solid var(--zy-border); }
 .card-icon-warm { border-color: var(--zy-care, #a64842); }
 .card-title { font-family: var(--zy-font-display, serif); font-size: 38rpx; font-weight: 500; }
 .card-desc { color: var(--zy-muted); }
 .card-phone { font-size: 72rpx; font-weight: 500; letter-spacing: 2rpx; }
-.card-btn { height: 84rpx; border-radius: 0; box-shadow: none; }
+.card-btn { height: 84rpx; border-radius: var(--zy-radius-control, 18rpx); box-shadow: none; }
 .card-btn:active { transform: none; }
-.chat-card { border-radius: 0; box-shadow: none; padding: 28rpx; }
+.chat-card { border-radius: var(--zy-radius-control, 18rpx); box-shadow: none; padding: 28rpx; }
 .chat-card:active { transform: none; }
-.chat-card-icon { border-radius: 0; }
+.chat-card-icon { border-radius: var(--zy-radius-control, 18rpx); }
 .chat-card-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
 .warm-text { align-items: flex-start; padding-bottom: 40rpx; }
 .warm-line { text-align: left; color: var(--zy-muted); }

@@ -182,7 +182,7 @@ onBeforeUnmount(release)
 	overflow-y: auto;
 	background: var(--zy-card-bg, #fff);
 	border-top: 2rpx solid var(--zy-care, #A64842);
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	padding: 24rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
 	animation: sheet-rise var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
 	transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -220,7 +220,7 @@ onBeforeUnmount(release)
 	align-items: center;
 	justify-content: center;
 	background: transparent;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	color: var(--zy-text-secondary, #4a5f54);
 	font-size:var(--zy-text-body, 28rpx);
 	line-height: 1;
@@ -244,14 +244,14 @@ onBeforeUnmount(release)
 	min-height: 44px;
 	margin: 0;
 	padding: 24rpx 28rpx;
-	border-radius: 0;
-	background: var(--zy-bg-tint-mint, #e8efe4);
+	border-radius: var(--zy-radius-control, 18rpx);
+	background: var(--zy-bg-tint-mint, #eef3fb);
 	line-height: 1.5;
 	text-align: left;
 }
 .sheet-action::after { border: 0; }
 .sheet-action.tone-default { background: transparent; border: 1rpx solid var(--zy-border, #d3ded8); color: var(--zy-title, #111816); }
-.sheet-action.tone-primary { background: var(--zy-brand-600, var(--zy-brand-700, #1a645e)); color: #fff; }
+.sheet-action.tone-primary { background: var(--zy-brand-600, var(--zy-brand-700, #24478f)); color: #fff; }
 .sheet-action.tone-danger { background: transparent; border: 1rpx solid var(--zy-care, var(--zy-care, #a64842)); color: var(--zy-care, var(--zy-care, #a64842)); }
 .sheet-action.disabled { opacity: .5; }
 .sheet-action.is-disabled { opacity: .55; }
@@ -262,14 +262,14 @@ onBeforeUnmount(release)
 	min-height: 44px;
 	margin: 20rpx 0 0;
 	padding: 20rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: var(--zy-bg, #ffffff);
 	color: var(--zy-text-secondary, #4a5f54);
 	font-size: var(--zy-font-base, 28rpx);
 	line-height: 1.5;
 }
 .sheet-cancel::after { border: 0; }
-button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 @keyframes sheet-rise {
 	from { transform: translateY(32rpx); opacity: 0; }
 	to { transform: translateY(0); opacity: 1; }

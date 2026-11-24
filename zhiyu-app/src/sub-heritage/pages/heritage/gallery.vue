@@ -1,7 +1,6 @@
 <template>
 	<view class="heritage-page" :class="[{ 'motion-reduced': reducedMotion }, zyThemeClass]">
-		<SectionHead eyebrow="HERITAGE STUDIES" title="一针一线，都有来处" tone="heritage" />
-		<text class="heritage-subtitle zy-t-body">{{ catalogCount }} · 来源与练习边界可查。</text>
+		<ZyPageHead seal="纹" title="一针一线，都有来处" :subtitle="`${catalogCount} · 来源与练习边界可查。`" />
 
 		<StateBlock v-if="loading" type="loading" shape="list" title="正在整理纹样…" />
 		<StateBlock v-else-if="error" type="error" title="纹样暂时没有载入" :description="error" action-text="重试" @action="load" />
@@ -74,7 +73,6 @@
 			</view>
 		</template>
 
-		<text class="heritage-foot zy-t-caption">本系统不能替代专业心理咨询</text>
 	</view>
 </template>
 
@@ -85,7 +83,7 @@ import { request } from '@/utils/request'
 import { decoratePatterns, filterHeritagePatterns } from '@/utils/heritage-ui'
 import { useInteraction } from '@/composables/useInteraction'
 import AccessibleButton from '@/components/AccessibleButton.vue'
-import SectionHead from '@/components/SectionHead.vue'
+import ZyPageHead from '@/components/ZyPageHead.vue'
 import HeritageCard from '@/components/HeritageCard.vue'
 import StateBlock from '@/components/StateBlock.vue'
 
@@ -249,11 +247,11 @@ onLoad(load)
 }
 
 /* ── v9 冷瓷展签收口 ── */
-.heritage-search-card { padding: 24rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; }
+.heritage-search-card { padding: 24rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); }
 .heritage-label { font-size: var(--zy-text-micro, 22rpx); font-weight: 400; letter-spacing: 2px; color: var(--zy-muted); }
-.heritage-input { background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: 0; padding: 12rpx 0; font-size: 26rpx; font-weight: 400; }
-.heritage-choice { min-height: 64rpx; padding: 6rpx 14rpx; border: 0; border-bottom: 2rpx solid transparent; border-radius: 0; background: transparent; color: var(--zy-text); }
-.heritage-choice.is-selected { background: transparent; border-color: transparent; border-bottom-color: var(--zy-brand-700); color: var(--zy-brand-700); }
+.heritage-input { background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); padding: 12rpx 0; font-size: 26rpx; font-weight: 400; }
+.heritage-choice { min-height: 64rpx; padding: 6rpx 24rpx; border: 2rpx solid var(--zy-border); border-radius: 999rpx; background: var(--zy-card-bg); color: var(--zy-text); }
+.heritage-choice.is-selected { background:var(--zy-brand-600);border:2rpx solid var(--zy-brand-600);color:#fff;font-weight:600;box-shadow:none }
 .heritage-filters { gap: 24rpx; }
 .heritage-grid { gap: 24rpx; }
 .heritage-count { font-family: var(--zy-font-display, serif); font-weight: 500; }

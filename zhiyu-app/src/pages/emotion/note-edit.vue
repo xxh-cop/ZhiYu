@@ -1,60 +1,65 @@
 <template>
-	<view :class="zyThemeClass" class="page zy-page-enter">
-		<!-- 日期区 -->
-		<view class="date-section zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="page-eyebrow">MOOD NOTE · 记录心情</text>
-			<text class="date-big">{{ todayStr }}</text>
-			<text class="date-week">{{ weekDay }}</text>
+	<view :class="zyThemeClass" class="page">
+		<ZyPageHead seal="记" title="此刻心情" :subtitle="todayStr + ' · ' + weekDay" />
+
+		<!-- 心情卡：大表情 + 一句回应 + 五个小表情 -->
+		<view class="mood-card">
+			<view class="mood-hero">
+				<view class="mood-hero-face" :class="{ bounce: bump }">
+					<MoodEmoji :kind="current ? current.kind : 1" :size="150" />
+				</view>
+				<view class="mood-hero-copy">
+					<text class="mood-question">{{ current ? current.label : '今天的你，感觉怎么样？' }}</text>
+					<text class="mood-reply">{{ current ? current.reply : '选一个最接近的就好，不必很准确。' }}</text>
+				</view>
+			</view>
+			<view class="mood-row" role="radiogroup" aria-label="选择此刻心情">
+				<view
+					v-for="m in moods"
+					:key="m.kind"
+					class="mood-item"
+					:class="[{ 'mood-item--active': selectedMood === m.label }, 'tone-' + m.kind]"
+					role="radio"
+					:aria-checked="selectedMood === m.label"
+					:aria-label="m.label"
+					tabindex="0"
+					@click="selectMood(m)"
+					@keydown.enter.prevent="selectMood(m)"
+					@keydown.space.prevent="selectMood(m)"
+				>
+					<view class="mood-face-wrap"><MoodEmoji :kind="m.kind" :size="76" /></view>
+					<text class="mood-label">{{ m.label }}</text>
+				</view>
+			</view>
 		</view>
 
-		<!-- 心情选择 -->
-		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 1">
-			<text class="section-title">此刻心情</text>
-			<scroll-view scroll-x class="mood-scroll" :show-scrollbar="false">
-				<view class="mood-track">
-					<view
-						v-for="(m, i) in moods"
-						:key="i"
-						class="mood-item"
-						:class="{ 'mood-item--active': selectedMood === m.label }"
-						role="button"
-						tabindex="0"
-						@click="selectMood(m)"
-						@keydown.enter.prevent="selectMood(m)"
-						@keydown.space.prevent="selectMood(m)"
-					>
-					<view class="mood-seal-wrap" aria-hidden="true">
-						<text class="mood-seal">{{ m.char }}</text>
-					</view>
-					<text class="mood-label">{{ m.label }}</text>
-					</view>
+		<!-- 书写卡：提示语 + 输入 -->
+		<view class="write-card">
+			<view class="write-head">
+				<view class="write-mark" aria-hidden="true"></view>
+				<text class="write-title">写下此刻</text>
+			</view>
+			<scroll-view scroll-x class="prompt-scroll" :show-scrollbar="false">
+				<view class="prompt-track">
+					<view v-for="p in prompts" :key="p" class="prompt-chip" role="button" tabindex="0" :aria-label="'用这句开头：' + p" @click="usePrompt(p)" @keydown.enter.prevent="usePrompt(p)">{{ p }}</view>
 				</view>
 			</scroll-view>
+			<FormField label="" :error="errors.content" :maxlength="500" :count="content.length">
+				<template #default="{ id, ariaDescribedby, ariaInvalid }">
+					<ZyTextarea :id="id" v-model="content" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!errors.content" placeholder="不用写好，一句话也可以……" :maxlength="500" auto-height :show-confirm-bar="false" @update:model-value="errors.content = ''" />
+				</template>
+			</FormField>
+			<text class="write-note">只有你自己能看到这张便签。</text>
 		</view>
 
-		<!-- 内容输入卡片 -->
-		<view class="section zy-slide-up zy-stagger" style="--stagger-i: 2">
-			<view class="textarea-card">
-				<FormField label="写下此刻" required :error="errors.content" :maxlength="500" :count="content.length">
-					<template #default="{ id, ariaDescribedby, ariaInvalid }">
-						<ZyTextarea :id="id" v-model="content" :aria-describedby="ariaDescribedby" :aria-invalid="ariaInvalid" :error="!!errors.content" placeholder="写下此刻的心情..." :maxlength="500" auto-height :show-confirm-bar="false" @update:model-value="errors.content = ''" />
-					</template>
-				</FormField>
+		<view class="action-area">
+			<view class="note-save" :class="{ 'note-save--loading': saving }" role="button" tabindex="0" @click="handleSave" @keydown.enter.prevent="handleSave" @keydown.space.prevent="handleSave">
+				<text class="note-save-text">{{ saving ? '正在收好…' : (isEdit ? '保存修改' : '收进心情便签') }}</text>
+			</view>
+			<view v-if="isEdit" class="note-delete" role="button" tabindex="0" @click="handleDelete" @keydown.enter.prevent="handleDelete" @keydown.space.prevent="handleDelete">
+				<text class="note-delete-text">移除这张便签</text>
 			</view>
 		</view>
-
-		<!-- 保存按钮 -->
-		<view class="action-area zy-slide-up zy-stagger" style="--stagger-i: 3">
-			<view class="save-btn" :class="{ 'save-btn--loading': saving }" role="button" tabindex="0" @click="handleSave" @keydown.enter.prevent="handleSave" @keydown.space.prevent="handleSave">
-				<text class="save-btn-text">{{ saving ? '保存中...' : '保存' }}</text>
-			</view>
-			<view v-if="isEdit" class="delete-btn" role="button" tabindex="0" @click="handleDelete" @keydown.enter.prevent="handleDelete" @keydown.space.prevent="handleDelete">
-				<text class="delete-btn-text">移除便签</text>
-			</view>
-		</view>
-
-		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<ActionSheet
 			:open="pendingDelete"
@@ -71,24 +76,27 @@
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
 import ActionSheet from '../../components/ActionSheet.vue'
 import FormField from '../../components/FormField.vue'
 import ZyTextarea from '../../components/ZyTextarea.vue'
+import MoodEmoji from '../../components/MoodEmoji.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
 
 const toast = useToast()
 
 const moods = [
-	{ kind: 0, label: '开心', char: '喜' },
-	{ kind: 1, label: '平静', char: '静' },
-	{ kind: 2, label: '一般', char: '平' },
-	{ kind: 3, label: '有点累', char: '倦' },
-	{ kind: 4, label: '不太好', char: '低' },
+	{ kind: 0, label: '开心', reply: '真好呀，把这份开心好好收起来。', prompts: ['今天让我笑出来的是…', '想谢谢的一个人是…', '这份开心来自…'] },
+	{ kind: 1, label: '平静', reply: '平静也很珍贵，慢慢感受它。', prompts: ['此刻我身边有…', '让我安定下来的是…', '我想保持这种感觉，因为…'] },
+	{ kind: 2, label: '一般', reply: '普普通通的一天，也值得被记住。', prompts: ['今天还算顺利的一件事是…', '今天有点在意的是…', '明天想试试…'] },
+	{ kind: 3, label: '有点累', reply: '辛苦了，先让自己歇一会儿。', prompts: ['让我累的是…', '现在最想做的休息是…', '我已经尽力的地方是…'] },
+	{ kind: 4, label: '不太好', reply: '谢谢你愿意说出来，我在这儿陪着你。', prompts: ['此刻我感到…', '如果能对自己说一句话…', '可以让我好一点点的是…'] },
 ]
+const DEFAULT_PROMPTS = ['今天让我印象深的是…', '此刻我感到…', '想对自己说…']
 
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
@@ -102,6 +110,14 @@ const pendingDelete = ref(false)
 const deleting = ref(false)
 
 const isEdit = computed(() => !!noteId.value)
+const current = computed(() => moods.find((m) => m.label === selectedMood.value) || null)
+const prompts = computed(() => (current.value ? current.value.prompts : DEFAULT_PROMPTS))
+const bump = ref(false)
+function usePrompt(p) {
+	const base = content.value.trim()
+	content.value = (base ? base + '\n' : '') + p
+	errors.value.content = ''
+}
 
 const todayStr = computed(() => {
 	const d = new Date()
@@ -140,6 +156,8 @@ async function loadDetail() {
 
 function selectMood(m) {
 	selectedMood.value = selectedMood.value === m.label ? '' : m.label
+	bump.value = false
+	setTimeout(() => { bump.value = true }, 0)
 }
 
 async function handleSave() {
@@ -197,227 +215,62 @@ async function confirmDelete() {
 </script>
 
 <style scoped>
+/* v9 记录心情：暖色、手绘表情、像在写一张小便签 */
 .page {
+	--note-warm: #fff4e8;
+	--note-warm-2: #ffe7cf;
+	--note-ink: #8a4b2a;
 	min-height: 100vh;
-	padding: 36rpx 32rpx 120rpx;
+	padding: 28rpx 28rpx 140rpx;
 	box-sizing: border-box;
-	background-color: var(--zy-bg, #f1f4f1);
+	background: var(--zy-bg);
 }
+.page.zy-theme-dark { --note-warm: #2e2520; --note-warm-2: #3a2d24; --note-ink: #f0c49b; }
 
-/* ── 日期区 ── */
-.date-section {
-	margin-bottom: 32rpx;
-	padding-bottom: 24rpx;
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-}
+/* 心情卡 */
+.mood-card { position: relative; padding: 32rpx 26rpx 26rpx; border-radius: 40rpx; background: linear-gradient(160deg, var(--note-warm-2) 0%, var(--note-warm) 45%, var(--zy-card-bg) 100%); box-shadow: 0 12rpx 36rpx rgba(201, 120, 60, .14); overflow: hidden; }
+.mood-hero { display: flex; align-items: center; gap: 24rpx; margin-bottom: 28rpx; }
+.mood-hero-face { flex-shrink: 0; width: 170rpx; height: 170rpx; border-radius: 50%; background: rgba(255, 255, 255, .7); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 6rpx rgba(255, 255, 255, .9); }
+.mood-hero-face.bounce { animation: moodPop 420ms cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes moodPop { 0% { transform: scale(.82); } 100% { transform: scale(1); } }
+.mood-hero-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10rpx; }
+.mood-question { font-family: var(--zy-font-display); font-size: 40rpx; font-weight: 700; line-height: 1.35; color: var(--zy-title); }
+.mood-reply { font-size: 26rpx; line-height: 1.7; color: var(--note-ink); }
 
-.page-eyebrow {
-	display: block;
-	margin-bottom: 10rpx;
-	font-size: var(--zy-text-micro, 22rpx);
-	letter-spacing: 2px;
-	color: var(--zy-muted, #6e7b75);
-}
+.mood-row { display: flex; justify-content: space-between; gap: 8rpx; padding: 18rpx 8rpx 8rpx; border-radius: 32rpx; background: rgba(255, 255, 255, .62); }
+.page.zy-theme-dark .mood-row { background: rgba(0, 0, 0, .18); }
+.mood-item { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; padding: 8rpx 0 12rpx; border-radius: 28rpx; transition: transform 220ms cubic-bezier(.34, 1.56, .64, 1), background-color 200ms ease; }
+.mood-face-wrap { width: 96rpx; height: 96rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4rpx solid transparent; transition: border-color 200ms ease, box-shadow 200ms ease; }
+.mood-label { font-size: 24rpx; color: var(--zy-text); }
+.mood-item:active { transform: scale(.94); }
+.mood-item--active { transform: translateY(-6rpx); }
+.mood-item--active .mood-label { font-weight: 700; color: var(--zy-title); }
+.mood-item--active.tone-0 .mood-face-wrap { border-color: #f2b53a; box-shadow: 0 8rpx 20rpx rgba(242, 181, 58, .4); background: #fff8e1; }
+.mood-item--active.tone-1 .mood-face-wrap { border-color: #6fbf98; box-shadow: 0 8rpx 20rpx rgba(111, 191, 152, .38); background: #effaf4; }
+.mood-item--active.tone-2 .mood-face-wrap { border-color: #e0b866; box-shadow: 0 8rpx 20rpx rgba(224, 184, 102, .38); background: #fff7e6; }
+.mood-item--active.tone-3 .mood-face-wrap { border-color: #a497d8; box-shadow: 0 8rpx 20rpx rgba(164, 151, 216, .38); background: #f5f2fd; }
+.mood-item--active.tone-4 .mood-face-wrap { border-color: #8aa6cf; box-shadow: 0 8rpx 20rpx rgba(138, 166, 207, .4); background: #eef3fa; }
+.mood-item:focus-visible { outline: 3px solid var(--zy-brand-600); outline-offset: 2px; }
 
-.date-big {
-	font-size:56rpx;
-	font-weight: 500;
-	color: var(--zy-title, #111816);
-	font-family: var(--zy-font-display, serif);
-	display: block;
-	line-height: 1.2;
-}
+/* 书写卡 */
+.write-card { margin-top: 24rpx; padding: 28rpx 26rpx 22rpx; border-radius: 36rpx; background: var(--zy-card-bg); box-shadow: var(--zy-shadow-card); }
+.write-head { display: flex; align-items: center; gap: 14rpx; margin-bottom: 18rpx; }
+.write-mark { width: 8rpx; height: 32rpx; border-radius: 4rpx; background: #f0a35e; }
+.write-title { font-family: var(--zy-font-display); font-size: 34rpx; font-weight: 700; color: var(--zy-title); }
+.write-count { margin-left: auto; font-size: 22rpx; color: var(--zy-muted); }
+.prompt-scroll { width: 100%; white-space: nowrap; margin-bottom: 18rpx; }
+.prompt-track { display: inline-flex; gap: 12rpx; padding: 2rpx; }
+.prompt-chip { display: inline-flex; align-items: center; min-height: 60rpx; padding: 0 24rpx; border-radius: 999rpx; background: var(--note-warm); color: var(--note-ink); font-size: 24rpx; border: 2rpx dashed rgba(201, 120, 60, .35); white-space: nowrap; }
+.prompt-chip:active { background: var(--note-warm-2); }
+.write-note { display: block; margin-top: 14rpx; font-size: 22rpx; color: var(--zy-muted); }
 
-.date-week {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-muted, #6e7b75);
-	display: block;
-	margin-top: 4rpx;
-}
-
-/* ── 通用 section ── */
-.section {
-	margin-bottom: 32rpx;
-}
-
-.section-title {
-	display: block;
-	font-size:var(--zy-text-body-lg, 30rpx);
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-	margin-bottom: 20rpx;
-	font-family: var(--zy-serif);
-}
-
-/* ── 心情选择 ── */
-.mood-scroll {
-	width: 100%;
-	white-space: nowrap;
-}
-
-.mood-track {
-	display: flex;
-	width: 100%;
-	gap: 0;
-	padding-right: 0;
-}
-
-.mood-item {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: flex-start;
-	gap: 8rpx;
-	padding: 20rpx 2rpx;
-	flex: 1;
-	width: auto;
-	min-width: 0;
-	border-radius: 0;
-	background-color: transparent;
-	border: 1rpx solid var(--zy-border, #d3ded8);
-	border-left: 0;
-	flex-shrink: 1;
-	transition: all var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
-}
-.mood-item:first-child { border-left: 1rpx solid var(--zy-border, #d3ded8); }
-
-.mood-ring {
-	display: none;
-}
-
-.mood-seal-wrap {
-	width: 72rpx;
-	height: 72rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.mood-seal {
-	font-family: var(--zy-font-display, "Songti SC", "STSong", "Noto Serif CJK SC", serif);
-	font-size: 54rpx;
-	line-height: 1;
-	color: var(--zy-title, #111816);
-}
-
-.mood-item--active {
-	border-color: var(--zy-brand-600, #0e5b53);
-	background-color: transparent;
-	box-shadow: inset 0 -3rpx 0 var(--zy-brand-600, #0e5b53);
-	transform: none;
-	box-shadow: inset 0 -3rpx 0 var(--zy-brand-600, #0e5b53);
-}
-
-.mood-item--active .mood-seal {
-	color: var(--zy-brand-700, #0a403b);
-}
-
-.mood-label {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #4a5f54);
-}
-
-.mood-item--active .mood-label {
-	color: var(--zy-brand-700, var(--zy-brand-600, #217e76));
-	font-weight: 500;
-}
-
-/* ── 内容输入卡片 ── */
-.textarea-card {
-	background-color: transparent;
-	border-radius: 0;
-	border: 0;
-	border-top: 1rpx solid var(--zy-border, #d3ded8);
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	padding: 24rpx 0;
-	box-shadow: none;
-}
-
-.note-textarea {
-	width: 100%;
-	min-height: 200rpx;
-	font-size:var(--zy-text-body, 28rpx);
-	line-height: 1.8;
-	color: var(--zy-title, #111816);
-	background-color: transparent;
-	border: none;
-}
-
-.char-count {
-	display: block;
-	text-align: right;
-	margin-top: 12rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-text, #4a5f54);
-}
-
-/* ── 保存按钮 ── */
-.action-area {
-	margin-top: 16rpx;
-	display: flex;
-	flex-direction: column;
-	gap: 20rpx;
-}
-
-.save-btn {
-	height: 88rpx;
-	border-radius: 0;
-	background: var(--zy-brand-600, #0e5b53);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: transform var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-	box-shadow: none;
-}
-
-.save-btn:active {
-	transform: none;
-}
-
-.save-btn:focus-visible,
-.delete-btn:focus-visible,
-.mood-item:focus-visible {
-	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
-	outline-offset: 3px;
-}
-
-.save-btn--loading {
-	opacity: 0.6;
-}
-
-.save-btn-text {
-	font-size:var(--zy-text-title, 32rpx);
-	font-weight: 500;
-	color: #FFFFFF;
-}
-
-.delete-btn {
-	height: 72rpx;
-	border-radius: 0;
-	border: 0;
-	border-top: 1rpx solid var(--zy-border, #d3ded8);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-}
-
-.delete-btn:active {
-	background-color: rgba(166, 72, 66, 0.05);
-}
-
-.delete-btn-text {
-	font-size:var(--zy-text-body-lg, 30rpx);
-	color: var(--zy-care, var(--zy-care, #a64842));
-}
-
-/* ── 底部免责 ── */
-.footnote {
-	display: block;
-	margin-top: 48rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-muted, #6e7b75);
-	text-align: center;
-}
+/* 按钮 */
+.action-area { margin-top: 28rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.note-save { height: 96rpx; border-radius: 999rpx; background: linear-gradient(90deg, #f0a35e 0%, #e27d5b 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 12rpx 28rpx rgba(226, 125, 91, .35); }
+.note-save:active { transform: scale(.98); }
+.note-save--loading { opacity: .7; }
+.note-save-text { font-size: 32rpx; font-weight: 700; color: #fff; letter-spacing: 2rpx; }
+.note-delete { height: 80rpx; border-radius: 999rpx; display: flex; align-items: center; justify-content: center; background: var(--zy-bg-tint-care); }
+.note-delete-text { font-size: 28rpx; color: var(--zy-care); }
+.note-save:focus-visible, .note-delete:focus-visible { outline: 3px solid var(--zy-brand-600); outline-offset: 3px; }
 </style>

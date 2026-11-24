@@ -371,11 +371,218 @@ page {
 	min-height: 100vh;
 }
 
+/**
+ * ── v9「青花瓷」视觉体系（2026-11-23 全面重构 P1）────────────────
+ * 白瓷底 + 青花蓝（行动/链接/选中）+ 朱砂（印章/强调，危险提示另用 care 绛红）
+ * + 松绿（成功/平静）+ 藤黄（非遗徽记）。
+ * 规则：可点的东西必须「有面」（填充或描边 + 圆角）；选中 = 青花蓝实底白字；
+ * 每屏至多一个主按钮；页头用「朱砂印章 + 宋体标题」，不再用英文小字眉题。
+ * 色值对比度（WCAG）：白字/青花600 = 8.6:1，正文/底 ≥ 9:1，muted/底 = 5.9:1。
+ * 回滚：删除本段即回到 v7。
+ */
+:root,
+page {
+	/* 品牌：青花蓝 */
+	--zy-brand-50: #eef3fb;
+	--zy-brand-100: #dde6f6;
+	--zy-brand-200: #bccdec;
+	--zy-brand-300: #8ea9dc;
+	--zy-brand-500: #3a62ae;
+	--zy-brand-600: #24478f;    /* 主按钮底 */
+	--zy-brand-700: #183369;    /* 按下 / 次按钮文字 */
+	--zy-brand-900: #0d1f45;
+
+	/* 传统色辅色 */
+	--zy-cinnabar: #c0392b;     /* 朱砂：印章、强调短线 */
+	--zy-cinnabar-50: #fbecea;
+	--zy-gamboge: #c58b2a;      /* 藤黄：非遗徽记、星标（图形级） */
+	--zy-gamboge-50: #fbf1de;
+	--zy-pine: #2f7d68;         /* 松绿：成功、平静 */
+	--zy-pine-50: #e6f3ee;
+	--zy-indigo: #24478f;
+	--zy-indigo-50: #eef3fb;
+
+	/* 面：白瓷 */
+	--zy-bg: #f6f8fb;
+	--zy-card-bg: #ffffff;
+	--zy-card: #ffffff;
+	--zy-card-line: #e4e9f1;
+	--zy-line-soft: #edf0f5;
+	--zy-bg-sunken: #eef2f7;
+	--zy-bg-warm: #ffffff;
+	--zy-border: #d3dbe7;
+	--zy-stitch: #c2cbd9;
+
+	/* 字：墨蓝三级 */
+	--zy-title: #141c2e;
+	--zy-text: #384256;
+	--zy-content: #384256;
+	--zy-muted: #586379;
+	--zy-aid: #586379;
+	--zy-faint: #8a93a6;
+	--zy-accent: #a8322a;
+
+	/* 语义 */
+	--zy-success: #2f7d68;
+	--zy-warning: #a0661a;
+	--zy-warning-text: #85520f;
+	--zy-care: #b03d33;
+	--zy-danger: #b03d33;
+	--zy-gold: #c58b2a;
+	--zy-bg-tint-mint: #e6f3ee;
+	--zy-bg-tint-warm: #fbf1de;
+	--zy-bg-tint-care: #fbeae7;
+
+	/* 圆角 */
+	--zy-radius-xs: 6rpx;
+	--zy-radius-sm: 12rpx;
+	--zy-radius-md: 20rpx;
+	--zy-radius-lg: 28rpx;
+	--zy-radius-xl: 40rpx;
+	--zy-radius-card: 28rpx;
+	--zy-radius-control: 20rpx;
+	--zy-radius-dialog: 36rpx;
+	--zy-radius-chip: 999rpx;
+	--zy-radius-feature: 36rpx;
+	--zy-radius-full: 999rpx;
+
+	/* 投影：青灰、很淡 */
+	--zy-shadow-card: 0 6rpx 24rpx rgba(20, 36, 72, 0.06);
+	--zy-shadow-cta: 0 10rpx 24rpx rgba(36, 71, 143, 0.26);
+	--zy-shadow-pop: 0 20rpx 52rpx rgba(20, 36, 72, 0.16);
+	--zy-shadow-xs: var(--zy-shadow-card);
+	--zy-shadow-sm: var(--zy-shadow-card);
+	--zy-shadow-md: var(--zy-shadow-card);
+	--zy-shadow-lg: var(--zy-shadow-pop);
+	--zy-shadow-xl: var(--zy-shadow-pop);
+
+	/* 兼容别名 */
+	--zy-primary: #24478f;
+	--zy-primary-light: #8ea9dc;
+
+	/* wot-design-uni */
+	--wot-color-theme: #24478f;
+	--wot-color-bg: #f6f8fb;
+	--wot-color-border: #d3dbe7;
+	--wot-color-border-light: #edf0f5;
+	--wot-color-title: #141c2e;
+	--wot-color-content: #384256;
+	--wot-color-secondary: #586379;
+	--wot-color-aid: #586379;
+	--wot-color-tip: #8a93a6;
+	--wot-color-danger: #b03d33;
+	--wot-color-success: #2f7d68;
+	--wot-color-warning: #a0661a;
+	--wot-color-info: #586379;
+
+	/* 插画令牌 */
+	--zy-art-line: #24478f;
+	--zy-art-paper: #ffffff;
+	--zy-art-ground: #eef2f7;
+	--zy-art-soft: #dde6f6;
+	--zy-art-thread: #8ea9dc;
+	--zy-art-cinnabar: #c0392b;
+
+	--zy-d-bg: #121a2b;
+	--zy-d-surface: #1b2539;
+	--zy-d-text: #eef2f8;
+	--zy-d-text-secondary: #c3cbdb;
+	--zy-d-primary: #9db8ec;
+}
+
+/* 可选「暖纸」主题：宣纸米色 + 暖墨投影（设置页 → 页面配色 → 暖纸） */
+.zy-theme-warm {
+	--zy-bg: #f6f1e6;
+	--zy-card-bg: #fffdf8;
+	--zy-card: #fffdf8;
+	--zy-card-line: #e6dcc8;
+	--zy-line-soft: #ece3d1;
+	--zy-bg-sunken: #efe7d6;
+	--zy-border: #d9cdb5;
+	--zy-stitch: #cdbfa3;
+	--zy-bg-warm: #fffdf8;
+	--zy-art-paper: #fffdf8;
+	--zy-art-ground: #efe7d6;
+	--zy-shadow-card: 0 4rpx 18rpx rgba(74, 56, 26, 0.07);
+	--zy-shadow-pop: 0 18rpx 48rpx rgba(54, 40, 18, 0.16);
+	--wot-color-bg: #f6f1e6;
+	--wot-color-border: #d9cdb5;
+	--wot-color-border-light: #ece3d1;
+	background-color: var(--zy-bg);
+}
+
+/**
+ * 可选「青瓷」主题：保留原版的淡青底 + 青绿行动色（设置页 → 页面配色 → 青瓷）。
+ * 只换品牌色阶、面与字色；印章朱砂、圆角、阴影结构、组件与青花瓷默认完全共用。
+ */
+.zy-theme-jade {
+	--zy-brand-50: #e8f2ed;
+	--zy-brand-100: #cfe5da;
+	--zy-brand-200: #a7d1bf;
+	--zy-brand-300: #6fb39c;
+	--zy-brand-500: #2a8070;
+	--zy-brand-600: #136a5f;
+	--zy-brand-700: #0c4f47;
+	--zy-brand-900: #06302b;
+	--zy-primary: #136a5f;
+	--zy-primary-light: #6fb39c;
+	--zy-indigo: #136a5f;
+	--zy-indigo-50: #e8f2ed;
+
+	--zy-bg: #f1f4f1;
+	--zy-card-bg: #ffffff;
+	--zy-card: #ffffff;
+	--zy-card-line: #dfe7e2;
+	--zy-line-soft: #e8eeea;
+	--zy-bg-sunken: #e9efeb;
+	--zy-bg-warm: #ffffff;
+	--zy-border: #d3ded8;
+	--zy-stitch: #b9cbc4;
+
+	--zy-title: #1e2724;
+	--zy-text: #3b4641;
+	--zy-content: #3b4641;
+	--zy-muted: #5b6660;
+	--zy-aid: #5b6660;
+	--zy-faint: #85918b;
+
+	--zy-shadow-card: 0 6rpx 24rpx rgba(20, 48, 40, 0.06);
+	--zy-shadow-cta: 0 10rpx 24rpx rgba(19, 106, 95, 0.26);
+	--zy-shadow-pop: 0 20rpx 52rpx rgba(20, 48, 40, 0.15);
+
+	--wot-color-theme: #136a5f;
+	--wot-color-bg: #f1f4f1;
+	--wot-color-border: #d3ded8;
+	--wot-color-border-light: #e8eeea;
+	--wot-color-title: #1e2724;
+	--wot-color-content: #3b4641;
+	--wot-color-secondary: #5b6660;
+	--wot-color-aid: #5b6660;
+
+	--zy-art-line: #136a5f;
+	--zy-art-ground: #e9efeb;
+	--zy-art-soft: #cfe5da;
+	--zy-art-thread: #6fb39c;
+	background-color: var(--zy-bg);
+}
+/* 青瓷下的纹饰换成青绿线（data-URI 读不到变量，故单独给一份） */
+.zy-theme-jade .zy-wave-bg {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Cg fill='none' stroke='%23136A5F' stroke-width='.9' opacity='.16'%3E%3Cpath d='M0 20a10 10 0 0 1 20 0a10 10 0 0 1 20 0M5 20a5 5 0 0 1 10 0M25 20a5 5 0 0 1 10 0M-10 10a10 10 0 0 1 20 0a10 10 0 0 1 20 0a10 10 0 0 1 20 0M-5 10a5 5 0 0 1 10 0M15 10a5 5 0 0 1 10 0M35 10a5 5 0 0 1 10 0'/%3E%3C/g%3E%3C/svg%3E");
+}
+.zy-theme-jade .zy-band-meander {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12'%3E%3Cpath d='M0 11H3V1H17V9H7V5H13M17 9V11H20' fill='none' stroke='%23136A5F' stroke-width='1.3' opacity='.5'/%3E%3C/svg%3E");
+}
+
 /* H5：历史 warm class 下的模拟 tabBar / 导航条也回到冷瓷白 */
 /* #ifdef H5 */
-html.zy-theme-warm .uni-tabbar { background-color: #ffffff !important; }
-html.zy-theme-warm .uni-tabbar-border { background-color: #d3ded8 !important; }
-html.zy-theme-warm .uni-page-head { background-color: #f1f4f1 !important; }
+/* H5 默认导航条：白底 + 发丝线 */
+.uni-page-head { background-color: #ffffff !important; color: #141c2e !important; border-bottom: 1px solid #e4e9f1; }
+html.zy-theme-warm .uni-tabbar { background-color: #fffdf8 !important; }
+html.zy-theme-warm .uni-tabbar-border { background-color: #d9cdb5 !important; }
+html.zy-theme-warm .uni-page-head { background-color: #f6f1e6 !important; border-bottom-color: #e6dcc8; }
+html.zy-theme-warm, html.zy-theme-warm body, html.zy-theme-warm uni-page-body { background-color: #f6f1e6; }
+html.zy-theme-jade .uni-page-head { background-color: #ffffff !important; border-bottom-color: #dfe7e2; }
+html.zy-theme-jade, html.zy-theme-jade body, html.zy-theme-jade uni-page-body { background-color: #f1f4f1; }
 /* #endif */
 
 /**
@@ -387,70 +594,71 @@ html.zy-theme-warm .uni-page-head { background-color: #f1f4f1 !important; }
  * 组件级例外（主按钮文字、tab 选中色等）见 App.vue 全局深色规则。
  */
 .zy-theme-dark {
-	--zy-bg: #0b1513;
-	--zy-card-bg: #111e1a;
-	--zy-card: #111e1a;
-	--zy-card-line: rgba(241, 244, 241, 0.14);
-	--zy-line-soft: rgba(241, 244, 241, 0.14);
-	--zy-bg-sunken: #0e1a17;
-	--zy-bg-warm: #111e1a;
-	--zy-title: #f1f4f1;
-	--zy-text: #c3d2ca;
-	--zy-content: #c3d2ca;
-	--zy-muted: #a9bbb2;
-	--zy-aid: #a9bbb2;
-	--zy-border: rgba(241, 244, 241, 0.22);
-	--zy-stitch: #3a4f47;
-	--zy-faint: #8fa39a;
+	/* v9：青花夜（藏青墨底），卡片与底拉开一档 */
+	--zy-bg: #121a2b;
+	--zy-card-bg: #1c2740;
+	--zy-card: #1c2740;
+	--zy-card-line: rgba(238, 242, 248, 0.14);
+	--zy-line-soft: rgba(238, 242, 248, 0.12);
+	--zy-bg-sunken: #172136;
+	--zy-bg-warm: #1c2740;
+	--zy-cinnabar: #e8806f;
+	--zy-shadow-card: 0 6rpx 24rpx rgba(0, 0, 0, 0.32);
+	--zy-shadow-cta: 0 10rpx 24rpx rgba(0, 0, 0, 0.35);
+	--zy-shadow-pop: 0 20rpx 52rpx rgba(0, 0, 0, 0.5);
+	--zy-title: #eef2f8;
+	--zy-text: #c9d1e0;
+	--zy-content: #c9d1e0;
+	--zy-muted: #a7b1c6;
+	--zy-aid: #a7b1c6;
+	--zy-border: rgba(238, 242, 248, 0.22);
+	--zy-stitch: #34405a;
+	--zy-faint: #8590a8;
 
-	/* 品牌：填充保持中绿（白字 ≥4.5:1），文字/链接/次按钮用浅青 */
-	--zy-brand-50: #142622;
-	--zy-brand-100: #1b332d;
-	--zy-brand-200: #2f7e72;
-	--zy-brand-300: #8fc7b8;
-	--zy-brand-500: #6fb3a2;
-	--zy-brand-600: #2c776c;
-	--zy-brand-700: #8fc7b8;
-	--zy-brand-900: #dcece5;
-	--zy-primary: #8fc7b8;
-	--zy-primary-light: #8fc7b8;
+	/* 品牌：填充保持中蓝（白字 ≥4.5:1），文字/链接用浅青花 */
+	--zy-brand-50: #18233a;
+	--zy-brand-100: #22325a;
+	--zy-brand-200: #34508c;
+	--zy-brand-300: #9db8ec;
+	--zy-brand-500: #7f9fdf;
+	--zy-brand-600: #3a62ae;
+	--zy-brand-700: #9db8ec;
+	--zy-brand-900: #dde6f6;
+	--zy-primary: #9db8ec;
+	--zy-primary-light: #9db8ec;
 
-	/* 语义：深底上提亮一档 */
-	--zy-care: #d4736a;
-	--zy-danger: #d4736a;
-	--zy-success: #6fbf9a;
-	--zy-warning: #c98a7a;
-	--zy-warning-text: #c98a7a;
-	--zy-accent: #c98a7a;
-	--zy-gold: #c8a45c;
+	--zy-care: #e07a6e;
+	--zy-danger: #e07a6e;
+	--zy-success: #6cc3a6;
+	--zy-warning: #d8a25a;
+	--zy-warning-text: #d8a25a;
+	--zy-accent: #e8806f;
+	--zy-gold: #d8a25a;
 
-	/* tint 语义底：深底同族 */
-	--zy-bg-tint-mint: #142622;
-	--zy-bg-tint-warm: #241d18;
-	--zy-bg-tint-care: #2a1a17;
+	--zy-bg-tint-mint: #16302a;
+	--zy-bg-tint-warm: #2c2417;
+	--zy-bg-tint-care: #33201f;
 
-	/* wot-design-uni 深底 */
-	--wot-color-theme: #8fc7b8;
-	--wot-color-bg: #0b1513;
-	--wot-color-border: rgba(241, 244, 241, 0.22);
-	--wot-color-border-light: rgba(241, 244, 241, 0.14);
-	--wot-color-title: #f1f4f1;
-	--wot-color-content: #c3d2ca;
-	--wot-color-secondary: #a9bbb2;
-	--wot-color-aid: #a9bbb2;
-	--wot-color-tip: #8fa39a;
-	--wot-color-success: #6fbf9a;
-	--wot-color-warning: #c98a7a;
-	--wot-color-danger: #d4736a;
-	--wot-color-info: #a9bbb2;
+	--wot-color-theme: #9db8ec;
+	--wot-color-bg: #121a2b;
+	--wot-color-border: rgba(238, 242, 248, 0.22);
+	--wot-color-border-light: rgba(238, 242, 248, 0.14);
+	--wot-color-title: #eef2f8;
+	--wot-color-content: #c9d1e0;
+	--wot-color-secondary: #a7b1c6;
+	--wot-color-aid: #a7b1c6;
+	--wot-color-tip: #8590a8;
+	--wot-color-success: #6cc3a6;
+	--wot-color-warning: #d8a25a;
+	--wot-color-danger: #e07a6e;
+	--wot-color-info: #a7b1c6;
 
-	/* 空态插画令牌 */
-	--zy-art-line: #8fc7b8;
-	--zy-art-paper: #16241f;
-	--zy-art-ground: #142019;
-	--zy-art-soft: #2a3b34;
-	--zy-art-thread: #8fc7b8;
-	--zy-art-cinnabar: #d4736a;
+	--zy-art-line: #9db8ec;
+	--zy-art-paper: #1c2740;
+	--zy-art-ground: #172136;
+	--zy-art-soft: #22325a;
+	--zy-art-thread: #9db8ec;
+	--zy-art-cinnabar: #e07a6e;
 
 	background-color: var(--zy-bg);
 	background-image: none;
@@ -459,10 +667,10 @@ html.zy-theme-warm .uni-page-head { background-color: #f1f4f1 !important; }
 
 /* H5：body 级 tabbar / 导航条随玄墨换肤（内联样式需 !important） */
 /* #ifdef H5 */
-html.zy-theme-dark, html.zy-theme-dark body, html.zy-theme-dark uni-page-body, html.zy-theme-dark uni-page-wrapper { background-color: #0b1513 !important; }
-html.zy-theme-dark .uni-tabbar { background-color: #111e1a !important; }
+html.zy-theme-dark, html.zy-theme-dark body, html.zy-theme-dark uni-page-body, html.zy-theme-dark uni-page-wrapper { background-color: #121a2b !important; }
+html.zy-theme-dark .uni-tabbar { background-color: #1c2740 !important; }
 html.zy-theme-dark .uni-tabbar-border { background-color: rgba(241, 244, 241, 0.22) !important; }
-html.zy-theme-dark .uni-page-head { background-color: #0b1513 !important; }
+html.zy-theme-dark .uni-page-head { background-color: #121a2b !important; border-bottom-color: rgba(243, 241, 234, 0.16); }
 html.zy-theme-dark .uni-page-head__title { color: #f1f4f1 !important; }
 html.zy-theme-dark .uni-page-head-btn { color: #f1f4f1 !important; }
 html.zy-theme-dark .uni-page-head-btn svg path { fill: #f1f4f1 !important; }

@@ -49,8 +49,8 @@ defineEmits(['dismiss', 'disable'])
 	flex-wrap: wrap;
 	gap: 12rpx 20rpx;
 	padding: 18rpx 32rpx;
-	background: var(--zy-bg-tint-mint, #e8efe4);
-	border-left: 6rpx solid var(--zy-brand-300, var(--zy-brand-300, #5bc4a8));
+	background: var(--zy-bg-tint-mint, #eef3fb);
+	border-left: 6rpx solid var(--zy-brand-300, var(--zy-brand-300, #8ea9dc));
 	animation: stuck-guide-in var(--zy-duration-base, 250ms) var(--zy-ease-out, ease-out);
 }
 .stuck-guide-main {
@@ -63,7 +63,7 @@ defineEmits(['dismiss', 'disable'])
 .stuck-guide-kicker {
 	font-size:var(--zy-text-micro, 22rpx);
 	letter-spacing: 2rpx;
-	color: var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
 }
 .stuck-guide-text {
 	font-size:var(--zy-text-caption, 24rpx);
@@ -86,7 +86,7 @@ defineEmits(['dismiss', 'disable'])
 }
 .stuck-guide-btn::after { border: 0; }
 .stuck-guide-btn--dismiss {
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	color: #fff;
 }
 .stuck-guide-btn--off {
@@ -94,7 +94,7 @@ defineEmits(['dismiss', 'disable'])
 	color: var(--zy-content, #4a5f54);
 }
 .stuck-guide-btn.is-disabled { opacity: 0.5; }
-button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e)); outline-offset: 3px; }
+button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
 	.stuck-guide { animation: none; }
 }

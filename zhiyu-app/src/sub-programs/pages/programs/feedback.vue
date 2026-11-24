@@ -1,4 +1,5 @@
 <script setup>
+import ZyPageHead from '../../../components/ZyPageHead.vue'
 import {ref} from 'vue'
 import {onLoad} from '@dcloudio/uni-app'
 import {request} from '@/utils/request'
@@ -23,8 +24,7 @@ onLoad(options=>{id.value=options.id||'';if(/^\d+$/.test(id.value))load();else e
 <template>
 	<view class="growth-page feedback-page" :class="[{'motion-reduced':reducedMotion}, zyThemeClass]">
 		<view class="feedback-hero">
-			<text class="growth-eyebrow">PAUSE & REFLECT · 回看这一刻</text>
-			<text class="growth-title">体验过后，听听自己</text>
+			<ZyPageHead seal="省" title="体验过后，听听自己" />
 			<view class="hero-rule" aria-hidden="true"></view>
 			<text class="growth-subtitle">没有标准答案，真实的感受就很好。</text>
 		</view>
@@ -72,7 +72,7 @@ onLoad(options=>{id.value=options.id||'';if(/^\d+$/.test(id.value))load();else e
 			<template v-if="data.eligible">
 				<checkbox-group @change="consent=$event.detail.value.includes('agree')">
 					<label class="growth-consent">
-						<checkbox value="agree" :checked="consent" :disabled="saving" color="#0e5b53"></checkbox>
+						<checkbox value="agree" :checked="consent" :disabled="saving" color="#24478f"></checkbox>
 						<text>我已了解上述可见范围，同意保存这次评分和笔记。</text>
 					</label>
 				</checkbox-group>
@@ -83,7 +83,6 @@ onLoad(options=>{id.value=options.id||'';if(/^\d+$/.test(id.value))load();else e
 			<AccessibleButton v-if="saved" class="growth-button secondary" :disabled="saving" @click="remove">删除这次反馈</AccessibleButton>
 		</template>
 
-		<text class="growth-foot">本系统不能替代专业心理咨询</text>
 		<ActionSheet :open="confirmingRemove" title="删除这次反馈？" description="评分和笔记将被删除，也不再计入后续汇总。无法恢复。" :actions="[{key:'confirm',label:'确认删除',tone:'danger',busy:saving}]" cancel-text="再想想" :busy="saving" @select="confirmRemove" @close="confirmingRemove=false" />
 		<Toast />
 	</view>
@@ -100,19 +99,20 @@ onLoad(options=>{id.value=options.id||'';if(/^\d+$/.test(id.value))load();else e
 .feedback-context + .growth-card { border-top: 0; }
 .step-number { display: block; color: var(--zy-muted, #6e7b75); letter-spacing: 2px; font-size: var(--zy-text-micro, 22rpx); margin-bottom: 14rpx; }
 .rating-options { display: flex; flex-direction: column; margin-top: 20rpx; }
-.rating-option { display: flex; align-items: center; gap: 20rpx; margin: 0; padding: 20rpx 0; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; color: var(--zy-text, #42524c); text-align: left; font-size: var(--zy-text-body, 28rpx); line-height: 1.5; }
+.rating-option { display: flex; align-items: center; gap: 20rpx; margin: 0; padding: 20rpx 0; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: var(--zy-radius-control, 18rpx); background: transparent; color: var(--zy-text, #42524c); text-align: left; font-size: var(--zy-text-body, 28rpx); line-height: 1.5; }
 .rating-option:last-child { border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
 .rating-option::after { border: 0; }
-.rating-option.selected { background: transparent; color: var(--zy-brand-700, #0a403b); box-shadow: inset 0 -3rpx 0 var(--zy-brand-700, #0a403b); }
-.rating-number { display: flex; align-items: center; justify-content: center; width: 44rpx; height: 44rpx; border: 1rpx solid var(--zy-border, #d3ded8); border-radius: 0; background: transparent; font-family: var(--zy-font-display, "Songti SC", serif); font-weight: 500; color: var(--zy-title, #111816); }
-.rating-option.selected .rating-number { background: var(--zy-brand-600, #0e5b53); border-color: var(--zy-brand-600, #0e5b53); color: #fff; }
+.rating-option.selected { background: var(--zy-brand-50); color: var(--zy-brand-700); font-weight: 600; box-shadow: inset 6rpx 0 0 var(--zy-brand-600); }
+.rating-option.selected .rating-number { background: var(--zy-brand-600); border-color: var(--zy-brand-600); color: #fff; }
+.rating-number { display: flex; align-items: center; justify-content: center; width: 44rpx; height: 44rpx; border: 1rpx solid var(--zy-border, #d3ded8); border-radius: var(--zy-radius-control, 18rpx); background: transparent; font-family: var(--zy-font-display, "Songti SC", serif); font-weight: 500; color: var(--zy-title, #111816); }
+.rating-option.selected .rating-number { background: var(--zy-brand-600, #24478f); border-color: var(--zy-brand-600, #24478f); color: #fff; }
 .rating-label { flex: 1; }
 .optional { font-size: var(--zy-text-micro, 22rpx); font-weight: 400; color: var(--zy-muted, #6e7b75); margin-left: 16rpx; }
-.feedback-note { height: 230rpx; line-height: 1.8; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: 0; background: transparent; padding: 16rpx 0; }
+.feedback-note { height: 230rpx; line-height: 1.8; border: 0; border-bottom: 2rpx solid var(--zy-faint, #8B9994); border-radius: var(--zy-radius-control, 18rpx); background: transparent; padding: 16rpx 0; }
 .word-count { display: block; text-align: right; font-size: var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); }
-.privacy-card { display: flex; flex-direction: column; gap: 12rpx; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-left: 2rpx solid var(--zy-care, #a64842); background: transparent; border-radius: 0; padding: 24rpx 0 24rpx 20rpx; font-size: var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-text, #42524c); }
+.privacy-card { display: flex; flex-direction: column; gap: 12rpx; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-left: 2rpx solid var(--zy-care, #a64842); background: transparent; border-radius: var(--zy-radius-control, 18rpx); padding: 24rpx 0 24rpx 20rpx; font-size: var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-text, #42524c); }
 .privacy-title { font-family: var(--zy-font-display, "Songti SC", serif); font-size: var(--zy-text-body, 28rpx); font-weight: 500; color: var(--zy-title, #111816); }
-.eligibility-note { padding: 0 0 0 18rpx; border-left: 3rpx solid var(--zy-care, #a64842); background: transparent; color: var(--zy-care, #a64842); border-radius: 0; font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; margin: 24rpx 0; }
+.eligibility-note { padding: 0 0 0 18rpx; border-left: 3rpx solid var(--zy-care, #a64842); background: transparent; color: var(--zy-care, #a64842); border-radius: var(--zy-radius-control, 18rpx); font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; margin: 24rpx 0; }
 .submit-hint { display: block; text-align: center; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); margin-top: 16rpx; }
 @media (min-width: 760px) {
   .rating-options { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1rpx solid var(--zy-border, #d3ded8); }

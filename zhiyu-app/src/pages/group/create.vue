@@ -2,9 +2,7 @@
 	<view :class="zyThemeClass" class="page">
 		<!-- 顶部品牌区 -->
 		<view class="hero zy-slide-up zy-stagger" style="--stagger-i: 0">
-			<text class="hero-eyebrow">NEW CIRCLE · 创建小组</text>
-			<text class="hero-title">给相遇，起个名字</text>
-			<text class="hero-sub">不用很大，能坐下说话就好。</text>
+			<ZyPageHead seal="组" title="给相遇，起个名字" subtitle="不用很大，能坐下说话就好。" />
 		</view>
 
 		<!-- 表单卡片 -->
@@ -57,13 +55,13 @@
 		</view>
 
 		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<Toast />
 	</view>
 </template>
 
 <script setup>
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref, computed, reactive } from 'vue'
 import { http } from '../../utils/request'
 import FormField from '../../components/FormField.vue'
@@ -172,7 +170,7 @@ function handleCancel() {
 	width: 96rpx;
 	height: 96rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #217e76)), var(--zy-primary-light, var(--zy-brand-300, #5bc4a8)));
+	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-primary-light, var(--zy-brand-300, #8ea9dc)));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -250,7 +248,7 @@ function handleCancel() {
 .btn-primary {
 	height: 88rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background: var(--zy-brand-600, var(--zy-brand-600, #217e76));
+	background: var(--zy-brand-600, var(--zy-brand-600, #24478f));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -303,7 +301,7 @@ function handleCancel() {
 button:focus-visible,
 .btn-primary:focus-visible,
 .btn-secondary:focus-visible {
-	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #1a645e));
+	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	outline-offset: 3px;
 }
 
@@ -312,23 +310,23 @@ button:focus-visible,
 .hero { align-items: flex-start; padding: 0 0 30rpx; border-bottom: 1rpx solid var(--zy-border); margin-bottom: 8rpx; }
 .hero-eyebrow { display: block; margin-bottom: 20rpx; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); }
 .hero-head { display: flex; align-items: flex-start; gap: 18rpx; }
-.hero-icon-wrap { width: 56rpx; height: 56rpx; border-radius: 0; background: var(--zy-brand-700); box-shadow: none; margin-bottom: 0; flex-shrink: 0; }
+.hero-icon-wrap { width: 56rpx; height: 56rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-700); box-shadow: none; margin-bottom: 0; flex-shrink: 0; }
 .hero-copy { display: flex; flex-direction: column; gap: 8rpx; }
 .hero-title { font-size: 56rpx; font-weight: 500; line-height: 1.3; }
 .hero-sub { margin-top: 14rpx; color: var(--zy-muted); }
-.form-card { background: transparent; border-radius: 0; box-shadow: none; padding: 28rpx 0 8rpx; margin-bottom: 20rpx; border-top: 0; }
+.form-card { background: transparent; border-radius: var(--zy-radius-control, 18rpx); box-shadow: none; padding: 28rpx 0 8rpx; margin-bottom: 20rpx; border-top: 0; }
 .form { gap: 32rpx; }
 .form-label { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; }
 .form-hint, .char-hint { color: var(--zy-muted); }
-.btn-primary { border-radius: 0; background: var(--zy-brand-600); }
+.btn-primary { border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600); }
 .btn-primary:active { transform: none; }
 .btn-primary--disabled { background: transparent; border: 1rpx solid var(--zy-border); opacity: 1; }
 .btn-primary--disabled .btn-primary-text { color: var(--zy-muted); }
-.btn-secondary { border-radius: 0; }
+.btn-secondary { border-radius: var(--zy-radius-control, 18rpx); }
 .btn-secondary-text { color: var(--zy-muted); }
 .footnote { color: var(--zy-muted); }
 .form-card :deep(input), .form-card :deep(textarea) { background: transparent !important; }
-.form-card :deep(.wd-textarea), .form-card :deep(.wd-input) { border-radius: 0 !important; border-bottom: 1rpx solid var(--zy-border) !important; background: transparent !important; }
+.form-card :deep(.wd-textarea), .form-card :deep(.wd-input) { border-radius: var(--zy-radius-control, 18rpx) !important; border-bottom: 1rpx solid var(--zy-border) !important; background: transparent !important; }
 .form-card :deep(.wd-textarea__value), .form-card :deep(.wd-textarea__inner) { background: transparent !important; border: 0 !important; }
 .form-card :deep(.wd-textarea__count) { background: transparent !important; color: var(--zy-muted) !important; }
 </style>

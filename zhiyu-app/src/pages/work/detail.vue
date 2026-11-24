@@ -183,7 +183,6 @@
 			<text v-if="!work.shareable" class="dock-hint">这份作品仅自己可见，因此不能分享；发布时选择「公开」并审核通过后可分享。</text>
 		</view>
 
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<!-- 分享面板：ActionSheet 自定义内容 -->
 		<ActionSheet
@@ -465,3 +464,46 @@ function openFavorites() { uni.navigateTo({ url: '/pages/work/favorites' }) }
 </script>
 
 <style scoped src="./work-detail.css"></style>
+
+<style scoped>
+/* ── v9 作品详情：大图 + 压图信息卡 + 气泡评论 + 毛玻璃底栏（覆盖 work-detail.css 旧样式） ── */
+.detail-page.detail-page { background: var(--zy-bg); }
+.detail-nav.detail-nav { padding: 20rpx 28rpx 12rpx; border-bottom: 0; }
+.detail-nav-kicker.detail-nav-kicker { padding: 6rpx 18rpx; border-radius: 999rpx; background: var(--zy-brand-50); color: var(--zy-brand-700); font-size: 22rpx; letter-spacing: 2rpx; }
+.creation-panel.creation-panel { padding: 0 28rpx; border: 0; background: transparent; box-shadow: none; }
+.detail-layout.detail-layout { border: 0; background: transparent; box-shadow: none; padding: 0; }
+.work-media.work-media { position: relative; border-radius: 40rpx; overflow: hidden; box-shadow: var(--zy-shadow-pop); border: 0; background: var(--zy-bg-sunken); }
+.work-cover.work-cover { width: 100%; height: 620rpx; display: block; border-radius: 0; }
+.media-label.media-label { position: absolute; left: 24rpx; top: 24rpx; bottom: auto; padding: 6rpx 20rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .88); color: var(--zy-brand-700); font-size: 22rpx; font-weight: 700; border: 0; }
+.creation-copy.creation-copy { position: relative; z-index: 2; margin: -72rpx 16rpx 0; padding: 32rpx 28rpx 28rpx; background: var(--zy-card-bg); border-radius: 36rpx; box-shadow: var(--zy-shadow-pop); border: 0; }
+.work-meta.work-meta { display: flex; justify-content: space-between; font-size: 22rpx; color: var(--zy-muted); border: 0; padding: 0; }
+.work-title.work-title { display: block; margin-top: 12rpx; font-family: var(--zy-font-display); font-size: 48rpx; font-weight: 700; line-height: 1.35; letter-spacing: 2rpx; color: var(--zy-title); }
+.author.author { display: flex; align-items: center; gap: 18rpx; margin-top: 22rpx; padding: 18rpx; border-radius: 28rpx; background: var(--zy-bg-sunken); border: 0; }
+.author .avatar, .avatar.avatar { width: 80rpx; height: 80rpx; min-width: 80rpx; border-radius: 50%; background: var(--zy-brand-600); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--zy-font-display); font-size: 34rpx; font-weight: 700; border: 0; }
+.author-name.author-name { font-size: 30rpx; font-weight: 700; color: var(--zy-title); }
+.author-note.author-note { font-size: 22rpx; color: var(--zy-muted); }
+.author-seal.author-seal { margin-left: auto; width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; border-radius: 10rpx; background: var(--zy-cinnabar); color: #fff; font-family: var(--zy-font-display); font-weight: 700; font-size: 30rpx; border: 0; transform: rotate(-6deg); box-shadow: inset 0 0 0 3rpx var(--zy-cinnabar), inset 0 0 0 5rpx rgba(255, 255, 255, .7); }
+.story.story { margin-top: 22rpx; padding: 24rpx 26rpx; border-radius: 28rpx; background: #fbf3e6; border: 0; }
+.page.zy-theme-dark .story, .zy-theme-dark .story.story { background: #2c2520; }
+.story-text.story-text { display: block; margin-top: 8rpx; font-family: var(--zy-font-display); font-size: 30rpx; line-height: 1.85; color: var(--zy-title); }
+.companion-note.companion-note { display: flex; align-items: center; gap: 16rpx; margin-top: 22rpx; padding: 18rpx 22rpx; border-radius: 28rpx; background: var(--zy-brand-50); border: 0; color: var(--zy-brand-700); font-size: 26rpx; line-height: 1.6; }
+
+.conversation-panel.conversation-panel { margin: 28rpx 28rpx 0; padding: 30rpx 28rpx; background: var(--zy-card-bg); border-radius: 36rpx; box-shadow: var(--zy-shadow-card); border: 0; }
+.conversation-heading.conversation-heading { border: 0; padding: 0; }
+.section-title.section-title { font-family: var(--zy-font-display); font-size: 38rpx; font-weight: 700; color: var(--zy-title); }
+.count-badge.count-badge { padding: 6rpx 18rpx; border-radius: 999rpx; background: var(--zy-cinnabar-50, #fbecea); color: var(--zy-cinnabar); font-size: 22rpx; font-weight: 700; border: 0; }
+.moderation-note.moderation-note { display: block; margin: 12rpx 0 18rpx; font-size: 22rpx; color: var(--zy-muted); }
+.comment-card.comment-card { display: flex; gap: 16rpx; padding: 0; margin-top: 22rpx; border: 0; background: transparent; }
+.small-avatar.small-avatar { width: 64rpx; height: 64rpx; min-width: 64rpx; font-size: 26rpx; background: var(--zy-gamboge, #c58b2a); }
+.comment-main.comment-main { flex: 1; min-width: 0; padding: 18rpx 22rpx; border-radius: 8rpx 28rpx 28rpx 28rpx; background: var(--zy-bg-sunken); }
+.comment-heading.comment-heading { display: flex; justify-content: space-between; font-size: 24rpx; font-weight: 700; color: var(--zy-title); }
+.comment-content.comment-content { display: block; margin-top: 6rpx; font-size: 28rpx; line-height: 1.7; color: var(--zy-text); }
+.list-end.list-end { display: block; text-align: center; margin-top: 26rpx; font-size: 22rpx; color: var(--zy-muted); }
+
+.action-dock.action-dock { background: rgba(255, 255, 255, .9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 -8rpx 28rpx rgba(20, 36, 72, .08); border-top: 0; }
+.zy-theme-dark .action-dock.action-dock { background: rgba(28, 39, 64, .92); }
+.dock-action.dock-action.dock-action { flex-direction: column; gap: 4rpx; min-width: 120rpx; padding: 8rpx 12rpx; border: 0; background: transparent; box-shadow: none; font-size: 22rpx; color: var(--zy-muted); }
+.dock-action.dock-action.active { color: var(--zy-care); background: transparent; }
+.share-trigger.share-trigger { flex: 1; min-height: 88rpx; border-radius: 999rpx !important; background: var(--zy-brand-600) !important; color: #fff; font-weight: 700; box-shadow: var(--zy-shadow-cta); }
+.share-trigger.share-trigger.is-disabled { background: var(--zy-bg-sunken) !important; color: var(--zy-faint); box-shadow: none; }
+</style>

@@ -113,23 +113,24 @@ function onOpen() {
 	overflow: hidden;
 	text-align: left;
 	line-height: 1.5;
-	background: transparent;
+	/* v9：白卡 + 圆角 + 投影，纹样图是主角 */
+	background: var(--zy-card-bg, #fff);
 	border: 0;
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
-	box-shadow: none;
+	border-radius: var(--zy-radius-card, 28rpx);
+	box-shadow: var(--zy-shadow-card);
 }
+.heritage-card:active { transform: scale(.98); }
 .heritage-card-cover {
 	position: relative;
-	height: 260rpx;
-	background: var(--zy-bg-sunken, #e6eae6);
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
+	height: 280rpx;
+	background: #f6f1e6;
+	border-bottom: 0;
 }
 /* 泛型卡无 pattern 且未提供 cover slot 时，封面退为一条材质带 */
 .heritage-card-cover--material {
 	height: 3rpx;
 	display: block;
-	background: var(--zy-brand-700, #0a403b);
+	background: var(--zy-brand-700, #183369);
 	opacity: 0.55;
 }
 .heritage-card-material { display: none; }
@@ -154,12 +155,13 @@ function onOpen() {
 	z-index: 2;
 	top: 12rpx;
 	right: 12rpx;
-	background: transparent;
-	border: 1rpx solid var(--zy-border, #d3ded8);
+	background: rgba(255, 255, 255, .9);
+	border: 0;
+	border-radius: 8rpx;
 }
 .heritage-card-copy {
 	display: block;
-	padding: 18rpx 0 22rpx;
+	padding: 18rpx 22rpx 22rpx;
 }
 .heritage-card-title-row {
 	display: flex;
@@ -170,17 +172,18 @@ function onOpen() {
 .heritage-card-title {
 	font-family: var(--zy-font-display, "Songti SC", serif);
 	font-size: 32rpx;
-	font-weight: 500;
-	color: var(--zy-title, #111816);
+	font-weight: 700;
+	color: var(--zy-title, #141c2e);
 }
 .heritage-card-tag {
 	flex-shrink: 0;
 	font-size: var(--zy-text-micro, 22rpx);
-	color: var(--zy-brand-700, #0a403b);
-	background: transparent;
-	border: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: 0;
-	padding: 2rpx 8rpx;
+	color: var(--zy-brand-700, #183369);
+	background: var(--zy-brand-50, #eef3fb);
+	border: 0;
+	border-radius: 999rpx;
+	padding: 2rpx 14rpx;
+	font-weight: 600;
 }
 .heritage-card-meta,
 .heritage-card-note {

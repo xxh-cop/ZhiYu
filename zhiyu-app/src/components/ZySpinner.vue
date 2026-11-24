@@ -24,7 +24,7 @@ const { reducedMotion } = useInteraction()
 const themeStore = useThemeStore()
 
 const PALETTES = {
-	brand: { axis: '#0E5B53', thread: '#A64842' },
+	brand: { axis: '#24478f', thread: '#A64842' },
 	light: { axis: '#F1F4F1', thread: '#E9C9C5' },
 }
 

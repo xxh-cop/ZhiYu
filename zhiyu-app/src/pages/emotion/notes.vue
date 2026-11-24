@@ -2,14 +2,7 @@
 	<view :class="zyThemeClass" class="page zy-page-enter">
 		<!-- 展签页头 -->
 		<view class="page-head zy-page-enter">
-			<text class="page-eyebrow">MOOD NOTES · 此刻</text>
-			<view class="page-head-row">
-				<view class="page-head-copy">
-					<text class="page-title">写下此刻</text>
-					<text class="page-subtitle">不必解释，也不必写好。只留一句话给自己。</text>
-				</view>
-				<AccessibleButton class="create-btn" aria-label="新建心情便签" @click="goCreate">写一张</AccessibleButton>
-			</view>
+			<ZyPageHead seal="笺" title="写下此刻" subtitle="不必解释，也不必写好。只留一句话给自己。"><template #action><AccessibleButton variant="primary" size="sm" class="create-btn" aria-label="新建心情便签" @click="goCreate">写一张</AccessibleButton></template></ZyPageHead>
 		</view>
 
 		<!-- 加载状态 -->
@@ -54,7 +47,8 @@
 				<view class="card-main">
 					<!-- 左侧心情字印：冷瓷展签式单字，替代彩色脸谱 -->
 					<view class="mood-circle" aria-hidden="true">
-						<text class="mood-mark">{{ moodMark(item.mood) }}</text>
+						<MoodEmoji v-if="moodKind(item.mood) >= 0" :kind="moodKind(item.mood)" :size="72" />
+						<text v-else class="mood-mark">{{ moodMark(item.mood) }}</text>
 					</view>
 					<!-- 中间内容 -->
 					<view class="card-center">
@@ -82,7 +76,6 @@
 		</view>
 
 		<!-- 底部免责声明 -->
-		<text class="footnote">本系统不能替代专业心理咨询</text>
 
 		<ActionSheet
 			:open="!!pendingDelete"
@@ -99,6 +92,8 @@
 </template>
 
 <script setup>
+import MoodEmoji from '../../components/MoodEmoji.vue'
+import ZyPageHead from '../../components/ZyPageHead.vue'
 import { ref, computed } from 'vue'
 import { onShow, onReachBottom } from '@dcloudio/uni-app'
 import { http } from '../../utils/request'
@@ -187,6 +182,12 @@ async function loadMore() {
 	}
 }
 
+const MOOD_KIND = { 开心: 0, 平静: 1, 一般: 2, 有点累: 3, 不太好: 4, happy: 0, calm: 1, ok: 2, tired: 3, low: 4, sad: 4 }
+function moodKind(mood) {
+	if (!mood) return -1
+	const key = MOOD_KIND[mood] !== undefined ? mood : (MOOD_LABELS[mood] || mood)
+	return MOOD_KIND[key] !== undefined ? MOOD_KIND[key] : -1
+}
 function moodLabel(mood) {
 	if (!mood) return ''
 	return MOOD_LABELS[mood] || mood
@@ -295,10 +296,10 @@ async function confirmDelete() {
 	min-height: 72rpx;
 	margin: 0;
 	padding: 0 24rpx;
-	border: 1rpx solid var(--zy-brand-700, #0a403b);
-	border-radius: 0;
+	border: 1rpx solid var(--zy-brand-700, #183369);
+	border-radius: var(--zy-radius-control, 18rpx);
 	background: transparent;
-	color: var(--zy-brand-700, #0a403b);
+	color: var(--zy-brand-700, #183369);
 	font-size: var(--zy-text-caption, 24rpx);
 	line-height: 72rpx;
 	letter-spacing: 1rpx;
@@ -308,7 +309,7 @@ async function confirmDelete() {
 /* ── 焦点 ── */
 .note-card:focus-visible,
 .create-btn:focus-visible {
-	outline: 3px solid var(--zy-brand-700, #0a403b);
+	outline: 3px solid var(--zy-brand-700, #183369);
 	outline-offset: 3px;
 }
 
@@ -345,7 +346,7 @@ async function confirmDelete() {
 	width: 120rpx;
 	height: 120rpx;
 	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #e8efe4);
+	background-color: var(--zy-bg-tint-mint, #eef3fb);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -370,8 +371,8 @@ async function confirmDelete() {
 .empty-btn {
 	margin-top: 16rpx;
 	padding: 16rpx 40rpx;
-	border-radius: 0;
-	background: var(--zy-brand-600, #0e5b53);
+	border-radius: var(--zy-radius-control, 18rpx);
+	background: var(--zy-brand-600, #24478f);
 	box-shadow: none;
 }
 
@@ -406,7 +407,7 @@ async function confirmDelete() {
 
 .note-card {
 	padding: 28rpx 0;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	background-color: transparent;
 	border: 0;
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
@@ -429,7 +430,7 @@ async function confirmDelete() {
 .mood-circle {
 	width: 72rpx;
 	height: 72rpx;
-	border-radius: 0;
+	border-radius: var(--zy-radius-control, 18rpx);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -442,7 +443,7 @@ async function confirmDelete() {
 	font-family: var(--zy-font-display, "Songti SC", serif);
 	font-size: 34rpx;
 	font-weight: 500;
-	color: var(--zy-brand-700, #0a403b);
+	color: var(--zy-brand-700, #183369);
 	line-height: 1;
 }
 
@@ -505,7 +506,7 @@ async function confirmDelete() {
 	height: 32rpx;
 	border-radius: 50%;
 	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, var(--zy-brand-600, #217e76)));
+	border-top-color: var(--zy-primary, var(--zy-brand-600, #24478f)));
 	animation: spin 0.8s linear infinite;
 }
 
@@ -525,4 +526,9 @@ async function confirmDelete() {
 	color: var(--zy-text, #5c5648);
 	text-align: center;
 }
+</style>
+<style scoped>
+/* v9：便签左侧用暖色表情 */
+.mood-circle { width: 88rpx; height: 88rpx; border-radius: 50%; background: #fff6ec; border: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.note-card { background: var(--zy-card-bg); border: 0; border-radius: 32rpx; box-shadow: var(--zy-shadow-card); padding: 24rpx; margin-bottom: 18rpx; }
 </style>
