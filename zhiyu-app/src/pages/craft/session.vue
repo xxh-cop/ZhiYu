@@ -2,28 +2,13 @@
 	<view :class="zyThemeClass" class="page" @touchstart="idleArm" @click="idleArm">
 		<!-- 顶部情境条：项目名 / 进度点 / 更多（心流态自动收起更多，减少打扰） -->
 		<view class="topbar">
-			<view class="topbar-info">
-				<text class="topbar-eyebrow">正在创作</text>
-				<text class="topbar-title">{{ displayTitle }}</text>
-			</view>
-			<view class="topbar-right">
-				<view
-					v-if="totalSteps"
-					class="step-dots"
-					role="progressbar"
-					:aria-valuenow="currentStep"
-					:aria-valuemin="1"
-					:aria-valuemax="totalSteps"
-					:aria-label="`进度：第 ${currentStep} 步，共 ${totalSteps} 步`"
-				>
-					<view
-						v-for="n in totalSteps"
-						:key="n"
-						class="step-dot"
-						:class="{ done: n < currentStep, current: n === currentStep }"
-					></view>
+			<view class="topbar-row">
+				<ZySeal text="作" size="sm" />
+				<view class="topbar-info">
+					<text class="topbar-eyebrow">正在创作</text>
+					<text class="topbar-title">{{ displayTitle }}</text>
 				</view>
-				<text v-if="totalSteps" class="step-count">{{ currentStep }} / {{ totalSteps }}</text>
+				<text v-if="totalSteps" class="step-count">{{ currentStep }}<text class="step-count-total"> / {{ totalSteps }}</text></text>
 				<AccessibleButton
 					v-if="!craftStore.inFlow"
 					class="more-btn"
@@ -31,6 +16,23 @@
 					aria-label="更多操作：暂停、放弃或和小织聊聊"
 					@click="showMore"
 				><ZyIcon name="more" :size="32" tone="muted" /></AccessibleButton>
+			</view>
+			<!-- 分段进度：做完一步亮一格 -->
+			<view
+				v-if="totalSteps"
+				class="step-segments"
+				role="progressbar"
+				:aria-valuenow="currentStep"
+				:aria-valuemin="1"
+				:aria-valuemax="totalSteps"
+				:aria-label="`进度：第 ${currentStep} 步，共 ${totalSteps} 步`"
+			>
+				<view
+					v-for="n in totalSteps"
+					:key="n"
+					class="step-seg"
+					:class="{ done: n < currentStep, current: n === currentStep }"
+				></view>
 			</view>
 		</view>
 
@@ -74,18 +76,31 @@
 		<scroll-view v-if="!loadError" class="step-area" scroll-y>
 			<MediaVideo v-if="teachingVideo" :src="teachingVideo" caption="边看边做 · 可暂停后操作" />
 			<view class="step-content zy-slide-up" :key="currentStep">
+				<view class="step-card">
+					<!-- 步骤主视觉：工艺实拍 + 大号步骤序号 -->
+					<view v-if="!starterStep" class="step-visual">
+						<image class="step-visual-img" :src="stepImage" mode="aspectFill" aria-hidden="true" />
+						<view class="step-visual-shade" aria-hidden="true"></view>
+						<text class="step-no">{{ String(currentStep).padStart(2, '0') }}</text>
+						<text v-if="totalSteps" class="step-pill">第 {{ currentStep }} 步 · 共 {{ totalSteps }} 步</text>
+					</view>
+					<view class="step-body">
+						<text v-if="totalSteps && starterStep" class="step-kicker">{{ stepKicker }}</text>
+						<text class="step-title">{{ currentStepData.title }}</text>
+						<StarterDiagram v-if="starterStep" :kind="starterStep.diagram" />
+						<text v-if="starterStep" class="diagram-tip">原创纹样示意 · 操作以文字为准</text>
+						<text class="step-guide">{{ currentStepData.guide }}</text>
+					</view>
+				</view>
 				<!-- 小织陪伴：心流态隐藏，不打扰专注 -->
 				<view v-if="!craftStore.inFlow" class="pet-row">
-					<XiaotuanPet :size="88" :face="craftStore.status === 2 ? 'rest' : 'craft'" :quiet="craftStore.status === 2" @open="openChat" />
+					<XiaotuanPet :size="80" :face="craftStore.status === 2 ? 'rest' : 'craft'" :quiet="craftStore.status === 2" @open="openChat" />
 					<view class="pet-bubble"><text class="pet-bubble-text">{{ petLine }}</text></view>
 				</view>
-				<view class="step-card">
-					<view class="step-stitch zy-stitch-h" aria-hidden="true"></view>
-					<text v-if="totalSteps" class="step-kicker">{{ stepKicker }}</text>
-					<text class="step-title zy-t-serif">{{ currentStepData.title }}</text>
-					<StarterDiagram v-if="starterStep" :kind="starterStep.diagram" />
-					<text v-if="starterStep" class="diagram-tip">原创纹样示意 · 操作以文字为准</text>
-					<text class="step-guide">{{ currentStepData.guide }}</text>
+				<!-- 下一步预告：心里有底，不慌 -->
+				<view v-if="nextStepData" class="next-peek">
+					<text class="next-label">下一步</text>
+					<text class="next-title">{{ nextStepData.title }}</text>
 				</view>
 
 				<!-- 引导语音 -->
@@ -115,10 +130,11 @@
 			<view class="action-sub">
 				<AccessibleButton
 					v-if="!craftStore.inFlow && currentStep > 1"
-					class="text-button"
+					class="prev-btn"
+					aria-label="上一步"
 					:disabled="(craftStore.status !== 1 && !craftStore.readOnly) || statusBusy || progressSaving"
 					@click="handlePrev"
-				>上一步</AccessibleButton>
+				><ZyIcon name="back" :size="30" tone="brand" /><text>上一步</text></AccessibleButton>
 				<text v-else class="session-tip">跟随自己的节奏</text>
 				<text class="safe-tip">{{ craftStore.readOnly ? '回看模式：创作记录已保留' : '进度自动保留，随时可以离开' }}</text>
 			</view>
@@ -150,9 +166,12 @@
 		<!-- 完成庆祝层 -->
 		<view v-if="showSuccess" class="success-overlay" @click.stop>
 			<view class="success-card" role="dialog" aria-modal="true" aria-label="创作完成">
-				<XiaotuanPet :size="110" face="happy" />
-				<text class="success-title">创作完成！</text>
-				<text class="success-hint">你用双手完成了一件作品，很棒</text>
+				<view class="success-stage">
+					<image class="success-pet" src="/static/mascot/xiaozhi-complete.png" mode="aspectFit" aria-hidden="true" />
+					<view class="success-seal"><ZySeal text="已成" size="xl" /></view>
+				</view>
+				<text class="success-title">做完啦</text>
+				<text class="success-hint">你用双手完成了一件作品。<br/>这段时间，只属于你自己。</text>
 				<text class="success-time">{{ elapsedText }}</text>
 				<view class="success-btns">
 					<AccessibleButton class="primary-btn" aria-label="去记录此刻" @click="handlePublish">去记录此刻</AccessibleButton>
@@ -249,6 +268,8 @@
 <script setup>
 import MediaVideo from "../../components/MediaVideo.vue"
 import ZySpinner from '../../components/ZySpinner.vue'
+import ZySeal from '../../components/ZySeal.vue'
+import { coverFor } from '../../utils/covers'
 import { ref, computed, watch } from 'vue'
 import { createMusicAudio } from '../../utils/music-audio'
 import { API_BASE_URL, TOKEN_KEY } from '../../utils/config'
@@ -352,6 +373,12 @@ const elapsedText = computed(() => {
 	return minutes > 0 ? `这段专注时光约 ${minutes} 分钟` : '哪怕只有一会儿，也值得被记住'
 })
 
+/* v9.1：步骤主视觉按项目技艺取实拍图；下一步预告 */
+const stepImage = computed(() => coverFor({ id: craftStore.projectId || route.projectId, title: displayTitle.value }))
+const nextStepData = computed(() => {
+	const steps = craftStore.steps || []
+	return steps.find((s) => s.stepNo === currentStep.value + 1) || null
+})
 const currentStepData = computed(() => {
 	const steps = craftStore.steps
 	if (!steps || steps.length === 0) return { title: '', guide: '', audioUrl: null }
@@ -924,36 +951,15 @@ function handleBackHome() {
 	white-space: nowrap;
 }
 
-.topbar-right {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
-}
 
-.step-dots {
-	display: flex;
-	align-items: center;
-	gap: 10rpx;
-}
 
-.step-dot {
-	width: 12rpx;
-	height: 12rpx;
-	border-radius: 50%;
-	background-color: var(--zy-border, #dfe7dc);
-	transition: all var(--zy-duration-base, 250ms) var(--zy-ease-in-out, ease);
-}
 
-.step-dot.done {
-	background-color: var(--zy-brand-300, var(--zy-brand-300, #8ea9dc));
-}
 
-.step-dot.current {
-	width: 28rpx;
-	border-radius: 8rpx;
-	background-color: var(--zy-primary, var(--zy-brand-600, #24478f));
-}
+
+
+
+
+
 
 .step-count {
 	font-size:var(--zy-text-caption, 24rpx);
@@ -1209,9 +1215,7 @@ function handleBackHome() {
 }
 
 /* 步骤卡顶部缝线（纯装饰，气息深化·阶段二） */
-.step-stitch {
-	margin: -8rpx 0 20rpx;
-}
+
 
 .step-kicker {
 	display: block;
@@ -1336,16 +1340,9 @@ function handleBackHome() {
 	margin-bottom: 20rpx;
 }
 
-.text-button {
-	padding: 0 12rpx;
-	margin: 0;
-	background: transparent;
-	color: var(--zy-brand-700, var(--zy-brand-600, #24478f));
-	font-size:var(--zy-text-caption, 24rpx);
-	line-height: 1.5;
-}
 
-.text-button::after { border: 0; }
+
+
 
 .session-tip {
 	font-size:var(--zy-text-caption, 24rpx);
@@ -1373,14 +1370,7 @@ function handleBackHome() {
 }
 
 /* ── 免责声明 ── */
-.footnote {
-	display: block;
-	padding: 8rpx 0 calc(16rpx + env(safe-area-inset-bottom));
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-content, #4a5f54);
-	text-align: center;
-	background-color: var(--zy-bg-warm, #ffffff);
-}
+
 
 /* ── 完成庆祝层 ── */
 .success-overlay {
@@ -1470,14 +1460,7 @@ function handleBackHome() {
 	gap: 24rpx;
 }
 
-.loading-dot {
-	width: 48rpx;
-	height: 48rpx;
-	border-radius: 50%;
-	border: 4rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, var(--zy-brand-600, #24478f));
-	animation: spin 0.8s linear infinite;
-}
+
 
 @keyframes spin {
 	to { transform: rotate(360deg); }
@@ -1487,30 +1470,106 @@ function handleBackHome() {
 	font-size:var(--zy-text-body, 28rpx);
 	color: var(--zy-content, #4a5f54);
 }
-button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #24478f));outline-offset:3px}
+button:focus-visible {outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #24478f));outline-offset:3px}
 
 /* ── v9 冷瓷展签收口 ── */
 .page { background: var(--zy-bg, #f1f4f1); }
 .topbar { background: var(--zy-bg, #f1f4f1); border-color: var(--zy-border, #d3ded8); }
 .topbar-eyebrow { letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
 .topbar-title { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title, #111816); }
-.step-dot { width: 10rpx; height: 10rpx; border-radius: var(--zy-radius-control, 18rpx); }
-.step-dot.done { background: var(--zy-brand-300); }
-.step-dot.current { width: 26rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600); }
+
+
+
 .step-count { color: var(--zy-muted, #6e7b75); }
 .more-btn { border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 1rpx solid var(--zy-border); }
 .banner-readonly { background: transparent; border-left: 3rpx solid var(--zy-accent); }
 .pet-bubble { background: transparent; border: 0; border-left: 2rpx solid var(--zy-brand-600); border-radius: var(--zy-radius-control, 18rpx); padding: 12rpx 0 12rpx 18rpx; box-shadow: none; }
 .pet-bubble-text { color: var(--zy-text, #42524c); }
 .step-card { background: transparent; border-radius: var(--zy-radius-control, 18rpx); border-left: 3rpx solid var(--zy-brand-600); padding: 24rpx 0 24rpx 24rpx; box-shadow: none; }
-.step-stitch { display: none; }
+
 .step-kicker { color: var(--zy-muted); letter-spacing: 2px; }
 .step-title { font-size: 48rpx; font-weight: 500; color: var(--zy-title); }
 .step-guide { color: var(--zy-text); }
 .action-area { background: var(--zy-bg); border-color: var(--zy-border); }
-.session-tip, .safe-tip, .footnote { color: var(--zy-muted); }
-.footnote { background: var(--zy-bg); }
+.session-tip,
+.safe-tip { color: var(--zy-muted); }
+
 .primary-btn { border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600); }
 .success-card { background: var(--zy-bg); border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); }
 .success-title { font-family: var(--zy-font-display, serif); color: var(--zy-title); }
+</style>
+
+<style scoped>
+/* ── v9.1 创作过程：主视觉步骤卡 + 分段进度 + 暖色陪伴 + 盖章完成 ── */
+.page.page { background: var(--zy-bg); }
+
+/* 顶栏 */
+.topbar.topbar { display: block; padding: 20rpx 28rpx 18rpx; background: var(--zy-card-bg); border-bottom: 0; box-shadow: 0 6rpx 20rpx rgba(20, 36, 72, .05); }
+.topbar-row { display: flex; align-items: center; gap: 16rpx; }
+.topbar-info.topbar-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar-eyebrow.topbar-eyebrow { font-size: 22rpx; color: var(--zy-muted); letter-spacing: 2rpx; }
+.topbar-title.topbar-title { font-family: var(--zy-font-display); font-size: 34rpx; font-weight: 700; color: var(--zy-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step-count.step-count { font-family: var(--zy-font-display); font-size: 40rpx; font-weight: 700; color: var(--zy-brand-600); }
+.step-count-total { font-size: 24rpx; color: var(--zy-muted); font-weight: 400; }
+.step-segments { display: flex; gap: 8rpx; margin-top: 16rpx; }
+.step-seg { flex: 1; height: 10rpx; border-radius: 999rpx; background: var(--zy-bg-sunken); transition: background-color 300ms ease; }
+.step-seg.done { background: var(--zy-brand-500); }
+.step-seg.current { background: linear-gradient(90deg, var(--zy-brand-500), #f0a35e); }
+
+/* 状态条 */
+.banner.banner { margin: 16rpx 28rpx 0; border-radius: 24rpx; border: 0; }
+.banner-flow.banner-flow { background: var(--zy-pine-50, #e6f3ee); }
+.banner-pause.banner-pause { background: #fff4e8; }
+
+/* 步骤卡 */
+.step-content.step-content { padding: 24rpx 28rpx 40rpx; }
+.step-card.step-card { padding: 0; overflow: hidden; background: var(--zy-card-bg); border: 0; border-radius: 40rpx; box-shadow: var(--zy-shadow-pop); }
+.step-visual { position: relative; height: 380rpx; background: var(--zy-brand-900); }
+.step-visual-img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.step-visual-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 31, 69, 0) 40%, rgba(13, 31, 69, .7) 100%); }
+.step-no { position: absolute; left: 32rpx; bottom: 18rpx; font-family: var(--zy-font-display); font-size: 120rpx; font-weight: 700; line-height: 1; color: rgba(255, 255, 255, .95); text-shadow: 0 6rpx 20rpx rgba(0, 0, 0, .3); }
+.step-pill { position: absolute; right: 24rpx; top: 24rpx; padding: 6rpx 20rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .9); color: var(--zy-brand-700); font-size: 22rpx; font-weight: 700; }
+.step-body { padding: 32rpx 34rpx 36rpx; }
+.step-kicker.step-kicker { display: block; font-size: 24rpx; color: var(--zy-cinnabar); font-weight: 600; margin-bottom: 8rpx; }
+.step-title.step-title { display: block; font-family: var(--zy-font-display); font-size: 50rpx; font-weight: 700; line-height: 1.3; letter-spacing: 2rpx; color: var(--zy-title); }
+.step-guide.step-guide { display: block; margin-top: 18rpx; font-size: 32rpx; line-height: 1.9; color: var(--zy-text); }
+
+/* 小织陪伴：暖色对话泡 */
+.pet-row.pet-row { display: flex; align-items: center; gap: 12rpx; margin-top: 24rpx; }
+.pet-bubble.pet-bubble { position: relative; flex: 1; padding: 20rpx 26rpx; border-radius: 8rpx 32rpx 32rpx 32rpx; background: #fff4e8; border: 0; box-shadow: 0 6rpx 16rpx rgba(201, 120, 60, .12); }
+.zy-theme-dark .pet-bubble.pet-bubble { background: #2e2520; }
+.pet-bubble-text.pet-bubble-text { font-size: 28rpx; line-height: 1.6; color: #8a4b2a; }
+.zy-theme-dark .pet-bubble-text.pet-bubble-text { color: #f0c49b; }
+
+/* 下一步预告 */
+.next-peek { display: flex; align-items: center; gap: 14rpx; margin-top: 20rpx; padding: 22rpx 26rpx; border-radius: 28rpx; background: var(--zy-card-bg); border: 2rpx dashed var(--zy-border); }
+.next-label { flex-shrink: 0; padding: 4rpx 16rpx; border-radius: 999rpx; background: var(--zy-brand-50); color: var(--zy-brand-700); font-size: 22rpx; font-weight: 700; }
+.next-title { flex: 1; min-width: 0; font-size: 28rpx; color: var(--zy-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.audio-btn.audio-btn.audio-btn { margin-top: 20rpx; border-radius: 999rpx; }
+
+/* 底部操作栏 */
+.action-area.action-area { padding: 18rpx 28rpx calc(20rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 0; box-shadow: 0 -8rpx 28rpx rgba(20, 36, 72, .08); }
+.zy-theme-dark .action-area.action-area { background: rgba(28, 39, 64, .92); }
+.action-sub.action-sub { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin-bottom: 14rpx; }
+.prev-btn { display: inline-flex; align-items: center; gap: 6rpx; margin: 0; min-height: 64rpx; padding: 0 24rpx 0 16rpx; border-radius: 999rpx; background: var(--zy-brand-50); border: 0; color: var(--zy-brand-700); font-size: 26rpx; font-weight: 600; }
+.prev-btn::after { border: 0; }
+.session-tip.session-tip, .safe-tip.safe-tip { font-size: 22rpx; color: var(--zy-muted); }
+.action-area .primary-btn.primary-btn.primary-btn { width: 100%; min-height: 100rpx; border-radius: 999rpx; font-size: 32rpx; letter-spacing: 4rpx; }
+
+/* 完成：盖章 */
+.success-overlay.success-overlay { background: rgba(13, 31, 69, .5); }
+.success-card.success-card { padding: 48rpx 40rpx 36rpx; border-radius: 48rpx; background: linear-gradient(180deg, #fff4e8 0%, var(--zy-card-bg) 45%); box-shadow: var(--zy-shadow-pop); border: 0; }
+.zy-theme-dark .success-card.success-card { background: var(--zy-card-bg); }
+.success-stage { position: relative; width: 300rpx; height: 260rpx; margin: 0 auto 8rpx; }
+.success-pet { position: absolute; left: 0; bottom: 0; width: 240rpx; height: 240rpx; }
+.success-seal { position: absolute; right: 0; top: 10rpx; transform: rotate(-8deg); animation: sealStamp 700ms cubic-bezier(.2, 1.4, .4, 1) 200ms both; }
+@keyframes sealStamp { 0% { opacity: 0; transform: scale(2.4) rotate(-20deg); } 60% { opacity: 1; transform: scale(.92) rotate(-6deg); } 100% { opacity: 1; transform: scale(1) rotate(-8deg); } }
+.success-title.success-title { font-family: var(--zy-font-display); font-size: 56rpx; font-weight: 700; letter-spacing: 6rpx; color: var(--zy-title); }
+.success-hint.success-hint { display: block; margin-top: 10rpx; font-size: 28rpx; line-height: 1.8; color: var(--zy-text); text-align: center; }
+.success-time.success-time { display: inline-block; margin-top: 16rpx; padding: 8rpx 24rpx; border-radius: 999rpx; background: var(--zy-brand-50); color: var(--zy-brand-700); font-size: 24rpx; font-weight: 600; }
+.success-btns .primary-btn.primary-btn.primary-btn { border-radius: 999rpx; }
+.calibration-card.calibration-card { border-radius: 40rpx; border: 0; box-shadow: var(--zy-shadow-pop); }
+
+@media (prefers-reduced-motion: reduce) { .success-seal { animation: none; } }
 </style>

@@ -49,15 +49,19 @@
 	background-size: 28rpx 14rpx;
 	background-repeat: repeat-x;
 }
-/* 海水纹：页头右上角、空白大块的青花底饰 */
+/* 远山：淡墨层叠山影 + 一轮低日（v9.1 取代海水纹，更安静、更像山水画；类名沿用） */
 .zy-wave-bg {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Cg fill='none' stroke='%2324478F' stroke-width='.9' opacity='.16'%3E%3Cpath d='M0 20a10 10 0 0 1 20 0a10 10 0 0 1 20 0M5 20a5 5 0 0 1 10 0M25 20a5 5 0 0 1 10 0M-10 10a10 10 0 0 1 20 0a10 10 0 0 1 20 0a10 10 0 0 1 20 0M-5 10a5 5 0 0 1 10 0M15 10a5 5 0 0 1 10 0M35 10a5 5 0 0 1 10 0'/%3E%3C/g%3E%3C/svg%3E");
-	background-size: 80rpx 40rpx;
+	background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20300%20120%27%20preserveAspectRatio%3D%27xMaxYMax%20slice%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27f%27%20x1%3D%270%27%20x2%3D%271%27%20y1%3D%270%27%20y2%3D%270%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%2324478F%27%20stop-opacity%3D%270%27%2F%3E%3Cstop%20offset%3D%27.5%27%20stop-color%3D%27%2324478F%27%20stop-opacity%3D%271%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%27236%27%20cy%3D%2738%27%20r%3D%2713%27%20fill%3D%27%23C0392B%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M0%20120V86C30%2070%2055%2062%2080%2072S122%2060%20150%2050S202%2070%20230%2064S276%2046%20300%2054V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.07%27%2F%3E%3Cpath%20d%3D%27M0%20120V98C40%2084%2070%2088%20100%2094S160%2076%20196%2078S262%2096%20300%2086V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.11%27%2F%3E%3Cpath%20d%3D%27M0%20120V108C50%20102%2092%20110%20140%20106S240%20110%20300%20104V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.15%27%2F%3E%3Cpath%20d%3D%27M168%2064H262%27%20stroke%3D%27%2324478F%27%20stroke-width%3D%271.2%27%20stroke-linecap%3D%27round%27%20opacity%3D%27.14%27%2F%3E%3C%2Fsvg%3E");
+	background-size: cover;
+	background-position: right bottom;
+	background-repeat: no-repeat;
 }
-/* 海水纹（白线）：用在青花蓝实底上 */
+/* 远山（白）：用在青花蓝实底上 */
 .zy-wave-bg--light {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='.9' opacity='.14'%3E%3Cpath d='M0 20a10 10 0 0 1 20 0a10 10 0 0 1 20 0M5 20a5 5 0 0 1 10 0M25 20a5 5 0 0 1 10 0M-10 10a10 10 0 0 1 20 0a10 10 0 0 1 20 0a10 10 0 0 1 20 0M-5 10a5 5 0 0 1 10 0M15 10a5 5 0 0 1 10 0M35 10a5 5 0 0 1 10 0'/%3E%3C/g%3E%3C/svg%3E");
-	background-size: 80rpx 40rpx;
+	background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20300%20120%27%20preserveAspectRatio%3D%27xMaxYMax%20slice%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27f%27%20x1%3D%270%27%20x2%3D%271%27%20y1%3D%270%27%20y2%3D%270%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23FFFFFF%27%20stop-opacity%3D%270%27%2F%3E%3Cstop%20offset%3D%27.5%27%20stop-color%3D%27%23FFFFFF%27%20stop-opacity%3D%271%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%27236%27%20cy%3D%2738%27%20r%3D%2713%27%20fill%3D%27%23FFD9A0%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M0%20120V86C30%2070%2055%2062%2080%2072S122%2060%20150%2050S202%2070%20230%2064S276%2046%20300%2054V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.07%27%2F%3E%3Cpath%20d%3D%27M0%20120V98C40%2084%2070%2088%20100%2094S160%2076%20196%2078S262%2096%20300%2086V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.11%27%2F%3E%3Cpath%20d%3D%27M0%20120V108C50%20102%2092%20110%20140%20106S240%20110%20300%20104V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.15%27%2F%3E%3Cpath%20d%3D%27M168%2064H262%27%20stroke%3D%27%23FFFFFF%27%20stroke-width%3D%271.2%27%20stroke-linecap%3D%27round%27%20opacity%3D%27.14%27%2F%3E%3C%2Fsvg%3E");
+	background-size: cover;
+	background-position: right bottom;
+	background-repeat: no-repeat;
 }
 /* 祥云：主视觉卡片右下角点缀 */
 .zy-cloud-bg {

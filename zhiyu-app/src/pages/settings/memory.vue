@@ -210,9 +210,9 @@ onShow(load)
 /* ── v7 展签收口：冷瓷白、墨绿、发丝线、零圆角 ── */
 .memory-page { padding: 22rpx 36rpx 96rpx; background: var(--zy-bg); }
 .memory-page .growth-hero { padding: 20rpx 0 30rpx; }
-.memory-page .growth-eyebrow { color: var(--zy-muted); font-size: 20rpx; letter-spacing: 3rpx; margin-bottom: 14rpx; }
-.memory-page .growth-title { color: var(--zy-title); font-family: var(--zy-serif); font-size: 56rpx; font-weight: 500; line-height: 1.4; letter-spacing: 1rpx; }
-.memory-page .growth-subtitle { color: var(--zy-muted); font-size: 22rpx; line-height: 1.8; margin-top: 12rpx; }
+
+
+
 .memory-page .growth-hero + .growth-card { border-top: 0; }
 .memory-page .growth-card { background: transparent; border: 0; border-top: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); padding: 30rpx 0 32rpx; margin: 0; }
 .memory-page .growth-card-title { color: var(--zy-title); font-family: var(--zy-serif); font-size: 34rpx; font-weight: 500; letter-spacing: 1rpx; margin-bottom: 12rpx; }

@@ -29,7 +29,7 @@ defineProps({
 
 <style scoped>
 .zy-head { position: relative; padding: 12rpx 0 28rpx; margin-bottom: 8rpx; text-align: left; width: 100%; box-sizing: border-box; }
-.zy-head-wave { position: absolute; top: -24rpx; right: -24rpx; width: 360rpx; height: 200rpx; opacity: .9; pointer-events: none; }
+.zy-head-wave { position: absolute; left: -40rpx; right: -40rpx; bottom: 0; height: 170rpx; pointer-events: none; }
 .zy-head-row { position: relative; display: flex; align-items: center; gap: 22rpx; }
 .zy-head-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .zy-head-title { font-family: var(--zy-font-display, serif); font-size: 52rpx; font-weight: 700; line-height: 1.25; letter-spacing: 4rpx; color: var(--zy-title); }

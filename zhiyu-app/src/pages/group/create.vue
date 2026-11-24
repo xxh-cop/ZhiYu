@@ -166,17 +166,7 @@ function handleCancel() {
 	padding: 24rpx 0 40rpx;
 }
 
-.hero-icon-wrap {
-	width: 96rpx;
-	height: 96rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-primary-light, var(--zy-brand-300, #8ea9dc)));
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 20rpx;
-	box-shadow: var(--zy-shadow-sm);
-}
+
 
 .hero-title {
 	font-family: var(--zy-serif);
@@ -185,11 +175,7 @@ function handleCancel() {
 	color: var(--zy-title, #233d34);
 }
 
-.hero-sub {
-	margin-top: 8rpx;
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-aid, #4a5f54);
-}
+
 
 /* ── 表单卡片 ── */
 .form-card {
@@ -206,37 +192,19 @@ function handleCancel() {
 	gap: 36rpx;
 }
 
-.form-item {
-	display: flex;
-	flex-direction: column;
-	gap: 12rpx;
-}
 
-.form-label {
-	font-size:var(--zy-text-body, 28rpx);
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-}
+
+
 
 .required {
 	color: var(--zy-danger, var(--zy-care, #a64842));
 }
 
-.form-hint {
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-aid, #4a5f54);
-}
 
-.char-hint {
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-aid, #4a5f54);
-	text-align: right;
-}
 
-.form-error {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-danger, var(--zy-care, #a64842));
-}
+
+
+
 
 /* ── 底部按钮区 ── */
 .btn-area {
@@ -290,13 +258,7 @@ function handleCancel() {
 }
 
 /* ── 底部免责 ── */
-.footnote {
-	display: block;
-	margin-top: 48rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-aid, #4a5f54);
-	text-align: center;
-}
+
 
 button:focus-visible,
 .btn-primary:focus-visible,
@@ -308,23 +270,23 @@ button:focus-visible,
 /* ── v9 冷瓷展签收口 ── */
 .page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
 .hero { align-items: flex-start; padding: 0 0 30rpx; border-bottom: 1rpx solid var(--zy-border); margin-bottom: 8rpx; }
-.hero-eyebrow { display: block; margin-bottom: 20rpx; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); }
-.hero-head { display: flex; align-items: flex-start; gap: 18rpx; }
-.hero-icon-wrap { width: 56rpx; height: 56rpx; border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-700); box-shadow: none; margin-bottom: 0; flex-shrink: 0; }
+
+
+
 .hero-copy { display: flex; flex-direction: column; gap: 8rpx; }
 .hero-title { font-size: 56rpx; font-weight: 500; line-height: 1.3; }
-.hero-sub { margin-top: 14rpx; color: var(--zy-muted); }
+
 .form-card { background: transparent; border-radius: var(--zy-radius-control, 18rpx); box-shadow: none; padding: 28rpx 0 8rpx; margin-bottom: 20rpx; border-top: 0; }
 .form { gap: 32rpx; }
-.form-label { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; }
-.form-hint, .char-hint { color: var(--zy-muted); }
+
+
 .btn-primary { border-radius: var(--zy-radius-control, 18rpx); background: var(--zy-brand-600); }
 .btn-primary:active { transform: none; }
 .btn-primary--disabled { background: transparent; border: 1rpx solid var(--zy-border); opacity: 1; }
 .btn-primary--disabled .btn-primary-text { color: var(--zy-muted); }
 .btn-secondary { border-radius: var(--zy-radius-control, 18rpx); }
 .btn-secondary-text { color: var(--zy-muted); }
-.footnote { color: var(--zy-muted); }
+
 .form-card :deep(input), .form-card :deep(textarea) { background: transparent !important; }
 .form-card :deep(.wd-textarea), .form-card :deep(.wd-input) { border-radius: var(--zy-radius-control, 18rpx) !important; border-bottom: 1rpx solid var(--zy-border) !important; background: transparent !important; }
 .form-card :deep(.wd-textarea__value), .form-card :deep(.wd-textarea__inner) { background: transparent !important; border: 0 !important; }

@@ -75,3 +75,80 @@
   0%, 100% { transform: scale(1); opacity: 0.8; }
   50% { transform: scale(1.05); opacity: 1; }
 }
+
+/* ══ v9.1 温和动效（2026-11-23）：只在「完成一件事」时给一点回应，其余时间安静 ══
+   全部受 prefers-reduced-motion 与 .motion-reduced（应用内「减少动效」）约束。 */
+
+/* 点赞 / 收藏：图标弹一下 + 一圈涟漪 */
+@keyframes zyHeartPop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.45); }
+  55% { transform: scale(.88); }
+  80% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes zyRipple {
+  0% { transform: scale(.4); opacity: .55; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+.dock-action.dock-action.active .zy-icon { animation: zyHeartPop 520ms cubic-bezier(.3, 1.4, .5, 1); }
+.dock-action { position: relative; }
+.dock-action.dock-action.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 6rpx;
+  width: 64rpx;
+  height: 64rpx;
+  margin-left: -32rpx;
+  border-radius: 50%;
+  border: 4rpx solid currentColor;
+  pointer-events: none;
+  animation: zyRipple 600ms ease-out forwards;
+}
+
+/* 底部导航：选中项图标轻轻弹起 */
+@keyframes zyTabHop {
+  0% { transform: translateY(0) scale(.9); }
+  45% { transform: translateY(-6rpx) scale(1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
+.zy-tabbar-item.active .zy-tabbar-iconwrap { animation: zyTabHop 380ms cubic-bezier(.3, 1.4, .5, 1); }
+
+/* 印章：盖下去 */
+@keyframes zyStampIn {
+  0% { opacity: 0; transform: scale(2) rotate(-18deg); }
+  60% { opacity: 1; transform: scale(.92) rotate(-6deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-6deg); }
+}
+.badge:not(.locked) .zy-seal { animation: zyStampIn 620ms cubic-bezier(.2, 1.3, .4, 1) both; }
+.badge:nth-child(2):not(.locked) .zy-seal { animation-delay: 120ms; }
+.badge:nth-child(3):not(.locked) .zy-seal { animation-delay: 240ms; }
+.badge:nth-child(4):not(.locked) .zy-seal { animation-delay: 360ms; }
+
+/* 小织：像呼吸一样缓慢上下浮动（4.8s 一个来回，与正念页呼吸节奏接近） */
+@keyframes zyFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
+}
+.entry-mascot, .hero-mascot, .hero-pet, .success-pet, .xiaozhi-img, .thing-img { animation: zyFloat 4.8s ease-in-out infinite; }
+.thing:nth-child(2) .thing-img { animation-delay: -1.6s; }
+.thing:nth-child(3) .thing-img { animation-delay: -3.2s; }
+
+/* 按下：轻轻下沉再回弹（主按钮、胶囊按钮） */
+.zy-btn--primary, .account-action, .primary-btn, .start-cta, .agree-btn, .today-cta, .note-save {
+  transition: transform 160ms cubic-bezier(.3, 1.4, .5, 1), box-shadow 160ms ease;
+}
+.zy-btn--primary:active, .account-action:active, .primary-btn:active, .start-cta:active, .agree-btn:active, .today-cta:active, .note-save:active {
+  transform: scale(.97);
+}
+
+/* 选中态切换：选项 / 心情 */
+.selected, .mood-item--active, .mood-pick.picked, .zy-chip.active { transition: background-color 200ms ease, color 200ms ease, transform 220ms cubic-bezier(.3, 1.4, .5, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-action.active .zy-icon, .dock-action.active::after, .zy-tabbar-item.active .zy-tabbar-iconwrap,
+  .badge .zy-seal, .entry-mascot, .hero-mascot, .hero-pet, .success-pet, .xiaozhi-img, .thing-img { animation: none !important; }
+  .dock-action.active::after { display: none; }
+}
+.motion-reduced .dock-action.active::after { display: none; }

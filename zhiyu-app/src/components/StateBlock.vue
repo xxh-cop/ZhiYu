@@ -36,13 +36,15 @@
 		</template>
 		<template v-else>
 			<!-- H5 场景插画复用新小织素材；小程序显示相同角色的独立状态图 -->
-			<!-- #ifdef H5 -->
-			<EmptyArt v-if="art" :variant="art" class="state-art" />
-			<XiaotuanPet v-else class="state-mascot" :size="mascotSize" :face="faceName" aria-hidden="true" />
-			<!-- #endif -->
-			<!-- #ifndef H5 -->
-			<XiaotuanPet class="state-mascot" :size="mascotSize" :face="faceName" aria-hidden="true" />
-			<!-- #endif -->
+			<view class="state-halo" aria-hidden="true">
+				<!-- #ifdef H5 -->
+				<EmptyArt v-if="art" :variant="art" class="state-art" />
+				<XiaotuanPet v-else class="state-mascot" :size="mascotSize" :face="faceName" aria-hidden="true" />
+				<!-- #endif -->
+				<!-- #ifndef H5 -->
+				<XiaotuanPet class="state-mascot" :size="mascotSize" :face="faceName" aria-hidden="true" />
+				<!-- #endif -->
+			</view>
 			<text class="state-title">{{ title }}</text>
 			<text v-if="description" class="state-description">{{ description }}</text>
 			<slot />
@@ -147,4 +149,23 @@ const mascotSize = computed(() => (props.compact ? 72 : 96))
 	0% { background-position: 200% 0; }
 	100% { background-position: -200% 0; }
 }
+</style>
+<style scoped>
+/* v9.1 空 / 错 / 加载：柔和卡片 + 小织光晕 + 圆润骨架 */
+.state-block { margin: 24rpx 0; padding: 56rpx 40rpx 48rpx; border-radius: 40rpx; background: var(--zy-card-bg); box-shadow: var(--zy-shadow-card); gap: 16rpx; }
+.state-block.compact { margin: 16rpx 0; padding: 32rpx 28rpx; border-radius: 32rpx; }
+.state-block.state-loading { background: transparent; box-shadow: none; padding: 32rpx 0; }
+.state-halo { width: 220rpx; height: 220rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8rpx; background: radial-gradient(circle, #fff4e8 0%, #fff4e8 55%, rgba(255, 244, 232, 0) 72%); }
+.compact .state-halo { width: 150rpx; height: 150rpx; }
+.state-error .state-halo { background: radial-gradient(circle, #fbeae7 0%, #fbeae7 55%, rgba(251, 234, 231, 0) 72%); }
+.zy-theme-dark .state-halo { background: radial-gradient(circle, rgba(255, 244, 232, .12) 0%, rgba(255, 244, 232, .08) 55%, rgba(255, 244, 232, 0) 72%); }
+.state-art { max-width: 200rpx; max-height: 200rpx; }
+.state-title { font-size: 34rpx; font-weight: 700; color: var(--zy-title); }
+.state-description { font-size: 26rpx; color: var(--zy-muted); max-width: 520rpx; }
+.state-action { margin: 16rpx 0 0; min-width: 280rpx; border-radius: 999rpx; }
+.skeleton-bar, .skeleton-thumb, .skeleton-cover, .skeleton-hero, .skeleton-bubble { border-radius: 20rpx; }
+.skeleton-thumb { border-radius: 24rpx; }
+.skeleton-cover, .skeleton-hero { border-radius: 32rpx; }
+.skeleton-bubble { border-radius: 8rpx 28rpx 28rpx 28rpx; }
+.skeleton-bubble.right { border-radius: 28rpx 8rpx 28rpx 28rpx; }
 </style>

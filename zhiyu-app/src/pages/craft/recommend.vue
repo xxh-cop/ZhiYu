@@ -232,12 +232,7 @@ function dismiss(item) {
 	margin-bottom: 24rpx;
 }
 
-.page-title {
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-	font-family: var(--zy-serif);
-}
+
 
 .mood-badge {
 	padding: 6rpx 20rpx;
@@ -431,13 +426,7 @@ function dismiss(item) {
 }
 
 /* ── 底部免责 ── */
-.footnote {
-	display: block;
-	margin-top: 48rpx;
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #4a5f54);
-	text-align: center;
-}
+
 /* AM2「换一个」：低干扰小字入口，不抢卡片主视觉 */
 .card-dismiss {
 	display: flex;
@@ -456,14 +445,14 @@ function dismiss(item) {
 	outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f));
 	outline-offset: 2px;
 }
-button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #24478f));outline-offset:3px}
+button:focus-visible {outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #24478f));outline-offset:3px}
 
 /* ── v9 冷瓷展签收口 ── */
 .page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg); }
 .header { display: block; padding-bottom: 28rpx; margin-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border); }
-.page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 18rpx; }
+
 .header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16rpx; }
-.page-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
+
 .mood-badge { padding: 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border-bottom: 2rpx solid var(--zy-accent); }
 .mood-text { color: var(--zy-accent); font-size: var(--zy-text-caption, 24rpx); }
 .reason-card { padding: 24rpx 0 24rpx 24rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border: 0; border-left: 4rpx solid var(--zy-care); box-shadow: none; }
@@ -486,5 +475,5 @@ button:focus-visible{outline:3px solid var(--zy-brand-700,var(--zy-brand-700, #2
 .tag-text { color: var(--zy-muted); }
 .card-dismiss { margin-top: 8rpx; }
 .dismiss-btn { border-radius: var(--zy-radius-control, 18rpx); padding: 4rpx 0; }
-.footnote { color: var(--zy-muted); }
+
 </style>

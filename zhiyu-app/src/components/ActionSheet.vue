@@ -28,8 +28,13 @@
 					:loading="!!action.busy"
 					@click="$emit('select', action.key)"
 				>
-					<text class="action-label">{{ action.label }}</text>
-					<text v-if="action.description" class="action-description">{{ action.description }}</text>
+					<view v-if="action.tone === 'danger' || action.tone === 'primary'" class="action-icon" aria-hidden="true">
+						<ZyIcon :name="action.tone === 'danger' ? 'alert' : 'check'" :size="30" :color="action.tone === 'danger' ? '#B03D33' : '#FFFFFF'" />
+					</view>
+					<view class="action-copy">
+						<text class="action-label">{{ action.label }}</text>
+						<text v-if="action.description" class="action-description">{{ action.description }}</text>
+					</view>
 				</AccessibleButton>
 			</view>
 			<AccessibleButton v-if="cancelText" class="sheet-cancel" :disabled="busy" @click="requestClose">{{ cancelText }}</AccessibleButton>
@@ -274,4 +279,27 @@ button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700
 	from { transform: translateY(32rpx); opacity: 0; }
 	to { transform: translateY(0); opacity: 1; }
 }
+</style>
+
+<style scoped>
+/* v9.1 底部面板：大圆角、宋体标题、按语气着色的动作卡 */
+.sheet-mask { background: rgba(13, 31, 69, .42); }
+.sheet-panel { border-top: 0; border-radius: 48rpx 48rpx 0 0; padding: 18rpx 32rpx calc(28rpx + env(safe-area-inset-bottom)); box-shadow: 0 -12rpx 40rpx rgba(13, 31, 69, .12); }
+.sheet-grabber { width: 80rpx; height: 10rpx; background: var(--zy-bg-sunken); margin-bottom: 24rpx; }
+.sheet-title { font-family: var(--zy-font-display); font-size: 38rpx; font-weight: 700; color: var(--zy-title); letter-spacing: 2rpx; }
+.sheet-close { width: 64rpx; height: 64rpx; min-height: 64rpx; border-radius: 50%; background: var(--zy-bg-sunken); }
+.sheet-description { margin-top: 12rpx; font-size: 27rpx; line-height: 1.75; color: var(--zy-text); }
+.sheet-actions { gap: 14rpx; margin-top: 30rpx; }
+.sheet-action { flex-direction: row; align-items: center; gap: 18rpx; padding: 26rpx 28rpx; border-radius: 28rpx; border: 0; }
+.action-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.action-icon { width: 56rpx; height: 56rpx; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.sheet-action.tone-default { background: var(--zy-bg-sunken); border: 0; color: var(--zy-title); }
+.sheet-action.tone-primary { background: var(--zy-brand-600); color: #fff; box-shadow: var(--zy-shadow-cta); }
+.sheet-action.tone-primary .action-icon { background: rgba(255, 255, 255, .2); }
+.sheet-action.tone-danger { background: var(--zy-bg-tint-care); border: 0; color: var(--zy-care); }
+.sheet-action.tone-danger .action-icon { background: var(--zy-card-bg); }
+.sheet-action:active { transform: scale(.985); }
+.action-label { font-size: 30rpx; font-weight: 700; }
+.action-description { font-size: 24rpx; opacity: .8; }
+.sheet-cancel { margin-top: 16rpx; min-height: 88rpx; border-radius: 999rpx; background: transparent; border: 2rpx solid var(--zy-border); color: var(--zy-text); font-weight: 600; }
 </style>

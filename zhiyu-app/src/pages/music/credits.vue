@@ -3,8 +3,8 @@
 <script setup>
 import ZyPageHead from '../../components/ZyPageHead.vue'import{tracks}from'../../data/music';import{imageCredits}from'../../data/media-credits';import AccessibleButton from'../../components/AccessibleButton.vue';const all=[...tracks,...imageCredits];function copy(data){uni.setClipboardData({data})}</script>
 <style scoped>
-.source{display:block;word-break:break-all;font-size:var(--zy-text-micro, 22rpx);color:var(--zy-muted);margin-top:16rpx;line-height:1.7}
-.growth-page .growth-title{font-size:54rpx;letter-spacing:0}
-.growth-card .growth-button.secondary{display:flex;justify-content:flex-start;background:transparent;border:0;border-bottom:1rpx solid var(--zy-border,#d3ded8);border-radius: var(--zy-radius-control, 18rpx);text-align:left;color:var(--zy-brand-700,#183369);font-size:24rpx;padding:8rpx 0;margin-top:4rpx;min-height:64rpx;line-height:1.9}
-.growth-card .growth-button.secondary::after{border:0}
+.source {display:block;word-break:break-all;font-size:var(--zy-text-micro, 22rpx);color:var(--zy-muted);margin-top:16rpx;line-height:1.7}
+
+.growth-card .growth-button.secondary {display:flex;justify-content:flex-start;background:transparent;border:0;border-bottom:1rpx solid var(--zy-border,#d3ded8);border-radius: var(--zy-radius-control, 18rpx);text-align:left;color:var(--zy-brand-700,#183369);font-size:24rpx;padding:8rpx 0;margin-top:4rpx;min-height:64rpx;line-height:1.9}
+.growth-card .growth-button.secondary::after {border:0}
 </style>

@@ -261,23 +261,10 @@ async function confirmDelete() {
 	margin-bottom: 8rpx;
 	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
 }
-.page-eyebrow {
-	display: block;
-	font-size: var(--zy-text-micro, 22rpx);
-	letter-spacing: 2px;
-	color: var(--zy-muted, #6e7b75);
-	margin-bottom: 20rpx;
-}
-.page-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24rpx; }
-.page-head-copy { min-width: 0; }
-.page-title {
-	display: block;
-	font-family: var(--zy-font-display, serif);
-	font-size: 64rpx;
-	font-weight: 600;
-	line-height: 1.2;
-	color: var(--zy-title, #111816);
-}
+
+
+
+
 .list-label {
 	display: block;
 	font-size: var(--zy-text-micro, 22rpx);
@@ -285,12 +272,7 @@ async function confirmDelete() {
 	color: var(--zy-muted);
 	margin-bottom: 4rpx;
 }
-.page-subtitle {
-	display: block;
-	margin-top: 10rpx;
-	font-size: var(--zy-text-caption, 24rpx);
-	color: var(--zy-muted, #6e7b75);
-}
+
 .create-btn {
 	flex-shrink: 0;
 	min-height: 72rpx;
@@ -314,73 +296,26 @@ async function confirmDelete() {
 }
 
 /* ── 骨架屏 ── */
-.skeleton-card {
-	overflow: hidden;
-	border-radius: var(--zy-radius-md, 24rpx);
-	background-color: var(--zy-card-bg, #FFFFFF);
-	border: 1rpx solid var(--zy-border, #dfe7dc);
-	margin-bottom: 24rpx;
-}
 
-.skeleton-body {
-	padding: 28rpx;
-}
 
-.skeleton-line {
-	height: 28rpx;
-	margin-bottom: 16rpx;
-	border-radius: var(--zy-radius-xs, 6rpx);
-}
+
+
+
 
 /* ── 空状态 ── */
-.empty-box {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 100rpx 0;
-	gap: 16rpx;
-}
 
-.empty-icon-wrap {
-	width: 120rpx;
-	height: 120rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	background-color: var(--zy-bg-tint-mint, #eef3fb);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 16rpx;
-}
 
-.empty-emoji {
-	font-size:var(--zy-text-display, 56rpx);
-}
 
-.empty-title {
-	font-size:var(--zy-text-body-lg, 30rpx);
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-}
 
-.empty-sub {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #5c5648);
-}
 
-.empty-btn {
-	margin-top: 16rpx;
-	padding: 16rpx 40rpx;
-	border-radius: var(--zy-radius-control, 18rpx);
-	background: var(--zy-brand-600, #24478f);
-	box-shadow: none;
-}
 
-.empty-btn-text {
-	font-size:var(--zy-text-body, 28rpx);
-	color: #FFFFFF;
-	font-weight: 500;
-}
+
+
+
+
+
+
+
 
 /* ── 状态 ── */
 .status-box {
@@ -392,10 +327,7 @@ async function confirmDelete() {
 	gap: 16rpx;
 }
 
-.error-text {
-	font-size:var(--zy-text-body, 28rpx);
-	color: var(--zy-care, var(--zy-care, #a64842));
-}
+
 
 /* ── 便签列表：时间轴式行 ── */
 .card-list {
@@ -501,14 +433,7 @@ async function confirmDelete() {
 	background-color: var(--zy-border, #dfe7dc);
 }
 
-.loading-dot {
-	width: 32rpx;
-	height: 32rpx;
-	border-radius: 50%;
-	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, var(--zy-brand-600, #24478f)));
-	animation: spin 0.8s linear infinite;
-}
+
 
 @keyframes spin {
 	to { transform: rotate(360deg); }
@@ -519,13 +444,7 @@ async function confirmDelete() {
 	color: var(--zy-text, #5c5648);
 }
 
-.footnote {
-	display: block;
-	margin-top: 48rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-text, #5c5648);
-	text-align: center;
-}
+
 </style>
 <style scoped>
 /* v9：便签左侧用暖色表情 */

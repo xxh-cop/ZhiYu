@@ -350,5 +350,5 @@ function handleLogout() {
 .boundary-action { margin: 8rpx 0 0; }
 
 .logout-btn { width: 100%; margin: 32rpx 0 0; min-height: 88rpx; font-size: 28rpx; }
-.footnote { display: block; margin-top: 32rpx; font-size: 22rpx; color: var(--zy-muted); text-align: center; }
+
 </style>

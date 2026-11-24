@@ -309,7 +309,7 @@ loadData(1)
 .bottom-divider { width: 84rpx; }
 .bottom-text { font-size: 24rpx; color: var(--zy-muted); }
 .bottom-error { display: flex; flex-direction: column; align-items: center; gap: 14rpx; margin-top: 24rpx; padding: 24rpx; border-radius: var(--zy-radius-card); background: var(--zy-card-bg); color: var(--zy-text); font-size: 24rpx; }
-.footnote { display: block; margin-top: 32rpx; font-size: 22rpx; color: var(--zy-muted); text-align: center; }
+
 
 /* 悬浮发布 */
 .fab { position: fixed; right: 36rpx; bottom: calc(150rpx + env(safe-area-inset-bottom)); z-index: 30; width: 108rpx; height: 108rpx; min-width: 108rpx; min-height: 108rpx; padding: 0; margin: 0; border-radius: 50%; background: var(--zy-cinnabar); border: 0; box-shadow: 0 12rpx 28rpx rgba(192, 57, 43, .35); display: flex; align-items: center; justify-content: center; }

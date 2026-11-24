@@ -310,12 +310,7 @@ loadStories()
 	margin-bottom: 24rpx;
 }
 
-.page-title {
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-	font-family: var(--zy-serif);
-}
+
 
 /* ── 搜索框 ── */
 .search-bar {
@@ -529,14 +524,7 @@ loadStories()
 	background-color: var(--zy-border, #dfe7dc);
 }
 
-.loading-dot {
-	width: 32rpx;
-	height: 32rpx;
-	border-radius: 50%;
-	border: 3rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, var(--zy-brand-600, #24478f));
-	animation: spin 0.8s linear infinite;
-}
+
 
 @keyframes spin {
 	to { transform: rotate(360deg); }
@@ -547,13 +535,7 @@ loadStories()
 	color: var(--zy-aid, #4a5f54);
 }
 
-.footnote {
-	display: block;
-	margin-top: 48rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-aid, #4a5f54);
-	text-align: center;
-}
+
 </style>
 
 <style scoped>
@@ -577,9 +559,9 @@ loadStories()
 /* ── v9 冷瓷展签覆盖 ── */
 .page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg, #f1f4f1); }
 .header { padding-bottom: 30rpx; margin-bottom: 30rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
-.page-eyebrow { display: block; margin-bottom: 18rpx; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
-.page-title { display: block; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; color: var(--zy-title, #111816); }
-.page-subtitle { display: block; margin-top: 10rpx; font-size: var(--zy-text-caption, 24rpx); line-height: 1.7; color: var(--zy-muted, #6e7b75); }
+
+
+
 .search-input-wrap { border-radius: var(--zy-radius-control, 18rpx); padding: 14rpx 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
 .search-input-wrap.is-focused { border-color: var(--zy-brand-600, #24478f); }
 .search-btn { color: var(--zy-brand-700, #183369); padding-left: 24rpx; border-left: 1rpx solid var(--zy-border, #d3ded8); }
@@ -603,7 +585,7 @@ loadStories()
 .verified-badge { color: var(--zy-muted, #6e7b75); }
 .verified-text { color: var(--zy-muted, #6e7b75); }
 .project-count-text { color: var(--zy-muted, #6e7b75); }
-.footnote { color: var(--zy-muted, #6e7b75); }
+
 @media (prefers-reduced-motion: reduce) {
   .story-card { transition: none; }
 }

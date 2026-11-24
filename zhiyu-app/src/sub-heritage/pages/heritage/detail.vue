@@ -504,12 +504,7 @@ onLoad((query) => {
 	display: block;
 	line-height: 1.6;
 }
-.heritage-foot {
-	display: block;
-	margin-top: var(--zy-space-3xl);
-	text-align: center;
-	color: var(--zy-text);
-}
+
 @media (min-width: 700px) {
 	.heritage-detail-art {
 		height: 480px;

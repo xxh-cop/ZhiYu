@@ -181,7 +181,7 @@ function goCreate() {
 .all-joined { padding: 28rpx; border-radius: var(--zy-radius-card); background: var(--zy-brand-50); color: var(--zy-brand-700); font-size: 24rpx; text-align: center; }
 
 .group-error-row { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin-bottom: 16rpx; padding: 20rpx 24rpx; border-radius: var(--zy-radius-card); background: var(--zy-bg-tint-care); color: var(--zy-care); font-size: 24rpx; }
-.footnote { display: block; margin-top: 40rpx; font-size: 22rpx; color: var(--zy-muted); text-align: center; }
+
 </style>
 
 <style scoped>

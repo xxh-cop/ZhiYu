@@ -369,11 +369,7 @@ onUnmounted(() => {
 	flex-shrink: 0;
 }
 
-.cp-close-icon {
-	font-size:var(--zy-text-title-lg, 40rpx);
-	color: var(--zy-aid, #4a5f54);
-	line-height: 1;
-}
+
 
 /* ── 消息区 ── */
 .cp-msg-area {

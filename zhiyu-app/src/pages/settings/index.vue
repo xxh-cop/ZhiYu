@@ -520,20 +520,9 @@ async function handleChangePassword() {
 	margin-bottom: 32rpx;
 }
 
-.page-title {
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-	font-family: var(--zy-serif);
-	display: block;
-}
 
-.page-subtitle {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #4a5f54);
-	display: block;
-	margin-top: 8rpx;
-}
+
+
 
 /* ── 头像区域 ── */
 .avatar-section {
@@ -677,13 +666,7 @@ async function handleChangePassword() {
 }
 
 /* ── 底部 ── */
-.footnote {
-	display: block;
-	margin-top: 48rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-text, #4a5f54);
-	text-align: center;
-}
+
 </style>
 
 <style scoped>
@@ -777,9 +760,9 @@ async function handleChangePassword() {
 /* ── v9 冷瓷展签覆盖（不改表单结构，只收口视觉） ── */
 .page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg, #f1f4f1); }
 .page-header { padding-bottom: 32rpx; margin-bottom: 8rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
-.page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); margin-bottom: 18rpx; }
-.page-title { display: block; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; color: var(--zy-title, #111816); }
-.page-subtitle { display: block; margin-top: 10rpx; font-size: var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); line-height: 1.7; }
+
+
+
 .avatar-section { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 24rpx; padding: 32rpx 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
 .avatar-copy { display: flex; flex-direction: column; gap: 8rpx; min-width: 0; }
 .avatar-title { font-family: var(--zy-font-display, serif); font-size: 32rpx; font-weight: 500; color: var(--zy-title, #111816); }
@@ -801,5 +784,5 @@ async function handleChangePassword() {
 .theme-option { border-radius: var(--zy-radius-control, 18rpx); border-width: 1rpx; padding: 16rpx; }
 .theme-swatch { border-radius: var(--zy-radius-control, 18rpx); border-width: 1rpx; }
 .theme-option-name { font-weight: 500; }
-.footnote { color: var(--zy-muted, #6e7b75); }
+
 </style>

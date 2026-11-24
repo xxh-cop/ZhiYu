@@ -16,156 +16,6 @@
  * 因 UniApp 编译器不输出 uni.scss 的 CSS 规则。
  */
 
-:root,
-page {
-	/* ── 品牌色阶（青玉案） ── */
-	--zy-brand-50: #eaf4f1;
-	--zy-brand-100: #c9e4dd;
-	--zy-brand-200: #8adcc6;    /* 浅青玉图形（不作正文） */
-	--zy-brand-300: #5bc4a8;    /* 深色态主色 / 浅色态图形 */
-	--zy-brand-500: #2d9b8f;    /* hover / 图表 / 图形（不作按钮底） */
-	--zy-brand-600: #217e76;    /* 主色：按钮、链接、导航选中 */
-	--zy-brand-700: #1a645e;    /* 按钮按下态 */
-	--zy-brand-900: #0f3d38;    /* 深色态按钮文字（配 brand-300 底） */
-
-	/* ── wot-design-uni 主题变量 ── */
-	--wot-color-theme: #217e76;        /* 青玉案 brand-600 — 主色 */
-	--wot-color-success: #2e7d5b;      /* 成功绿 */
-	--wot-color-warning: #9a6a12;      /* 警示琥珀（大字/图标级） */
-	--wot-color-danger: #a64842;       /* 危机绛（非纯红） */
-	--wot-color-info: #5c5648;         /* 中性次要 */
-
-	--wot-color-bg: #ffffff;            /* 页面底（云白，默认主题） */
-	--wot-color-border: #dcdcd6;        /* 发丝线（随 --zy-border） */
-	--wot-color-border-light: #EDE7DB;  /* 暖纸浅线（原浅冷灰） */
-
-	--wot-color-title: #33302a;         /* 标题（暖墨） */
-	--wot-color-content: #5c5648;       /* 正文（暖灰棕，对暖纸底 6.4:1） */
-	--wot-color-secondary: #5c5648;     /* 次要 */
-	--wot-color-aid: #5c5648;           /* 辅助 */
-	--wot-color-tip: #C9BFA9;           /* 暖灰 — 占位提示（非正文用途） */
-
-	/* ── 织愈色板（向后兼容别名，指向暖纸青玉令牌） ── */
-	--zy-primary: #217e76;
-	--zy-primary-light: #5bc4a8;
-	--zy-bg: #ffffff;                   /* 页面底（云白，默认主题） */
-	--zy-card-bg: #ffffff;              /* 卡片底（云白主题下靠 --zy-card-line 发丝描边分层） */
-	--zy-card-line: #e9e9e7;            /* 卡片发丝描边（暖纸主题置透明） */
-	--zy-bg-sunken: #f4f4f2;            /* 下沉衬底（详情块/次按钮/提示条等比页面底深一档；2026-11-08 导航条批新增） */
-	--zy-title: #33302a;
-	--zy-text: #5c5648;
-	--zy-muted: #5c5648;
-	--zy-border: #dcdcd6;               /* 发丝线（2026-11-08 批二：云白下自 #E8E8E6 加深一档，1rpx 描边在纯白底上可辨；暖纸覆盖不变） */
-	--zy-accent: #7a5c12;               /* 深金文字（非遗标注/正文级警示；2026-11-08 加深） */
-	--zy-danger: #a64842;               /* 危机绛 */
-
-	--zy-bg-warm: #ffffff;              /* 卡片底别名（随主题） */
-	--zy-bg-tint-mint: #e4efe7;         /* 薄荷 tint — 平静/呼吸语义底 */
-	--zy-bg-tint-warm: #f3e9cf;         /* 暖金 tint — 非遗/关怀语义底 */
-	--zy-bg-tint-care: #f7ecea;         /* 关怀 tint — 危险操作与错误提示底 */
-	--zy-content: #5c5648;
-	--zy-aid: #5c5648;
-	--zy-stitch: #d8d8d4;               /* 缝线：虚线分隔/纹样，纯装饰不承载文本（云白默认） */
-	--zy-faint: #8a8378;                /* 装饰灰：仅英文 eyebrow，禁承载信息文本 */
-
-	/* 云白极淡纸纹（1.6% 暖墨噪点，240rpx 瓦片，与暖纸纸纹同款 feTurbulence 结构；
-	   暖纸主题在 .zy-theme-warm 用 5% 覆盖为自己的纸纹）。 */
-	--zy-paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .016 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
-
-	/* ── 语义色 ── */
-	--zy-success: #2e7d5b;
-	--zy-warning: #9a6a12;              /* 仅大字/图标 */
-	--zy-warning-text: #7a5c12;         /* 正文级警示（与 accent 同源加深） */
-	--zy-care: #a64842;                 /* 危机干预绛 */
-	--zy-gold: #d9a441;                 /* 暖金：仅图形/徽章，不承担文本 */
-
-	/* ── 深色态（夜间页面级：音乐/呼吸/睡前；全站暗色未启用） ── */
-	--zy-d-bg: #14201c;
-	--zy-d-surface: #1c2b26;
-	--zy-d-text: #e8ede9;
-	--zy-d-text-secondary: #a9bbb2;
-	--zy-d-primary: #5bc4a8;
-	--zy-d-care: #d4736a;
-
-	--zy-font: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-	/* 保留旧变量供已有页面引用，统一为易读的界面字体。 */
-	--zy-serif: var(--zy-font);
-	--zy-sans: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
-
-	/* ── 圆角（基础阶） ── */
-	--zy-radius-xs: 6rpx;
-	--zy-radius-sm: 12rpx;
-	--zy-radius-md: 24rpx;
-	--zy-radius-lg: 32rpx;
-	--zy-radius-xl: 48rpx;
-	--zy-radius-full: 0;
-
-	/* ── 圆角（语义别名：卡片/控件/弹窗分级） ── */
-	--zy-radius-card: var(--zy-radius-lg);      /* 卡片 32rpx ≈ 16px */
-	--zy-radius-control: var(--zy-radius-md);   /* 按钮/输入 24rpx ≈ 12px */
-	--zy-radius-dialog: var(--zy-radius-xl);    /* 弹窗 48rpx ≈ 24px */
-	--zy-radius-chip: var(--zy-radius-sm);      /* 标签/小片 12rpx */
-	--zy-radius-feature: 40rpx;                 /* 大卡/展品封面（暖纸青玉 v6） */
-
-	/* ── 阴影（云白默认：中性；暖纸主题在 .zy-theme-warm 覆盖为暖墨） ── */
-	--zy-shadow-card: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
-	--zy-shadow-cta: 0 8rpx 20rpx rgba(33, 126, 118, 0.28);
-	--zy-shadow-pop: 0 16rpx 48rpx rgba(0, 0, 0, 0.10);
-
-	/* ── 阴影（旧五档，2026-11-08 批二映射到新三档）：45 处旧引用零改动随主题协调，
-	   避免暖纸主题下投青玉影违和；P7 零引用后删除。 ── */
-	--zy-shadow-xs: var(--zy-shadow-card);
-	--zy-shadow-sm: var(--zy-shadow-card);
-	--zy-shadow-md: var(--zy-shadow-card);
-	--zy-shadow-lg: var(--zy-shadow-pop);
-	--zy-shadow-xl: var(--zy-shadow-pop);
-
-	/* ── 间距 ── */
-	--zy-space-2xs: 4rpx;
-	--zy-space-xs: 8rpx;
-	--zy-space-sm: 16rpx;
-	--zy-space-md: 24rpx;
-	--zy-space-lg: 32rpx;
-	--zy-space-xl: 48rpx;
-	--zy-space-2xl: 64rpx;
-	--zy-space-3xl: 72rpx;   /* 呼吸段：主视觉后 / 页脚前（暖纸青玉 v6） */
-
-	/* ── 字体 ── */
-	--zy-font-xs: 20rpx;     /* 仅图标内数字；排版不再使用（暖纸青玉 v6） */
-	--zy-font-sm: 24rpx;
-	--zy-font-base: 28rpx;
-	--zy-font-md: 32rpx;
-	--zy-font-lg: 36rpx;
-	--zy-font-xl: 44rpx;
-	--zy-font-2xl: 56rpx;
-	--zy-leading: 1.6;
-
-	/* ── 字阶七档（暖纸青玉 v6，配合 .zy-t-* 工具类；px@375 = rpx÷2） ── */
-	--zy-text-display: 56rpx;    /* 28px · 600 · 1.3 · 字距 2rpx · 每屏 ≤1 次 */
-	--zy-text-title-lg: 40rpx;   /* 20px · 600 · 1.4 · 字距 1rpx */
-	--zy-text-title: 32rpx;      /* 16px · 600 · 1.5 · 字距 0.5rpx */
-	--zy-text-body-lg: 30rpx;    /* 15px · 400 · 1.7 */
-	--zy-text-body: 28rpx;       /* 14px · 400 · 1.7 */
-	--zy-text-caption: 24rpx;    /* 12px · 400 · 1.6 */
-	--zy-text-micro: 22rpx;      /* 11px · 400 · 1.6 · 全站最小字 */
-	--zy-font-display: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
-
-	/* ── 动效时长 ── */
-	--zy-duration-instant: 100ms;
-	--zy-duration-fast: 150ms;
-	--zy-duration-base: 250ms;
-	--zy-duration-slow: 400ms;
-	--zy-duration-slower: 600ms;
-
-	/* ── 缓动函数 ── */
-	--zy-ease-linear: linear;
-	--zy-ease-in: cubic-bezier(0.4, 0, 1, 1);
-	--zy-ease-out: cubic-bezier(0, 0, 0.2, 1);
-	--zy-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-	--zy-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
-	--zy-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
-	--zy-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
-}
 
 /**
  * ── 页面纸纹（云白默认极淡，2026-11-19 非遗气息深化·阶段二）──
@@ -189,28 +39,7 @@ page {
  * 品牌色、语义色、字阶、圆角、间距、tint 双轨与云白主题完全共用。
  * 小程序端 page 元素不能运行时挂 class，故挂页面根 view，变量沿树继承。
  */
-.zy-theme-warm {
-	--zy-bg: #f6f1e7;
-	--zy-card-bg: #fffdf7;
-	--zy-card-line: transparent;
-	--zy-bg-sunken: #efe8da;
-	--zy-border: #e4dccb;
-	--zy-stitch: #c9bfa9;
-	--zy-shadow-card: 0 4rpx 20rpx rgba(72, 58, 34, 0.07);
-	--zy-shadow-pop: 0 16rpx 48rpx rgba(72, 58, 34, 0.14);
-	--zy-bg-warm: #fffdf7;
-	--wot-color-bg: #f6f1e7;
-	--wot-color-border: #e4dccb;
 
-	/* 暖底 + 纸纹（2.5% 暖墨噪点，240rpx 瓦片；加载失败仅表现为纯色暖底）。
-	   纸纹本身是透明噪点，底色必须由本规则提供，否则会透出 page 层的云白底；
-	   min-height 保证内容不满屏时 page 云白不外露。page 元素自身（mp 橡皮筋溢出区）
-	   无法运行时挂 class，恒为云白——平台限制，已在规格中登记。 */
-	background-color: var(--zy-bg);
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
-	background-size: 240rpx 240rpx;
-	min-height: 100vh;
-}
 @media (prefers-reduced-transparency: reduce) {
 	.zy-theme-warm { background-image: none; }
 }
@@ -233,143 +62,8 @@ html.zy-theme-warm .uni-page-head { background-color: #f6f1e7 !important; }
  * 语义：brand=窑青（行动/链接/进度），celadon=影青（次级），cinnabar=朱砂（只做一根线/紧急），
  * 哑金仅作金缮细线，不再承担大面积装饰。
  */
-:root,
-page {
-	/* 品牌色阶：窑青 */
-	--zy-brand-50: #eef5f1;
-	--zy-brand-100: #dcece5;
-	--zy-brand-200: #b9ddd0;
-	--zy-brand-300: #8fc7b8;
-	--zy-brand-500: #2f7e72;
-	--zy-brand-600: #0e5b53;
-	--zy-brand-700: #0a403b;
-	--zy-brand-900: #072b27;
-
-	/* wot-design-uni：冷瓷白面 */
-	--wot-color-theme: #0e5b53;
-	--wot-color-success: #2f7d62;
-	--wot-color-warning: #8e4a3c;
-	--wot-color-danger: #a64842;
-	--wot-color-info: #42524c;
-	--wot-color-bg: #f1f4f1;
-	--wot-color-border: #d3ded8;
-	--wot-color-border-light: #e4ece8;
-	--wot-color-title: #111816;
-	--wot-color-content: #42524c;
-	--wot-color-secondary: #6e7b75;
-	--wot-color-aid: #6e7b75;
-	--wot-color-tip: #8b9994;
-
-	/* 面 / 字 / 线 */
-	--zy-primary: #0e5b53;
-	--zy-primary-light: #8fc7b8;
-	--zy-bg: #f1f4f1;
-	--zy-card-bg: #ffffff;
-	--zy-card-line: #d3ded8;
-	--zy-line-soft: #d3ded8;
-	--zy-bg-sunken: #e9efeb;
-	--zy-title: #111816;
-	--zy-text: #42524c;
-	--zy-muted: #6e7b75;
-	--zy-border: #d3ded8;
-	--zy-accent: #8e4a3c;
-	--zy-danger: #a64842;
-	--zy-bg-warm: #ffffff;
-	--zy-bg-tint-mint: #e7f0eb;
-	--zy-bg-tint-warm: #f2e9e4;
-	--zy-bg-tint-care: #f5e7e3;
-	--zy-content: #42524c;
-	--zy-aid: #6e7b75;
-	--zy-stitch: #b9cbc4;
-	--zy-faint: #8b9994;
-
-	/* 语义色：朱砂只做“一根线”和紧急 */
-	--zy-success: #2f7d62;
-	--zy-warning: #8e4a3c;
-	--zy-warning-text: #8e4a3c;
-	--zy-care: #a64842;
-	--zy-gold: #c8a45c;
-
-	/* 深色态：墨绿黑，用于倾听室 / 音乐 / 夜间 */
-	--zy-d-bg: #0b1513;
-	--zy-d-surface: #111e1a;
-	--zy-d-text: #f1f4f1;
-	--zy-d-text-secondary: #a9bbb2;
-	--zy-d-primary: #8fc7b8;
-	--zy-d-care: #d4736a;
-
-	/* 字体：宋体只做标题/展签/引言，正文回到无衬线 */
-	--zy-font: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-	--zy-serif: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
-	--zy-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-	--zy-font-display: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
-
-	/* 字阶：标题拉开，正文收敛 */
-	--zy-font-xs: 20rpx;
-	--zy-font-sm: 24rpx;
-	--zy-font-base: 28rpx;
-	--zy-font-md: 32rpx;
-	--zy-font-lg: 36rpx;
-	--zy-font-xl: 44rpx;
-	--zy-font-2xl: 56rpx;
-	--zy-leading: 1.7;
-	--zy-text-display: 72rpx;
-	--zy-text-title-lg: 44rpx;
-	--zy-text-title: 36rpx;
-	--zy-text-body-lg: 30rpx;
-	--zy-text-body: 28rpx;
-	--zy-text-caption: 24rpx;
-	--zy-text-micro: 22rpx;
-
-	/* 圆角：展签/卡片/控件直角，圆形只保留头像与图标按钮 */
-	--zy-radius-xs: 0;
-	--zy-radius-sm: 0;
-	--zy-radius-md: 0;
-	--zy-radius-lg: 0;
-	--zy-radius-xl: 0;
-	--zy-radius-card: 0;
-	--zy-radius-control: 0;
-	--zy-radius-dialog: 0;
-	--zy-radius-chip: 0;
-	--zy-radius-feature: 0;
-	--zy-radius-full: 0;
-
-	/* 投影：取消卡片阴影，用发丝线分层 */
-	--zy-shadow-card: none;
-	--zy-shadow-cta: none;
-	--zy-shadow-pop: none;
-	--zy-shadow-xs: none;
-	--zy-shadow-sm: none;
-	--zy-shadow-md: none;
-	--zy-shadow-lg: none;
-	--zy-shadow-xl: none;
-
-	/* 别名与空态插画令牌（随主题换肤） */
-	--zy-card: #ffffff;
-	--zy-art-line: #0e5b53;
-	--zy-art-paper: #ffffff;
-	--zy-art-ground: #e9efeb;
-	--zy-art-soft: #dcece5;
-	--zy-art-thread: #8fc7b8;
-	--zy-art-cinnabar: #a64842;
-}
 
 /* 旧暖纸主题保留 class 兼容，但面级值全部并入冷瓷白，防止历史 storage 把页面拉回暖黄 */
-.zy-theme-warm {
-	--wot-color-bg: #f1f4f1;
-	--wot-color-border: #d3ded8;
-	--zy-bg: #f1f4f1;
-	--zy-card-bg: #ffffff;
-	--zy-card-line: #d3ded8;
-	--zy-bg-sunken: #e9efeb;
-	--zy-border: #d3ded8;
-	--zy-stitch: #b9cbc4;
-	--zy-bg-warm: #ffffff;
-	background-color: var(--zy-bg);
-	background-image: var(--zy-paper-noise);
-	background-size: 240rpx 240rpx;
-	min-height: 100vh;
-}
 
 /**
  * ── v9「青花瓷」视觉体系（2026-11-23 全面重构 P1）────────────────
@@ -488,6 +182,50 @@ page {
 	--zy-d-text: #eef2f8;
 	--zy-d-text-secondary: #c3cbdb;
 	--zy-d-primary: #9db8ec;
+
+	/* 基础令牌：以下令牌沿用早期版本的定义（间距 / 动效 / 字体等），2026-11-23 合并 */
+	--zy-paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .016 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+	--zy-d-care: #d4736a;
+	--zy-font: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+	--zy-serif: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
+	--zy-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+	--zy-space-2xs: 4rpx;
+	--zy-space-xs: 8rpx;
+	--zy-space-sm: 16rpx;
+	--zy-space-md: 24rpx;
+	--zy-space-lg: 32rpx;
+	--zy-space-xl: 48rpx;
+	--zy-space-2xl: 64rpx;
+	--zy-space-3xl: 72rpx;
+	--zy-font-xs: 20rpx;
+	--zy-font-sm: 24rpx;
+	--zy-font-base: 28rpx;
+	--zy-font-md: 32rpx;
+	--zy-font-lg: 36rpx;
+	--zy-font-xl: 44rpx;
+	--zy-font-2xl: 56rpx;
+	--zy-leading: 1.7;
+	--zy-text-display: 72rpx;
+	--zy-text-title-lg: 44rpx;
+	--zy-text-title: 36rpx;
+	--zy-text-body-lg: 30rpx;
+	--zy-text-body: 28rpx;
+	--zy-text-caption: 24rpx;
+	--zy-text-micro: 22rpx;
+	--zy-font-display: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
+	--zy-duration-instant: 100ms;
+	--zy-duration-fast: 150ms;
+	--zy-duration-base: 250ms;
+	--zy-duration-slow: 400ms;
+	--zy-duration-slower: 600ms;
+	--zy-ease-linear: linear;
+	--zy-ease-in: cubic-bezier(0.4, 0, 1, 1);
+	--zy-ease-out: cubic-bezier(0, 0, 0.2, 1);
+	--zy-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+	--zy-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--zy-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+	--zy-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
 }
 
 /* 可选「暖纸」主题：宣纸米色 + 暖墨投影（设置页 → 页面配色 → 暖纸） */
@@ -509,6 +247,12 @@ page {
 	--wot-color-border: #d9cdb5;
 	--wot-color-border-light: #ece3d1;
 	background-color: var(--zy-bg);
+
+	/* 暖纸：以下令牌沿用早期版本的定义（间距 / 动效 / 字体等），2026-11-23 合并 */
+	background-image: var(--zy-paper-noise);
+	background-size: 240rpx 240rpx;
+	min-height: 100vh;
+
 }
 
 /**
@@ -567,7 +311,10 @@ page {
 }
 /* 青瓷下的纹饰换成青绿线（data-URI 读不到变量，故单独给一份） */
 .zy-theme-jade .zy-wave-bg {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Cg fill='none' stroke='%23136A5F' stroke-width='.9' opacity='.16'%3E%3Cpath d='M0 20a10 10 0 0 1 20 0a10 10 0 0 1 20 0M5 20a5 5 0 0 1 10 0M25 20a5 5 0 0 1 10 0M-10 10a10 10 0 0 1 20 0a10 10 0 0 1 20 0a10 10 0 0 1 20 0M-5 10a5 5 0 0 1 10 0M15 10a5 5 0 0 1 10 0M35 10a5 5 0 0 1 10 0'/%3E%3C/g%3E%3C/svg%3E");
+	background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20300%20120%27%20preserveAspectRatio%3D%27xMaxYMax%20slice%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27f%27%20x1%3D%270%27%20x2%3D%271%27%20y1%3D%270%27%20y2%3D%270%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23136A5F%27%20stop-opacity%3D%270%27%2F%3E%3Cstop%20offset%3D%27.5%27%20stop-color%3D%27%23136A5F%27%20stop-opacity%3D%271%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%27236%27%20cy%3D%2738%27%20r%3D%2713%27%20fill%3D%27%23C0392B%27%20opacity%3D%27.14%27%2F%3E%3Cpath%20d%3D%27M0%20120V86C30%2070%2055%2062%2080%2072S122%2060%20150%2050S202%2070%20230%2064S276%2046%20300%2054V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.07%27%2F%3E%3Cpath%20d%3D%27M0%20120V98C40%2084%2070%2088%20100%2094S160%2076%20196%2078S262%2096%20300%2086V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.11%27%2F%3E%3Cpath%20d%3D%27M0%20120V108C50%20102%2092%20110%20140%20106S240%20110%20300%20104V120Z%27%20fill%3D%27url(%23f)%27%20opacity%3D%27.15%27%2F%3E%3Cpath%20d%3D%27M168%2064H262%27%20stroke%3D%27%23136A5F%27%20stroke-width%3D%271.2%27%20stroke-linecap%3D%27round%27%20opacity%3D%27.14%27%2F%3E%3C%2Fsvg%3E");
+	background-size: cover;
+	background-position: right bottom;
+	background-repeat: no-repeat;
 }
 .zy-theme-jade .zy-band-meander {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12'%3E%3Cpath d='M0 11H3V1H17V9H7V5H13M17 9V11H20' fill='none' stroke='%23136A5F' stroke-width='1.3' opacity='.5'/%3E%3C/svg%3E");

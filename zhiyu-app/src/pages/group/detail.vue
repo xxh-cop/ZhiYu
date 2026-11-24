@@ -238,21 +238,8 @@ onLoad(options => {
 .group-head {
 	padding: 8rpx 0 26rpx;
 }
-.group-title {
-	display: block;
-	margin-top: 8rpx;
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 600;
-	line-height: 1.35;
-	color: var(--zy-title, #33302A);
-}
-.group-sub {
-	display: block;
-	margin-top: 10rpx;
-	font-size:var(--zy-text-caption, 24rpx);
-	line-height: 1.7;
-	color: var(--zy-text, #5C5648);
-}
+
+
 .group-meta {
 	display: flex;
 	flex-wrap: wrap;
@@ -346,7 +333,7 @@ onLoad(options => {
 .chat-card .growth-card-title {
 	margin-bottom: 6rpx;
 }
-.group-head + .growth-card{border-top:0}
+.group-head + .growth-card {border-top:0}
 .group-input {
 	display: block;
 	width: 100%;
@@ -397,9 +384,9 @@ onLoad(options => {
 /* ── v9 冷瓷展签收口 ── */
 .group-page { padding: 36rpx 32rpx 120rpx; background-color: var(--zy-bg); }
 .group-head { padding: 0 0 30rpx; border-bottom: 1rpx solid var(--zy-border); margin-bottom: 8rpx; }
-.group-head .growth-eyebrow { letter-spacing: 2px; color: var(--zy-muted); }
-.group-title { margin-top: 14rpx; font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.25; color: var(--zy-title); }
-.group-sub { margin-top: 10rpx; color: var(--zy-muted); }
+
+
+
 .group-meta { gap: 0; margin-top: 16rpx; border-top: 0; padding-top: 0; }
 .meta-chip { padding: 0 16rpx; border-radius: var(--zy-radius-control, 18rpx); background: transparent; border-right: 1rpx solid var(--zy-border); }
 .meta-chip:first-child { padding-left: 0; }
@@ -414,7 +401,7 @@ onLoad(options => {
 .leader-box { border-left: 3rpx solid var(--zy-accent, #a64842); border-radius: var(--zy-radius-control, 18rpx); background: transparent; padding: 14rpx 0 14rpx 18rpx; }
 .leader-title { font-weight: 500; color: var(--zy-accent, #a64842); }
 .manage-row { margin-top: 14rpx; border-top: 1rpx solid var(--zy-border); padding-top: 16rpx; }
-.group-head + .growth-card{border-top:0}
+.group-head + .growth-card {border-top:0}
 .group-input { border: 0; border-bottom: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); background: transparent; padding: 10rpx 0; }
 .message { border-bottom: 1rpx solid var(--zy-border); }
 .message-author { font-family: var(--zy-font-display, serif); font-weight: 500; color: var(--zy-title); }

@@ -60,11 +60,11 @@ function home(){uni.switchTab({url:'/pages/home/index'})}
 </script>
 
 <style scoped>
-.reflection-form{border-top:0;padding-top:0}
+.reflection-form {border-top:0;padding-top:0}
 /* 多行输入已迁移 ZyTextarea，本地覆盖移除 */
-.growth-choice{font-size:var(--zy-text-caption, 24rpx);padding:16rpx 12rpx;flex:1;text-align:center}
-.growth-row{gap:0;margin-bottom:28rpx}
-.ai-heading{display:flex;flex-direction:column;gap:10rpx;margin-bottom:20rpx}
-.ai-summary{margin-top:24rpx;padding-top:20rpx;border-top:1rpx solid var(--zy-border,#d3ded8)}
-.ai-count{display:block;text-align:right;font-size:var(--zy-text-micro, 22rpx);color:var(--zy-muted,#6e7b75);margin-top:8rpx}
+.growth-choice {font-size:var(--zy-text-caption, 24rpx);padding:16rpx 12rpx;flex:1;text-align:center}
+.growth-row {gap:0;margin-bottom:28rpx}
+.ai-heading {display:flex;flex-direction:column;gap:10rpx;margin-bottom:20rpx}
+.ai-summary {margin-top:24rpx;padding-top:20rpx;border-top:1rpx solid var(--zy-border,#d3ded8)}
+
 </style>

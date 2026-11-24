@@ -1,49 +1,55 @@
 <template>
-	<view class="onboarding-page">
+	<view :class="zyThemeClass" class="onboarding-page">
 		<view v-if="checking" class="checking">
+			<image class="checking-pet" src="/static/mascot/xiaozhi-standard.png" mode="aspectFit" aria-hidden="true" />
 			<text>正在准备…</text>
 		</view>
 
 		<template v-else>
 			<scroll-view scroll-y class="onboarding-scroll">
-				<view class="onboarding-inner">
-					<view class="brand-row">
-						<image class="brand-logo" src="/static/logo.png" aria-hidden="true" />
-						<text class="brand-name">织愈</text>
+				<!-- ① 远山晨光 + 小织 -->
+				<view class="hero">
+					<view class="hero-hills zy-wave-bg" aria-hidden="true"></view>
+					<view class="hero-inner">
+						<view class="brand-row">
+							<ZySeal text="织愈" size="md" />
+							<text class="brand-name">织愈</text>
+						</view>
+						<image class="hero-pet" src="/static/mascot/xiaozhi-welcome.png" mode="aspectFit" aria-hidden="true" />
+						<text class="title">压力有点大？<br/>先停一停。</text>
+						<text class="definition">在这里，用一件传统小手作，把注意力放回手上。做不完也没关系。</text>
+						<view class="pills">
+							<view class="pill"><ZyIcon name="clock" :size="26" tone="brand" /><text>每次 5–15 分钟</text></view>
+							<view class="pill"><ZyIcon name="heart" :size="26" tone="care" /><text>不打分、不比较</text></view>
+						</view>
 					</view>
+				</view>
 
-					<view class="hero">
-						<XiaotuanPet :size="92" face="calm" aria-hidden="true" />
-						<text class="eyebrow">手作 · 记录 · 校内支持</text>
-						<text class="title zy-t-serif">把情绪，慢慢放下来。</text>
-						<text class="definition">
-							选一件手作，跟着步骤做。做不完也没关系。
-						</text>
-					</view>
-
+				<view class="body">
+					<!-- ② 在这里可以做的三件小事 -->
+					<view class="sec-head"><view class="sec-mark" aria-hidden="true"></view><text class="sec-title">在这里，你可以</text></view>
 					<view class="things">
-						<view class="thing">
-							<text class="thing-mark">01</text>
-							<view class="thing-copy"><text class="thing-title">说说心里话</text><text class="thing-sub">小织会听，不急着给建议</text></view>
+						<view class="thing tone-blue">
+							<image class="thing-img" src="/static/mascot/xiaozhi-listening.png" mode="aspectFit" aria-hidden="true" />
+							<view class="thing-copy"><text class="thing-title">说说心里话</text><text class="thing-sub">小织会听，不评价，也不急着给建议</text></view>
 						</view>
-						<view class="thing">
-							<text class="thing-mark">02</text>
-							<view class="thing-copy"><text class="thing-title">做一件小手作</text><text class="thing-sub">跟着步骤，材料与时间都标好</text></view>
+						<view class="thing tone-warm">
+							<image class="thing-img" src="/static/mascot/xiaozhi-crafting.png" mode="aspectFit" aria-hidden="true" />
+							<view class="thing-copy"><text class="thing-title">做一件非遗小手作</text><text class="thing-sub">赣绣、剪纸、扎染……材料与步骤都标好了</text></view>
 						</view>
-						<view class="thing">
-							<text class="thing-mark">03</text>
-							<view class="thing-copy"><text class="thing-title">留下今天的记录</text><text class="thing-sub">只属于你，可随时清除</text></view>
+						<view class="thing tone-pine">
+							<image class="thing-img" src="/static/mascot/xiaozhi-rest.png" mode="aspectFit" aria-hidden="true" />
+							<view class="thing-copy"><text class="thing-title">留下今天的心情</text><text class="thing-sub">只属于你，可以随时清除</text></view>
 						</view>
 					</view>
 
+					<!-- ③ 隐私 -->
 					<view class="privacy-card">
-						<text class="privacy-title">关于你的隐私</text>
-						<text class="privacy-line">✓ 只在你同意后收集昵称、对话与记录</text>
-						<text class="privacy-line">✓ 对话与便签加密存储，咨询师看到的是脱敏汇总</text>
-						<text class="privacy-line">✓ 可随时撤回授权、导出记录或注销账号</text>
-						<AccessibleButton variant="ghost" size="sm" class="policy-link" @click="goPrivacy">
-							查看完整隐私政策 →
-						</AccessibleButton>
+						<view class="privacy-head"><ZyIcon name="lock" :size="34" tone="brand" /><text class="privacy-title">你的记录，由你做主</text></view>
+						<view class="privacy-line"><view class="check"><ZyIcon name="check" :size="20" color="#FFFFFF" /></view><text>只在你同意后收集昵称、对话与记录</text></view>
+						<view class="privacy-line"><view class="check"><ZyIcon name="check" :size="20" color="#FFFFFF" /></view><text>对话与便签加密存储，咨询师只看到脱敏汇总</text></view>
+						<view class="privacy-line"><view class="check"><ZyIcon name="check" :size="20" color="#FFFFFF" /></view><text>可以随时撤回授权、导出记录或注销账号</text></view>
+						<AccessibleButton class="policy-link" @click="goPrivacy">查看完整隐私政策</AccessibleButton>
 					</view>
 
 					<text class="disclaimer">本系统不能替代专业心理咨询。如有紧急安全风险，请先联系身边可信任的人或当地紧急服务。</text>
@@ -51,12 +57,10 @@
 			</scroll-view>
 
 			<view class="onboarding-actions">
-				<AccessibleButton variant="primary" size="lg" :loading="saving" :disabled="saving" @click="agree">
-					{{ saving ? '正在保存…' : '同意并开始' }}
+				<AccessibleButton variant="primary" size="lg" class="agree-btn" :loading="saving" :disabled="saving" @click="agree">
+					{{ saving ? '正在保存…' : '同意，开始放松一下' }}
 				</AccessibleButton>
-				<AccessibleButton variant="ghost" size="md" :disabled="saving" @click="decline">
-					先随便看看
-				</AccessibleButton>
+				<AccessibleButton class="later-btn" :disabled="saving" @click="decline">先随便看看</AccessibleButton>
 			</view>
 		</template>
 
@@ -67,7 +71,8 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import XiaotuanPet from '../../components/XiaotuanPet.vue'
+import ZySeal from '../../components/ZySeal.vue'
+import ZyIcon from '../../components/ZyIcon.vue'
 import AccessibleButton from '../../components/AccessibleButton.vue'
 import Toast from '../../components/Toast.vue'
 import { useToast } from '../../composables/useToast'
@@ -123,151 +128,49 @@ function decline() {
 </script>
 
 <style scoped>
-.onboarding-page {
-	min-height: 100vh;
-	background: var(--zy-bg, #f7f8f6);
-	color: var(--zy-title, #111816);
-}
-.checking {
-	min-height: 60vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-text, #4a5f54);
-}
-.onboarding-scroll {
-	height: calc(100vh - 220rpx);
-	box-sizing: border-box;
-}
-.onboarding-inner {
-	max-width: 720px;
-	margin: 0 auto;
-	padding: 32rpx 36rpx 300rpx;
-}
-.brand-row {
-	display: flex;
-	align-items: center;
-	gap: 14rpx;
-	margin-bottom: 28rpx;
-}
-.brand-logo {
-	width: 52rpx;
-	height: 52rpx;
-	border-radius: var(--zy-radius-control, 18rpx);
-}
-.brand-name {
-	font-size:var(--zy-text-title, 32rpx);
-	font-weight: 600;
-	letter-spacing: 4rpx;
-}
-.hero {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	padding: 20rpx 0 36rpx;
-}
-.eyebrow {
-	width: 100%;
-	margin-top: 20rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	letter-spacing: 3rpx;
-	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
-}
-.title {
-	display: block;
-	width: 100%;
-	margin-top: 18rpx;
-	font-size:var(--zy-text-display, 56rpx);
-	line-height: 1.35;
-	font-weight: 600;
-	letter-spacing: 1rpx;
-}
-.definition {
-	display: block;
-	width: 100%;
-	margin-top: 18rpx;
-	font-size:var(--zy-text-body-lg, 30rpx);
-	line-height: 1.85;
-	color: var(--zy-text, #4a5f54);
-}
-.things {
-	border-top: 1rpx solid var(--zy-border, #d3ded8);
-}
-.thing {
-	display: flex;
-	align-items: flex-start;
-	gap: 24rpx;
-	padding: 26rpx 0;
-	border-bottom: 1rpx solid var(--zy-border, #d3ded8);
-}
-.thing-mark {
-	flex: 0 0 auto;
-	font-size:var(--zy-text-caption, 24rpx);
-	font-weight: 600;
-	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
-	padding-top: 4rpx;
-}
-.thing-copy {
-	flex: 1;
-	min-width: 0;
-}
-.thing-title {
-	display: block;
-	font-size:var(--zy-text-body-lg, 30rpx);
-	font-weight: 600;
-}
-.thing-sub {
-	display: block;
-	margin-top: 6rpx;
-	font-size:var(--zy-text-caption, 24rpx);
-	line-height: 1.7;
-	color: var(--zy-text, #4a5f54);
-}
-.privacy-card {
-	margin-top: 30rpx;
-	padding: 28rpx;
-	border: 1rpx solid var(--zy-border, #d3ded8);
-	border-radius: var(--zy-radius-control, 18rpx);
-	background: transparent;
-}
-.privacy-title {
-	display: block;
-	font-size:var(--zy-text-body, 28rpx);
-	font-weight: 600;
-	margin-bottom: 14rpx;
-}
-.privacy-line {
-	display: block;
-	font-size:var(--zy-text-caption, 24rpx);
-	line-height: 1.8;
-	color: var(--zy-text, #4a5f54);
-}
-.policy-link {
-	margin: 8rpx 0 0;
-	padding-left: 0;
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-brand-700, var(--zy-brand-700, #24478f));
-	justify-content: flex-start;
-}
-.disclaimer {
-	display: block;
-	margin-top: 28rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	line-height: 1.8;
-	color: var(--zy-text, #4a5f54);
-}
-.onboarding-actions {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 20;
-	display: flex;
-	flex-direction: column;
-	gap: 8rpx;
-	padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom));
-	background: rgba(247, 248, 246, 0.97);
-	border-top: 1rpx solid var(--zy-border, #d3ded8);
-}
+/* v9.1 首次引导：远山晨光、小织陪伴、三件小事、温和的隐私说明 */
+.onboarding-page { min-height: 100vh; background: var(--zy-bg); color: var(--zy-title); }
+.checking { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16rpx; font-size: 26rpx; color: var(--zy-muted); }
+.checking-pet { width: 180rpx; height: 180rpx; }
+.onboarding-scroll { height: calc(100vh - 230rpx - env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+.hero { position: relative; overflow: hidden; padding: calc(var(--status-bar-height, 0px) + 44rpx) 40rpx 120rpx; background: linear-gradient(180deg, #dfe8f7 0%, #eef3fb 60%, var(--zy-bg) 100%); }
+.hero-hills { position: absolute; left: 0; right: 0; bottom: 0; height: 280rpx; }
+.hero-inner { position: relative; max-width: 960rpx; margin: 0 auto; }
+.brand-row { display: flex; align-items: center; gap: 16rpx; }
+.brand-name { font-family: var(--zy-font-display); font-size: 40rpx; font-weight: 700; letter-spacing: 8rpx; }
+.hero-pet { position: absolute; right: -10rpx; top: 70rpx; width: 230rpx; height: 230rpx; }
+.title { display: block; margin-top: 64rpx; font-family: var(--zy-font-display); font-size: 64rpx; font-weight: 700; line-height: 1.35; letter-spacing: 4rpx; color: var(--zy-brand-900); }
+.definition { display: block; margin-top: 18rpx; max-width: 600rpx; font-size: 29rpx; line-height: 1.8; color: var(--zy-text); }
+.pills { display: flex; flex-wrap: wrap; gap: 14rpx; margin-top: 26rpx; }
+.pill { display: flex; align-items: center; gap: 8rpx; padding: 10rpx 22rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .85); font-size: 24rpx; font-weight: 600; color: var(--zy-brand-700); box-shadow: 0 4rpx 12rpx rgba(36, 71, 143, .1); }
+
+.body { max-width: 960rpx; margin: 0 auto; padding: 8rpx 32rpx 60rpx; }
+.sec-head { display: flex; align-items: center; gap: 14rpx; margin: 12rpx 0 20rpx; }
+.sec-mark { width: 8rpx; height: 34rpx; border-radius: 4rpx; background: var(--zy-cinnabar); }
+.sec-title { font-family: var(--zy-font-display); font-size: 36rpx; font-weight: 700; }
+.things { display: flex; flex-direction: column; gap: 18rpx; }
+.thing { display: flex; align-items: center; gap: 22rpx; padding: 22rpx 26rpx; border-radius: 32rpx; box-shadow: var(--zy-shadow-card); }
+.tone-blue { background: linear-gradient(120deg, #eef3fb, var(--zy-card-bg)); }
+.tone-warm { background: linear-gradient(120deg, #fff4e8, var(--zy-card-bg)); }
+.tone-pine { background: linear-gradient(120deg, #e6f3ee, var(--zy-card-bg)); }
+.zy-theme-dark .thing { background: var(--zy-card-bg); }
+.thing-img { width: 120rpx; height: 120rpx; flex-shrink: 0; }
+.thing-copy { flex: 1; min-width: 0; }
+.thing-title { display: block; font-size: 32rpx; font-weight: 700; color: var(--zy-title); }
+.thing-sub { display: block; margin-top: 6rpx; font-size: 25rpx; line-height: 1.6; color: var(--zy-text); }
+
+.privacy-card { margin-top: 28rpx; padding: 30rpx 28rpx 18rpx; border-radius: 32rpx; background: var(--zy-card-bg); box-shadow: var(--zy-shadow-card); }
+.privacy-head { display: flex; align-items: center; gap: 12rpx; margin-bottom: 18rpx; }
+.privacy-title { font-family: var(--zy-font-display); font-size: 32rpx; font-weight: 700; }
+.privacy-line { display: flex; align-items: flex-start; gap: 14rpx; margin-bottom: 14rpx; font-size: 26rpx; line-height: 1.6; color: var(--zy-text); }
+.check { width: 34rpx; height: 34rpx; border-radius: 50%; flex-shrink: 0; margin-top: 4rpx; background: var(--zy-pine, #2f7d68); display: flex; align-items: center; justify-content: center; }
+.policy-link { margin: 4rpx 0 0; padding: 8rpx 0; min-height: 60rpx; font-size: 25rpx; justify-content: flex-start; }
+.disclaimer { display: block; margin-top: 26rpx; text-align: center; font-size: 22rpx; line-height: 1.8; color: var(--zy-muted); }
+
+.onboarding-actions { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; flex-direction: column; align-items: stretch; gap: 6rpx; padding: 20rpx 32rpx calc(16rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 -8rpx 28rpx rgba(20, 36, 72, .08); }
+.zy-theme-dark .onboarding-actions { background: rgba(28, 39, 64, .92); }
+.agree-btn { margin: 0; border-radius: 999rpx; }
+.later-btn { margin: 0; min-height: 72rpx; background: transparent; border: 0; color: var(--zy-muted); font-size: 26rpx; }
+.later-btn::after { border: 0; }
 </style>

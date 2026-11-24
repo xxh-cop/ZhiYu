@@ -257,7 +257,7 @@ async function confirmDelete() {
 .write-head { display: flex; align-items: center; gap: 14rpx; margin-bottom: 18rpx; }
 .write-mark { width: 8rpx; height: 32rpx; border-radius: 4rpx; background: #f0a35e; }
 .write-title { font-family: var(--zy-font-display); font-size: 34rpx; font-weight: 700; color: var(--zy-title); }
-.write-count { margin-left: auto; font-size: 22rpx; color: var(--zy-muted); }
+
 .prompt-scroll { width: 100%; white-space: nowrap; margin-bottom: 18rpx; }
 .prompt-track { display: inline-flex; gap: 12rpx; padding: 2rpx; }
 .prompt-chip { display: inline-flex; align-items: center; min-height: 60rpx; padding: 0 24rpx; border-radius: 999rpx; background: var(--note-warm); color: var(--note-ink); font-size: 24rpx; border: 2rpx dashed rgba(201, 120, 60, .35); white-space: nowrap; }

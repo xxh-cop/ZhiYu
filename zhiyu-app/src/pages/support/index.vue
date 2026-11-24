@@ -17,8 +17,8 @@ function goCrisis(){uni.navigateTo({url:'/pages/crisis/index'})}
 </script>
 
 <style scoped>
-.growth-muted{display:block;margin-top:8rpx;overflow-wrap:anywhere}
-.growth-title{font-size:56rpx;line-height:1.3}
-.phone{display:block;font-family:var(--zy-font-display,serif);font-size:44rpx;font-weight:500;letter-spacing:1rpx;margin:20rpx 0;color:var(--zy-title,#111816)}
-.growth-card .growth-button.secondary{background:transparent;border:0;border-bottom:1rpx solid var(--zy-border,#d3ded8);border-radius: var(--zy-radius-control, 18rpx);text-align:left;color:var(--zy-brand-700,#183369);padding:14rpx 0;margin-top:0;line-height:2.4}
+.growth-muted {display:block;margin-top:8rpx;overflow-wrap:anywhere}
+
+.phone {display:block;font-family:var(--zy-font-display,serif);font-size:44rpx;font-weight:500;letter-spacing:1rpx;margin:20rpx 0;color:var(--zy-title,#111816)}
+.growth-card .growth-button.secondary {background:transparent;border:0;border-bottom:1rpx solid var(--zy-border,#d3ded8);border-radius: var(--zy-radius-control, 18rpx);text-align:left;color:var(--zy-brand-700,#183369);padding:14rpx 0;margin-top:0;line-height:2.4}
 </style>

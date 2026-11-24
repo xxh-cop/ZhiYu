@@ -1,31 +1,89 @@
 <template>
+  <!--
+    AccountShell —— 登录 / 注册 / 找回密码外壳（v9.1 2026-11-23）。
+    远山晨光头图 + 招手的小织 + 浮起的表单卡：第一眼是「来这里可以放松一下」，而不是一张冷冰冰的表单。
+  -->
   <view class="account-shell">
-    <view class="account-story">
-      <view class="account-brand"><view class="account-brand-seal" role="img" aria-label="织愈">织</view><view><text>织愈</text><text class="brand-caption">用一针一线，缝补青春的焦虑</text></view></view>
-      <view class="story-copy"><text class="story-label">手作 · 陪伴 · 日常</text><text class="story-title">从一针一线，<br/>回到自己的节奏。</text><text class="story-description">和小织聊聊，尝试一份手作，<br/>为今天留下一点属于自己的时光。</text></view>
-      <image class="story-art" src="/static/brand/weave-scene.png" mode="aspectFit" aria-label="交织的纸带与叶形纹样"/>
-      <view class="story-foot"><text>江西师范大学人工智能学院 · 校内试用</text><text>江西 · 南昌</text></view>
+    <view class="account-hero">
+      <view class="hero-hills zy-wave-bg" aria-hidden="true"></view>
+      <view class="hero-inner">
+        <view class="hero-brand">
+          <ZySeal text="织愈" size="md" />
+          <view class="hero-brand-copy">
+            <text class="hero-brand-name">织愈</text>
+            <text class="hero-brand-caption">用一针一线，缝补青春的焦虑</text>
+          </view>
+        </view>
+        <view class="hero-row">
+          <view class="hero-copy">
+            <text class="hero-title">累了，就来<br/>做一件小手作</text>
+            <view class="hero-tags">
+              <text class="hero-tag">聊一聊</text>
+              <text class="hero-tag">做手作</text>
+              <text class="hero-tag">记心情</text>
+            </view>
+          </view>
+          <image class="hero-mascot" src="/static/mascot/xiaozhi-welcome.png" mode="aspectFit" aria-hidden="true" />
+        </view>
+      </view>
     </view>
+
     <view class="account-main">
-      <view class="account-mobile-brand"><view class="account-mobile-seal" role="img" aria-label="织愈">织</view><text>织愈 · 创作与陪伴</text></view>
       <view class="account-panel">
-        <view class="account-heading"><view><text class="account-eyebrow">{{eyebrow}}</text><text class="account-title" role="heading" aria-level="1">{{title}}</text></view><XiaotuanPet :size="72" face="calm" aria-hidden="true"/></view>
-        <text class="account-description">{{description}}</text>
+        <text v-if="eyebrow" class="account-eyebrow">{{ eyebrow }}</text>
+        <text class="account-title" role="heading" aria-level="1">{{ title }}</text>
+        <text v-if="description" class="account-description">{{ description }}</text>
         <slot />
       </view>
-      <view class="account-footer"><text>本系统不能替代专业心理咨询</text><text>按自己的节奏开始，也可以随时停下来。</text></view>
+      <view class="account-footer">
+        <text>按自己的节奏开始，也可以随时停下来。</text>
+        <text>本系统不能替代专业心理咨询</text>
+      </view>
     </view>
   </view>
 </template>
+
 <script setup>
-import XiaotuanPet from './XiaotuanPet.vue'
-defineProps({title:String,description:String,eyebrow:String})
+import ZySeal from './ZySeal.vue'
+defineProps({ title: String, description: String, eyebrow: String })
 </script>
+
 <style scoped>
-.account-shell{min-height:calc(100vh - var(--window-top,0px));display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:var(--zy-bg,#f1f4f1);color:var(--zy-title,#111816);font-family:var(--zy-font,-apple-system,"Microsoft YaHei",sans-serif)}
-.account-story{background:#183369;color:#f1f4f1;padding:42px 48px;display:flex;flex-direction:column;overflow:hidden;min-width:0}.account-brand{display:flex;align-items:center;gap:14px;font-size:26px;font-weight:500}.account-brand-seal{width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #a64842;color:#e7b9ae;font-family:var(--zy-font-display,"Songti SC","STSong","Noto Serif CJK SC","SimSun",serif);font-size:22px;line-height:1}.account-brand text{display:block}.account-brand .brand-caption{font-size:12px;color:#b9cbc4;font-weight:400;margin-top:4px}.story-copy{margin-top:70px;position:relative;z-index:1}.story-label{display:block;font-size:12px;letter-spacing:3px;color:#b9cbc4}.story-title{display:block;font-family:var(--zy-font-display,"Songti SC","STSong","Noto Serif CJK SC","SimSun",serif);font-size:clamp(30px,3.1vw,48px);line-height:1.6;font-weight:500;margin-top:20px;letter-spacing:1px}.story-description{display:block;font-size:15px;line-height:1.9;color:var(--zy-border);margin-top:18px}.story-art{width:100%;height:250px;flex:1;min-height:200px;max-height:370px;margin:16px 0}.story-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #ffffff25;padding-top:20px;color:#b9cbc4;font-size:11px}
-.account-main{padding:44px 44px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}.account-panel{width:100%;max-width:430px;background:var(--zy-card-bg,#ffffff);padding:32px;border:1px solid var(--zy-border,#d3ded8);border-radius: var(--zy-radius-control, 18rpx);box-sizing:border-box;box-shadow:none}.account-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.account-heading image{width:66px;height:82px;flex-shrink:0}.account-eyebrow{display:block;font-size:12px;letter-spacing:2px;color:var(--zy-muted,#6e7b75);margin-bottom:10px}.account-title{display:block;font-family:var(--zy-font-display,"Songti SC","STSong","Noto Serif CJK SC","SimSun",serif);font-size:30px;font-weight:500;line-height:1.4;letter-spacing:1px}.account-description{display:block;font-size:14px;line-height:1.8;color:var(--zy-text,#42524c);margin:8px 0 24px}.account-footer{text-align:center;color:var(--zy-muted,#6e7b75);font-size:12px;line-height:1.8;margin-top:24px}.account-footer text{display:block}.account-footer text+text{font-size:11px;margin-top:4px}.account-mobile-brand{display:none}
-.account-mobile-seal{width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--zy-care,#a64842);color:var(--zy-care,#a64842);font-family:var(--zy-font-display,"Songti SC","STSong","Noto Serif CJK SC","SimSun",serif);font-size:16px;line-height:1}
-@media(max-width:900px){.account-shell{grid-template-columns:1fr}.account-story{display:none}.account-main{padding:24px 20px calc(24px + env(safe-area-inset-bottom));justify-content:flex-start}.account-mobile-brand{display:flex;align-items:center;gap:10px;width:100%;max-width:430px;margin:0 0 22px;font-size:15px;font-weight:600}.account-panel{padding:26px 24px}.account-title{font-size:26px}}
-@media(max-width:360px){.account-main{padding-left:14px;padding-right:14px}.account-panel{padding:22px 18px}.account-title{font-size:24px}}
+.account-shell { min-height: calc(100vh - var(--window-top, 0px)); background: var(--zy-bg, #f6f8fb); color: var(--zy-title, #141c2e); }
+
+/* 头图：晨雾青 → 白，底部远山 */
+.account-hero { position: relative; overflow: hidden; padding: calc(var(--status-bar-height, 0px) + 40rpx) 40rpx 140rpx; background: linear-gradient(180deg, #dfe8f7 0%, #eef3fb 55%, var(--zy-bg, #f6f8fb) 100%); }
+.hero-hills { position: absolute; left: 0; right: 0; bottom: 0; height: 260rpx; opacity: 1; }
+.hero-inner { position: relative; max-width: 960rpx; margin: 0 auto; }
+.hero-brand { display: flex; align-items: center; gap: 18rpx; }
+.hero-brand-copy { display: flex; flex-direction: column; }
+.hero-brand-name { font-family: var(--zy-font-display); font-size: 40rpx; font-weight: 700; letter-spacing: 8rpx; }
+.hero-brand-caption { font-size: 22rpx; color: var(--zy-muted, #586379); letter-spacing: 1rpx; }
+.hero-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16rpx; margin-top: 44rpx; }
+.hero-copy { flex: 1; min-width: 0; }
+.hero-title { display: block; font-family: var(--zy-font-display); font-size: 56rpx; font-weight: 700; line-height: 1.35; letter-spacing: 3rpx; color: var(--zy-brand-900, #0d1f45); }
+.hero-tags { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 22rpx; }
+.hero-tag { padding: 6rpx 20rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .8); color: var(--zy-brand-700, #183369); font-size: 24rpx; font-weight: 600; box-shadow: 0 4rpx 12rpx rgba(36, 71, 143, .1); }
+.hero-mascot { width: 220rpx; height: 220rpx; flex-shrink: 0; margin-bottom: -10rpx; }
+
+/* 表单卡 */
+.account-main { position: relative; z-index: 2; margin-top: -100rpx; padding: 0 28rpx calc(40rpx + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; }
+.account-panel { width: 100%; max-width: 860rpx; box-sizing: border-box; padding: 44rpx 40rpx 36rpx; background: var(--zy-card-bg, #fff); border-radius: 44rpx; box-shadow: 0 20rpx 60rpx rgba(20, 36, 72, .12); }
+.account-eyebrow { display: block; font-size: 24rpx; color: var(--zy-cinnabar, #c0392b); font-weight: 600; letter-spacing: 2rpx; margin-bottom: 8rpx; }
+.account-title { display: block; font-family: var(--zy-font-display); font-size: 48rpx; font-weight: 700; line-height: 1.35; letter-spacing: 2rpx; }
+.account-description { display: block; margin: 10rpx 0 32rpx; font-size: 27rpx; line-height: 1.7; color: var(--zy-text, #384256); }
+.account-footer { margin-top: 32rpx; text-align: center; color: var(--zy-muted, #586379); font-size: 24rpx; line-height: 1.8; }
+.account-footer text { display: block; }
+.account-footer text + text { font-size: 22rpx; color: var(--zy-faint, #8a93a6); }
+
+.zy-theme-dark .account-hero, .account-shell.zy-theme-dark .account-hero { background: linear-gradient(180deg, #1b2a4a 0%, #16213a 60%, var(--zy-bg) 100%); }
+.zy-theme-dark .hero-title { color: var(--zy-title); }
+.zy-theme-dark .hero-tag { background: rgba(255, 255, 255, .12); color: var(--zy-brand-700); }
+
+@media (min-width: 900px) {
+  .account-hero { padding-top: 56px; padding-bottom: 120px; }
+  .hero-title { font-size: 44px; }
+  .hero-mascot { width: 180px; height: 180px; }
+  .account-panel { max-width: 460px; }
+}
 </style>

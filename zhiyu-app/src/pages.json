@@ -9,6 +9,7 @@
     {
       "path": "pages/login/index",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "织愈"
       }
     },
@@ -21,6 +22,7 @@
     {
       "path": "pages/onboarding/index",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "欢迎来到织愈",
         "navigationBarBackgroundColor": "#FFFFFF"
       }

@@ -64,12 +64,15 @@ onBeforeUnmount(release)
 </script>
 
 <style scoped>
-.dialog-mask{position:fixed;inset:0;z-index:9999;background:rgba(23,43,35,.5);padding:24px 16px;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
-.dialog-panel{box-sizing:border-box;width:100%;max-width:520px;max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border:1px solid var(--zy-border);border-radius:20px;padding:28px;color:var(--zy-title);box-shadow:0 24px 80px rgba(23,43,35,.18)}
-.dialog-panel.is-dark{background:#0F1C19;border:1px solid rgba(241,244,241,.22);border-radius: var(--zy-radius-control, 18rpx);color:#F1F4F1;box-shadow:0 24px 80px rgba(0,0,0,.45)}
-.dialog-panel.is-dark .dialog-title{color:#F1F4F1}
-.dialog-mask.is-dark{background:rgba(4,10,9,.72)}
-.dialog-title{display:block;font-size:21px;font-weight:600;line-height:1.5;margin-bottom:16px;padding-left:14px;border-left:4rpx solid var(--zy-brand-600,#24478f)}
-.dialog-panel.is-dark .dialog-title{border-left-color:var(--zy-d-primary,#9db8ec)}
-@media(max-width:480px){.dialog-panel{padding:24px 20px}}
+/* v9.1 对话框：大圆角白卡 + 顶部朱砂短线 + 宋体标题；深色走主题令牌 */
+.dialog-mask{position:fixed;inset:0;z-index:9999;background:rgba(13,31,69,.45);padding:24px 20px;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
+.dialog-panel{position:relative;box-sizing:border-box;width:100%;max-width:520px;max-height:calc(100vh - 48px);overflow-y:auto;background:var(--zy-card-bg,#fff);border:0;border-radius:24px;padding:34px 26px 24px;color:var(--zy-title);box-shadow:0 24px 70px rgba(13,31,69,.22);animation:dialogIn 260ms cubic-bezier(.2,1.2,.4,1)}
+.dialog-panel::before{content:'';position:absolute;left:50%;top:16px;width:32px;height:4px;margin-left:-16px;border-radius:4px;background:var(--zy-cinnabar,#c0392b)}
+.dialog-panel.is-dark{background:var(--zy-card-bg,#1c2740);color:var(--zy-title,#eef2f8);box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.dialog-panel.is-dark .dialog-title{color:var(--zy-title,#eef2f8)}
+.dialog-mask.is-dark{background:rgba(6,10,20,.6)}
+.dialog-title{display:block;text-align:center;font-family:var(--zy-font-display,serif);font-size:21px;font-weight:700;line-height:1.5;letter-spacing:1px;margin-bottom:14px}
+@keyframes dialogIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.dialog-panel{animation:none}}
+@media(max-width:480px){.dialog-panel{padding:32px 22px 22px}}
 </style>

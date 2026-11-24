@@ -23,7 +23,7 @@ onShow(load)
 .campus-page { padding: 36rpx 32rpx 80rpx; background: var(--zy-bg, #f1f4f1); min-height: 100vh; box-sizing: border-box; }
 .campus-hero { align-items: flex-start; gap: 16rpx; padding: 0 0 28rpx; margin-bottom: 0; background: transparent; border: 0; border-bottom: 1rpx solid var(--zy-border, #d3ded8); border-radius: var(--zy-radius-control, 18rpx); }
 .hero-copy { flex: 1; min-width: 0; }
-.hero-pet { flex-shrink: 0; }
+
 .eyebrow { display: block; font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
 .title { display: block; font-family: var(--zy-font-display, serif); font-size:56rpx; font-weight: 500; color: var(--zy-title, #111816); margin-top: 10rpx; line-height: 1.35; }
 .intro { display: block; font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-muted, #6e7b75); margin-top: 12rpx; }
@@ -41,6 +41,6 @@ onShow(load)
 .error-card { gap: 16rpx; padding: 20rpx 0 20rpx 18rpx; background: transparent; border: 0; border-left: 3rpx solid var(--zy-care, #a64842); border-radius: var(--zy-radius-control, 18rpx); }
 .error { color: var(--zy-care, #a64842); font-size:var(--zy-text-caption, 24rpx); }
 .error-retry { flex-shrink: 0; margin: 0; padding: 8rpx 0; background: transparent; color: var(--zy-brand-700, #183369); font-size:var(--zy-text-caption, 24rpx); }
-.disclaimer { display: block; text-align: center; margin-top: 36rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); }
+
 button:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 </style>

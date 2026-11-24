@@ -384,9 +384,7 @@ watch(
 	transform: scale(0.9);
 }
 
-.restore-emoji {
-	font-size: 32rpx;
-}
+
 
 /* ── 呼吸动画 ── */
 .xiaozhi-wrapper.breathing {

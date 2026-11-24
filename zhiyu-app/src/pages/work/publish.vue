@@ -533,33 +533,13 @@ function goMine() {
 }
 
 /* ── 导航栏 ── */
-.nav-bar {
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
-	padding: 20rpx 0;
-}
 
-.nav-back {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 64rpx;
-	height: 64rpx;
-	border-radius: var(--zy-radius-full, 9999rpx);
-	transition: background-color var(--zy-duration-fast, 150ms) var(--zy-ease-out, ease-out);
-}
 
-.nav-back:active {
-	background-color: var(--zy-border, #dfe7dc);
-}
 
-.nav-title {
-	font-family: var(--zy-serif);
-	font-size:var(--zy-text-title-lg, 40rpx);
-	font-weight: 500;
-	color: var(--zy-title, #233d34);
-}
+
+
+
+
 
 /* ── 步骤指示器 ── */
 .step-indicator {
@@ -728,14 +708,7 @@ function goMine() {
 	gap: 16rpx;
 }
 
-.loading-spinner {
-	width: 48rpx;
-	height: 48rpx;
-	border-radius: 50%;
-	border: 4rpx solid var(--zy-border, #dfe7dc);
-	border-top-color: var(--zy-primary, var(--zy-brand-600, #24478f));
-	animation: spin 0.8s linear infinite;
-}
+
 
 @keyframes spin {
 	to { transform: rotate(360deg); }
@@ -989,10 +962,7 @@ function goMine() {
 	overflow: hidden;
 }
 
-.preview-video {
-	width: 100%;
-	height: 100%;
-}
+
 
 .preview-cover--placeholder {
 	background: linear-gradient(135deg, var(--zy-primary, var(--zy-brand-600, #24478f)), var(--zy-brand-300, var(--zy-brand-300, #8ea9dc)));
@@ -1118,10 +1088,7 @@ function goMine() {
 	gap: 16rpx;
 }
 
-.success-xiaozhi {
-	width: 120rpx;
-	height: 160rpx;
-}
+
 
 .success-seal {
 	width: 88rpx;
@@ -1160,16 +1127,10 @@ function goMine() {
 }
 
 /* ── 底部免责 ── */
-.footnote {
-	display: block;
-	margin-top: 48rpx;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-text, #4a5f54);
-	text-align: center;
-}
+
 </style>
 
-<style scoped>.upload-actions,.upload-error{padding:20rpx;font-size:var(--zy-text-caption, 24rpx);line-height:1.8}.upload-error{color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button{font-size:var(--zy-text-caption, 24rpx);color:var(--zy-brand-700);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice{display:block;font-size:var(--zy-text-caption, 24rpx);color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>
+<style scoped>.upload-actions,.upload-error {padding:20rpx;font-size:var(--zy-text-caption, 24rpx);line-height:1.8}.upload-error {color:#a54836;background:#fff4ef;border-radius:14rpx}.upload-actions button,.upload-error button {font-size:var(--zy-text-caption, 24rpx);color:var(--zy-brand-700);background:var(--zy-bg-tint-mint);margin-top:12rpx}.video-notice {display:block;font-size:var(--zy-text-caption, 24rpx);color:var(--zy-content);line-height:1.8;margin:20rpx 0}</style>
 
 <style scoped>
 .media-tab:focus-visible,
@@ -1189,11 +1150,11 @@ button:focus-visible {
 /* ── v9 冷瓷展签收口 ── */
 .page { padding: 8rpx 32rpx 140rpx; background: var(--zy-bg, #f1f4f1); }
 .page-head { display: flex; flex-direction: column; gap: 12rpx; padding: 28rpx 0 24rpx; }
-.page-eyebrow { font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted, #6e7b75); }
-.page-title { font-family: var(--zy-font-display, serif); font-size: 56rpx; font-weight: 500; line-height: 1.35; color: var(--zy-title, #111816); }
-.nav-bar { padding: 12rpx 0; }
-.nav-back { border-radius: var(--zy-radius-control, 18rpx); width: 56rpx; height: 56rpx; }
-.nav-title { font-family: var(--zy-font-display, serif); font-weight: 500; }
+
+
+
+
+
 .step-indicator { justify-content: flex-start; padding: 8rpx 0 28rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); margin-bottom: 4rpx; }
 .step-dot { width: 42rpx; height: 42rpx; border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border, #d3ded8); background: transparent; }
 .step-dot--active { background: var(--zy-brand-600, #24478f); border-color: var(--zy-brand-600, #24478f); }

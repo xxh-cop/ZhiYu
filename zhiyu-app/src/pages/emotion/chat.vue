@@ -698,7 +698,7 @@ const voiceStateView = computed(() => {
 /* ── 回到底部：不抢历史阅读，有新消息才提示 ── */
 .jump-latest { position: absolute; right: 28rpx; bottom: 24rpx; z-index: 20; display: flex; align-items: center; gap: 8rpx; min-height: 64rpx; margin: 0; padding: 0 20rpx; background: var(--zy-card-bg); border: 1rpx solid var(--zy-brand-300); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-brand-600); font-size: 21rpx; line-height: 1.4; box-shadow: 0 10rpx 28rpx rgba(54,40,18,.12); }
 .jump-latest::after { border: 0; }
-.jump-arrow { font-size: 26rpx; line-height: 1; }
+
 .jump-text { white-space: nowrap; }
 
 /* ── 历史对话只读出口 ── */
@@ -711,7 +711,7 @@ const voiceStateView = computed(() => {
 .close-copy { display: block; font-size: 25rpx; line-height: 1.8; color: var(--zy-text); margin-bottom: 28rpx; }
 .close-actions { display: flex; gap: 16rpx; justify-content: flex-end; }
 .close-cancel { min-height: 64rpx; margin: 0; padding: 0 24rpx; background: transparent; border: 1rpx solid var(--zy-border); border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-text); font-size: 24rpx; }
-.close-confirm { min-height: 64rpx; margin: 0; padding: 0 24rpx; background: var(--zy-care); border: 1rpx solid var(--zy-care); border-radius: var(--zy-radius-control, 18rpx); color: #FFFFFF; font-size: 24rpx; }
+.close-confirm { min-height: 64rpx; margin: 0; padding: 0 28rpx; border-radius: 999rpx; background: var(--zy-brand-600); border: 0; box-shadow: var(--zy-shadow-cta); border-radius: var(--zy-radius-control, 18rpx); color: #FFFFFF; font-size: 24rpx; }
 .close-cancel::after, .close-confirm::after { border: 0; }
 
 /* ── 底部免责声明（发丝线上缘） ── */

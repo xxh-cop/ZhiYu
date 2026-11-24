@@ -63,7 +63,6 @@
 .project-retry.project-retry.project-retry,
 .history-new.history-new.history-new,
 .state-action.state-action.state-action,
-.sheet-action.sheet-action.sheet-action,
 .notice-btn.notice-btn.notice-btn,
 .skip-btn.skip-btn.skip-btn,
 .boundary-btn.boundary-btn.boundary-btn,
@@ -114,7 +113,6 @@
 /* 取消类：中性灰描边，和「次行动」区分开，但仍明显是按钮 */
 .clear-cancel.clear-cancel.clear-cancel,
 .close-cancel.close-cancel.close-cancel,
-.sheet-cancel.sheet-cancel.sheet-cancel,
 .state-back.state-back.state-back,
 .cal-skip.cal-skip.cal-skip {
 	background: var(--zy-card-bg);
@@ -167,7 +165,6 @@
 .danger-solid.danger-solid.danger-solid,
 .dialog-danger.dialog-danger.dialog-danger,
 .clear-confirm.clear-confirm.clear-confirm,
-.close-confirm.close-confirm.close-confirm,
 .zy-btn--care.zy-btn--care.zy-btn--care {
 	background: var(--zy-care);
 	color: #ffffff;
@@ -292,7 +289,6 @@
 .back-btn.back-btn.back-btn,
 .nav-back.nav-back.nav-back,
 .nudge-close.nudge-close.nudge-close,
-.sheet-close.sheet-close.sheet-close,
 .cal-close.cal-close.cal-close,
 .dismiss-btn.dismiss-btn.dismiss-btn {
 	border-radius: 999rpx;

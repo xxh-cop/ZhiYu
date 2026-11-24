@@ -153,11 +153,7 @@ onLoad(load)
 	margin: 0 auto;
 	padding: var(--zy-space-lg) var(--zy-space-md) var(--zy-space-3xl);
 }
-.heritage-subtitle {
-	display: block;
-	margin: 8rpx 0 var(--zy-space-md);
-	color: var(--zy-text);
-}
+
 .heritage-status {
 	display: flex;
 	flex-direction: column;
@@ -229,12 +225,7 @@ onLoad(load)
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 18rpx;
 }
-.heritage-foot {
-	display: block;
-	margin-top: var(--zy-space-3xl);
-	text-align: center;
-	color: var(--zy-text);
-}
+
 @media (min-width: 700px) {
 	.heritage-grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -255,5 +246,5 @@ onLoad(load)
 .heritage-filters { gap: 24rpx; }
 .heritage-grid { gap: 24rpx; }
 .heritage-count { font-family: var(--zy-font-display, serif); font-weight: 500; }
-.heritage-foot { color: var(--zy-muted); }
+
 </style>

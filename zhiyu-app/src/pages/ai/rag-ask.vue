@@ -320,25 +320,11 @@ onMounted(loadGraph)
 	min-width: 0;
 }
 
-.header-eyebrow {
-	font-size: var(--zy-text-micro, 22rpx);
-	letter-spacing: 2px;
-	color: var(--zy-muted, #6e7b75);
-}
 
-.header-title {
-	font-family: var(--zy-font-display, serif);
-	font-size: 40rpx;
-	font-weight: 500;
-	line-height: 1.4;
-	color: var(--zy-title, #111816);
-}
 
-.header-desc {
-	font-size:var(--zy-text-caption, 24rpx);
-	color: var(--zy-muted, #6e7b75);
-	line-height: 1.7;
-}
+
+
+
 
 /* ── 对话区域 ── */
 .chat-area {
@@ -558,14 +544,7 @@ onMounted(loadGraph)
 	border: 1rpx solid var(--zy-border, #d3ded8);
 }
 
-.footnote {
-	display: block;
-	text-align: center;
-	font-size:var(--zy-text-micro, 22rpx);
-	color: var(--zy-muted, #6e7b75);
-	padding: 8rpx 0 12rpx;
-	background-color: transparent;
-}
+
 
 .map-card {
 	box-sizing: border-box;

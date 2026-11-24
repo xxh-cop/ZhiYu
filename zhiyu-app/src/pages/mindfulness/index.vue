@@ -118,7 +118,12 @@ onUnload(pause)
 	color: var(--zy-text, #42524c);
 }
 .mindful-header { text-align: center; margin-bottom: 32rpx; padding-bottom: 28rpx; border-bottom: 1rpx solid var(--zy-border, #d3ded8); }
-.eyebrow,.title,.subtitle,.time,.caption,.safety-note,.disclaimer { display: block; }
+.eyebrow,
+.title,
+.subtitle,
+.time,
+.caption,
+.safety-note { display: block; }
 .eyebrow { color: var(--zy-muted, #6e7b75); font-size:var(--zy-text-micro, 22rpx); letter-spacing: 2px; }
 .title { font-family: var(--zy-font-display, serif); font-size:56rpx; margin: 14rpx 0; font-weight: 500; color: var(--zy-title, #111816); }
 .subtitle { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-muted, #6e7b75); }
@@ -209,7 +214,7 @@ button::after { border: 0; }
 }
 .other-actions { display: flex; gap: 16rpx; margin-top: 24rpx; }
 .other-actions button { background: transparent; color: var(--zy-brand-700, #183369); font-size:var(--zy-text-caption, 24rpx); padding: 0 8rpx; }
-.safety-note,.disclaimer { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.8; text-align: center; margin-top: 24rpx; }
+.safety-note { font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted, #6e7b75); line-height: 1.8; text-align: center; margin-top: 24rpx; }
 
 /* 睡前安顿卡 + 夜间安静模式：暗色保留，统一为令牌墨绿 */
 .sleep-card { padding: 24rpx 0; margin-top: 24rpx; border: 0; border-top: 1rpx solid var(--zy-border, #d3ded8); border-radius: var(--zy-radius-control, 18rpx); line-height: 1.8; background: transparent; }
@@ -227,7 +232,7 @@ button::after { border: 0; }
 .sleeping .sound-title { color: var(--zy-bg-tint-mint, #eef3fb); }
 .sleeping .sound-description { color: rgba(232, 239, 228, 0.75); }
 .sleeping .sound-toggle { background: rgba(142, 169, 220, 0.2); color: var(--zy-bg-tint-mint, #eef3fb); }
-.sleeping .safety-note,.sleeping .disclaimer { color: rgba(232, 239, 228, 0.7); }
+.sleeping .safety-note { color: rgba(232, 239, 228, 0.7); }
 /* 子组件根元素受父级 scoped 影响：感官落地卡在夜间模式同样压暗 */
 .sleeping .sensory { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
 .sleeping .sensory .kicker { color: rgba(232, 239, 228, 0.6); }
@@ -239,8 +244,12 @@ button::after { border: 0; }
 
 @media (prefers-reduced-motion: reduce) { .orb,.orb.expanding { transform: none; transition: none; } }
 /* #ifdef H5 */
-.mindful-header,.practice-card,.sound-card,.other-actions,.safety-note,.disclaimer { max-width: 560px; margin-left: auto; margin-right: auto; }
+.mindful-header,
+.practice-card,
+.sound-card,
+.other-actions,
+.safety-note { max-width: 560px; margin-left: auto; margin-right: auto; }
 /* #endif */
 
-.primary-action:focus-visible,.duration-row button:focus-visible,.text-action:focus-visible,.sound-toggle:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.primary-action:focus-visible,.duration-row button:focus-visible,.text-action:focus-visible,.sound-toggle:focus-visible {outline:3px solid currentColor;outline-offset:3px}
 </style>

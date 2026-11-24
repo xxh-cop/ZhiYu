@@ -366,8 +366,8 @@ function goCommunity() {
 <style scoped>
 .page { min-height: 100vh; padding: 32rpx 28rpx 120rpx; box-sizing: border-box; background: var(--zy-bg, #ffffff); }
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20rpx; margin-bottom: 24rpx; }
-.page-title { display: block; font-family: var(--zy-serif); font-size:var(--zy-text-title-lg, 40rpx); font-weight: 600; color: var(--zy-title, #233d34); }
-.page-subtitle { display: block; margin-top: 8rpx; font-size:var(--zy-text-caption, 24rpx); color: var(--zy-text, #4a5f54); line-height: 1.6; }
+
+
 .read-all-btn { flex-shrink: 0; padding: 12rpx 24rpx; margin: 0; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); font-size:var(--zy-text-caption, 24rpx); line-height: 1.5; }
 .read-all-btn::after { border: 0; }
 /* AQ4 删除相关 */
@@ -411,15 +411,15 @@ function goCommunity() {
 .load-more { display: block; margin: 28rpx auto 0; padding: 16rpx 40rpx; border-radius: var(--zy-radius-full, 9999rpx); background: var(--zy-bg-tint-mint, #eef3fb); color: var(--zy-brand-700, var(--zy-brand-700, #24478f)); font-size:var(--zy-text-caption, 24rpx); }
 .load-more::after { border: 0; }
 .list-end { display: block; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); padding: 28rpx 0; }
-.footnote { display: block; margin-top: 40rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-text, #4a5f54); }
+
 button:focus-visible, .filter-chip:focus-visible, .notice-item:focus-visible { outline: 3px solid var(--zy-brand-700, var(--zy-brand-700, #24478f)); outline-offset: 3px; }
 
 /* ── v9 冷瓷展签收口 ── */
 .page { padding: 36rpx 32rpx 120rpx; background: var(--zy-bg); }
 .page-head { padding-bottom: 26rpx; border-bottom: 1rpx solid var(--zy-border); }
-.page-eyebrow { display: block; font-size: var(--zy-text-micro, 22rpx); letter-spacing: 2px; color: var(--zy-muted); margin-bottom: 14rpx; }
-.page-title { font-family: var(--zy-font-display, serif); font-size: 64rpx; font-weight: 500; line-height: 1.2; }
-.page-subtitle { color: var(--zy-muted); }
+
+
+
 .read-all-btn { padding: 0; border-radius: var(--zy-radius-control, 18rpx); background: transparent; color: var(--zy-brand-700); border-bottom: 1rpx solid var(--zy-border); }
 .clear-btn { padding: 0; border-radius: var(--zy-radius-control, 18rpx); color: var(--zy-muted); border-bottom: 1rpx solid var(--zy-border); }
 .filter-scroll { margin: 22rpx 0; }
@@ -438,7 +438,7 @@ button:focus-visible, .filter-chip:focus-visible, .notice-item:focus-visible { o
 .unread-dot { top: 24rpx; right: 8rpx; width: 8rpx; height: 8rpx; border-radius: var(--zy-radius-control, 18rpx); display: none; }
 .notice-del { top: 12rpx; right: 2rpx; min-width: 56rpx; min-height: 56rpx; padding: 0; opacity: .32; font-size: 20rpx; color: var(--zy-muted); }
 .load-more { border-radius: var(--zy-radius-control, 18rpx); border: 1rpx solid var(--zy-border); background: transparent; }
-.list-end, .footnote { color: var(--zy-muted); }
+.list-end { color: var(--zy-muted); }
 </style>
 <style scoped>
 /* v9：页头独占一行，批量操作放在下方右侧 */

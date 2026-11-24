@@ -414,7 +414,7 @@ function leave() {
 .loading-text { font-size:var(--zy-text-caption, 24rpx); color: var(--zy-muted); }
 .short-status { display: flex; flex-direction: column; gap: 14rpx; padding: 60rpx 28rpx; text-align: center; }
 .status-text { font-size:var(--zy-text-caption, 24rpx); line-height: 1.8; color: var(--zy-content, #4a5f54); }
-.short-disclaimer { display: block; margin-top: 34rpx; text-align: center; font-size:var(--zy-text-micro, 22rpx); color: var(--zy-muted); }
+
 @keyframes short-breathe {
 	0%, 100% { transform: scale(0.88); }
 	50% { transform: scale(1.04); }
